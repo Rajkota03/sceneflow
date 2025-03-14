@@ -1,8 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useUser, useClerk } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,29 +9,68 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/components/ui/use-toast';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { UserCircle, Mail, KeyRound } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/App';
+import { useNavigate } from 'react-router-dom';
+
+const profileSchema = z.object({
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
+});
+
+const passwordSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+});
 
 const Profile = () => {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { session } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
-  const profileForm = useForm({
+  useEffect(() => {
+    if (!session) {
+      navigate('/sign-in');
+    }
+  }, [session, navigate]);
+  
+  const profileForm = useForm<z.infer<typeof profileSchema>>({
+    resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.firstName || '',
-      lastName: user?.lastName || ''
+      firstName: session?.user?.user_metadata?.first_name || '',
+      lastName: session?.user?.user_metadata?.last_name || ''
     }
   });
 
-  const handleUpdateProfile = async (data: { firstName: string; lastName: string }) => {
-    if (!user) return;
+  const passwordForm = useForm<z.infer<typeof passwordSchema>>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      email: session?.user?.email || '',
+    }
+  });
+
+  const handleUpdateProfile = async (data: z.infer<typeof profileSchema>) => {
+    if (!session) return;
     
     setIsLoading(true);
     try {
-      await user.update({
-        firstName: data.firstName,
-        lastName: data.lastName
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName
+        }
       });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
       
       toast({
         title: "Profile updated",
@@ -49,12 +87,20 @@ const Profile = () => {
     }
   };
 
-  const handleChangePassword = async () => {
+  const handleChangePassword = async (data: z.infer<typeof passwordSchema>) => {
     try {
-      // Use requestPasswordReset instead of createEmailAddressVerification
-      await user?.primaryEmailAddress?.prepareVerification({
-        strategy: "email_code",
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
+      
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
       
       toast({
         title: "Password reset email sent",
@@ -71,14 +117,32 @@ const Profile = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      navigate('/');
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-10 w-40 bg-slate-200 rounded mb-4"></div>
+          <div className="h-4 w-60 bg-slate-200 rounded"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -163,13 +227,13 @@ const Profile = () => {
                 <CardContent className="space-y-4">
                   <div className="flex flex-col gap-1.5">
                     <p className="text-sm font-medium">Current Email</p>
-                    <p className="text-sm text-slate-600">{user.primaryEmailAddress?.emailAddress}</p>
+                    <p className="text-sm text-slate-600">{session.user.email}</p>
                   </div>
                   
                   <div className="flex flex-col gap-1.5">
                     <p className="text-sm font-medium">Email Verification</p>
                     <p className="text-sm text-slate-600">
-                      {user.primaryEmailAddress?.verification.status === "verified" 
+                      {session.user.email_confirmed_at 
                         ? "Your email is verified" 
                         : "Your email is not verified"}
                     </p>
@@ -185,12 +249,29 @@ const Profile = () => {
                   <CardDescription>Update your password</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-slate-600">
-                    We'll send you an email with instructions to reset your password.
-                  </p>
-                  <Button onClick={handleChangePassword}>
-                    Reset Password
-                  </Button>
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(handleChangePassword)} className="space-y-4">
+                      <FormField
+                        control={passwordForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input {...field} readOnly />
+                            </FormControl>
+                            <FormDescription>
+                              We'll send a password reset link to this email
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit">
+                        Reset Password
+                      </Button>
+                    </form>
+                  </Form>
                 </CardContent>
               </Card>
             </TabsContent>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -11,12 +12,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from '@/components/ui/use-toast';
 import EditorMenuBar from '../components/EditorMenuBar';
 import { FormatProvider } from '@/lib/formatContext';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/App';
+import { supabase } from '@/integrations/supabase/client';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { session } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
@@ -25,47 +27,113 @@ const Editor = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load project data
+  // Load project data from Supabase
   useEffect(() => {
-    console.log("Loading project data...");
-    setIsLoading(true);
+    if (!session || !projectId) return;
     
-    setTimeout(() => {
-      if (projectId) {
-        // Create a default element if none exists
-        const defaultContent: ScriptContent = {
-          elements: [
-            {
-              id: "default-element-1",
-              type: "scene-heading",
-              text: "INT. SOMEWHERE - DAY"
-            },
-            {
-              id: "default-element-2",
-              type: "action",
-              text: "Start writing your screenplay here..."
+    const fetchProject = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('id', projectId)
+          .eq('author_id', session.user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching project:', error);
+          
+          // If project doesn't exist or user doesn't have access, create a new one
+          if (error.code === 'PGRST116') {
+            // Create a default element if none exists
+            const defaultContent: ScriptContent = {
+              elements: [
+                {
+                  id: "default-element-1",
+                  type: "scene-heading",
+                  text: "INT. SOMEWHERE - DAY"
+                },
+                {
+                  id: "default-element-2",
+                  type: "action",
+                  text: "Start writing your screenplay here..."
+                }
+              ]
+            };
+            
+            const newProject: Project = {
+              ...emptyProject,
+              id: projectId,
+              authorId: session.user.id,
+              title: 'Untitled Screenplay',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              content: defaultContent
+            };
+            
+            // Insert the new project into Supabase
+            const { error: insertError } = await supabase
+              .from('projects')
+              .insert({
+                id: newProject.id,
+                title: newProject.title,
+                author_id: newProject.authorId,
+                content: newProject.content,
+              });
+            
+            if (insertError) {
+              console.error('Error creating project:', insertError);
+              toast({
+                title: 'Error creating project',
+                description: insertError.message,
+                variant: 'destructive',
+              });
+              navigate('/dashboard');
+              return;
             }
-          ]
-        };
-        
-        const newProject: Project = {
-          ...emptyProject,
-          id: projectId,
-          authorId: user?.id || 'anonymous',
-          title: 'Untitled Screenplay',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          content: defaultContent
-        };
-        
-        console.log("Created new project:", newProject);
-        setProject(newProject);
-        setTitle(newProject.title);
-        setContent(newProject.content);
+            
+            setProject(newProject);
+            setTitle(newProject.title);
+            setContent(newProject.content);
+          } else {
+            toast({
+              title: 'Error loading project',
+              description: error.message,
+              variant: 'destructive',
+            });
+            navigate('/dashboard');
+          }
+        } else if (data) {
+          const formattedProject: Project = {
+            id: data.id,
+            title: data.title,
+            authorId: data.author_id,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at),
+            content: data.content || { elements: [] },
+          };
+          
+          setProject(formattedProject);
+          setTitle(formattedProject.title);
+          setContent(formattedProject.content);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load the project. Please try again.',
+          variant: 'destructive',
+        });
+        navigate('/dashboard');
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }, 800);
-  }, [projectId, user?.id]);
+    };
+    
+    fetchProject();
+  }, [projectId, session, navigate]);
 
   const handleContentChange = useCallback((newContent: ScriptContent) => {
     setContent(newContent);
@@ -77,23 +145,42 @@ const Editor = () => {
 
   // Auto-save functionality
   useEffect(() => {
-    if (!project || isLoading) return;
+    if (!project || isLoading || !session) return;
     
     const autoSaveTimer = setTimeout(() => {
       handleSave(true);
     }, 10000); // Auto-save after 10 seconds of inactivity
     
     return () => clearTimeout(autoSaveTimer);
-  }, [content, title, project, isLoading]);
+  }, [content, title, project, isLoading, session]);
 
-  const handleSave = (isAutoSave = false) => {
-    if (!project) return;
+  const handleSave = async (isAutoSave = false) => {
+    if (!project || !session) return;
     
     setIsSaving(true);
     
-    // In a real app, this would save to a database
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({
+          title,
+          content,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', project.id);
+      
+      if (error) {
+        console.error('Error saving project:', error);
+        if (!isAutoSave) {
+          toast({
+            title: 'Error saving project',
+            description: error.message,
+            variant: 'destructive',
+          });
+        }
+        return;
+      }
+      
       setLastSaved(new Date());
       
       if (!isAutoSave) {
@@ -102,7 +189,18 @@ const Editor = () => {
           description: "Your screenplay has been saved successfully."
         });
       }
-    }, 800);
+    } catch (error) {
+      console.error('Error:', error);
+      if (!isAutoSave) {
+        toast({
+          title: 'Error',
+          description: 'Failed to save the project. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isLoading) {

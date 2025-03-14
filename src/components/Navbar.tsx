@@ -1,17 +1,18 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SignedIn, SignedOut, useUser, useClerk } from '@clerk/clerk-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/App';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isLoaded: isUserLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { session } = useAuth();
   
   const isHome = location.pathname === '/';
   const isDashboard = location.pathname === '/dashboard';
@@ -19,12 +20,28 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        toast({
+          title: "Error signing out",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      
       navigate('/');
     } catch (error) {
       console.error("Error signing out:", error);
     }
   };
+
+  const userFullName = session?.user?.user_metadata?.first_name 
+    ? `${session.user.user_metadata.first_name} ${session.user.user_metadata.last_name || ''}`
+    : 'User';
+  
+  const userEmail = session?.user?.email || '';
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isEditor ? 'opacity-0 hover:opacity-100' : ''}`}>
@@ -47,36 +64,28 @@ const Navbar = () => {
                 </>
               )}
               
-              <SignedIn>
-                {!isDashboard && !isEditor && (
-                  <Link to="/dashboard" className="text-slate-600 hover:text-primary transition-colors">Dashboard</Link>
-                )}
-                {!isEditor && isDashboard && (
-                  <Link to="/dashboard" className="text-slate-600 hover:text-primary font-semibold transition-colors">My Projects</Link>
-                )}
-                {isUserLoaded && user && (
+              {session ? (
+                <>
+                  {!isDashboard && !isEditor && (
+                    <Link to="/dashboard" className="text-slate-600 hover:text-primary transition-colors">Dashboard</Link>
+                  )}
+                  {!isEditor && isDashboard && (
+                    <Link to="/dashboard" className="text-slate-600 hover:text-primary font-semibold transition-colors">My Projects</Link>
+                  )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                          {user.imageUrl ? (
-                            <img 
-                              src={user.imageUrl} 
-                              alt={user.fullName || 'User'} 
-                              className="w-8 h-8 rounded-full object-cover" 
-                            />
-                          ) : (
-                            <User size={20} className="text-slate-500" />
-                          )}
+                          <User size={20} className="text-slate-500" />
                         </div>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56" align="end" forceMount>
                       <DropdownMenuLabel className="font-normal">
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium leading-none">{user.fullName || 'User'}</p>
+                          <p className="text-sm font-medium leading-none">{userFullName}</p>
                           <p className="text-xs leading-none text-muted-foreground">
-                            {user.primaryEmailAddress?.emailAddress}
+                            {userEmail}
                           </p>
                         </div>
                       </DropdownMenuLabel>
@@ -97,17 +106,17 @@ const Navbar = () => {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                )}
-              </SignedIn>
-
-              <SignedOut>
-                <Button asChild variant="ghost">
-                  <Link to="/sign-in" className="text-slate-600 hover:text-primary transition-colors">Sign In</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/sign-up">Get Started</Link>
-                </Button>
-              </SignedOut>
+                </>
+              ) : (
+                <>
+                  <Button asChild variant="ghost">
+                    <Link to="/sign-in" className="text-slate-600 hover:text-primary transition-colors">Sign In</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link to="/sign-up">Get Started</Link>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -146,51 +155,53 @@ const Navbar = () => {
               </>
             )}
             
-            <SignedIn>
-              {!isDashboard && !isEditor && (
+            {session ? (
+              <>
+                {!isDashboard && !isEditor && (
+                  <Link 
+                    to="/dashboard" 
+                    className="text-slate-600 hover:text-primary transition-colors py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                )}
                 <Link 
-                  to="/dashboard" 
+                  to="/profile" 
                   className="text-slate-600 hover:text-primary transition-colors py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Dashboard
+                  Profile
                 </Link>
-              )}
-              <Link 
-                to="/profile" 
-                className="text-slate-600 hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Profile
-              </Link>
-              <Button 
-                variant="ghost" 
-                className="justify-start text-red-500 hover:text-red-600 hover:bg-red-50 py-2"
-                onClick={() => {
-                  handleSignOut();
-                  setIsMenuOpen(false);
-                }}
-              >
-                <LogOut size={16} className="mr-2" />
-                Log out
-              </Button>
-            </SignedIn>
-
-            <SignedOut>
-              <Link 
-                to="/sign-in" 
-                className="text-slate-600 hover:text-primary transition-colors py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Button 
-                asChild
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <Link to="/sign-up">Get Started</Link>
-              </Button>
-            </SignedOut>
+                <Button 
+                  variant="ghost" 
+                  className="justify-start text-red-500 hover:text-red-600 hover:bg-red-50 py-2"
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Log out
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link 
+                  to="/sign-in" 
+                  className="text-slate-600 hover:text-primary transition-colors py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Button 
+                  asChild
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Link to="/sign-up">Get Started</Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
