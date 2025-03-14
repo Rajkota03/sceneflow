@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -16,6 +15,7 @@ import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import TitlePageView from '@/components/TitlePageView';
 import { TitlePageData } from '@/components/TitlePageEditor';
+import { Json } from '@/integrations/supabase/types';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -37,6 +37,12 @@ const Editor = () => {
     basedOn: '',
     contact: ''
   });
+
+  useEffect(() => {
+    if (titlePageData && titlePageData.title) {
+      localStorage.setItem('currentTitlePageData', JSON.stringify(titlePageData));
+    }
+  }, [titlePageData]);
 
   useEffect(() => {
     if (!session || !projectId) return;
@@ -132,11 +138,10 @@ const Editor = () => {
           setTitle(formattedProject.title);
           setContent(formattedProject.content);
           
-          // Load title page data if it exists
           if (data.title_page) {
-            setTitlePageData(data.title_page as TitlePageData);
+            const titleData = data.title_page as Json as unknown as TitlePageData;
+            setTitlePageData(titleData);
           } else {
-            // Set default title page data
             setTitlePageData({
               title: formattedProject.title,
               author: session.user.user_metadata?.full_name || session.user.email || '',
@@ -168,7 +173,6 @@ const Editor = () => {
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
     
-    // Also update the title in the title page data
     setTitlePageData(prev => ({
       ...prev,
       title: e.target.value
@@ -202,7 +206,7 @@ const Editor = () => {
           title,
           content: scriptContentToJson(content),
           updated_at: new Date().toISOString(),
-          title_page: titlePageData
+          title_page: titlePageData as unknown as Json
         })
         .eq('id', project.id);
       
@@ -262,7 +266,6 @@ const Editor = () => {
     try {
       const newProjectId = `project-${Date.now()}`;
       
-      // Update title in title page data
       const updatedTitlePageData = {
         ...titlePageData,
         title: newTitle
@@ -275,7 +278,7 @@ const Editor = () => {
           title: newTitle,
           author_id: session.user.id,
           content: scriptContentToJson(content),
-          title_page: updatedTitlePageData
+          title_page: updatedTitlePageData as unknown as Json
         })
         .select('id')
         .single();
@@ -314,7 +317,6 @@ const Editor = () => {
 
   const handleTitlePageUpdate = (data: TitlePageData) => {
     setTitlePageData(data);
-    // If the title changed, update the screenplay title as well
     if (data.title !== title) {
       setTitle(data.title);
     }

@@ -128,6 +128,69 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
         document.body.removeChild(tempContainer);
         
         pdf.addPage();
+      } else {
+        const hiddenTitlePageContainer = document.createElement('div');
+        hiddenTitlePageContainer.style.position = 'absolute';
+        hiddenTitlePageContainer.style.left = '-9999px';
+        hiddenTitlePageContainer.style.width = '8.5in';
+        
+        const titlePageData = JSON.parse(localStorage.getItem('currentTitlePageData') || '{}');
+        if (titlePageData && titlePageData.title) {
+          const titlePageElement = document.createElement('div');
+          titlePageElement.className = 'title-page flex flex-col items-center min-h-[11in] text-center relative py-8';
+          titlePageElement.innerHTML = `
+            <div class="title-section" style="margin-top: 3in">
+              <h1 class="text-xl uppercase font-bold mb-8">${titlePageData.title || "SCRIPT TITLE"}</h1>
+              
+              <div class="author-section mt-12">
+                <p class="mb-2">Written by</p>
+                <p class="mb-12">${titlePageData.author || "Name of Writer"}</p>
+              </div>
+              
+              ${titlePageData.basedOn ? `
+                <div class="based-on-section mt-12">
+                  <p>${titlePageData.basedOn}</p>
+                </div>
+              ` : ''}
+            </div>
+            
+            ${titlePageData.contact ? `
+              <div class="contact-section absolute bottom-24 left-24 text-sm text-left whitespace-pre-line">
+                <p>${titlePageData.contact}</p>
+              </div>
+            ` : ''}
+          `;
+          
+          const formatStyler = document.createElement('div');
+          formatStyler.style.fontFamily = 'Courier Prime, monospace';
+          formatStyler.style.fontSize = '12pt';
+          formatStyler.style.width = '8.5in';
+          formatStyler.style.padding = '0.5in';
+          formatStyler.appendChild(titlePageElement);
+          
+          hiddenTitlePageContainer.appendChild(formatStyler);
+          document.body.appendChild(hiddenTitlePageContainer);
+          
+          const titleCanvas = await html2canvas(formatStyler, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+          });
+          
+          pdf.addImage(
+            titleCanvas.toDataURL('image/png', 1.0),
+            'PNG',
+            0,
+            0,
+            8.5,
+            11
+          );
+          
+          document.body.removeChild(hiddenTitlePageContainer);
+          
+          pdf.addPage();
+        }
       }
       
       const clonedPage = scriptPage.cloneNode(true) as HTMLElement;

@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 export interface TitlePageData {
   title: string;
   author: string;
   basedOn?: string;
   contact?: string;
+  [key: string]: string | undefined; // Add index signature for Json compatibility
 }
 
 interface TitlePageEditorProps {
