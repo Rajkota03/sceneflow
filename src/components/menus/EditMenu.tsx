@@ -160,14 +160,17 @@ const EditMenu = () => {
         
         textareas.forEach(textarea => {
           if (textarea.value.includes(textToFind)) {
-            const newValue = textarea.value.replaceAll(textToFind, replaceWith);
+            // Use split and join instead of replaceAll for better compatibility
+            const newValue = textarea.value.split(textToFind).join(replaceWith);
             textarea.value = newValue;
             
             // Trigger input event to update state
             const event = new Event('input', { bubbles: true });
             textarea.dispatchEvent(event);
             
-            replacementsCount += (textarea.value.match(new RegExp(textToFind, 'g')) || []).length;
+            // Count replacements (approximately)
+            const occurrences = (textarea.value.match(new RegExp(textToFind, 'g')) || []).length;
+            replacementsCount += occurrences;
           }
         });
         
