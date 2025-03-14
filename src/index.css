@@ -65,8 +65,12 @@
     @apply absolute inset-0 border border-slate-200 pointer-events-none;
   }
   
+  .element-container {
+    @apply mb-1 relative;
+  }
+  
   .scene-heading {
-    @apply font-bold uppercase mb-2;
+    @apply font-bold uppercase mb-3;
   }
   
   .action {
@@ -119,4 +123,57 @@
   .text-shadow {
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
+}
+
+/* Final Draft 12 inspired styling */
+.editor-header {
+  background-color: #222222;
+  color: white;
+  border-bottom: 1px solid #333333;
+}
+
+.script-page {
+  background-color: white;
+  color: #000000;
+  font-family: 'Courier Prime', monospace;
+  font-size: 12pt;
+  line-height: 1.5;
+  width: 100%;
+  max-width: 8.5in;
+  min-height: 11in;
+  padding: 1in;
+  margin: 0 auto;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border: 1px solid #DDDDDD;
+}
+
+/* Element type specific styling */
+.scene-heading textarea {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.character textarea {
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+
+.dialogue textarea {
+  text-align: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.parenthetical textarea {
+  text-align: center;
+  font-style: italic;
+}
+
+.transition textarea {
+  text-align: right;
+  text-transform: uppercase;
+  font-weight: bold;
 }

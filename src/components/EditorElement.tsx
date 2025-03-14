@@ -48,7 +48,7 @@ const EditorElement = ({
   }, [text]);
 
   return (
-    <div className={element.type}>
+    <div className={`${element.type} element-container`}>
       <textarea
         ref={inputRef}
         value={text}
