@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -87,6 +88,7 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
               padding: 0;
               background-color: #fff;
               font-family: 'Courier Prime', monospace;
+              line-height: 1.2;
             }
             
             .script-container {
@@ -96,39 +98,12 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
               box-sizing: border-box;
             }
             
-            .script-page {
-              width: 100%;
-              background-color: white;
-              color: black;
-              font-family: 'Courier Prime', monospace;
-              font-size: 12pt;
-              line-height: 1.2;
-              border: none;
-              box-shadow: none;
+            .element-container {
+              position: relative;
+              margin-bottom: 0.3em;
             }
             
-            /* Hide any UI elements */
-            .menubar, .fixed, button, .toolbar, [contenteditable=true] {
-              display: none !important;
-            }
-            
-            /* Make sure all textarea content is visible as regular text */
-            textarea {
-              border: none;
-              background: transparent;
-              resize: none;
-              overflow: visible;
-              width: 100%;
-              height: auto;
-              font-family: inherit;
-              font-size: inherit;
-              line-height: inherit;
-              padding: 0;
-              margin: 0;
-              white-space: pre-wrap;
-            }
-            
-            /* Element styles */
+            /* Element type specific styling - preserve exact formatting */
             .scene-heading-element {
               text-transform: uppercase;
               font-weight: bold;
@@ -167,22 +142,32 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
               margin: 1em 0;
             }
             
+            /* Hide any UI elements */
+            .menubar, .fixed, button, .toolbar {
+              display: none !important;
+            }
+            
+            /* Make sure all textarea content is visible as regular text */
+            .text-content {
+              white-space: pre-wrap;
+              font-family: 'Courier Prime', monospace;
+              font-size: 12pt;
+              line-height: 1.2;
+            }
+            
+            /* Print settings */
+            @page {
+              size: letter;
+              margin: 0;
+            }
+            
             @media print {
               body {
                 print-color-adjust: exact;
                 -webkit-print-color-adjust: exact;
               }
               
-              @page {
-                size: letter;
-                margin: 0;
-              }
-              
               .script-container {
-                width: 100%;
-                height: 100%;
-                padding: 1in;
-                box-sizing: border-box;
                 page-break-after: always;
               }
             }
@@ -198,27 +183,55 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     // Get script content and convert textareas to plain text
     const container = printWindow.document.querySelector('.script-container');
     if (container && scriptContent) {
-      // Find all textareas and replace them with their content as regular text
-      const textAreas = scriptContent.querySelectorAll('textarea');
-      textAreas.forEach(textarea => {
+      // Process each element
+      const elements = scriptContent.querySelectorAll('[class*="-element"]');
+      elements.forEach(element => {
+        const textarea = element.querySelector('textarea');
+        if (!textarea) return;
+        
+        const text = textarea.value;
+        if (!text.trim()) return;
+        
+        // Create a div with the same class as the element for proper styling
         const div = printWindow.document.createElement('div');
-        const elementContainer = textarea.closest('[class*="-element"]');
-        if (elementContainer) {
-          // Copy the class to preserve styling
-          const className = Array.from(elementContainer.classList)
-            .find(cls => cls.endsWith('-element'));
-          if (className) {
-            div.className = className;
-          }
+        const className = Array.from(element.classList)
+          .find(cls => cls.endsWith('-element'));
+        
+        if (className) {
+          div.className = className;
         }
-        div.textContent = textarea.value;
-        if (textarea.parentNode) {
-          textarea.parentNode.replaceChild(div, textarea);
+        
+        // Create a paragraph to hold the text content
+        const paragraph = printWindow.document.createElement('p');
+        paragraph.className = 'text-content';
+        paragraph.textContent = text;
+        
+        // Apply specific styling based on element type
+        if (className === 'character-element') {
+          paragraph.style.textAlign = 'center';
+          paragraph.style.textTransform = 'uppercase';
+          paragraph.style.fontWeight = 'bold';
+        } else if (className === 'dialogue-element') {
+          paragraph.style.textAlign = 'center';
+          paragraph.style.width = '60%';
+          paragraph.style.margin = '0 auto';
+        } else if (className === 'parenthetical-element') {
+          paragraph.style.textAlign = 'center';
+          paragraph.style.fontStyle = 'italic';
+          paragraph.style.width = '40%';
+          paragraph.style.margin = '0 auto';
+        } else if (className === 'scene-heading-element') {
+          paragraph.style.textTransform = 'uppercase';
+          paragraph.style.fontWeight = 'bold';
+        } else if (className === 'transition-element') {
+          paragraph.style.textAlign = 'right';
+          paragraph.style.textTransform = 'uppercase';
+          paragraph.style.fontWeight = 'bold';
         }
+        
+        div.appendChild(paragraph);
+        container.appendChild(div);
       });
-      
-      // Add the processed content to the print window
-      container.appendChild(scriptContent);
       
       // Remove any remaining editor controls
       const controlsToRemove = container.querySelectorAll('.menubar, .fixed, button, .toolbar');

@@ -31,7 +31,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
     margin: '0 auto',
     padding: '0.5in',
     transition: 'all 0.2s ease',
-    boxSizing: 'border-box' as 'border-box', // Type assertion to fix the error
+    boxSizing: 'border-box' as 'border-box',
   };
 
   return (
