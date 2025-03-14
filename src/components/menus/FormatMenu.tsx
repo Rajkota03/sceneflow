@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -17,7 +18,7 @@ import {
   Bold, 
   Italic, 
   Underline, 
-  StrikeThrough, 
+  Strikethrough, 
   AlignLeft, 
   AlignCenter, 
   AlignRight 
