@@ -2,9 +2,11 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { SignedIn, SignedOut } from '@clerk/clerk-react';
+import { useAuth } from '@/App';
 
 const Hero = () => {
+  const { session } = useAuth();
+
   return (
     <div className="py-24 md:py-32 lg:py-40 bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="container mx-auto px-4">
@@ -18,28 +20,28 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <SignedOut>
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <Link to="/sign-up" className="text-base">
-                  Start Writing Now
-                  <ArrowRight size={18} className="ml-2" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <Link to="/sign-in" className="text-base">
-                  Sign In
-                </Link>
-              </Button>
-            </SignedOut>
-            
-            <SignedIn>
+            {!session ? (
+              <>
+                <Button asChild size="lg" className="w-full sm:w-auto">
+                  <Link to="/sign-up" className="text-base">
+                    Start Writing Now
+                    <ArrowRight size={18} className="ml-2" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+                  <Link to="/sign-in" className="text-base">
+                    Sign In
+                  </Link>
+                </Button>
+              </>
+            ) : (
               <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link to="/dashboard" className="text-base">
                   Go to Dashboard
                   <ArrowRight size={18} className="ml-2" />
                 </Link>
               </Button>
-            </SignedIn>
+            )}
           </div>
           
           <div className="mt-16">
