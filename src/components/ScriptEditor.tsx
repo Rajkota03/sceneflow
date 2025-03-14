@@ -1,9 +1,10 @@
 
-import { ScriptContent } from '../lib/types';
+import { useEffect } from 'react';
+import { ScriptContent, ScriptElement } from '../lib/types';
 import EditorElement from './EditorElement';
 import EditorKeyboardHandler from './EditorKeyboardHandler';
 import useScriptElements from '../hooks/useScriptElements';
-import { processCharacterName } from '../lib/characterUtils';
+import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
 
 interface ScriptEditorProps {
@@ -19,8 +20,24 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     handleElementChange,
     getPreviousElementType,
     addNewElement,
-    changeElementType
+    changeElementType,
+    setElements
   } = useScriptElements(initialContent, onChange);
+
+  // Ensure there's always at least one element to edit
+  useEffect(() => {
+    if (elements.length === 0) {
+      const defaultElements: ScriptElement[] = [
+        {
+          id: generateUniqueId(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        }
+      ];
+      setElements(defaultElements);
+      setActiveElementId(defaultElements[0].id);
+    }
+  }, [elements.length, setElements, setActiveElementId]);
 
   return (
     <div className="flex justify-center w-full">

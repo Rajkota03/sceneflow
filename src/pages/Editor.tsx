@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -28,12 +27,27 @@ const Editor = () => {
 
   // Load project data
   useEffect(() => {
-    // In a real app, you would fetch this from a database
-    // For now, create a new project if projectId is provided
+    console.log("Loading project data...");
     setIsLoading(true);
     
     setTimeout(() => {
       if (projectId) {
+        // Create a default element if none exists
+        const defaultContent: ScriptContent = {
+          elements: [
+            {
+              id: "default-element-1",
+              type: "scene-heading",
+              text: "INT. SOMEWHERE - DAY"
+            },
+            {
+              id: "default-element-2",
+              type: "action",
+              text: "Start writing your screenplay here..."
+            }
+          ]
+        };
+        
         const newProject: Project = {
           ...emptyProject,
           id: projectId,
@@ -41,7 +55,10 @@ const Editor = () => {
           title: 'Untitled Screenplay',
           createdAt: new Date(),
           updatedAt: new Date(),
+          content: defaultContent
         };
+        
+        console.log("Created new project:", newProject);
         setProject(newProject);
         setTitle(newProject.title);
         setContent(newProject.content);
@@ -171,7 +188,7 @@ const Editor = () => {
           <div>100%</div>
         </div>
         
-        <main className="flex-grow pt-4 pb-10 flex justify-center px-4 bg-[#EEEEEE]">
+        <main className="flex-grow pt-4 pb-10 flex justify-center px-4 bg-[#EEEEEE] overflow-auto">
           <ScriptEditor initialContent={content} onChange={handleContentChange} />
         </main>
       </div>

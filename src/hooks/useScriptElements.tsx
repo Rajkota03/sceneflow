@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
@@ -8,8 +7,10 @@ export function useScriptElements(
   initialContent: ScriptContent,
   onChange: (content: ScriptContent) => void
 ) {
-  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements);
-  const [activeElementId, setActiveElementId] = useState<string | null>(elements[0]?.id || null);
+  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
+  const [activeElementId, setActiveElementId] = useState<string | null>(
+    elements.length > 0 ? elements[0].id : null
+  );
 
   useEffect(() => {
     onChange({ elements });
@@ -96,6 +97,7 @@ export function useScriptElements(
 
   return {
     elements,
+    setElements,
     activeElementId,
     setActiveElementId,
     handleElementChange,

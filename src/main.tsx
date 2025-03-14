@@ -1,25 +1,19 @@
 
-import { createRoot } from 'react-dom/client'
-import { ClerkProvider } from "@clerk/clerk-react";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './App.css'
+import { ClerkProvider } from '@clerk/clerk-react'
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+// Get the publishable key, but provide a fallback for development
+const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_dummy-key-for-development';
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Clerk Publishable Key. Add VITE_CLERK_PUBLISHABLE_KEY to your environment variables.");
-}
-
-createRoot(document.getElementById("root")!).render(
-  <ClerkProvider
-    publishableKey={PUBLISHABLE_KEY}
-    clerkJSVersion="5.56.0-snapshot.v20250312225817"
-    signInUrl="/sign-in"
-    signUpUrl="/sign-up"
-    signInFallbackRedirectUrl="/dashboard"
-    signUpFallbackRedirectUrl="/dashboard"
-    afterSignOutUrl="/"
-  >
-    <App />
-  </ClerkProvider>
-);
+// Wrap with ClerkProvider for authentication
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <ClerkProvider publishableKey={publishableKey}>
+      <App />
+    </ClerkProvider>
+  </React.StrictMode>,
+)
