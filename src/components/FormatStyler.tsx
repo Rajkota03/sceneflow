@@ -5,9 +5,10 @@ import { useFormat } from '@/lib/formatContext';
 interface FormatStylerProps {
   children: React.ReactNode;
   forPrint?: boolean;
+  forExport?: boolean;
 }
 
-const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false }) => {
+const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false, forExport = false }) => {
   const { formatState } = useFormat();
   
   const style: React.CSSProperties = {
@@ -27,8 +28,8 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false 
     marginTop: `${formatState.spaceBefore}pt`,
     width: '100%',
     maxWidth: '8.5in',
-    height: forPrint ? 'auto' : 'auto',
-    minHeight: forPrint ? 'auto' : '11in',
+    height: forPrint || forExport ? 'auto' : 'auto',
+    minHeight: forPrint || forExport ? 'auto' : '11in',
     margin: '0 auto',
     padding: '0.5in',
     transition: 'all 0.2s ease',
@@ -38,7 +39,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false 
   return (
     <div 
       style={style} 
-      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint ? 'print-version' : 'overflow-visible'}`}
+      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
     >
       {children}
     </div>

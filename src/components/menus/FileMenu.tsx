@@ -15,6 +15,7 @@ import { toast } from '@/components/ui/use-toast';
 import { scriptContentToJson } from '@/lib/types';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import FormatStyler from '../FormatStyler';
 
 interface FileMenuProps {
   onSave: () => void;
@@ -33,7 +34,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
   };
 
   const handleSaveAs = () => {
-    // Clone the current script with a new name via prompt
     const newName = prompt("Enter a new name for your screenplay:", "");
     if (newName) {
       toast({
@@ -60,8 +60,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
         description: "Processing your PDF file...",
       });
 
-      // In a real application, you would use a PDF parsing library here
-      // For now, we'll just simulate the import
       setTimeout(() => {
         toast({
           title: "PDF Imported",
@@ -76,7 +74,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       });
     }
     
-    // Reset the input so the same file can be selected again
     event.target.value = '';
   };
 
@@ -86,7 +83,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       description: "Preparing your screenplay for PDF export...",
     });
     
-    // Get screenplay content
     const scriptPage = document.querySelector('.script-page');
     if (!scriptPage) {
       toast({
@@ -98,128 +94,95 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     }
     
     try {
-      // Use html2canvas to capture the screenplay content
-      const canvas = await html2canvas(scriptPage as HTMLElement, {
-        scale: 2, // Higher resolution
+      const clonedPage = scriptPage.cloneNode(true) as HTMLElement;
+      
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '8.5in';
+      tempContainer.appendChild(clonedPage);
+      document.body.appendChild(tempContainer);
+      
+      const textareas = clonedPage.querySelectorAll('textarea');
+      textareas.forEach(textarea => {
+        const text = textarea.value;
+        const p = document.createElement('p');
+        p.textContent = text;
+        p.style.margin = '0';
+        p.style.padding = '0';
+        p.style.fontFamily = 'Courier Prime, monospace';
+        p.style.fontSize = '12pt';
+        p.style.lineHeight = '1.2';
+        p.style.whiteSpace = 'pre-wrap';
+        
+        const elementContainer = textarea.closest('[class*="-element"]');
+        if (elementContainer) {
+          if (elementContainer.classList.contains('scene-heading-element')) {
+            p.style.textTransform = 'uppercase';
+            p.style.fontWeight = 'bold';
+          } else if (elementContainer.classList.contains('character-element')) {
+            p.style.textTransform = 'uppercase';
+            p.style.fontWeight = 'bold';
+            p.style.textAlign = 'center';
+          } else if (elementContainer.classList.contains('dialogue-element')) {
+            p.style.textAlign = 'center';
+          } else if (elementContainer.classList.contains('parenthetical-element')) {
+            p.style.textAlign = 'center';
+            p.style.fontStyle = 'italic';
+          } else if (elementContainer.classList.contains('transition-element')) {
+            p.style.textAlign = 'right';
+            p.style.textTransform = 'uppercase';
+            p.style.fontWeight = 'bold';
+          }
+        }
+        
+        textarea.parentNode?.replaceChild(p, textarea);
+      });
+      
+      const uiElements = clonedPage.querySelectorAll('.btn-handle, button');
+      uiElements.forEach(el => el.parentNode?.removeChild(el));
+      
+      const canvas = await html2canvas(clonedPage, {
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        onclone: (document, element) => {
-          // Modify the cloned DOM to prepare it for export
-          const clone = element as HTMLElement;
-          
-          // Process each element
-          const elements = clone.querySelectorAll('[class*="-element"]');
-          elements.forEach(element => {
-            const textarea = element.querySelector('textarea');
-            if (!textarea) return;
-            
-            const text = textarea.value;
-            if (!text.trim()) return;
-            
-            // Replace textareas with paragraphs
-            const p = document.createElement('p');
-            p.textContent = text;
-            p.className = textarea.className;
-            p.style.whiteSpace = 'pre-wrap';
-            p.style.margin = textarea.style.margin;
-            p.style.padding = textarea.style.padding;
-            p.style.textAlign = textarea.style.textAlign;
-            p.style.fontFamily = 'Courier Prime, monospace';
-            
-            // Apply element-specific styling
-            if (element.classList.contains('character-element')) {
-              p.style.textTransform = 'uppercase';
-              p.style.fontWeight = 'bold';
-            } else if (element.classList.contains('scene-heading-element')) {
-              p.style.textTransform = 'uppercase';
-              p.style.fontWeight = 'bold';
-            } else if (element.classList.contains('transition-element')) {
-              p.style.textAlign = 'right';
-              p.style.textTransform = 'uppercase';
-              p.style.fontWeight = 'bold';
-            }
-            
-            textarea.parentNode?.replaceChild(p, textarea);
-          });
-          
-          // Remove any editor UI elements
-          const uiElements = clone.querySelectorAll('.btn-handle, button, .menubar, .toolbar');
-          uiElements.forEach(el => el.remove());
-        },
       });
       
-      // Create PDF document
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'px',
-        format: 'letter',
+        unit: 'in',
+        format: 'letter'
       });
       
-      // Calculate dimensions to maintain aspect ratio
-      const imgData = canvas.toDataURL('image/png');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const canvasRatio = canvas.height / canvas.width;
-      const pageRatio = pdfHeight / pdfWidth;
+      pdf.addImage(
+        canvas.toDataURL('image/png', 1.0),
+        'PNG',
+        0,
+        0,
+        8.5,
+        11
+      );
       
-      let finalWidth, finalHeight;
+      document.body.removeChild(tempContainer);
       
-      if (canvasRatio > pageRatio) {
-        // Canvas is taller relative to its width than the page
-        finalHeight = pdfHeight;
-        finalWidth = pdfHeight / canvasRatio;
-      } else {
-        // Canvas is wider relative to its height than the page
-        finalWidth = pdfWidth;
-        finalHeight = pdfWidth * canvasRatio;
-      }
-      
-      // Add the image to the PDF
-      pdf.addImage(imgData, 'PNG', 0, 0, finalWidth, finalHeight);
-      
-      // Check if content spans multiple pages and add them
-      if (canvas.height > pdfHeight) {
-        const pageCount = Math.ceil(canvas.height / pdfHeight);
-        
-        for (let i = 1; i < pageCount; i++) {
-          // Add a new page
-          pdf.addPage();
-          
-          // Calculate position to continue from previous page
-          const sourceY = i * pdfHeight * (canvas.height / finalHeight);
-          
-          // Add the next part of the image
-          pdf.addImage(
-            imgData, 
-            'PNG', 
-            0, 
-            -i * pdfHeight, // Negative to show next part of the image
-            finalWidth, 
-            finalHeight
-          );
-        }
-      }
-      
-      // Save the PDF
       pdf.save('screenplay.pdf');
       
       toast({
-        title: "PDF Export",
-        description: "PDF exported successfully!",
+        title: "PDF Exported",
+        description: "Your screenplay has been exported successfully.",
       });
     } catch (error) {
       console.error('Error exporting PDF:', error);
       toast({
         title: "Export Failed",
-        description: "An error occurred while exporting the PDF. Please try again.",
+        description: "An error occurred during export. Please try again.",
         variant: "destructive"
       });
     }
   };
 
   const handleExportFountain = () => {
-    // Get the screenplay content
     const scriptContent = document.querySelector('.script-page');
     if (!scriptContent) {
       toast({
@@ -230,10 +193,8 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       return;
     }
     
-    // Convert to Fountain format
     let fountainText = "";
     
-    // Get all elements with scene-heading, action, character, dialogue, etc. classes
     const elements = scriptContent.querySelectorAll('[class*="-element"]');
     elements.forEach(element => {
       const textarea = element.querySelector('textarea');
@@ -259,7 +220,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       }
     });
     
-    // Create and download the Fountain file
     const blob = new Blob([fountainText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -282,7 +242,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       description: "Exporting screenplay to Final Draft (.fdx) format",
     });
     
-    // Get the screenplay content from textareas
     const scriptContent = document.querySelector('.script-page');
     if (!scriptContent) {
       toast({
@@ -293,7 +252,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       return;
     }
     
-    // Build a basic FDX XML structure
     let fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <FinalDraft DocumentType="Script" Template="Screenplay" Version="1">
   <Content>
@@ -301,7 +259,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       <Text>Your screenplay has been exported to Final Draft format.</Text>
     </Paragraph>`;
     
-    // Get all elements with their types
     const elements = scriptContent.querySelectorAll('[class*="-element"]');
     elements.forEach(element => {
       const textarea = element.querySelector('textarea');
@@ -336,7 +293,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
   </Content>
 </FinalDraft>`;
     
-    // Create and download the FDX file
     const blob = new Blob([fdxContent], { type: 'application/xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -359,7 +315,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       description: "Opening print dialog",
     });
     
-    // Add print-specific styling
     const style = document.createElement('style');
     style.textContent = `
       @media print {
@@ -380,10 +335,8 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     `;
     document.head.appendChild(style);
     
-    // Print the document
     window.print();
     
-    // Remove the print style after printing
     setTimeout(() => {
       document.head.removeChild(style);
     }, 500);
