@@ -34,6 +34,11 @@ const EditorElement = ({
   // Update local state when element type changes from outside
   useEffect(() => {
     setElementType(element.type);
+    
+    // If this element becomes a character, ensure it's immediately center-aligned
+    if (element.type === 'character' && inputRef.current) {
+      inputRef.current.style.textAlign = 'center';
+    }
   }, [element.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -42,6 +47,8 @@ const EditorElement = ({
     
     // Auto-detect element type based on content
     const detectedType = detectElementType(newText, previousElementType);
+    
+    // Update element type in parent component
     onChange(element.id, newText, detectedType);
   };
 

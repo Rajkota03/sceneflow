@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -31,30 +30,74 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     return elements[index - 1].type;
   };
 
+  const shouldAddContd = (characterName: string, index: number): boolean => {
+    if (index <= 0) return false;
+    
+    let lastCharacterIndex = -1;
+    let hasActionBetween = false;
+    
+    for (let i = index - 1; i >= 0; i--) {
+      if (elements[i].type === 'character') {
+        lastCharacterIndex = i;
+        break;
+      }
+    }
+    
+    if (lastCharacterIndex === -1) return false;
+    
+    for (let i = lastCharacterIndex + 1; i < index; i++) {
+      if (elements[i].type === 'action') {
+        hasActionBetween = true;
+      } else if (elements[i].type === 'character' && elements[i].text !== characterName) {
+        return false;
+      }
+    }
+    
+    return elements[lastCharacterIndex].text === characterName && hasActionBetween;
+  };
+
+  const processCharacterName = (text: string, index: number): string => {
+    const cleanName = text.replace(/\s*\(CONT'D\)\s*$/, '');
+    
+    if (shouldAddContd(cleanName, index)) {
+      return `${cleanName} (CONT'D)`;
+    }
+    
+    return cleanName;
+  };
+
   const addNewElement = (afterId: string, explicitType?: ElementType) => {
     const afterIndex = elements.findIndex(element => element.id === afterId);
+    const currentElement = elements[afterIndex];
     
-    // Determine type based on previous element or explicit type
     let newType: ElementType = explicitType || 'action';
+    let initialText = '';
     
     if (!explicitType) {
-      const previousElement = elements[afterIndex];
-      
-      if (previousElement?.type === 'scene-heading') {
+      if (currentElement.type === 'scene-heading') {
         newType = 'action';
-      } else if (previousElement?.type === 'character') {
+      } else if (currentElement.type === 'character') {
         newType = 'dialogue';
-      } else if (previousElement?.type === 'action') {
+      } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
         newType = 'action';
-      } else if (previousElement?.type === 'dialogue' || previousElement?.type === 'parenthetical') {
+      } else if (currentElement.type === 'action') {
         newType = 'action';
+      } else if (currentElement.type === 'transition') {
+        newType = 'scene-heading';
+      }
+    }
+    
+    if (newType === 'character' && afterIndex > 0) {
+      const prevCharacterIndex = afterIndex;
+      if (elements[prevCharacterIndex].type === 'character') {
+        initialText = processCharacterName(elements[prevCharacterIndex].text, afterIndex + 1);
       }
     }
     
     const newElement: ScriptElement = {
       id: generateUniqueId(),
       type: newType,
-      text: ''
+      text: initialText
     };
     
     const newElements = [
@@ -68,56 +111,68 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
   };
 
   const changeElementType = (id: string, newType: ElementType) => {
-    setElements(prevElements => 
-      prevElements.map(element => 
-        element.id === id ? { ...element, type: newType } : element
-      )
-    );
+    setElements(prevElements => {
+      const elementIndex = prevElements.findIndex(element => element.id === id);
+      if (elementIndex === -1) return prevElements;
+      
+      return prevElements.map((element, index) => {
+        if (element.id === id) {
+          let newText = element.text;
+          if (newType === 'character') {
+            newText = processCharacterName(newText, elementIndex);
+          }
+          return { ...element, type: newType, text: newText };
+        }
+        return element;
+      });
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
-    // Enter key to add new element
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      
-      // Find the current element
-      const elementIndex = elements.findIndex(element => element.id === id);
-      const currentElement = elements[elementIndex];
-      
-      // If the current element is a character, the next element should be dialogue
-      if (currentElement.type === 'character') {
-        addNewElement(id, 'dialogue');
+    const elementIndex = elements.findIndex(element => element.id === id);
+    const currentElement = elements[elementIndex];
+    
+    if (e.key === 'Enter') {
+      if (e.shiftKey && currentElement.type === 'dialogue') {
+        e.preventDefault();
+        const newText = currentElement.text + '\n';
+        handleElementChange(id, newText, currentElement.type);
       } else {
-        addNewElement(id);
+        e.preventDefault();
+        
+        let nextType: ElementType | undefined = undefined;
+        
+        if (currentElement.type === 'scene-heading') {
+          nextType = 'action';
+        } else if (currentElement.type === 'character') {
+          nextType = 'dialogue';
+        } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
+          nextType = 'action';
+        }
+        
+        addNewElement(id, nextType);
       }
     }
     
-    // Tab key to change formatting
     if (e.key === 'Tab') {
       e.preventDefault();
-      const elementIndex = elements.findIndex(element => element.id === id);
-      const element = elements[elementIndex];
       
       let newType: ElementType = 'action';
       
-      // Cycle through element types
-      if (element.type === 'action') {
+      if (currentElement.type === 'action') {
         newType = 'character';
-      } else if (element.type === 'character') {
+      } else if (currentElement.type === 'character') {
         newType = 'scene-heading';
-      } else if (element.type === 'scene-heading') {
+      } else if (currentElement.type === 'scene-heading') {
         newType = 'transition';
-      } else if (element.type === 'transition') {
+      } else if (currentElement.type === 'transition') {
         newType = 'action';
       }
       
       changeElementType(id, newType);
     }
     
-    // Keyboard shortcuts
     if (e.ctrlKey || e.metaKey) {
-      const elementIndex = elements.findIndex(element => element.id === id);
-      
       switch (e.key) {
         case '1':
           e.preventDefault();
