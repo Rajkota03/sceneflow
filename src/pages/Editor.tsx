@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -146,7 +145,7 @@ const Editor = () => {
     
     const autoSaveTimer = setTimeout(() => {
       handleSave(true);
-    }, 20000); // Changed from 10000 to 20000 (20 seconds)
+    }, 20000);
     
     return () => clearTimeout(autoSaveTimer);
   }, [content, title, project, isLoading, session]);
@@ -188,11 +187,9 @@ const Editor = () => {
       setLastSaved(new Date());
       
       if (!isAutoSave) {
-        // Update button text to "Saved" temporarily
         setSaveButtonText("Saved");
         setSaveButtonIcon("saved");
         
-        // Set a timeout to change it back to "Save" after 2 seconds
         setTimeout(() => {
           setSaveButtonText("Save");
           setSaveButtonIcon("save");
@@ -227,8 +224,9 @@ const Editor = () => {
     setSaveButtonIcon("save");
     
     try {
-      // Create a new project with the same content but new title
+      const newProjectId = `project-${Date.now()}`;
       const newProject = {
+        id: newProjectId,
         title: newTitle,
         author_id: session.user.id,
         content: scriptContentToJson(content),
@@ -252,13 +250,11 @@ const Editor = () => {
         return;
       }
       
-      // Navigate to the new project
       toast({
         title: "Script saved",
         description: `Your screenplay has been saved as "${newTitle}".`
       });
       
-      // Navigate to the new project
       navigate(`/editor/${data.id}`);
     } catch (error) {
       console.error('Error:', error);
