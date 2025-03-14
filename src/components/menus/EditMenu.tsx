@@ -226,97 +226,6 @@ const EditMenu = () => {
     }
   };
 
-  const handleSelectAll = () => {
-    try {
-      // Focus on the active element if it's a text input
-      const activeElement = document.activeElement as HTMLTextAreaElement;
-      if (activeElement && 
-          (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
-        activeElement.select();
-      } else {
-        document.execCommand('selectAll');
-      }
-      toast({
-        title: "Select All",
-        description: "All text selected",
-      });
-    } catch (error) {
-      console.error("Select all failed:", error);
-      toast({
-        title: "Select All Failed",
-        description: "The select all operation could not be completed",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSelectScene = () => {
-    // Find the active element
-    const activeElement = document.activeElement as HTMLElement;
-    if (!activeElement) {
-      toast({
-        title: "Select Scene",
-        description: "No active element found",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Find the current scene element (closest scene-heading ancestor or previous scene-heading)
-    let sceneHeading = activeElement.closest('.scene-heading');
-    if (!sceneHeading) {
-      // Look for the previous scene heading
-      let currentElement = activeElement;
-      while (currentElement && !sceneHeading) {
-        currentElement = currentElement.previousElementSibling as HTMLElement;
-        if (currentElement && currentElement.classList.contains('scene-heading')) {
-          sceneHeading = currentElement;
-        }
-      }
-    }
-    
-    if (sceneHeading) {
-      // Find all elements until the next scene heading
-      const sceneElements = [];
-      let nextElement = sceneHeading as HTMLElement;
-      sceneElements.push(nextElement);
-      
-      while (nextElement.nextElementSibling) {
-        nextElement = nextElement.nextElementSibling as HTMLElement;
-        if (nextElement.classList.contains('scene-heading')) {
-          break;
-        }
-        sceneElements.push(nextElement);
-      }
-      
-      // Select all text in these elements
-      const selection = window.getSelection();
-      if (selection) {
-        selection.removeAllRanges();
-        
-        sceneElements.forEach(element => {
-          const textarea = element.querySelector('textarea');
-          if (textarea) {
-            const range = document.createRange();
-            range.selectNodeContents(textarea);
-            selection.addRange(range);
-          }
-        });
-      }
-      
-      toast({
-        title: "Select Scene",
-        description: "Current scene selected",
-      });
-    } else {
-      toast({
-        title: "Select Scene",
-        description: "No scene found",
-        variant: "destructive"
-      });
-    }
-  };
-
   return (
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Edit</MenubarTrigger>
@@ -350,15 +259,6 @@ const EditMenu = () => {
         <MenubarItem onClick={handleGoTo}>
           Go To...
           <MenubarShortcut>⌘G</MenubarShortcut>
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleSelectAll}>
-          Select All
-          <MenubarShortcut>⌘A</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleSelectScene}>
-          Select Scene
-          <MenubarShortcut>⇧⌘A</MenubarShortcut>
         </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
