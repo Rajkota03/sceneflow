@@ -1,6 +1,7 @@
+
 export interface ScriptElement {
   id: string;
-  type: string;
+  type: ElementType;
   text: string;
 }
 
@@ -16,3 +17,13 @@ export interface Project {
   updatedAt: Date | string;
   content: ScriptContent;
 }
+
+// Define the ElementType union type which is used throughout the application
+export type ElementType = 
+  | 'scene-heading' 
+  | 'action' 
+  | 'character' 
+  | 'dialogue' 
+  | 'parenthetical' 
+  | 'transition' 
+  | 'note';
