@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -164,7 +163,7 @@ const FormatMenu = () => {
               checked={formatState.isStrikethrough}
               onClick={() => handleFormat(toggleStrikethrough, formatState.isStrikethrough ? "Strikethrough formatting removed" : "Strikethrough formatting applied")}
             >
-              <StrikeThrough className="mr-2 h-4 w-4" />
+              <Strikethrough className="mr-2 h-4 w-4" />
               Strikethrough
             </MenubarCheckboxItem>
           </MenubarSubContent>
