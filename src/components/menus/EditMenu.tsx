@@ -6,10 +6,7 @@ import {
   MenubarContent, 
   MenubarItem, 
   MenubarSeparator,
-  MenubarShortcut,
-  MenubarSub,
-  MenubarSubContent,
-  MenubarSubTrigger
+  MenubarShortcut
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 
@@ -26,11 +23,11 @@ const EditMenu = () => {
       <MenubarTrigger className="text-white hover:bg-[#333333]">Edit</MenubarTrigger>
       <MenubarContent>
         <MenubarItem onClick={handleNotImplemented}>
-          Undo Typing
+          Undo
           <MenubarShortcut>⌘Z</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem disabled onClick={handleNotImplemented}>
-          Can't Redo
+        <MenubarItem onClick={handleNotImplemented}>
+          Redo
           <MenubarShortcut>⇧⌘Z</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
@@ -48,8 +45,14 @@ const EditMenu = () => {
         </MenubarItem>
         <MenubarSeparator />
         <MenubarItem onClick={handleNotImplemented}>
-          Delete
+          Find & Replace...
+          <MenubarShortcut>⌘F</MenubarShortcut>
         </MenubarItem>
+        <MenubarItem onClick={handleNotImplemented}>
+          Go To...
+          <MenubarShortcut>⌘G</MenubarShortcut>
+        </MenubarItem>
+        <MenubarSeparator />
         <MenubarItem onClick={handleNotImplemented}>
           Select All
           <MenubarShortcut>⌘A</MenubarShortcut>
@@ -57,36 +60,6 @@ const EditMenu = () => {
         <MenubarItem onClick={handleNotImplemented}>
           Select Scene
           <MenubarShortcut>⇧⌘A</MenubarShortcut>
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
-          Track Changes
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
-          Find...
-          <MenubarShortcut>⌘F</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Go To...
-          <MenubarShortcut>⌘G</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Find Selection
-          <MenubarShortcut>⇧⌘F</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Replace Character...
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
-          AutoFill
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Start Dictation
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Emoji & Symbols
         </MenubarItem>
       </MenubarContent>
     </MenubarMenu>

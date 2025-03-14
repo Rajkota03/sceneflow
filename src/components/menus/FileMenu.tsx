@@ -6,7 +6,10 @@ import {
   MenubarContent, 
   MenubarItem, 
   MenubarSeparator,
-  MenubarShortcut
+  MenubarShortcut,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger
 } from '@/components/ui/menubar';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -34,16 +37,12 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       <MenubarTrigger className="text-white hover:bg-[#333333]">File</MenubarTrigger>
       <MenubarContent>
         <MenubarItem onClick={handleNotImplemented}>
-          New
+          New Script
           <MenubarShortcut>⌘N</MenubarShortcut>
         </MenubarItem>
         <MenubarItem onClick={handleNavigateToDashboard}>
-          Open...
+          Open Script...
           <MenubarShortcut>⌘O</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Close
-          <MenubarShortcut>⌘W</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
         <MenubarItem onClick={onSave}>
@@ -54,9 +53,17 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
           Save As...
           <MenubarShortcut>⇧⌘S</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Revert to Saved
-        </MenubarItem>
+        <MenubarSub>
+          <MenubarSubTrigger>Export</MenubarSubTrigger>
+          <MenubarSubContent>
+            <MenubarItem onClick={handleNotImplemented}>
+              PDF (Industry Standard)
+              <MenubarShortcut>⌘E</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleNotImplemented}>Fountain (.fountain)</MenubarItem>
+            <MenubarItem onClick={handleNotImplemented}>Final Draft (.fdx)</MenubarItem>
+          </MenubarSubContent>
+        </MenubarSub>
         <MenubarSeparator />
         <MenubarItem onClick={handleNotImplemented}>
           Print...
@@ -64,7 +71,8 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
         </MenubarItem>
         <MenubarSeparator />
         <MenubarItem onClick={handleNavigateToDashboard}>
-          Exit
+          Close Project
+          <MenubarShortcut>⌘W</MenubarShortcut>
         </MenubarItem>
       </MenubarContent>
     </MenubarMenu>

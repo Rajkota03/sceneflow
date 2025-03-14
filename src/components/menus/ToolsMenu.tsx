@@ -6,12 +6,11 @@ import {
   MenubarContent, 
   MenubarItem, 
   MenubarSeparator,
-  MenubarShortcut,
-  MenubarCheckboxItem
+  MenubarShortcut
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 
-const ViewMenu = () => {
+const ToolsMenu = () => {
   const handleNotImplemented = () => {
     toast({
       title: "Not implemented",
@@ -21,42 +20,35 @@ const ViewMenu = () => {
 
   return (
     <MenubarMenu>
-      <MenubarTrigger className="text-white hover:bg-[#333333]">View</MenubarTrigger>
+      <MenubarTrigger className="text-white hover:bg-[#333333]">Tools</MenubarTrigger>
       <MenubarContent>
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
-          Dark Mode
-        </MenubarCheckboxItem>
         <MenubarItem onClick={handleNotImplemented}>
-          Full Screen
-          <MenubarShortcut>F11</MenubarShortcut>
+          Scene Navigator
+          <MenubarShortcut>⌘N</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={handleNotImplemented}>
+          Character List
+        </MenubarItem>
+        <MenubarItem onClick={handleNotImplemented}>
+          Dialogue Statistics
+        </MenubarItem>
+        <MenubarItem onClick={handleNotImplemented}>
+          Scene Report
         </MenubarItem>
         <MenubarSeparator />
         <MenubarItem onClick={handleNotImplemented}>
-          Zoom In
-          <MenubarShortcut>⌘+</MenubarShortcut>
+          Grammar & Spell Check
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Zoom Out
-          <MenubarShortcut>⌘-</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
-          Default Zoom
-          <MenubarShortcut>⌘0</MenubarShortcut>
+        <MenubarItem disabled onClick={handleNotImplemented}>
+          AI Assistant (Future Upgrade)
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
-          Show Ruler
-        </MenubarCheckboxItem>
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
-          Show Page Numbers
-        </MenubarCheckboxItem>
-        <MenubarSeparator />
         <MenubarItem onClick={handleNotImplemented}>
-          Editor Preferences...
+          Import Script...
         </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
   );
 };
 
-export default ViewMenu;
+export default ToolsMenu;
