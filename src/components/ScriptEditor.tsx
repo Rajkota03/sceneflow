@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -106,7 +107,11 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     ];
     
     setElements(newElements);
-    setActiveElementId(newElement.id);
+    
+    // Set focus to the new element
+    setTimeout(() => {
+      setActiveElementId(newElement.id);
+    }, 0);
   };
 
   const changeElementType = (id: string, newType: ElementType) => {
