@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
+import { processCharacterName } from '../lib/characterUtils';
 
 export function useScriptElements(
   initialContent: ScriptContent,
@@ -51,7 +52,7 @@ export function useScriptElements(
     if (newType === 'character' && afterIndex > 0) {
       const prevCharacterIndex = afterIndex;
       if (elements[prevCharacterIndex].type === 'character') {
-        initialText = processCharacterName(elements[prevCharacterIndex].text, afterIndex + 1);
+        initialText = processCharacterName(elements[prevCharacterIndex].text, afterIndex + 1, elements);
       }
     }
     
@@ -84,7 +85,7 @@ export function useScriptElements(
         if (element.id === id) {
           let newText = element.text;
           if (newType === 'character') {
-            newText = processCharacterName(newText, elementIndex);
+            newText = processCharacterName(newText, elementIndex, prevElements);
           }
           return { ...element, type: newType, text: newText };
         }
