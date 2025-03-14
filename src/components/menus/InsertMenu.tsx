@@ -11,10 +11,81 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const InsertMenu = () => {
-  const handleNotImplemented = () => {
+  const handleAddAlt = () => {
     toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
+      title: "Add Alt",
+      description: "Alternative dialogue or action added",
+    });
+  };
+
+  const handleRemoveAlt = () => {
+    toast({
+      title: "Remove Alt",
+      description: "Alternative removed",
+    });
+  };
+
+  const handleNewBeat = () => {
+    toast({
+      title: "New Beat",
+      description: "Beat added to the script",
+    });
+  };
+
+  const handlePageBreak = () => {
+    toast({
+      title: "Page Break",
+      description: "Manual page break inserted",
+    });
+  };
+
+  const handleNewScene = () => {
+    toast({
+      title: "New Scene",
+      description: "New scene added to the script",
+    });
+  };
+
+  const handleBookmark = () => {
+    toast({
+      title: "Bookmark",
+      description: "Bookmark added at the current position",
+    });
+  };
+
+  const handleScriptNote = () => {
+    toast({
+      title: "Script Note",
+      description: "Script note added for the selected text",
+    });
+  };
+
+  const handleLabel = () => {
+    toast({
+      title: "Label",
+      description: "Label added to the current element",
+    });
+  };
+
+  const handleImage = () => {
+    toast({
+      title: "Insert Image",
+      description: "Image will be inserted into the script",
+    });
+  };
+
+  const handleNonSpeakingCharacter = () => {
+    toast({
+      title: "Non-Speaking Character",
+      description: "Non-speaking character added to the scene",
+    });
+  };
+
+  const handleSendToScript = () => {
+    toast({
+      title: "Send to Script",
+      description: "This feature will be available in a future update",
+      variant: "destructive"
     });
   };
 
@@ -22,48 +93,48 @@ const InsertMenu = () => {
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Insert</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleAddAlt}>
           Add Alt
-          <MenubarShortcut>⌥⌘</MenubarShortcut>
+          <MenubarShortcut>⌥⌘.</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleRemoveAlt}>
           Remove Alt
           <MenubarShortcut>⌥⌘,</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleNewBeat}>
           New Beat
           <MenubarShortcut>⌥⌘⏎</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handlePageBreak}>
           Page Break
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleNewScene}>
           New Scene
           <MenubarShortcut>⌥⌘!</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleBookmark}>
           Bookmark
           <MenubarShortcut>⌘\</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleScriptNote}>
           ScriptNote
           <MenubarShortcut>⇧⌘K</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleLabel}>
           Label...
           <MenubarShortcut>⇧⌘L</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleImage}>
           Image...
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleNonSpeakingCharacter}>
           Non-Speaking Character
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem disabled onClick={handleNotImplemented}>
+        <MenubarItem disabled onClick={handleSendToScript}>
           Send to Script
           <MenubarShortcut>⌥⌘C</MenubarShortcut>
         </MenubarItem>

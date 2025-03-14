@@ -9,13 +9,6 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const HelpMenu = () => {
-  const handleNotImplemented = () => {
-    toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
-    });
-  };
-
   const showKeyboardShortcuts = () => {
     toast({
       title: "Keyboard Shortcuts",
@@ -23,20 +16,41 @@ const HelpMenu = () => {
     });
   };
 
+  const showUserGuide = () => {
+    toast({
+      title: "User Guide",
+      description: "Scene Flow is a screenplay editor that helps you write professional scripts with proper formatting. Use the menus above to format your text and navigate your screenplay.",
+    });
+  };
+
+  const showFAQs = () => {
+    toast({
+      title: "Frequently Asked Questions",
+      description: "Q: How do I format dialogue? A: Write a character name, press Enter, and start typing. Q: How do I save my script? A: Use ⌘S or click File > Save.",
+    });
+  };
+
+  const contactSupport = () => {
+    toast({
+      title: "Contact Support",
+      description: "For help or to report issues, email support@sceneflow.com or visit our support forum at sceneflow.com/support",
+    });
+  };
+
   return (
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Help</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={showUserGuide}>
           User Guide
         </MenubarItem>
         <MenubarItem onClick={showKeyboardShortcuts}>
           Keyboard Shortcuts
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={showFAQs}>
           FAQs
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={contactSupport}>
           Contact Support
         </MenubarItem>
       </MenubarContent>

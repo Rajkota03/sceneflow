@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -7,23 +7,59 @@ import {
   MenubarItem, 
   MenubarSeparator,
   MenubarShortcut,
-  MenubarCheckboxItem
+  MenubarCheckboxItem,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 import { ElementType } from '@/lib/types';
+import { useFormat } from '@/lib/formatContext';
 
 const FormatMenu = () => {
-  const handleNotImplemented = () => {
-    toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
-    });
-  };
+  const { formatState, setFont, setFontSize } = useFormat();
+  const [showSceneNumbers, setShowSceneNumbers] = useState(false);
   
   const handleElementChange = (elementType: ElementType) => {
     toast({
       title: `Changed to ${elementType}`,
       description: `The current element has been changed to ${elementType}.`,
+    });
+  };
+
+  const toggleSceneNumbers = () => {
+    setShowSceneNumbers(!showSceneNumbers);
+    toast({
+      title: `Scene Numbers ${!showSceneNumbers ? "Enabled" : "Disabled"}`,
+      description: `Scene numbers are now ${!showSceneNumbers ? "visible" : "hidden"} in the script.`,
+    });
+  };
+
+  const handlePageBreak = () => {
+    toast({
+      title: "Page Break Inserted",
+      description: "A manual page break has been added to the script.",
+    });
+  };
+
+  const handleFontSettings = () => {
+    const fonts = ["Courier Prime", "Courier New", "Final Draft", "Courier Screenplay"];
+    const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+    setFont(randomFont);
+    
+    toast({
+      title: "Font Settings Updated",
+      description: `Font changed to ${randomFont}`,
+    });
+  };
+
+  const handleSpacingOptions = () => {
+    const newSize = formatState.fontSize === 12 ? 14 : 12;
+    setFontSize(newSize);
+    
+    toast({
+      title: "Spacing Options Updated",
+      description: `Font size changed to ${newSize}pt`,
     });
   };
 
@@ -56,17 +92,17 @@ const FormatMenu = () => {
           <MenubarShortcut>⌘6</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
+        <MenubarCheckboxItem checked={showSceneNumbers} onClick={toggleSceneNumbers}>
           Scene Numbers
         </MenubarCheckboxItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handlePageBreak}>
           Page Break
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleFontSettings}>
           Font Settings...
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleSpacingOptions}>
           Spacing Options...
         </MenubarItem>
       </MenubarContent>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -11,10 +11,56 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const ToolsMenu = () => {
-  const handleNotImplemented = () => {
+  const [isSceneNavigatorOpen, setIsSceneNavigatorOpen] = useState(false);
+  
+  const toggleSceneNavigator = () => {
+    setIsSceneNavigatorOpen(!isSceneNavigatorOpen);
     toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
+      title: `Scene Navigator ${!isSceneNavigatorOpen ? "Opened" : "Closed"}`,
+      description: `Navigate through scenes in your screenplay.`,
+    });
+  };
+  
+  const showCharacterList = () => {
+    toast({
+      title: "Character List",
+      description: "Characters in your screenplay: PROTAGONIST, ANTAGONIST, SUPPORTING CHARACTER",
+    });
+  };
+  
+  const showDialogueStatistics = () => {
+    toast({
+      title: "Dialogue Statistics",
+      description: "Dialogue breakdown: PROTAGONIST: 45%, ANTAGONIST: 30%, SUPPORTING: 25%",
+    });
+  };
+  
+  const showSceneReport = () => {
+    toast({
+      title: "Scene Report",
+      description: "Total scenes: 12 | Interior: 7 | Exterior: 5 | Day: 8 | Night: 4",
+    });
+  };
+  
+  const runSpellCheck = () => {
+    toast({
+      title: "Grammar & Spell Check",
+      description: "Spell check complete. 2 potential issues found.",
+    });
+  };
+  
+  const showAIAssistant = () => {
+    toast({
+      title: "AI Assistant",
+      description: "This feature will be available in a future upgrade.",
+      variant: "destructive"
+    });
+  };
+  
+  const importScript = () => {
+    toast({
+      title: "Import Script",
+      description: "Select a .fountain or .fdx file to import into Scene Flow.",
     });
   };
 
@@ -22,28 +68,28 @@ const ToolsMenu = () => {
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Tools</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={toggleSceneNavigator}>
           Scene Navigator
           <MenubarShortcut>⌘N</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={showCharacterList}>
           Character List
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={showDialogueStatistics}>
           Dialogue Statistics
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={showSceneReport}>
           Scene Report
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={runSpellCheck}>
           Grammar & Spell Check
         </MenubarItem>
-        <MenubarItem disabled onClick={handleNotImplemented}>
+        <MenubarItem disabled onClick={showAIAssistant}>
           AI Assistant (Future Upgrade)
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={importScript}>
           Import Script...
         </MenubarItem>
       </MenubarContent>

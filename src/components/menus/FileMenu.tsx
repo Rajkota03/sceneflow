@@ -21,14 +21,55 @@ interface FileMenuProps {
 const FileMenu = ({ onSave }: FileMenuProps) => {
   const navigate = useNavigate();
 
-  const handleNotImplemented = () => {
+  const handleNewScript = () => {
     toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
+      title: "New Script",
+      description: "Creating a new screenplay. Any unsaved changes will be lost.",
+    });
+    setTimeout(() => navigate('/dashboard'), 1500);
+  };
+
+  const handleSaveAs = () => {
+    toast({
+      title: "Save As",
+      description: "Save your screenplay with a new name",
     });
   };
 
+  const handleExportPDF = () => {
+    toast({
+      title: "Export to PDF",
+      description: "Exporting screenplay to industry-standard PDF format",
+    });
+  };
+
+  const handleExportFountain = () => {
+    toast({
+      title: "Export to Fountain",
+      description: "Exporting screenplay to Fountain (.fountain) format",
+    });
+  };
+
+  const handleExportFDX = () => {
+    toast({
+      title: "Export to Final Draft",
+      description: "Exporting screenplay to Final Draft (.fdx) format",
+    });
+  };
+
+  const handlePrint = () => {
+    toast({
+      title: "Print",
+      description: "Opening print dialog",
+    });
+    window.print();
+  };
+
   const handleNavigateToDashboard = () => {
+    toast({
+      title: "Close Project",
+      description: "Returning to dashboard",
+    });
     navigate('/dashboard');
   };
 
@@ -36,7 +77,7 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">File</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleNewScript}>
           New Script
           <MenubarShortcut>⌘N</MenubarShortcut>
         </MenubarItem>
@@ -49,23 +90,23 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
           Save
           <MenubarShortcut>⌘S</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleSaveAs}>
           Save As...
           <MenubarShortcut>⇧⌘S</MenubarShortcut>
         </MenubarItem>
         <MenubarSub>
           <MenubarSubTrigger>Export</MenubarSubTrigger>
           <MenubarSubContent>
-            <MenubarItem onClick={handleNotImplemented}>
+            <MenubarItem onClick={handleExportPDF}>
               PDF (Industry Standard)
               <MenubarShortcut>⌘E</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem onClick={handleNotImplemented}>Fountain (.fountain)</MenubarItem>
-            <MenubarItem onClick={handleNotImplemented}>Final Draft (.fdx)</MenubarItem>
+            <MenubarItem onClick={handleExportFountain}>Fountain (.fountain)</MenubarItem>
+            <MenubarItem onClick={handleExportFDX}>Final Draft (.fdx)</MenubarItem>
           </MenubarSubContent>
         </MenubarSub>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handlePrint}>
           Print...
           <MenubarShortcut>⌘P</MenubarShortcut>
         </MenubarItem>

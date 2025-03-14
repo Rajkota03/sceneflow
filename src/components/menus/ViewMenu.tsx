@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -14,11 +14,32 @@ import { useFormat } from '@/lib/formatContext';
 
 const ViewMenu = () => {
   const { zoomIn, zoomOut, resetZoom } = useFormat();
+  const [darkMode, setDarkMode] = useState(false);
+  const [showRuler, setShowRuler] = useState(false);
+  const [showPageNumbers, setShowPageNumbers] = useState(true);
   
-  const handleNotImplemented = () => {
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle('dark');
     toast({
-      title: "Not implemented",
-      description: "This feature is not yet implemented.",
+      title: `${!darkMode ? "Dark" : "Light"} Mode Enabled`,
+      description: `The editor is now in ${!darkMode ? "dark" : "light"} mode`,
+    });
+  };
+
+  const toggleRuler = () => {
+    setShowRuler(!showRuler);
+    toast({
+      title: `Ruler ${!showRuler ? "Shown" : "Hidden"}`,
+      description: `The ruler is now ${!showRuler ? "visible" : "hidden"}`,
+    });
+  };
+
+  const togglePageNumbers = () => {
+    setShowPageNumbers(!showPageNumbers);
+    toast({
+      title: `Page Numbers ${!showPageNumbers ? "Shown" : "Hidden"}`,
+      description: `Page numbers are now ${!showPageNumbers ? "visible" : "hidden"}`,
     });
   };
 
@@ -42,7 +63,7 @@ const ViewMenu = () => {
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">View</MenubarTrigger>
       <MenubarContent>
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
+        <MenubarCheckboxItem checked={darkMode} onClick={toggleDarkMode}>
           Dark Mode
         </MenubarCheckboxItem>
         <MenubarItem onClick={handleFullScreen}>
@@ -63,16 +84,12 @@ const ViewMenu = () => {
           <MenubarShortcut>⌘0</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
+        <MenubarCheckboxItem checked={showRuler} onClick={toggleRuler}>
           Show Ruler
         </MenubarCheckboxItem>
-        <MenubarCheckboxItem onClick={handleNotImplemented}>
+        <MenubarCheckboxItem checked={showPageNumbers} onClick={togglePageNumbers}>
           Show Page Numbers
         </MenubarCheckboxItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
-          Editor Preferences...
-        </MenubarItem>
       </MenubarContent>
     </MenubarMenu>
   );

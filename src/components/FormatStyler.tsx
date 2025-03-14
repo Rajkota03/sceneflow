@@ -29,6 +29,9 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
     height: 'auto',
     minHeight: '11in',
     margin: '0 auto',
+    padding: '0.5in',
+    transition: 'all 0.2s ease',
+    boxSizing: 'border-box',
   };
 
   return (

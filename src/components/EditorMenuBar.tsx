@@ -17,6 +17,7 @@ import FormatMenu from './menus/FormatMenu';
 import ToolsMenu from './menus/ToolsMenu';
 import ProductionMenu from './menus/ProductionMenu';
 import HelpMenu from './menus/HelpMenu';
+import InsertMenu from './menus/InsertMenu';
 import { toast } from '@/components/ui/use-toast';
 
 interface EditorMenuBarProps {
@@ -59,6 +60,7 @@ const EditorMenuBar = ({ onSave }: EditorMenuBarProps) => {
       <FileMenu onSave={onSave} />
       <EditMenu />
       <FormatMenu />
+      <InsertMenu />
       <ToolsMenu />
       <ViewMenu />
       <ProductionMenu />
