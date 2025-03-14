@@ -12,7 +12,16 @@ const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_du
 // Wrap with ClerkProvider for authentication
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider 
+      publishableKey={publishableKey}
+      appearance={{
+        elements: {
+          rootBox: "mx-auto",
+          card: "shadow-md rounded-lg",
+          formButtonPrimary: "bg-primary hover:bg-primary/90"
+        }
+      }}
+    >
       <App />
     </ClerkProvider>
   </React.StrictMode>,

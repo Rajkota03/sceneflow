@@ -26,18 +26,39 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
 
   // Ensure there's always at least one element to edit
   useEffect(() => {
-    if (elements.length === 0) {
+    if (!elements || elements.length === 0) {
+      console.log("No elements found, creating default elements");
       const defaultElements: ScriptElement[] = [
         {
           id: generateUniqueId(),
           type: 'scene-heading',
           text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: generateUniqueId(),
+          type: 'action',
+          text: 'Type your action here...'
         }
       ];
       setElements(defaultElements);
       setActiveElementId(defaultElements[0].id);
     }
-  }, [elements.length, setElements, setActiveElementId]);
+  }, [elements, setElements, setActiveElementId]);
+
+  // Fallback rendering for when elements are not yet available
+  if (!elements || elements.length === 0) {
+    return (
+      <div className="flex justify-center w-full">
+        <FormatStyler>
+          <div className="script-page">
+            <div className="flex items-center justify-center py-12">
+              <p className="text-lg text-slate-500">Loading editor...</p>
+            </div>
+          </div>
+        </FormatStyler>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center w-full">

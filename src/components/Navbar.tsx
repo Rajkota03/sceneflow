@@ -10,7 +10,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, isLoaded: isUserLoaded } = useUser();
   const { signOut } = useClerk();
   
   const isHome = location.pathname === '/';
@@ -18,8 +18,12 @@ const Navbar = () => {
   const isEditor = location.pathname.includes('/editor');
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -50,48 +54,50 @@ const Navbar = () => {
                 {!isEditor && isDashboard && (
                   <Link to="/dashboard" className="text-slate-600 hover:text-primary font-semibold transition-colors">My Projects</Link>
                 )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                        {user?.imageUrl ? (
-                          <img 
-                            src={user.imageUrl} 
-                            alt={user.fullName || 'User'} 
-                            className="w-8 h-8 rounded-full object-cover" 
-                          />
-                        ) : (
-                          <User size={20} className="text-slate-500" />
-                        )}
-                      </div>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.fullName || 'User'}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user?.primaryEmailAddress?.emailAddress}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                      Dashboard
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      className="text-red-500 focus:text-red-500" 
-                      onClick={handleSignOut}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {isUserLoaded && user && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+                          {user.imageUrl ? (
+                            <img 
+                              src={user.imageUrl} 
+                              alt={user.fullName || 'User'} 
+                              className="w-8 h-8 rounded-full object-cover" 
+                            />
+                          ) : (
+                            <User size={20} className="text-slate-500" />
+                          )}
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-56" align="end" forceMount>
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium leading-none">{user.fullName || 'User'}</p>
+                          <p className="text-xs leading-none text-muted-foreground">
+                            {user.primaryEmailAddress?.emailAddress}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                        Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-500 focus:text-red-500" 
+                        onClick={handleSignOut}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Log out</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </SignedIn>
 
               <SignedOut>
