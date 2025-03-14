@@ -22,6 +22,7 @@ const EditorElement = ({
 }: EditorElementProps) => {
   const [text, setText] = useState(element.text);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [elementType, setElementType] = useState<ElementType>(element.type);
 
   // Focus on this element if it's active
   useEffect(() => {
@@ -29,6 +30,11 @@ const EditorElement = ({
       inputRef.current.focus();
     }
   }, [isActive]);
+
+  // Update local state when element type changes from outside
+  useEffect(() => {
+    setElementType(element.type);
+  }, [element.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
@@ -49,7 +55,17 @@ const EditorElement = ({
 
   // Apply appropriate class based on element type
   const getElementClass = () => {
-    return `${element.type} element-container`;
+    return `${elementType} element-container`;
+  };
+
+  // Set the text alignment based on element type
+  const getTextAlignment = (): 'left' | 'center' | 'right' => {
+    if (elementType === 'character' || elementType === 'dialogue' || elementType === 'parenthetical') {
+      return 'center';
+    } else if (elementType === 'transition') {
+      return 'right';
+    }
+    return 'left';
   };
 
   return (
@@ -61,12 +77,12 @@ const EditorElement = ({
         onKeyDown={(e) => onKeyDown(e, element.id)}
         onFocus={onFocus}
         className="w-full bg-transparent resize-none outline-none"
-        placeholder={getPlaceholderText(element.type)}
+        placeholder={getPlaceholderText(elementType)}
         rows={1}
         style={{ 
           fontFamily: 'Courier Prime, monospace',
           caretColor: '#1E293B',
-          textAlign: element.type === 'character' ? 'center' : 'left'
+          textAlign: getTextAlignment()
         }}
       />
     </div>
