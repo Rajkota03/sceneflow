@@ -26,7 +26,7 @@ export default {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
+          DEFAULT: '#6366f1', // Indigo-500
           foreground: 'hsl(var(--primary-foreground))'
         },
         secondary: {
@@ -117,6 +117,8 @@ export default {
       },
       boxShadow: {
         'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+        'premium': '0 20px 80px -20px rgba(0, 0, 0, 0.25)',
+        'subtle': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
       },
     }
   },

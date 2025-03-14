@@ -1,4 +1,3 @@
-
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -7,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import Logo from './Logo';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -48,9 +48,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-3">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-serif font-bold text-slate-900 flex items-center space-x-2">
-              <span className="text-primary">Scene</span>
-              <span>Flow</span>
+            <Link to="/" className="flex items-center space-x-2">
+              <Logo size="md" />
             </Link>
           </div>
 
@@ -112,7 +111,7 @@ const Navbar = () => {
                   <Button asChild variant="ghost">
                     <Link to="/sign-in" className="text-slate-600 hover:text-primary transition-colors">Sign In</Link>
                   </Button>
-                  <Button asChild>
+                  <Button asChild className="bg-primary hover:bg-primary/90">
                     <Link to="/sign-up">Get Started</Link>
                   </Button>
                 </>

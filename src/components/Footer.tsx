@@ -1,5 +1,6 @@
 
 import { Link } from 'react-router-dom';
+import Logo from './Logo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,11 +10,10 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
-            <Link to="/" className="text-2xl font-serif font-bold text-slate-900 mb-4 flex items-center">
-              <span className="text-primary">Scene</span>
-              <span>Flow</span>
+            <Link to="/" className="mb-4 flex items-center">
+              <Logo size="lg" />
             </Link>
-            <p className="text-slate-600 mt-2 mb-6 max-w-md">
+            <p className="text-slate-600 mt-4 mb-6 max-w-md">
               Professional screenwriting made simple. Write, format, and analyze your screenplays with ease.
             </p>
           </div>
