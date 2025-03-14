@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -9,8 +8,17 @@ import {
   MenubarShortcut
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
+import TitlePageEditor, { TitlePageData } from '@/components/TitlePageEditor';
 
-const EditMenu = () => {
+interface EditMenuProps {
+  onTitlePage?: () => void;
+  onEditTitlePage?: (data: TitlePageData) => void;
+  titlePageData?: TitlePageData;
+}
+
+const EditMenu: React.FC<EditMenuProps> = ({ onTitlePage, onEditTitlePage, titlePageData }) => {
+  const [showTitlePageEditor, setShowTitlePageEditor] = React.useState(false);
+  
   const handleUndo = () => {
     try {
       document.execCommand('undo');
@@ -47,7 +55,6 @@ const EditMenu = () => {
 
   const handleCut = () => {
     try {
-      // If there's a selection, use execCommand
       if (window.getSelection()?.toString()) {
         document.execCommand('cut');
         toast({
@@ -73,7 +80,6 @@ const EditMenu = () => {
 
   const handleCopy = () => {
     try {
-      // If there's a selection, use execCommand
       if (window.getSelection()?.toString()) {
         document.execCommand('copy');
         toast({
@@ -99,10 +105,8 @@ const EditMenu = () => {
 
   const handlePaste = async () => {
     try {
-      // Try to use the Clipboard API first
       if (navigator.clipboard) {
         const text = await navigator.clipboard.readText();
-        // Insert at cursor position, if active element is a text input
         const activeElement = document.activeElement as HTMLTextAreaElement;
         if (activeElement && 
             (activeElement.tagName === 'TEXTAREA' || activeElement.tagName === 'INPUT')) {
@@ -110,14 +114,11 @@ const EditMenu = () => {
           const end = activeElement.selectionEnd || 0;
           const value = activeElement.value;
           activeElement.value = value.substring(0, start) + text + value.substring(end);
-          // Set cursor position after pasted text
           activeElement.selectionStart = activeElement.selectionEnd = start + text.length;
-          // Trigger input event to update state
           const event = new Event('input', { bubbles: true });
           activeElement.dispatchEvent(event);
         }
       } else {
-        // Fallback to execCommand
         document.execCommand('paste');
       }
       toast({
@@ -126,7 +127,6 @@ const EditMenu = () => {
       });
     } catch (error) {
       console.error("Paste failed:", error);
-      // Fallback to execCommand if Clipboard API fails
       try {
         document.execCommand('paste');
         toast({
@@ -149,26 +149,21 @@ const EditMenu = () => {
       title: "Find & Replace",
       description: "Search for text in your script and replace it",
     });
-    // Open a dialog for find and replace
     const textToFind = prompt("Enter text to find:");
     if (textToFind) {
       const replaceWith = prompt("Replace with:");
-      if (replaceWith !== null) { // User clicked OK
-        // Find all active elements and replace text
+      if (replaceWith !== null) {
         const textareas = document.querySelectorAll('textarea');
         let replacementsCount = 0;
         
         textareas.forEach(textarea => {
           if (textarea.value.includes(textToFind)) {
-            // Use split and join instead of replaceAll for better compatibility
             const newValue = textarea.value.split(textToFind).join(replaceWith);
             textarea.value = newValue;
             
-            // Trigger input event to update state
             const event = new Event('input', { bubbles: true });
             textarea.dispatchEvent(event);
             
-            // Count replacements (approximately)
             const occurrences = (textarea.value.match(new RegExp(textToFind, 'g')) || []).length;
             replacementsCount += occurrences;
           }
@@ -188,18 +183,15 @@ const EditMenu = () => {
       description: "Navigate to a specific scene or page",
     });
     
-    // Prompt for scene number
     const sceneInput = prompt("Enter scene number to go to:");
     if (sceneInput) {
       const sceneNumber = parseInt(sceneInput);
       if (!isNaN(sceneNumber) && sceneNumber > 0) {
-        // Find scene headings
         const sceneHeadings = document.querySelectorAll('.scene-heading');
         if (sceneNumber <= sceneHeadings.length) {
           const targetScene = sceneHeadings[sceneNumber - 1];
           if (targetScene) {
             targetScene.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Try to focus on the textarea
             const textarea = targetScene.querySelector('textarea');
             if (textarea) {
               textarea.focus();
@@ -226,42 +218,72 @@ const EditMenu = () => {
     }
   };
 
+  const handleTitlePage = () => {
+    if (onTitlePage) {
+      onTitlePage();
+    } else {
+      setShowTitlePageEditor(true);
+    }
+  };
+
+  const handleSaveTitlePage = (data: TitlePageData) => {
+    if (onEditTitlePage) {
+      onEditTitlePage(data);
+    }
+  };
+
   return (
-    <MenubarMenu>
-      <MenubarTrigger className="text-white hover:bg-[#333333]">Edit</MenubarTrigger>
-      <MenubarContent>
-        <MenubarItem onClick={handleUndo}>
-          Undo
-          <MenubarShortcut>⌘Z</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleRedo}>
-          Redo
-          <MenubarShortcut>⇧⌘Z</MenubarShortcut>
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleCut}>
-          Cut
-          <MenubarShortcut>⌘X</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleCopy}>
-          Copy
-          <MenubarShortcut>⌘C</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handlePaste}>
-          Paste
-          <MenubarShortcut>⌘V</MenubarShortcut>
-        </MenubarItem>
-        <MenubarSeparator />
-        <MenubarItem onClick={handleFindReplace}>
-          Find & Replace...
-          <MenubarShortcut>⌘F</MenubarShortcut>
-        </MenubarItem>
-        <MenubarItem onClick={handleGoTo}>
-          Go To...
-          <MenubarShortcut>⌘G</MenubarShortcut>
-        </MenubarItem>
-      </MenubarContent>
-    </MenubarMenu>
+    <>
+      <MenubarMenu>
+        <MenubarTrigger className="text-white hover:bg-[#333333]">Edit</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem onClick={handleUndo}>
+            Undo
+            <MenubarShortcut>⌘Z</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={handleRedo}>
+            Redo
+            <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem onClick={handleCut}>
+            Cut
+            <MenubarShortcut>⌘X</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={handleCopy}>
+            Copy
+            <MenubarShortcut>⌘C</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={handlePaste}>
+            Paste
+            <MenubarShortcut>⌘V</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem onClick={handleFindReplace}>
+            Find & Replace...
+            <MenubarShortcut>⌘F</MenubarShortcut>
+          </MenubarItem>
+          <MenubarItem onClick={handleGoTo}>
+            Go To...
+            <MenubarShortcut>⌘G</MenubarShortcut>
+          </MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem onClick={handleTitlePage}>
+            Title Page
+            <MenubarShortcut>⌘T</MenubarShortcut>
+          </MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+
+      {titlePageData && (
+        <TitlePageEditor
+          isOpen={showTitlePageEditor}
+          onClose={() => setShowTitlePageEditor(false)}
+          initialData={titlePageData}
+          onSave={handleSaveTitlePage}
+        />
+      )}
+    </>
   );
 };
 

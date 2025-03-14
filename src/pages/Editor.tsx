@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -13,6 +14,8 @@ import EditorMenuBar from '../components/EditorMenuBar';
 import { FormatProvider } from '@/lib/formatContext';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
+import TitlePageView from '@/components/TitlePageView';
+import { TitlePageData } from '@/components/TitlePageEditor';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -27,6 +30,13 @@ const Editor = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [saveButtonText, setSaveButtonText] = useState("Save");
   const [saveButtonIcon, setSaveButtonIcon] = useState<"save" | "saved">("save");
+  const [showTitlePage, setShowTitlePage] = useState(false);
+  const [titlePageData, setTitlePageData] = useState<TitlePageData>({
+    title: '',
+    author: '',
+    basedOn: '',
+    contact: ''
+  });
 
   useEffect(() => {
     if (!session || !projectId) return;
@@ -94,6 +104,12 @@ const Editor = () => {
             setProject(newProject);
             setTitle(newProject.title);
             setContent(newProject.content);
+            setTitlePageData({
+              title: newProject.title,
+              author: session.user.user_metadata?.full_name || session.user.email || '',
+              basedOn: '',
+              contact: ''
+            });
           } else {
             toast({
               title: 'Error loading project',
@@ -115,6 +131,19 @@ const Editor = () => {
           setProject(formattedProject);
           setTitle(formattedProject.title);
           setContent(formattedProject.content);
+          
+          // Load title page data if it exists
+          if (data.title_page) {
+            setTitlePageData(data.title_page);
+          } else {
+            // Set default title page data
+            setTitlePageData({
+              title: formattedProject.title,
+              author: session.user.user_metadata?.full_name || session.user.email || '',
+              basedOn: '',
+              contact: ''
+            });
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -138,6 +167,12 @@ const Editor = () => {
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
+    
+    // Also update the title in the title page data
+    setTitlePageData(prev => ({
+      ...prev,
+      title: e.target.value
+    }));
   };
 
   useEffect(() => {
@@ -148,7 +183,7 @@ const Editor = () => {
     }, 20000);
     
     return () => clearTimeout(autoSaveTimer);
-  }, [content, title, project, isLoading, session]);
+  }, [content, title, project, isLoading, session, titlePageData]);
 
   const handleSave = async (isAutoSave = false) => {
     if (!project || !session) return;
@@ -167,6 +202,7 @@ const Editor = () => {
           title,
           content: scriptContentToJson(content),
           updated_at: new Date().toISOString(),
+          title_page: titlePageData
         })
         .eq('id', project.id);
       
@@ -230,6 +266,10 @@ const Editor = () => {
         title: newTitle,
         author_id: session.user.id,
         content: scriptContentToJson(content),
+        title_page: {
+          ...titlePageData,
+          title: newTitle
+        }
       };
       
       const { data, error } = await supabase
@@ -270,6 +310,18 @@ const Editor = () => {
     }
   };
 
+  const handleTitlePageUpdate = (data: TitlePageData) => {
+    setTitlePageData(data);
+    // If the title changed, update the screenplay title as well
+    if (data.title !== title) {
+      setTitle(data.title);
+    }
+  };
+
+  const toggleTitlePage = () => {
+    setShowTitlePage(!showTitlePage);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -295,7 +347,13 @@ const Editor = () => {
   return (
     <FormatProvider>
       <div className="h-screen flex flex-col bg-slate-100 overflow-hidden">
-        <EditorMenuBar onSave={() => handleSave()} onSaveAs={handleSaveAs} />
+        <EditorMenuBar 
+          onSave={() => handleSave()} 
+          onSaveAs={handleSaveAs} 
+          onTitlePage={() => toggleTitlePage()}
+          onEditTitlePage={(data) => handleTitlePageUpdate(data)}
+          titlePageData={titlePageData}
+        />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -343,18 +401,26 @@ const Editor = () => {
         </div>
         
         <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555] z-10">
-          <div>Page 1</div>
+          <div>{showTitlePage ? "Title Page" : "Page 1"}</div>
           <div className="flex items-center space-x-4">
-            <span>Scene: 1</span>
-            <span>Elements: {content.elements.length}</span>
-            <span>Characters: {content.elements.filter(e => e.type === 'character').length}</span>
+            {!showTitlePage && (
+              <>
+                <span>Scene: 1</span>
+                <span>Elements: {content.elements.length}</span>
+                <span>Characters: {content.elements.filter(e => e.type === 'character').length}</span>
+              </>
+            )}
             {lastSaved && <span>Last saved: {lastSaved.toLocaleTimeString()}</span>}
           </div>
           <div>100%</div>
         </div>
         
         <main className="flex-grow overflow-auto py-4 px-4 bg-[#EEEEEE]">
-          <ScriptEditor initialContent={content} onChange={handleContentChange} />
+          {showTitlePage ? (
+            <TitlePageView data={titlePageData} />
+          ) : (
+            <ScriptEditor initialContent={content} onChange={handleContentChange} />
+          )}
         </main>
       </div>
     </FormatProvider>
