@@ -1,19 +1,30 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProjectCard from '../components/ProjectCard';
-import { sampleProjects, emptyProject } from '../lib/mockData';
+import { emptyProject } from '../lib/mockData';
 import { Project } from '../lib/types';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useUser } from '@clerk/clerk-react';
 
 const Dashboard = () => {
-  const [projects, setProjects] = useState<Project[]>(sampleProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { user } = useUser();
+
+  useEffect(() => {
+    // In a real app, you would fetch user's projects from a database
+    // For now, simulate loading and show empty state
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+  }, []);
 
   const filteredProjects = projects.filter(project => 
     project.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -23,6 +34,10 @@ const Dashboard = () => {
     const newProject = {
       ...emptyProject,
       id: `project-${Date.now()}`,
+      authorId: user?.id || 'anonymous',
+      title: `Untitled Screenplay ${projects.length + 1}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     setProjects([newProject, ...projects]);
     navigate(`/editor/${newProject.id}`);
@@ -63,7 +78,12 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {filteredProjects.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <Loader className="animate-spin h-8 w-8 text-primary mb-4" />
+              <p className="text-slate-600">Loading your projects...</p>
+            </div>
+          ) : filteredProjects.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProjects.map(project => (
                 <ProjectCard 
