@@ -52,6 +52,12 @@ const EditorElement = ({
     onChange(element.id, newText, detectedType);
   };
 
+  // Enable keyboard paste event
+  const handlePaste = (e: React.ClipboardEvent) => {
+    // Allow default paste behavior
+    // The browser will handle inserting the text
+  };
+
   // Adjust textarea height to content
   useEffect(() => {
     if (inputRef.current) {
@@ -67,10 +73,12 @@ const EditorElement = ({
 
   // Set the text alignment based on element type
   const getTextAlignment = (): 'left' | 'center' | 'right' => {
-    if (elementType === 'character' || elementType === 'dialogue' || elementType === 'parenthetical') {
+    if (elementType === 'character' || elementType === 'parenthetical') {
       return 'center';
     } else if (elementType === 'transition') {
       return 'right';
+    } else if (elementType === 'dialogue') {
+      return 'center';
     }
     return 'left';
   };
@@ -83,6 +91,7 @@ const EditorElement = ({
         onChange={handleChange}
         onKeyDown={(e) => onKeyDown(e, element.id)}
         onFocus={onFocus}
+        onPaste={handlePaste}
         className="w-full bg-transparent resize-none outline-none"
         placeholder={getPlaceholderText(elementType)}
         rows={1}
@@ -90,7 +99,8 @@ const EditorElement = ({
           fontFamily: 'Courier Prime, monospace',
           caretColor: '#1E293B',
           textAlign: getTextAlignment(),
-          lineHeight: 1
+          lineHeight: 1.2,
+          minHeight: '1.2em'
         }}
       />
     </div>

@@ -18,6 +18,20 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
   children
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Don't intercept common keyboard shortcuts
+    if ((e.ctrlKey || e.metaKey) && 
+        (e.key === 'c' || e.key === 'v' || e.key === 'x' || 
+         e.key === 'a' || e.key === 'z')) {
+      // Let the browser handle common operations
+      return;
+    }
+    
+    // Don't intercept arrow key navigation
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      return;
+    }
+    
     if (e.key === 'Enter') {
       if (e.shiftKey && type === 'dialogue') {
         // Let the textarea handle this for multi-line dialogue

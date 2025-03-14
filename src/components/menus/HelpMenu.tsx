@@ -12,21 +12,21 @@ const HelpMenu = () => {
   const showKeyboardShortcuts = () => {
     toast({
       title: "Keyboard Shortcuts",
-      description: "Common shortcuts: ⌘N (New), ⌘O (Open), ⌘S (Save), ⌘F (Find), ⌘1-6 (Element types), ⌘+ (Zoom In), ⌘- (Zoom Out), ⌘0 (Reset Zoom)",
+      description: "Common shortcuts: ⌘N (New), ⌘O (Open), ⌘S (Save), ⌘F (Find), ⌘1-6 (Element types), ⌘+ (Zoom In), ⌘- (Zoom Out), ⌘0 (Reset Zoom), ⌘C/⌘V/⌘X (Copy/Paste/Cut), Arrow keys (Navigate)"
     });
   };
 
   const showUserGuide = () => {
     toast({
       title: "User Guide",
-      description: "Scene Flow is a screenplay editor that helps you write professional scripts with proper formatting. Use the menus above to format your text and navigate your screenplay.",
+      description: "Scene Flow is a screenplay editor that helps you write professional scripts with proper formatting. Use the menus above to format your text and navigate your screenplay. Use arrow keys to move cursor between lines, Tab to cycle element types, Enter to create new elements.",
     });
   };
 
   const showFAQs = () => {
     toast({
       title: "Frequently Asked Questions",
-      description: "Q: How do I format dialogue? A: Write a character name, press Enter, and start typing. Q: How do I save my script? A: Use ⌘S or click File > Save.",
+      description: "Q: How do I format dialogue? A: Write a character name, press Enter, and start typing. Q: How do I save my script? A: Use ⌘S or click File > Save. Q: How do I copy/paste? A: Use standard ⌘C/⌘V shortcuts or Edit menu. Q: How do I navigate? A: Use arrow keys to move between lines.",
     });
   };
 
