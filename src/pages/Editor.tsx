@@ -6,7 +6,7 @@ import ScriptEditor from '../components/ScriptEditor';
 import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
-import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader } from 'lucide-react';
+import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
@@ -26,6 +26,8 @@ const Editor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [saveButtonText, setSaveButtonText] = useState("Save");
+  const [saveButtonIcon, setSaveButtonIcon] = useState<"save" | "saved">("save");
 
   useEffect(() => {
     if (!session || !projectId) return;
@@ -144,7 +146,7 @@ const Editor = () => {
     
     const autoSaveTimer = setTimeout(() => {
       handleSave(true);
-    }, 10000);
+    }, 20000); // Changed from 10000 to 20000 (20 seconds)
     
     return () => clearTimeout(autoSaveTimer);
   }, [content, title, project, isLoading, session]);
@@ -153,6 +155,11 @@ const Editor = () => {
     if (!project || !session) return;
     
     setIsSaving(true);
+    
+    if (!isAutoSave) {
+      setSaveButtonText("Saving");
+      setSaveButtonIcon("save");
+    }
     
     try {
       const { error } = await supabase
@@ -172,6 +179,8 @@ const Editor = () => {
             description: error.message,
             variant: 'destructive',
           });
+          setSaveButtonText("Save");
+          setSaveButtonIcon("save");
         }
         return;
       }
@@ -179,6 +188,16 @@ const Editor = () => {
       setLastSaved(new Date());
       
       if (!isAutoSave) {
+        // Update button text to "Saved" temporarily
+        setSaveButtonText("Saved");
+        setSaveButtonIcon("saved");
+        
+        // Set a timeout to change it back to "Save" after 2 seconds
+        setTimeout(() => {
+          setSaveButtonText("Save");
+          setSaveButtonIcon("save");
+        }, 2000);
+        
         toast({
           title: "Script saved",
           description: "Your screenplay has been saved successfully."
@@ -192,6 +211,8 @@ const Editor = () => {
           description: 'Failed to save the project. Please try again.',
           variant: 'destructive',
         });
+        setSaveButtonText("Save");
+        setSaveButtonIcon("save");
       }
     } finally {
       setIsSaving(false);
@@ -257,12 +278,20 @@ const Editor = () => {
               <span className="text-xs">Preview</span>
             </Button>
 
-            <Button onClick={() => handleSave()} disabled={isSaving} size="sm" className="bg-[#0FA0CE] hover:bg-[#0D8CAF] text-white">
-              {isSaving ? 
-                <div className="animate-spin mr-1 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div> 
-                : <Save size={16} className="mr-1" />
-              }
-              <span className="text-xs">Save</span>
+            <Button
+              onClick={() => handleSave()}
+              disabled={isSaving}
+              size="sm"
+              className="bg-[#0FA0CE] hover:bg-[#0D8CAF] text-white min-w-[70px]"
+            >
+              {isSaving ? (
+                <div className="animate-spin mr-1 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+              ) : saveButtonIcon === "save" ? (
+                <Save size={16} className="mr-1" />
+              ) : (
+                <Check size={16} className="mr-1" />
+              )}
+              <span className="text-xs">{saveButtonText}</span>
             </Button>
           </div>
         </div>
