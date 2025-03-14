@@ -1,0 +1,91 @@
+
+import { useState, useRef, useEffect } from 'react';
+import { ScriptElement, ElementType } from '../lib/types';
+import { formatScriptElement, detectElementType } from '../lib/formatScript';
+
+interface EditorElementProps {
+  element: ScriptElement;
+  previousElementType?: ElementType;
+  onChange: (id: string, text: string, type: ElementType) => void;
+  onKeyDown: (e: React.KeyboardEvent, id: string) => void;
+  isActive: boolean;
+  onFocus: () => void;
+}
+
+const EditorElement = ({ 
+  element, 
+  previousElementType, 
+  onChange, 
+  onKeyDown, 
+  isActive,
+  onFocus
+}: EditorElementProps) => {
+  const [text, setText] = useState(element.text);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus on this element if it's active
+  useEffect(() => {
+    if (isActive && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isActive]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setText(newText);
+    
+    // Auto-detect element type based on content
+    const detectedType = detectElementType(newText, previousElementType);
+    onChange(element.id, newText, detectedType);
+  };
+
+  // Adjust textarea height to content
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [text]);
+
+  return (
+    <div className={element.type}>
+      <textarea
+        ref={inputRef}
+        value={text}
+        onChange={handleChange}
+        onKeyDown={(e) => onKeyDown(e, element.id)}
+        onFocus={onFocus}
+        className="w-full bg-transparent resize-none outline-none"
+        placeholder={getPlaceholderText(element.type)}
+        rows={1}
+        style={{ 
+          fontFamily: 'Courier Prime, monospace',
+          caretColor: '#1E293B'
+        }}
+      />
+    </div>
+  );
+};
+
+function getPlaceholderText(type: ElementType): string {
+  switch (type) {
+    case 'scene-heading':
+      return 'INT/EXT. LOCATION - TIME OF DAY';
+    case 'action':
+      return 'Describe the action...';
+    case 'character':
+      return 'CHARACTER NAME';
+    case 'dialogue':
+      return 'Character dialogue...';
+    case 'parenthetical':
+      return '(action)';
+    case 'transition':
+      return 'TRANSITION TO:';
+    case 'note':
+      return 'Note to self...';
+    default:
+      return '';
+  }
+}
+
+export default EditorElement;
