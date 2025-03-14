@@ -2,9 +2,10 @@
 export interface Project {
   id: string;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;  // Allow both Date and string
+  updatedAt: Date | string;  // Allow both Date and string
   content: ScriptContent;
+  authorId?: string;  // Make authorId optional
 }
 
 export interface ScriptContent {

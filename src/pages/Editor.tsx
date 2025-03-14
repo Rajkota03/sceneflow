@@ -34,13 +34,13 @@ const Editor = () => {
     
     setTimeout(() => {
       if (projectId) {
-        const newProject = {
+        const newProject: Project = {
           ...emptyProject,
           id: projectId,
           authorId: user?.id || 'anonymous',
           title: 'Untitled Screenplay',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
         setProject(newProject);
         setTitle(newProject.title);

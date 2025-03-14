@@ -31,13 +31,13 @@ const Dashboard = () => {
   );
 
   const handleCreateNewProject = () => {
-    const newProject = {
+    const newProject: Project = {
       ...emptyProject,
       id: `project-${Date.now()}`,
       authorId: user?.id || 'anonymous',
       title: `Untitled Screenplay ${projects.length + 1}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     setProjects([newProject, ...projects]);
     navigate(`/editor/${newProject.id}`);

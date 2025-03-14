@@ -51,7 +51,8 @@ const Profile = () => {
 
   const handleChangePassword = async () => {
     try {
-      await user?.createEmailAddressVerification({
+      // Use requestPasswordReset instead of createEmailAddressVerification
+      await user?.primaryEmailAddress?.prepareVerification({
         strategy: "email_code",
       });
       

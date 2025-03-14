@@ -54,9 +54,9 @@ const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                        {user?.profileImageUrl ? (
+                        {user?.imageUrl ? (
                           <img 
-                            src={user.profileImageUrl} 
+                            src={user.imageUrl} 
                             alt={user.fullName || 'User'} 
                             className="w-8 h-8 rounded-full object-cover" 
                           />
