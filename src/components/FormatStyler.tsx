@@ -9,7 +9,7 @@ interface FormatStylerProps {
 const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
   const { formatState } = useFormat();
   
-  const style = {
+  const style: React.CSSProperties = {
     fontFamily: formatState.font,
     fontSize: `${formatState.fontSize}pt`,
     fontWeight: formatState.isBold ? 'bold' : 'normal',
@@ -31,7 +31,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
     margin: '0 auto',
     padding: '0.5in',
     transition: 'all 0.2s ease',
-    boxSizing: 'border-box',
+    boxSizing: 'border-box' as 'border-box', // Type assertion to fix the error
   };
 
   return (
