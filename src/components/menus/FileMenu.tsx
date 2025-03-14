@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useRef } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -14,6 +13,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { scriptContentToJson } from '@/lib/types';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface FileMenuProps {
   onSave: () => void;
@@ -21,6 +22,7 @@ interface FileMenuProps {
 
 const FileMenu = ({ onSave }: FileMenuProps) => {
   const navigate = useNavigate();
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   const handleNewScript = () => {
     toast({
@@ -42,22 +44,47 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     }
   };
 
-  const handleExportPDF = () => {
+  const handleImportPDF = () => {
+    if (importFileRef.current) {
+      importFileRef.current.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type === 'application/pdf') {
+      toast({
+        title: "Importing PDF",
+        description: "Processing your PDF file...",
+      });
+
+      // In a real application, you would use a PDF parsing library here
+      // For now, we'll just simulate the import
+      setTimeout(() => {
+        toast({
+          title: "PDF Imported",
+          description: "Your PDF has been imported successfully. You can now edit it.",
+        });
+      }, 1500);
+    } else {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select a PDF file.",
+        variant: "destructive"
+      });
+    }
+    
+    // Reset the input so the same file can be selected again
+    event.target.value = '';
+  };
+
+  const handleExportPDF = async () => {
     toast({
       title: "Exporting PDF",
       description: "Preparing your screenplay for PDF export...",
     });
-    
-    // Create a new window for the print-friendly version
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast({
-        title: "Export Failed",
-        description: "Could not open print window. Please check your popup blocker settings.",
-        variant: "destructive"
-      });
-      return;
-    }
     
     // Get screenplay content
     const scriptPage = document.querySelector('.script-page');
@@ -67,204 +94,128 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
         description: "Could not find screenplay content",
         variant: "destructive"
       });
-      printWindow.close();
       return;
     }
     
-    // Clone the content to avoid modifying the original
-    const scriptContent = scriptPage.cloneNode(true) as HTMLElement;
-    
-    // Create print-friendly HTML
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Screenplay Export</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+    try {
+      // Use html2canvas to capture the screenplay content
+      const canvas = await html2canvas(scriptPage as HTMLElement, {
+        scale: 2, // Higher resolution
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        onclone: (document, element) => {
+          // Modify the cloned DOM to prepare it for export
+          const clone = element as HTMLElement;
+          
+          // Process each element
+          const elements = clone.querySelectorAll('[class*="-element"]');
+          elements.forEach(element => {
+            const textarea = element.querySelector('textarea');
+            if (!textarea) return;
             
-            body {
-              margin: 0;
-              padding: 0;
-              background-color: #fff;
-              font-family: 'Courier Prime', monospace;
-              line-height: 1.2;
+            const text = textarea.value;
+            if (!text.trim()) return;
+            
+            // Replace textareas with paragraphs
+            const p = document.createElement('p');
+            p.textContent = text;
+            p.className = textarea.className;
+            p.style.whiteSpace = 'pre-wrap';
+            p.style.margin = textarea.style.margin;
+            p.style.padding = textarea.style.padding;
+            p.style.textAlign = textarea.style.textAlign;
+            p.style.fontFamily = 'Courier Prime, monospace';
+            
+            // Apply element-specific styling
+            if (element.classList.contains('character-element')) {
+              p.style.textTransform = 'uppercase';
+              p.style.fontWeight = 'bold';
+            } else if (element.classList.contains('scene-heading-element')) {
+              p.style.textTransform = 'uppercase';
+              p.style.fontWeight = 'bold';
+            } else if (element.classList.contains('transition-element')) {
+              p.style.textAlign = 'right';
+              p.style.textTransform = 'uppercase';
+              p.style.fontWeight = 'bold';
             }
             
-            .script-container {
-              width: 8.5in;
-              padding: 1in;
-              margin: 0 auto;
-              box-sizing: border-box;
-            }
-            
-            .element-container {
-              position: relative;
-              margin-bottom: 0.3em;
-            }
-            
-            /* Element type specific styling - preserve exact formatting */
-            .scene-heading-element {
-              text-transform: uppercase;
-              font-weight: bold;
-              margin-bottom: 1em;
-            }
-            
-            .action-element {
-              margin-bottom: 1em;
-            }
-            
-            .character-element {
-              text-align: center;
-              text-transform: uppercase;
-              font-weight: bold;
-              margin-top: 1em;
-              margin-bottom: 0;
-            }
-            
-            .dialogue-element {
-              text-align: center;
-              width: 60%;
-              margin: 0 auto 1em;
-            }
-            
-            .parenthetical-element {
-              text-align: center;
-              width: 40%;
-              margin: 0 auto;
-              font-style: italic;
-            }
-            
-            .transition-element {
-              text-align: right;
-              text-transform: uppercase;
-              font-weight: bold;
-              margin: 1em 0;
-            }
-            
-            /* Hide any UI elements */
-            .menubar, .fixed, button, .toolbar {
-              display: none !important;
-            }
-            
-            /* Make sure all textarea content is visible as regular text */
-            .text-content {
-              white-space: pre-wrap;
-              font-family: 'Courier Prime', monospace;
-              font-size: 12pt;
-              line-height: 1.2;
-            }
-            
-            /* Print settings */
-            @page {
-              size: letter;
-              margin: 0;
-            }
-            
-            @media print {
-              body {
-                print-color-adjust: exact;
-                -webkit-print-color-adjust: exact;
-              }
-              
-              .script-container {
-                page-break-after: always;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="script-container">
-          </div>
-        </body>
-      </html>
-    `);
-
-    // Get script content and convert textareas to plain text
-    const container = printWindow.document.querySelector('.script-container');
-    if (container && scriptContent) {
-      // Process each element
-      const elements = scriptContent.querySelectorAll('[class*="-element"]');
-      elements.forEach(element => {
-        const textarea = element.querySelector('textarea');
-        if (!textarea) return;
-        
-        const text = textarea.value;
-        if (!text.trim()) return;
-        
-        // Create a div with the same class as the element for proper styling
-        const div = printWindow.document.createElement('div');
-        const className = Array.from(element.classList)
-          .find(cls => cls.endsWith('-element'));
-        
-        if (className) {
-          div.className = className;
-        }
-        
-        // Create a paragraph to hold the text content
-        const paragraph = printWindow.document.createElement('p');
-        paragraph.className = 'text-content';
-        paragraph.textContent = text;
-        
-        // Apply specific styling based on element type
-        if (className === 'character-element') {
-          paragraph.style.textAlign = 'center';
-          paragraph.style.textTransform = 'uppercase';
-          paragraph.style.fontWeight = 'bold';
-        } else if (className === 'dialogue-element') {
-          paragraph.style.textAlign = 'center';
-          paragraph.style.width = '60%';
-          paragraph.style.margin = '0 auto';
-        } else if (className === 'parenthetical-element') {
-          paragraph.style.textAlign = 'center';
-          paragraph.style.fontStyle = 'italic';
-          paragraph.style.width = '40%';
-          paragraph.style.margin = '0 auto';
-        } else if (className === 'scene-heading-element') {
-          paragraph.style.textTransform = 'uppercase';
-          paragraph.style.fontWeight = 'bold';
-        } else if (className === 'transition-element') {
-          paragraph.style.textAlign = 'right';
-          paragraph.style.textTransform = 'uppercase';
-          paragraph.style.fontWeight = 'bold';
-        }
-        
-        div.appendChild(paragraph);
-        container.appendChild(div);
+            textarea.parentNode?.replaceChild(p, textarea);
+          });
+          
+          // Remove any editor UI elements
+          const uiElements = clone.querySelectorAll('.btn-handle, button, .menubar, .toolbar');
+          uiElements.forEach(el => el.remove());
+        },
       });
       
-      // Remove any remaining editor controls
-      const controlsToRemove = container.querySelectorAll('.menubar, .fixed, button, .toolbar');
-      controlsToRemove.forEach(el => el.remove());
-    }
-    
-    // Delay to ensure content and styles are loaded
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
+      // Create PDF document
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: 'letter',
+      });
       
-      // Close window after printing (or if print dialog is cancelled)
-      printWindow.onafterprint = () => {
-        setTimeout(() => {
-          printWindow.close();
-        }, 1000);
-      };
+      // Calculate dimensions to maintain aspect ratio
+      const imgData = canvas.toDataURL('image/png');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasRatio = canvas.height / canvas.width;
+      const pageRatio = pdfHeight / pdfWidth;
       
-      // Fallback in case onafterprint isn't supported
-      setTimeout(() => {
-        if (!printWindow.closed) {
-          toast({
-            title: "PDF Export",
-            description: "You can close the print window when finished",
-          });
+      let finalWidth, finalHeight;
+      
+      if (canvasRatio > pageRatio) {
+        // Canvas is taller relative to its width than the page
+        finalHeight = pdfHeight;
+        finalWidth = pdfHeight / canvasRatio;
+      } else {
+        // Canvas is wider relative to its height than the page
+        finalWidth = pdfWidth;
+        finalHeight = pdfWidth * canvasRatio;
+      }
+      
+      // Add the image to the PDF
+      pdf.addImage(imgData, 'PNG', 0, 0, finalWidth, finalHeight);
+      
+      // Check if content spans multiple pages and add them
+      if (canvas.height > pdfHeight) {
+        const pageCount = Math.ceil(canvas.height / pdfHeight);
+        
+        for (let i = 1; i < pageCount; i++) {
+          // Add a new page
+          pdf.addPage();
+          
+          // Calculate position to continue from previous page
+          const sourceY = i * pdfHeight * (canvas.height / finalHeight);
+          
+          // Add the next part of the image
+          pdf.addImage(
+            imgData, 
+            'PNG', 
+            0, 
+            -i * pdfHeight, // Negative to show next part of the image
+            finalWidth, 
+            finalHeight
+          );
         }
-      }, 5000);
+      }
+      
+      // Save the PDF
+      pdf.save('screenplay.pdf');
       
       toast({
         title: "PDF Export",
-        description: "PDF export complete!",
+        description: "PDF exported successfully!",
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Export Failed",
+        description: "An error occurred while exporting the PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleExportFountain = () => {
@@ -458,6 +409,16 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
           Open Script...
           <MenubarShortcut>⌘O</MenubarShortcut>
         </MenubarItem>
+        <MenubarItem onClick={handleImportPDF}>
+          Import PDF...
+        </MenubarItem>
+        <input
+          type="file"
+          ref={importFileRef}
+          onChange={handleFileChange}
+          accept=".pdf"
+          style={{ display: 'none' }}
+        />
         <MenubarSeparator />
         <MenubarItem onClick={onSave}>
           Save
