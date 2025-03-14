@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -48,74 +47,211 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
       description: "Preparing your screenplay for PDF export...",
     });
     
-    // Add CSS to optimize the print view
-    const style = document.createElement('style');
-    style.textContent = `
-      @media print {
-        body * {
-          visibility: hidden;
-        }
-        .script-page, .script-page * {
-          visibility: visible;
-        }
-        .script-page {
-          position: absolute;
-          left: 0;
-          top: 0;
-          width: 8.5in;
-          padding: 1in;
-          font-family: 'Courier Prime', monospace;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Hide elements we don't want to print
-    const elementsToHide = document.querySelectorAll('.menubar, .fixed');
-    elementsToHide.forEach(el => {
-      if (el instanceof HTMLElement) {
-        el.setAttribute('data-original-display', el.style.display);
-        el.style.display = 'none';
-      }
-    });
-    
-    // Scale and position the script for optimal printing
-    const scriptPage = document.querySelector('.script-page');
-    let originalTransform = '';
-    if (scriptPage instanceof HTMLElement) {
-      originalTransform = scriptPage.style.transform;
-      scriptPage.style.transform = 'scale(1)';
+    // Create a new window for the print-friendly version
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: "Export Failed",
+        description: "Could not open print window. Please check your popup blocker settings.",
+        variant: "destructive"
+      });
+      return;
     }
     
-    // Open print dialog
-    setTimeout(() => {
-      window.print();
-      
-      // Restore the UI after printing
-      setTimeout(() => {
-        // Remove the print stylesheet
-        document.head.removeChild(style);
-        
-        // Restore hidden elements
-        elementsToHide.forEach(el => {
-          if (el instanceof HTMLElement) {
-            const originalDisplay = el.getAttribute('data-original-display') || '';
-            el.style.display = originalDisplay;
-            el.removeAttribute('data-original-display');
+    // Get screenplay content
+    const scriptPage = document.querySelector('.script-page');
+    if (!scriptPage) {
+      toast({
+        title: "Export Failed",
+        description: "Could not find screenplay content",
+        variant: "destructive"
+      });
+      printWindow.close();
+      return;
+    }
+    
+    // Clone the content to avoid modifying the original
+    const scriptContent = scriptPage.cloneNode(true) as HTMLElement;
+    
+    // Create print-friendly HTML
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Screenplay Export</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+            
+            body {
+              margin: 0;
+              padding: 0;
+              background-color: #fff;
+              font-family: 'Courier Prime', monospace;
+            }
+            
+            .script-container {
+              width: 8.5in;
+              padding: 1in;
+              margin: 0 auto;
+              box-sizing: border-box;
+            }
+            
+            .script-page {
+              width: 100%;
+              background-color: white;
+              color: black;
+              font-family: 'Courier Prime', monospace;
+              font-size: 12pt;
+              line-height: 1.2;
+              border: none;
+              box-shadow: none;
+            }
+            
+            /* Hide any UI elements */
+            .menubar, .fixed, button, .toolbar, [contenteditable=true] {
+              display: none !important;
+            }
+            
+            /* Make sure all textarea content is visible as regular text */
+            textarea {
+              border: none;
+              background: transparent;
+              resize: none;
+              overflow: visible;
+              width: 100%;
+              height: auto;
+              font-family: inherit;
+              font-size: inherit;
+              line-height: inherit;
+              padding: 0;
+              margin: 0;
+              white-space: pre-wrap;
+            }
+            
+            /* Element styles */
+            .scene-heading-element {
+              text-transform: uppercase;
+              font-weight: bold;
+              margin-bottom: 1em;
+            }
+            
+            .action-element {
+              margin-bottom: 1em;
+            }
+            
+            .character-element {
+              text-align: center;
+              text-transform: uppercase;
+              font-weight: bold;
+              margin-top: 1em;
+              margin-bottom: 0;
+            }
+            
+            .dialogue-element {
+              text-align: center;
+              width: 60%;
+              margin: 0 auto 1em;
+            }
+            
+            .parenthetical-element {
+              text-align: center;
+              width: 40%;
+              margin: 0 auto;
+              font-style: italic;
+            }
+            
+            .transition-element {
+              text-align: right;
+              text-transform: uppercase;
+              font-weight: bold;
+              margin: 1em 0;
+            }
+            
+            @media print {
+              body {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+              }
+              
+              @page {
+                size: letter;
+                margin: 0;
+              }
+              
+              .script-container {
+                width: 100%;
+                height: 100%;
+                padding: 1in;
+                box-sizing: border-box;
+                page-break-after: always;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="script-container">
+          </div>
+        </body>
+      </html>
+    `);
+
+    // Get script content and convert textareas to plain text
+    const container = printWindow.document.querySelector('.script-container');
+    if (container && scriptContent) {
+      // Find all textareas and replace them with their content as regular text
+      const textAreas = scriptContent.querySelectorAll('textarea');
+      textAreas.forEach(textarea => {
+        const div = printWindow.document.createElement('div');
+        const elementContainer = textarea.closest('[class*="-element"]');
+        if (elementContainer) {
+          // Copy the class to preserve styling
+          const className = Array.from(elementContainer.classList)
+            .find(cls => cls.endsWith('-element'));
+          if (className) {
+            div.className = className;
           }
-        });
-        
-        // Restore script page scaling
-        if (scriptPage instanceof HTMLElement) {
-          scriptPage.style.transform = originalTransform;
         }
-        
-        toast({
-          title: "PDF Export",
-          description: "PDF export complete!",
-        });
-      }, 500);
-    }, 500);
+        div.textContent = textarea.value;
+        if (textarea.parentNode) {
+          textarea.parentNode.replaceChild(div, textarea);
+        }
+      });
+      
+      // Add the processed content to the print window
+      container.appendChild(scriptContent);
+      
+      // Remove any remaining editor controls
+      const controlsToRemove = container.querySelectorAll('.menubar, .fixed, button, .toolbar');
+      controlsToRemove.forEach(el => el.remove());
+    }
+    
+    // Delay to ensure content and styles are loaded
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      
+      // Close window after printing (or if print dialog is cancelled)
+      printWindow.onafterprint = () => {
+        setTimeout(() => {
+          printWindow.close();
+        }, 1000);
+      };
+      
+      // Fallback in case onafterprint isn't supported
+      setTimeout(() => {
+        if (!printWindow.closed) {
+          toast({
+            title: "PDF Export",
+            description: "You can close the print window when finished",
+          });
+        }
+      }, 5000);
+      
+      toast({
+        title: "PDF Export",
+        description: "PDF export complete!",
+      });
+    }, 1000);
   };
 
   const handleExportFountain = () => {
