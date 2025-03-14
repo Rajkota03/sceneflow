@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project } from '@/lib/types';
+import { Project, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
 import { emptyProject } from '@/lib/mockData';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,14 +40,14 @@ export const useDashboardProjects = () => {
           variant: 'destructive',
         });
         setProjects([]);
-      } else {
+      } else if (data) {
         const formattedProjects = data.map(project => ({
           id: project.id,
           title: project.title,
           authorId: project.author_id,
           createdAt: new Date(project.created_at),
           updatedAt: new Date(project.updated_at),
-          content: project.content || { elements: [] },
+          content: jsonToScriptContent(project.content),
         }));
         setProjects(formattedProjects);
       }
@@ -85,7 +85,7 @@ export const useDashboardProjects = () => {
           id: newProject.id,
           title: newProject.title,
           author_id: newProject.authorId,
-          content: newProject.content,
+          content: scriptContentToJson(newProject.content),
         })
         .select();
       

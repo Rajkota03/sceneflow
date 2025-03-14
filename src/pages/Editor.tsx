@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ScriptEditor from '../components/ScriptEditor';
-import { Project, ScriptContent } from '../lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader } from 'lucide-react';
@@ -27,7 +26,6 @@ const Editor = () => {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load project data from Supabase
   useEffect(() => {
     if (!session || !projectId) return;
     
@@ -45,9 +43,7 @@ const Editor = () => {
         if (error) {
           console.error('Error fetching project:', error);
           
-          // If project doesn't exist or user doesn't have access, create a new one
           if (error.code === 'PGRST116') {
-            // Create a default element if none exists
             const defaultContent: ScriptContent = {
               elements: [
                 {
@@ -73,14 +69,13 @@ const Editor = () => {
               content: defaultContent
             };
             
-            // Insert the new project into Supabase
             const { error: insertError } = await supabase
               .from('projects')
               .insert({
                 id: newProject.id,
                 title: newProject.title,
                 author_id: newProject.authorId,
-                content: newProject.content,
+                content: scriptContentToJson(newProject.content),
               });
             
             if (insertError) {
@@ -112,7 +107,7 @@ const Editor = () => {
             authorId: data.author_id,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),
-            content: data.content || { elements: [] },
+            content: jsonToScriptContent(data.content),
           };
           
           setProject(formattedProject);
@@ -143,13 +138,12 @@ const Editor = () => {
     setTitle(e.target.value);
   };
 
-  // Auto-save functionality
   useEffect(() => {
     if (!project || isLoading || !session) return;
     
     const autoSaveTimer = setTimeout(() => {
       handleSave(true);
-    }, 10000); // Auto-save after 10 seconds of inactivity
+    }, 10000);
     
     return () => clearTimeout(autoSaveTimer);
   }, [content, title, project, isLoading, session]);
@@ -164,7 +158,7 @@ const Editor = () => {
         .from('projects')
         .update({
           title,
-          content,
+          content: scriptContentToJson(content),
           updated_at: new Date().toISOString(),
         })
         .eq('id', project.id);
@@ -228,10 +222,8 @@ const Editor = () => {
   return (
     <FormatProvider>
       <div className="min-h-screen flex flex-col bg-slate-100">
-        {/* Main menu bar */}
         <EditorMenuBar onSave={() => handleSave()} />
         
-        {/* Toolbar */}
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <TooltipProvider>
@@ -274,7 +266,6 @@ const Editor = () => {
           </div>
         </div>
         
-        {/* Status bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555]">
           <div>Page 1</div>
           <div className="flex items-center space-x-4">
