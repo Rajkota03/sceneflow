@@ -10,6 +10,7 @@ import { Save, ArrowLeft, FileText, ChevronDown, Eye, Table, SplitSquareVertical
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
+import EditorMenuBar from '../components/EditorMenuBar';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -70,18 +71,7 @@ const Editor = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-100">
       {/* Main menu bar */}
-      <div className="bg-[#222222] text-white py-1 px-4 flex items-center text-sm border-b border-[#333333]">
-        <div className="font-bold mr-6">Scene Flow</div>
-        <div className="flex space-x-4">
-          <span className="cursor-pointer hover:text-blue-300">File</span>
-          <span className="cursor-pointer hover:text-blue-300">Edit</span>
-          <span className="cursor-pointer hover:text-blue-300">View</span>
-          <span className="cursor-pointer hover:text-blue-300">Format</span>
-          <span className="cursor-pointer hover:text-blue-300">Tools</span>
-          <span className="cursor-pointer hover:text-blue-300">Production</span>
-          <span className="cursor-pointer hover:text-blue-300">Help</span>
-        </div>
-      </div>
+      <EditorMenuBar onSave={handleSave} />
       
       {/* Toolbar */}
       <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
