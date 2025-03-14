@@ -70,17 +70,17 @@ const EditorElement = ({
 function getPlaceholderText(type: ElementType): string {
   switch (type) {
     case 'scene-heading':
-      return 'INT/EXT. LOCATION - TIME OF DAY';
+      return 'INT/EXT. LOCATION - TIME OF DAY (Ctrl+1)';
     case 'action':
-      return 'Describe the action...';
+      return 'Describe the action... (Ctrl+2)';
     case 'character':
-      return 'CHARACTER NAME';
+      return 'CHARACTER NAME (Ctrl+3)';
     case 'dialogue':
-      return 'Character dialogue...';
+      return 'Character dialogue... (Ctrl+4)';
     case 'parenthetical':
       return '(action)';
     case 'transition':
-      return 'TRANSITION TO:';
+      return 'TRANSITION TO: (Ctrl+6)';
     case 'note':
       return 'Note to self...';
     default:

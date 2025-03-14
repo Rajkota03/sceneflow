@@ -31,21 +31,24 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     return elements[index - 1].type;
   };
 
-  const addNewElement = (afterId: string) => {
+  const addNewElement = (afterId: string, explicitType?: ElementType) => {
     const afterIndex = elements.findIndex(element => element.id === afterId);
     
-    // Determine type based on previous element
-    let newType: ElementType = 'action';
-    const previousType = elements[afterIndex]?.type;
+    // Determine type based on previous element or explicit type
+    let newType: ElementType = explicitType || 'action';
     
-    if (previousType === 'scene-heading') {
-      newType = 'action';
-    } else if (previousType === 'character') {
-      newType = 'dialogue';
-    } else if (previousType === 'action') {
-      newType = 'action';
-    } else if (previousType === 'dialogue' || previousType === 'parenthetical') {
-      newType = 'action';
+    if (!explicitType) {
+      const previousType = elements[afterIndex]?.type;
+      
+      if (previousType === 'scene-heading') {
+        newType = 'action';
+      } else if (previousType === 'character') {
+        newType = 'dialogue';
+      } else if (previousType === 'action') {
+        newType = 'action';
+      } else if (previousType === 'dialogue' || previousType === 'parenthetical') {
+        newType = 'action';
+      }
     }
     
     const newElement: ScriptElement = {
@@ -64,11 +67,29 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     setActiveElementId(newElement.id);
   };
 
+  const changeElementType = (id: string, newType: ElementType) => {
+    setElements(prevElements => 
+      prevElements.map(element => 
+        element.id === id ? { ...element, type: newType } : element
+      )
+    );
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, id: string) => {
     // Enter key to add new element
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      addNewElement(id);
+      
+      // Find the current element
+      const elementIndex = elements.findIndex(element => element.id === id);
+      const currentElement = elements[elementIndex];
+      
+      // If the current element is a character, the next element should be dialogue
+      if (currentElement.type === 'character') {
+        addNewElement(id, 'dialogue');
+      } else {
+        addNewElement(id);
+      }
     }
     
     // Tab key to change formatting
@@ -91,6 +112,34 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
       }
       
       handleElementChange(id, element.text, newType);
+    }
+    
+    // Keyboard shortcuts
+    if (e.ctrlKey || e.metaKey) {
+      const elementIndex = elements.findIndex(element => element.id === id);
+      
+      switch (e.key) {
+        case '1':
+          e.preventDefault();
+          changeElementType(id, 'scene-heading');
+          break;
+        case '2':
+          e.preventDefault();
+          changeElementType(id, 'action');
+          break;
+        case '3':
+          e.preventDefault();
+          changeElementType(id, 'character');
+          break;
+        case '4':
+          e.preventDefault();
+          changeElementType(id, 'dialogue');
+          break;
+        case '6':
+          e.preventDefault();
+          changeElementType(id, 'transition');
+          break;
+      }
     }
   };
 
