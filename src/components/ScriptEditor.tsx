@@ -6,6 +6,7 @@ import EditorKeyboardHandler from './EditorKeyboardHandler';
 import useScriptElements from '../hooks/useScriptElements';
 import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
+import { useFormat } from '@/lib/formatContext';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -13,6 +14,7 @@ interface ScriptEditorProps {
 }
 
 const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
+  const { formatState } = useFormat();
   const {
     elements,
     activeElementId,
@@ -48,7 +50,7 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
   // Fallback rendering for when elements are not yet available
   if (!elements || elements.length === 0) {
     return (
-      <div className="flex justify-center w-full">
+      <div className="flex justify-center w-full h-full">
         <FormatStyler>
           <div className="script-page">
             <div className="flex items-center justify-center py-12">
@@ -61,9 +63,13 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
   }
 
   return (
-    <div className="flex justify-center w-full">
+    <div className="flex justify-center w-full h-full">
       <FormatStyler>
-        <div className="script-page">
+        <div className="script-page" style={{ 
+          transform: `scale(${formatState.zoomLevel})`,
+          transformOrigin: 'top center',
+          transition: 'transform 0.2s ease-out'
+        }}>
           {elements.map((element, index) => (
             <EditorKeyboardHandler
               key={element.id}

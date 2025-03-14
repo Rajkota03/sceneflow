@@ -10,13 +10,32 @@ import {
   MenubarCheckboxItem
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
+import { useFormat } from '@/lib/formatContext';
 
 const ViewMenu = () => {
+  const { zoomIn, zoomOut, resetZoom } = useFormat();
+  
   const handleNotImplemented = () => {
     toast({
       title: "Not implemented",
       description: "This feature is not yet implemented.",
     });
+  };
+
+  const handleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        toast({
+          title: "Error",
+          description: `Error attempting to enable full-screen mode: ${err.message}`,
+          variant: "destructive"
+        });
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
   };
 
   return (
@@ -26,20 +45,20 @@ const ViewMenu = () => {
         <MenubarCheckboxItem onClick={handleNotImplemented}>
           Dark Mode
         </MenubarCheckboxItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={handleFullScreen}>
           Full Screen
           <MenubarShortcut>F11</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={zoomIn}>
           Zoom In
           <MenubarShortcut>⌘+</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={zoomOut}>
           Zoom Out
           <MenubarShortcut>⌘-</MenubarShortcut>
         </MenubarItem>
-        <MenubarItem onClick={handleNotImplemented}>
+        <MenubarItem onClick={resetZoom}>
           Default Zoom
           <MenubarShortcut>⌘0</MenubarShortcut>
         </MenubarItem>

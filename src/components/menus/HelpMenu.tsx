@@ -19,7 +19,7 @@ const HelpMenu = () => {
   const showKeyboardShortcuts = () => {
     toast({
       title: "Keyboard Shortcuts",
-      description: "Common shortcuts: ⌘N (New), ⌘O (Open), ⌘S (Save), ⌘F (Find), ⌘1-6 (Element types)",
+      description: "Common shortcuts: ⌘N (New), ⌘O (Open), ⌘S (Save), ⌘F (Find), ⌘1-6 (Element types), ⌘+ (Zoom In), ⌘- (Zoom Out), ⌘0 (Reset Zoom)",
     });
   };
 

@@ -26,11 +26,13 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
     marginTop: `${formatState.spaceBefore}pt`,
     width: '100%',
     maxWidth: '8.5in',
+    height: 'auto',
+    minHeight: '11in',
     margin: '0 auto',
   };
 
   return (
-    <div style={style} className="script-format-styler">
+    <div style={style} className="script-format-styler w-full h-full flex flex-col items-center overflow-visible">
       {children}
     </div>
   );

@@ -13,6 +13,7 @@ interface FormatState {
   alignment: 'left' | 'center' | 'right';
   lineSpacing: 'single' | '1.5' | 'double';
   spaceBefore: number; // in pt
+  zoomLevel: number;
 }
 
 interface FormatContextType {
@@ -28,6 +29,9 @@ interface FormatContextType {
   setAlignment: (alignment: 'left' | 'center' | 'right') => void;
   setLineSpacing: (spacing: 'single' | '1.5' | 'double') => void;
   setSpaceBefore: (space: number) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetZoom: () => void;
 }
 
 const initialFormatState: FormatState = {
@@ -42,6 +46,7 @@ const initialFormatState: FormatState = {
   alignment: 'left',
   lineSpacing: 'single',
   spaceBefore: 0,
+  zoomLevel: 1,
 };
 
 const FormatContext = createContext<FormatContextType | undefined>(undefined);
@@ -93,6 +98,24 @@ export const FormatProvider = ({ children }: { children: ReactNode }) => {
     setFormatState(prev => ({ ...prev, spaceBefore }));
   };
 
+  const zoomIn = () => {
+    setFormatState(prev => ({ 
+      ...prev, 
+      zoomLevel: Math.min(prev.zoomLevel + 0.1, 1.5) 
+    }));
+  };
+
+  const zoomOut = () => {
+    setFormatState(prev => ({ 
+      ...prev, 
+      zoomLevel: Math.max(prev.zoomLevel - 0.1, 0.5) 
+    }));
+  };
+
+  const resetZoom = () => {
+    setFormatState(prev => ({ ...prev, zoomLevel: 1 }));
+  };
+
   return (
     <FormatContext.Provider
       value={{
@@ -107,7 +130,10 @@ export const FormatProvider = ({ children }: { children: ReactNode }) => {
         setHighlightColor,
         setAlignment,
         setLineSpacing,
-        setSpaceBefore
+        setSpaceBefore,
+        zoomIn,
+        zoomOut,
+        resetZoom
       }}
     >
       {children}

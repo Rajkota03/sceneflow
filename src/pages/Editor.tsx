@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -221,7 +222,7 @@ const Editor = () => {
 
   return (
     <FormatProvider>
-      <div className="min-h-screen flex flex-col bg-slate-100">
+      <div className="h-screen flex flex-col bg-slate-100 overflow-hidden">
         <EditorMenuBar onSave={() => handleSave()} />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
@@ -266,7 +267,7 @@ const Editor = () => {
           </div>
         </div>
         
-        <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555]">
+        <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555] z-10">
           <div>Page 1</div>
           <div className="flex items-center space-x-4">
             <span>Scene: 1</span>
@@ -277,7 +278,7 @@ const Editor = () => {
           <div>100%</div>
         </div>
         
-        <main className="flex-grow pt-4 pb-10 flex justify-center px-4 bg-[#EEEEEE] overflow-auto">
+        <main className="flex-grow overflow-auto py-4 px-4 bg-[#EEEEEE]">
           <ScriptEditor initialContent={content} onChange={handleContentChange} />
         </main>
       </div>
