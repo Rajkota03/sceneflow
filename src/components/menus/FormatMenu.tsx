@@ -8,7 +8,8 @@ import {
   MenubarSeparator,
   MenubarSub,
   MenubarSubContent,
-  MenubarSubTrigger
+  MenubarSubTrigger,
+  MenubarShortcut
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 
