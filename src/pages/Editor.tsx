@@ -11,19 +11,21 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from '@/components/ui/use-toast';
 import EditorMenuBar from '../components/EditorMenuBar';
 import { FormatProvider } from '@/lib/formatContext';
-
 const Editor = () => {
-  const { projectId } = useParams<{ projectId: string }>();
+  const {
+    projectId
+  } = useParams<{
+    projectId: string;
+  }>();
   const navigate = useNavigate();
-  
   const [project, setProject] = useState<Project | null>(null);
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState<ScriptContent>({ elements: [] });
+  const [content, setContent] = useState<ScriptContent>({
+    elements: []
+  });
   const [isSaving, setIsSaving] = useState(false);
-  
   useEffect(() => {
     const foundProject = sampleProjects.find(p => p.id === projectId);
-    
     if (foundProject) {
       setProject(foundProject);
       setTitle(foundProject.title);
@@ -31,42 +33,34 @@ const Editor = () => {
     } else if (projectId) {
       const newProject = {
         ...emptyProject,
-        id: projectId,
+        id: projectId
       };
       setProject(newProject);
       setTitle(newProject.title);
       setContent(newProject.content);
     }
   }, [projectId]);
-  
   const handleContentChange = (newContent: ScriptContent) => {
     setContent(newContent);
   };
-  
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
-  
   const handleSave = () => {
     if (!project) return;
-    
     setIsSaving(true);
-    
     setTimeout(() => {
       setIsSaving(false);
       toast({
         title: "Script saved",
-        description: "Your screenplay has been saved successfully.",
+        description: "Your screenplay has been saved successfully."
       });
     }, 800);
   };
-  
   if (!project) {
     return <div>Loading...</div>;
   }
-  
-  return (
-    <FormatProvider>
+  return <FormatProvider>
       <div className="min-h-screen flex flex-col bg-slate-100">
         {/* Main menu bar */}
         <EditorMenuBar onSave={handleSave} />
@@ -77,12 +71,7 @@ const Editor = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-[#333333] hover:bg-[#DDDDDD]"
-                    onClick={() => navigate('/dashboard')}
-                  >
+                  <Button variant="ghost" size="sm" className="text-[#333333] hover:bg-[#DDDDDD]" onClick={() => navigate('/dashboard')}>
                     <ArrowLeft size={16} />
                   </Button>
                 </TooltipTrigger>
@@ -92,71 +81,26 @@ const Editor = () => {
             
             <div className="flex items-center space-x-2 bg-white px-2 py-1 rounded border border-[#DDDDDD]">
               <FileText size={16} className="text-[#666666]" />
-              <Input
-                type="text"
-                value={title}
-                onChange={handleTitleChange}
-                className="w-48 font-medium border-none h-6 focus-visible:ring-0 p-0 text-[#333333] text-sm"
-                placeholder="Untitled Screenplay"
-              />
+              <Input type="text" value={title} onChange={handleTitleChange} className="w-48 font-medium border-none h-6 focus-visible:ring-0 p-0 text-[#333333] text-sm" placeholder="Untitled Screenplay" />
               <ChevronDown size={16} className="text-[#666666]" />
             </div>
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline"
-              size="sm"
-              className="bg-white border-[#DDDDDD] text-[#333333] hover:bg-[#F9F9F9]"
-            >
+            <Button variant="outline" size="sm" className="bg-white border-[#DDDDDD] text-[#333333] hover:bg-[#F9F9F9]">
               <Eye size={16} className="mr-1" />
               <span className="text-xs">Preview</span>
             </Button>
 
-            <Button 
-              onClick={handleSave}
-              disabled={isSaving}
-              size="sm"
-              className="bg-[#0FA0CE] hover:bg-[#0D8CAF] text-white"
-            >
-              {isSaving ? (
-                <div className="animate-spin mr-1 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
-              ) : (
-                <Save size={16} className="mr-1" />
-              )}
+            <Button onClick={handleSave} disabled={isSaving} size="sm" className="bg-[#0FA0CE] hover:bg-[#0D8CAF] text-white">
+              {isSaving ? <div className="animate-spin mr-1 h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div> : <Save size={16} className="mr-1" />}
               <span className="text-xs">Save</span>
             </Button>
           </div>
         </div>
         
         {/* Element type toolbar */}
-        <div className="bg-[#F9F9F9] border-b border-[#DDDDDD] py-1 px-4 flex items-center text-xs text-[#555555]">
-          <div className="flex items-center space-x-4 mx-auto">
-            <div className="flex items-center space-x-1 px-3 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">
-              <SplitSquareVertical size={14} />
-              <span>Split</span>
-            </div>
-            <div className="h-4 border-r border-[#DDDDDD]"></div>
-            <div className="flex items-center space-x-1 px-3 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">
-              <LayoutGrid size={14} />
-              <span>Elements</span>
-              <ChevronDown size={14} />
-            </div>
-            <div className="h-4 border-r border-[#DDDDDD]"></div>
-            <div className="flex items-center space-x-1 px-3 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">
-              <Table size={14} />
-              <span>Scene Navigator</span>
-            </div>
-            <div className="h-4 border-r border-[#DDDDDD]"></div>
-            <div className="flex items-center space-x-6">
-              <div className="px-2 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">Scene Heading (Ctrl+1)</div>
-              <div className="px-2 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">Action (Ctrl+2)</div>
-              <div className="px-2 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">Character (Ctrl+3)</div>
-              <div className="px-2 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">Dialogue (Ctrl+4)</div>
-              <div className="px-2 py-1 cursor-pointer hover:bg-[#EEEEEE] rounded">Transition (Ctrl+6)</div>
-            </div>
-          </div>
-        </div>
+        
         
         {/* Status bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555]">
@@ -173,8 +117,6 @@ const Editor = () => {
           <ScriptEditor initialContent={content} onChange={handleContentChange} />
         </main>
       </div>
-    </FormatProvider>
-  );
+    </FormatProvider>;
 };
-
 export default Editor;
