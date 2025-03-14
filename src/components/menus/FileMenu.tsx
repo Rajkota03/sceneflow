@@ -1,3 +1,4 @@
+
 import React, { useRef } from 'react';
 import { 
   MenubarMenu, 
@@ -19,9 +20,10 @@ import FormatStyler from '../FormatStyler';
 
 interface FileMenuProps {
   onSave: () => void;
+  onSaveAs: (newTitle: string) => void;
 }
 
-const FileMenu = ({ onSave }: FileMenuProps) => {
+const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
   const navigate = useNavigate();
   const importFileRef = useRef<HTMLInputElement>(null);
 
@@ -36,11 +38,7 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
   const handleSaveAs = () => {
     const newName = prompt("Enter a new name for your screenplay:", "");
     if (newName) {
-      toast({
-        title: "Save As",
-        description: `Screenplay saved as "${newName}"`,
-      });
-      onSave();
+      onSaveAs(newName);
     }
   };
 
@@ -182,133 +180,6 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
     }
   };
 
-  const handleExportFountain = () => {
-    const scriptContent = document.querySelector('.script-page');
-    if (!scriptContent) {
-      toast({
-        title: "Export Failed",
-        description: "Could not find screenplay content",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    let fountainText = "";
-    
-    const elements = scriptContent.querySelectorAll('[class*="-element"]');
-    elements.forEach(element => {
-      const textarea = element.querySelector('textarea');
-      if (!textarea) return;
-      
-      const text = textarea.value || '';
-      if (!text.trim()) return;
-      
-      if (element.classList.contains('scene-heading-element')) {
-        fountainText += '\n' + text + '\n\n';
-      } else if (element.classList.contains('action-element')) {
-        fountainText += text + '\n\n';
-      } else if (element.classList.contains('character-element')) {
-        fountainText += text + '\n';
-      } else if (element.classList.contains('dialogue-element')) {
-        fountainText += text + '\n\n';
-      } else if (element.classList.contains('parenthetical-element')) {
-        fountainText += '(' + text + ')\n';
-      } else if (element.classList.contains('transition-element')) {
-        fountainText += '> ' + text + '\n\n';
-      } else {
-        fountainText += text + '\n\n';
-      }
-    });
-    
-    const blob = new Blob([fountainText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'screenplay.fountain';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export to Fountain",
-      description: "Screenplay exported to Fountain format successfully!",
-    });
-  };
-
-  const handleExportFDX = () => {
-    toast({
-      title: "Export to Final Draft",
-      description: "Exporting screenplay to Final Draft (.fdx) format",
-    });
-    
-    const scriptContent = document.querySelector('.script-page');
-    if (!scriptContent) {
-      toast({
-        title: "Export Failed",
-        description: "Could not find screenplay content",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    let fdxContent = `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<FinalDraft DocumentType="Script" Template="Screenplay" Version="1">
-  <Content>
-    <Paragraph Type="Action">
-      <Text>Your screenplay has been exported to Final Draft format.</Text>
-    </Paragraph>`;
-    
-    const elements = scriptContent.querySelectorAll('[class*="-element"]');
-    elements.forEach(element => {
-      const textarea = element.querySelector('textarea');
-      if (!textarea) return;
-      
-      const text = textarea.value || '';
-      if (!text.trim()) return;
-      
-      let paragraphType = 'Action';
-      
-      if (element.classList.contains('scene-heading-element')) {
-        paragraphType = 'Scene Heading';
-      } else if (element.classList.contains('action-element')) {
-        paragraphType = 'Action';
-      } else if (element.classList.contains('character-element')) {
-        paragraphType = 'Character';
-      } else if (element.classList.contains('dialogue-element')) {
-        paragraphType = 'Dialogue';
-      } else if (element.classList.contains('parenthetical-element')) {
-        paragraphType = 'Parenthetical';
-      } else if (element.classList.contains('transition-element')) {
-        paragraphType = 'Transition';
-      }
-      
-      fdxContent += `
-    <Paragraph Type="${paragraphType}">
-      <Text>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Text>
-    </Paragraph>`;
-    });
-    
-    fdxContent += `
-  </Content>
-</FinalDraft>`;
-    
-    const blob = new Blob([fdxContent], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'screenplay.fdx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Export to Final Draft",
-      description: "Screenplay exported to Final Draft format successfully!",
-    });
-  };
-
   const handlePrint = () => {
     toast({
       title: "Print",
@@ -381,17 +252,10 @@ const FileMenu = ({ onSave }: FileMenuProps) => {
           Save As...
           <MenubarShortcut>⇧⌘S</MenubarShortcut>
         </MenubarItem>
-        <MenubarSub>
-          <MenubarSubTrigger>Export</MenubarSubTrigger>
-          <MenubarSubContent>
-            <MenubarItem onClick={handleExportPDF}>
-              PDF (Industry Standard)
-              <MenubarShortcut>⌘E</MenubarShortcut>
-            </MenubarItem>
-            <MenubarItem onClick={handleExportFountain}>Fountain (.fountain)</MenubarItem>
-            <MenubarItem onClick={handleExportFDX}>Final Draft (.fdx)</MenubarItem>
-          </MenubarSubContent>
-        </MenubarSub>
+        <MenubarItem onClick={handleExportPDF}>
+          Export PDF
+          <MenubarShortcut>⌘E</MenubarShortcut>
+        </MenubarItem>
         <MenubarSeparator />
         <MenubarItem onClick={handlePrint}>
           Print...

@@ -219,6 +219,61 @@ const Editor = () => {
     }
   };
 
+  const handleSaveAs = async (newTitle: string) => {
+    if (!project || !session) return;
+    
+    setIsSaving(true);
+    setSaveButtonText("Saving");
+    setSaveButtonIcon("save");
+    
+    try {
+      // Create a new project with the same content but new title
+      const newProject = {
+        title: newTitle,
+        author_id: session.user.id,
+        content: scriptContentToJson(content),
+      };
+      
+      const { data, error } = await supabase
+        .from('projects')
+        .insert(newProject)
+        .select('id')
+        .single();
+      
+      if (error) {
+        console.error('Error creating new project:', error);
+        toast({
+          title: 'Error saving project',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setSaveButtonText("Save");
+        setSaveButtonIcon("save");
+        return;
+      }
+      
+      // Navigate to the new project
+      toast({
+        title: "Script saved",
+        description: `Your screenplay has been saved as "${newTitle}".`
+      });
+      
+      // Navigate to the new project
+      navigate(`/editor/${data.id}`);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save the project. Please try again.',
+        variant: 'destructive',
+      });
+      setSaveButtonText("Save");
+      setSaveButtonIcon("save");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -244,7 +299,7 @@ const Editor = () => {
   return (
     <FormatProvider>
       <div className="h-screen flex flex-col bg-slate-100 overflow-hidden">
-        <EditorMenuBar onSave={() => handleSave()} />
+        <EditorMenuBar onSave={() => handleSave()} onSaveAs={handleSaveAs} />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -273,11 +328,6 @@ const Editor = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="bg-white border-[#DDDDDD] text-[#333333] hover:bg-[#F9F9F9]">
-              <Eye size={16} className="mr-1" />
-              <span className="text-xs">Preview</span>
-            </Button>
-
             <Button
               onClick={() => handleSave()}
               disabled={isSaving}

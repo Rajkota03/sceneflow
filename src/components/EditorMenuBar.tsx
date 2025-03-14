@@ -21,9 +21,10 @@ import { toast } from '@/components/ui/use-toast';
 
 interface EditorMenuBarProps {
   onSave: () => void;
+  onSaveAs: (newTitle: string) => void;
 }
 
-const EditorMenuBar = ({ onSave }: EditorMenuBarProps) => {
+const EditorMenuBar = ({ onSave, onSaveAs }: EditorMenuBarProps) => {
   const navigate = useNavigate();
 
   const handleNotImplemented = () => {
@@ -56,7 +57,7 @@ const EditorMenuBar = ({ onSave }: EditorMenuBarProps) => {
         </MenubarContent>
       </MenubarMenu>
       
-      <FileMenu onSave={onSave} />
+      <FileMenu onSave={onSave} onSaveAs={onSaveAs} />
       <EditMenu />
       <FormatMenu />
       <ToolsMenu />
