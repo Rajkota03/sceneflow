@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -79,6 +80,7 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
       } else if (currentElement.type === 'character') {
         newType = 'dialogue';
       } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
+        // Fix: When Enter is pressed after dialogue, go to action
         newType = 'action';
       } else if (currentElement.type === 'action') {
         newType = 'action';
@@ -147,6 +149,7 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
         } else if (currentElement.type === 'character') {
           nextType = 'dialogue';
         } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
+          // Force the next element to be 'action' when Enter is pressed after dialogue
           nextType = 'action';
         }
         
