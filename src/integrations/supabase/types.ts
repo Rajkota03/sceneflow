@@ -16,6 +16,7 @@ export type Database = {
           created_at: string
           id: string
           title: string
+          title_page: Json | null
           updated_at: string
         }
         Insert: {
@@ -24,6 +25,7 @@ export type Database = {
           created_at?: string
           id: string
           title: string
+          title_page?: Json | null
           updated_at?: string
         }
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           created_at?: string
           id?: string
           title?: string
+          title_page?: Json | null
           updated_at?: string
         }
         Relationships: []

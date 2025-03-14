@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
@@ -6,6 +5,7 @@ import { emptyProject } from '@/lib/mockData';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { TitlePageData } from '@/components/TitlePageEditor';
 
 export const useDashboardProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -78,6 +78,13 @@ export const useDashboardProjects = () => {
       updatedAt: new Date(),
     };
     
+    const defaultTitlePageData: TitlePageData = {
+      title: newProject.title,
+      author: session.user.user_metadata?.full_name || session.user.email || '',
+      basedOn: '',
+      contact: session.user.email || ''
+    };
+    
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -86,6 +93,7 @@ export const useDashboardProjects = () => {
           title: newProject.title,
           author_id: newProject.authorId,
           content: scriptContentToJson(newProject.content),
+          title_page: defaultTitlePageData
         })
         .select();
       

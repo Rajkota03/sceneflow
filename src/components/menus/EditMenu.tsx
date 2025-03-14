@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -5,7 +6,8 @@ import {
   MenubarContent, 
   MenubarItem, 
   MenubarSeparator,
-  MenubarShortcut
+  MenubarShortcut,
+  MenubarCheckboxItem
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 import TitlePageEditor, { TitlePageData } from '@/components/TitlePageEditor';
@@ -14,9 +16,17 @@ interface EditMenuProps {
   onTitlePage?: () => void;
   onEditTitlePage?: (data: TitlePageData) => void;
   titlePageData?: TitlePageData;
+  showTitlePage?: boolean;
+  onToggleTitlePage?: () => void;
 }
 
-const EditMenu: React.FC<EditMenuProps> = ({ onTitlePage, onEditTitlePage, titlePageData }) => {
+const EditMenu: React.FC<EditMenuProps> = ({ 
+  onTitlePage, 
+  onEditTitlePage, 
+  titlePageData,
+  showTitlePage = false,
+  onToggleTitlePage
+}) => {
   const [showTitlePageEditor, setShowTitlePageEditor] = React.useState(false);
   
   const handleUndo = () => {
@@ -219,11 +229,7 @@ const EditMenu: React.FC<EditMenuProps> = ({ onTitlePage, onEditTitlePage, title
   };
 
   const handleTitlePage = () => {
-    if (onTitlePage) {
-      onTitlePage();
-    } else {
-      setShowTitlePageEditor(true);
-    }
+    setShowTitlePageEditor(true);
   };
 
   const handleSaveTitlePage = (data: TitlePageData) => {
@@ -268,8 +274,14 @@ const EditMenu: React.FC<EditMenuProps> = ({ onTitlePage, onEditTitlePage, title
             <MenubarShortcut>⌘G</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
+          <MenubarCheckboxItem 
+            checked={showTitlePage}
+            onClick={onToggleTitlePage}
+          >
+            Show Title Page
+          </MenubarCheckboxItem>
           <MenubarItem onClick={handleTitlePage}>
-            Title Page
+            Edit Title Page...
             <MenubarShortcut>⌘T</MenubarShortcut>
           </MenubarItem>
         </MenubarContent>

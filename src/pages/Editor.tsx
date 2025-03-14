@@ -108,7 +108,7 @@ const Editor = () => {
               title: newProject.title,
               author: session.user.user_metadata?.full_name || session.user.email || '',
               basedOn: '',
-              contact: ''
+              contact: session.user.email || ''
             });
           } else {
             toast({
@@ -134,14 +134,14 @@ const Editor = () => {
           
           // Load title page data if it exists
           if (data.title_page) {
-            setTitlePageData(data.title_page);
+            setTitlePageData(data.title_page as TitlePageData);
           } else {
             // Set default title page data
             setTitlePageData({
               title: formattedProject.title,
               author: session.user.user_metadata?.full_name || session.user.email || '',
               basedOn: '',
-              contact: ''
+              contact: session.user.email || ''
             });
           }
         }
@@ -261,20 +261,22 @@ const Editor = () => {
     
     try {
       const newProjectId = `project-${Date.now()}`;
-      const newProject = {
-        id: newProjectId,
-        title: newTitle,
-        author_id: session.user.id,
-        content: scriptContentToJson(content),
-        title_page: {
-          ...titlePageData,
-          title: newTitle
-        }
+      
+      // Update title in title page data
+      const updatedTitlePageData = {
+        ...titlePageData,
+        title: newTitle
       };
       
       const { data, error } = await supabase
         .from('projects')
-        .insert(newProject)
+        .insert({
+          id: newProjectId,
+          title: newTitle,
+          author_id: session.user.id,
+          content: scriptContentToJson(content),
+          title_page: updatedTitlePageData
+        })
         .select('id')
         .single();
       
@@ -353,6 +355,8 @@ const Editor = () => {
           onTitlePage={() => toggleTitlePage()}
           onEditTitlePage={(data) => handleTitlePageUpdate(data)}
           titlePageData={titlePageData}
+          showTitlePage={showTitlePage}
+          onToggleTitlePage={toggleTitlePage}
         />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">

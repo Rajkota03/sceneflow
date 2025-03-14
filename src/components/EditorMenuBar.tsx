@@ -26,9 +26,19 @@ interface EditorMenuBarProps {
   onTitlePage?: () => void;
   onEditTitlePage?: (data: TitlePageData) => void;
   titlePageData?: TitlePageData;
+  showTitlePage?: boolean;
+  onToggleTitlePage?: () => void;
 }
 
-const EditorMenuBar = ({ onSave, onSaveAs, onTitlePage, onEditTitlePage, titlePageData }: EditorMenuBarProps) => {
+const EditorMenuBar = ({ 
+  onSave, 
+  onSaveAs, 
+  onTitlePage, 
+  onEditTitlePage, 
+  titlePageData,
+  showTitlePage = false,
+  onToggleTitlePage
+}: EditorMenuBarProps) => {
   const navigate = useNavigate();
 
   const handleNotImplemented = () => {
@@ -62,7 +72,13 @@ const EditorMenuBar = ({ onSave, onSaveAs, onTitlePage, onEditTitlePage, titlePa
       </MenubarMenu>
       
       <FileMenu onSave={onSave} onSaveAs={onSaveAs} />
-      <EditMenu onTitlePage={onTitlePage} onEditTitlePage={onEditTitlePage} titlePageData={titlePageData} />
+      <EditMenu 
+        onTitlePage={onTitlePage} 
+        onEditTitlePage={onEditTitlePage} 
+        titlePageData={titlePageData}
+        showTitlePage={showTitlePage}
+        onToggleTitlePage={onToggleTitlePage}
+      />
       <FormatMenu />
       <ToolsMenu />
       <ViewMenu />

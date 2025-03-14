@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { 
   MenubarMenu, 
@@ -81,7 +80,9 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
       description: "Preparing your screenplay for PDF export...",
     });
     
+    const titlePage = document.querySelector('.title-page');
     const scriptPage = document.querySelector('.script-page');
+    
     if (!scriptPage) {
       toast({
         title: "Export Failed",
@@ -92,6 +93,43 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
     }
     
     try {
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'in',
+        format: 'letter'
+      });
+      
+      if (titlePage) {
+        const clonedTitlePage = titlePage.cloneNode(true) as HTMLElement;
+        
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.width = '8.5in';
+        tempContainer.appendChild(clonedTitlePage);
+        document.body.appendChild(tempContainer);
+        
+        const titleCanvas = await html2canvas(clonedTitlePage, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff',
+        });
+        
+        pdf.addImage(
+          titleCanvas.toDataURL('image/png', 1.0),
+          'PNG',
+          0,
+          0,
+          8.5,
+          11
+        );
+        
+        document.body.removeChild(tempContainer);
+        
+        pdf.addPage();
+      }
+      
       const clonedPage = scriptPage.cloneNode(true) as HTMLElement;
       
       const tempContainer = document.createElement('div');
@@ -147,12 +185,6 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
         backgroundColor: '#ffffff',
       });
       
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'in',
-        format: 'letter'
-      });
-      
       pdf.addImage(
         canvas.toDataURL('image/png', 1.0),
         'PNG',
@@ -192,15 +224,18 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
         body * {
           visibility: hidden;
         }
-        .script-page, .script-page * {
+        .title-page, .title-page *, .script-page, .script-page * {
           visibility: visible;
         }
-        .script-page {
+        .title-page, .script-page {
           position: absolute;
           left: 0;
           top: 0;
           width: 8.5in;
           padding: 1in;
+        }
+        .title-page {
+          page-break-after: always;
         }
       }
     `;

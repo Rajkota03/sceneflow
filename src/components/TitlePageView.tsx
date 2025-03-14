@@ -10,7 +10,7 @@ interface TitlePageViewProps {
 const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
   return (
     <FormatStyler>
-      <div className="title-page flex flex-col items-center justify-center min-h-[11in] text-center relative py-8">
+      <div className="title-page flex flex-col items-center min-h-[11in] text-center relative py-8">
         <div className="title-section" style={{ marginTop: '3in' }}>
           <h1 className="text-xl uppercase font-bold mb-8">{data.title || "SCRIPT TITLE"}</h1>
           
@@ -27,7 +27,7 @@ const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
         </div>
         
         {data.contact && (
-          <div className="contact-section absolute bottom-24 text-sm whitespace-pre-line">
+          <div className="contact-section absolute bottom-24 left-24 text-sm text-left whitespace-pre-line">
             <p>{data.contact}</p>
           </div>
         )}
