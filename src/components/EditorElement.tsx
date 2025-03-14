@@ -89,7 +89,8 @@ const EditorElement = ({
         style={{ 
           fontFamily: 'Courier Prime, monospace',
           caretColor: '#1E293B',
-          textAlign: getTextAlignment()
+          textAlign: getTextAlignment(),
+          lineHeight: 1
         }}
       />
     </div>

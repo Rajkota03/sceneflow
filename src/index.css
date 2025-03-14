@@ -58,6 +58,7 @@
   
   .script-page {
     @apply bg-editor-paper text-editor-text p-8 mx-auto font-mono w-full max-w-2xl min-h-[11in] shadow-md relative;
+    line-height: 1;
   }
   
   .script-page::before {
@@ -66,31 +67,39 @@
   }
   
   .element-container {
-    @apply mb-1 relative;
+    @apply relative;
+    margin-bottom: 0;
   }
   
   .scene-heading {
-    @apply font-bold uppercase mb-3;
+    @apply font-bold uppercase;
+    margin-bottom: 1em;
   }
   
   .action {
-    @apply mb-4;
+    margin-bottom: 1em;
   }
   
   .character {
-    @apply text-center uppercase font-bold mt-4 mb-0 mx-auto;
+    @apply text-center uppercase font-bold mx-auto;
+    margin-top: 1em;
+    margin-bottom: 0;
   }
   
   .dialogue {
-    @apply text-center w-3/5 mx-auto mb-4;
+    @apply text-center w-3/5 mx-auto;
+    margin-bottom: 1em;
   }
   
   .parenthetical {
-    @apply text-center w-2/5 mx-auto italic mb-1;
+    @apply text-center w-2/5 mx-auto italic;
+    margin-bottom: 0;
   }
   
   .transition {
-    @apply text-right uppercase font-bold mb-4;
+    @apply text-right uppercase font-bold;
+    margin-bottom: 1em;
+    margin-top: 1em;
   }
   
   .hero-gradient {
@@ -137,7 +146,7 @@
   color: #000000;
   font-family: 'Courier Prime', monospace;
   font-size: 12pt;
-  line-height: 1.5;
+  line-height: 1;
   width: 100%;
   max-width: 8.5in;
   min-height: 11in;
@@ -151,6 +160,7 @@
 .scene-heading textarea {
   text-transform: uppercase;
   font-weight: bold;
+  line-height: 1;
 }
 
 .character textarea {
@@ -159,21 +169,41 @@
   text-align: center;
   width: 100%;
   display: block;
+  line-height: 1;
 }
 
 .dialogue textarea {
   text-align: center;
   width: 100%;
   margin: 0 auto;
+  line-height: 1;
 }
 
 .parenthetical textarea {
   text-align: center;
   font-style: italic;
+  line-height: 1;
 }
 
 .transition textarea {
   text-align: right;
   text-transform: uppercase;
   font-weight: bold;
+  line-height: 1;
+}
+
+.action textarea {
+  line-height: 1;
+}
+
+/* Adjust textarea height to match Final Draft spacing */
+textarea {
+  line-height: 1;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure consistent spacing between script elements */
+.element-container + .element-container {
+  margin-top: 0;
 }
