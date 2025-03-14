@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,13 +15,26 @@ import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
-// Protected route component with loading state
+// Modified ProtectedRoute to work without Clerk when needed
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // Check if Clerk is available in the window object
+  const clerkAvailable = typeof window !== 'undefined' && 'Clerk' in window;
+  
+  // If Clerk is not available, render the children directly
+  if (!clerkAvailable) {
+    return <>{children}</>;
+  }
+  
+  // Otherwise, use the Clerk authentication
+  return <ClerkProtectedRoute>{children}</ClerkProtectedRoute>;
+};
+
+// The original protected route logic using Clerk
+const ClerkProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { session, loaded } = useClerk();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Once Clerk has loaded, update our loading state
     if (loaded) {
       setIsLoading(false);
     }
