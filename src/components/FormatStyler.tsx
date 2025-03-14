@@ -24,6 +24,9 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children }) => {
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
     marginTop: `${formatState.spaceBefore}pt`,
+    width: '100%',
+    maxWidth: '8.5in',
+    margin: '0 auto',
   };
 
   return (

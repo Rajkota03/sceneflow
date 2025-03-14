@@ -57,8 +57,10 @@
   }
   
   .script-page {
-    @apply bg-editor-paper text-editor-text p-8 mx-auto font-mono w-full max-w-2xl min-h-[11in] shadow-md relative;
-    line-height: 1;
+    @apply bg-white text-black p-6 font-mono w-full max-w-[8.5in] min-h-[11in] shadow-md relative mx-auto;
+    line-height: 1.2;
+    box-sizing: border-box;
+    border: 1px solid #DDDDDD;
   }
   
   .script-page::before {
@@ -68,7 +70,7 @@
   
   .element-container {
     @apply relative;
-    margin-bottom: 0;
+    margin-bottom: 0.3em;
   }
   
   .scene-heading {
@@ -106,7 +108,6 @@
     @apply bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50;
   }
   
-  /* Page transitions */
   .page-enter {
     @apply opacity-0;
   }
@@ -146,7 +147,7 @@
   color: #000000;
   font-family: 'Courier Prime', monospace;
   font-size: 12pt;
-  line-height: 1;
+  line-height: 1.2;
   width: 100%;
   max-width: 8.5in;
   min-height: 11in;
@@ -160,7 +161,7 @@
 .scene-heading textarea {
   text-transform: uppercase;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .character textarea {
@@ -169,36 +170,36 @@
   text-align: center;
   width: 100%;
   display: block;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .dialogue textarea {
   text-align: center;
   width: 100%;
   margin: 0 auto;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .parenthetical textarea {
   text-align: center;
   font-style: italic;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .transition textarea {
   text-align: right;
   text-transform: uppercase;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .action textarea {
-  line-height: 1;
+  line-height: 1.2;
 }
 
 /* Adjust textarea height to match Final Draft spacing */
 textarea {
-  line-height: 1;
+  line-height: 1.2;
   margin: 0;
   padding: 0;
 }

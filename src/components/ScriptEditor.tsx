@@ -23,28 +23,30 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
   } = useScriptElements(initialContent, onChange);
 
   return (
-    <FormatStyler>
-      <div className="script-page">
-        {elements.map((element, index) => (
-          <EditorKeyboardHandler
-            key={element.id}
-            id={element.id}
-            type={element.type}
-            onAddNewElement={addNewElement}
-            onChangeElementType={changeElementType}
-          >
-            <EditorElement
-              element={element}
-              previousElementType={getPreviousElementType(index)}
-              onChange={handleElementChange}
-              onKeyDown={(e) => {/* This gets handled by the EditorKeyboardHandler */}}
-              isActive={activeElementId === element.id}
-              onFocus={() => setActiveElementId(element.id)}
-            />
-          </EditorKeyboardHandler>
-        ))}
-      </div>
-    </FormatStyler>
+    <div className="flex justify-center w-full">
+      <FormatStyler>
+        <div className="script-page">
+          {elements.map((element, index) => (
+            <EditorKeyboardHandler
+              key={element.id}
+              id={element.id}
+              type={element.type}
+              onAddNewElement={addNewElement}
+              onChangeElementType={changeElementType}
+            >
+              <EditorElement
+                element={element}
+                previousElementType={getPreviousElementType(index)}
+                onChange={handleElementChange}
+                onKeyDown={(e) => {/* This gets handled by the EditorKeyboardHandler */}}
+                isActive={activeElementId === element.id}
+                onFocus={() => setActiveElementId(element.id)}
+              />
+            </EditorKeyboardHandler>
+          ))}
+        </div>
+      </FormatStyler>
+    </div>
   );
 };
 
