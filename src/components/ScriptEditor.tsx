@@ -38,15 +38,15 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     let newType: ElementType = explicitType || 'action';
     
     if (!explicitType) {
-      const previousType = elements[afterIndex]?.type;
+      const previousElement = elements[afterIndex];
       
-      if (previousType === 'scene-heading') {
+      if (previousElement?.type === 'scene-heading') {
         newType = 'action';
-      } else if (previousType === 'character') {
+      } else if (previousElement?.type === 'character') {
         newType = 'dialogue';
-      } else if (previousType === 'action') {
+      } else if (previousElement?.type === 'action') {
         newType = 'action';
-      } else if (previousType === 'dialogue' || previousType === 'parenthetical') {
+      } else if (previousElement?.type === 'dialogue' || previousElement?.type === 'parenthetical') {
         newType = 'action';
       }
     }
@@ -111,7 +111,7 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
         newType = 'action';
       }
       
-      handleElementChange(id, element.text, newType);
+      changeElementType(id, newType);
     }
     
     // Keyboard shortcuts

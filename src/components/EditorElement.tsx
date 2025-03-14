@@ -65,7 +65,8 @@ const EditorElement = ({
         rows={1}
         style={{ 
           fontFamily: 'Courier Prime, monospace',
-          caretColor: '#1E293B'
+          caretColor: '#1E293B',
+          textAlign: element.type === 'character' ? 'center' : 'left'
         }}
       />
     </div>

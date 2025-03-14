@@ -22,7 +22,7 @@ export function detectElementType(text: string, previousElementType?: ElementTyp
     return 'parenthetical';
   }
   
-  // Detect dialogue (after character or parenthetical)
+  // If the previous element was a character or parenthetical, treat this as dialogue
   if (previousElementType === 'character' || previousElementType === 'parenthetical' || previousElementType === 'dialogue') {
     return 'dialogue';
   }
