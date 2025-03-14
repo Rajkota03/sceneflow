@@ -117,6 +117,7 @@ const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
     // Keyboard shortcuts
     if (e.ctrlKey || e.metaKey) {
       const elementIndex = elements.findIndex(element => element.id === id);
+      const currentElement = elements[elementIndex];
       
       switch (e.key) {
         case '1':

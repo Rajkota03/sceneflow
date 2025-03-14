@@ -47,8 +47,13 @@ const EditorElement = ({
     }
   }, [text]);
 
+  // Apply appropriate class based on element type
+  const getElementClass = () => {
+    return `${element.type} element-container`;
+  };
+
   return (
-    <div className={`${element.type} element-container`}>
+    <div className={getElementClass()}>
       <textarea
         ref={inputRef}
         value={text}
