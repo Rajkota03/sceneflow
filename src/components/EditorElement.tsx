@@ -1,23 +1,28 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
-import { formatScriptElement, detectElementType } from '../lib/formatScript';
+import { formatScriptElement } from '../lib/formatScript';
 
 interface EditorElementProps {
   element: ScriptElement;
   previousElementType?: ElementType;
   onChange: (id: string, text: string, type: ElementType) => void;
-  onKeyDown: (e: React.KeyboardEvent, id: string) => void;
-  isActive: boolean;
   onFocus: () => void;
+  isActive: boolean;
+  onNavigate: (direction: 'up' | 'down', id: string) => void;
+  onEnterKey: (id: string, shiftKey: boolean) => void;
+  onFormatChange: (id: string, newFormat: ElementType) => void;
 }
 
 const EditorElement = ({ 
   element, 
   previousElementType, 
   onChange, 
-  onKeyDown, 
+  onFocus,
   isActive,
-  onFocus
+  onNavigate,
+  onEnterKey,
+  onFormatChange
 }: EditorElementProps) => {
   const [text, setText] = useState(element.text);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -38,20 +43,15 @@ const EditorElement = ({
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
-    
-    // Auto-detect element type based on content
-    const detectedType = detectElementType(newText, previousElementType);
-    
-    // Update element type in parent component
-    onChange(element.id, newText, detectedType);
+    onChange(element.id, newText, elementType);
   };
 
-  // Handle keyboard events for cursor navigation
-  const handleKeyboardEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  // Handle keyboard events for navigation and formatting
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     const textarea = inputRef.current;
     if (!textarea) return;
     
-    // Allow normal browser behavior for arrow keys within the textarea
+    // Handle arrow key navigation
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const { selectionStart, value } = textarea;
       const lines = value.split('\n');
@@ -69,38 +69,80 @@ const EditorElement = ({
         charCount += lines[i].length + 1;
       }
       
-      // Only pass arrow key events to parent when we've reached the boundaries
-      if ((e.key === 'ArrowUp' && cursorLineIndex === 0 && selectionStart === 0) || 
-          (e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1 && 
-           selectionStart === charCount - 1)) {
-        onKeyDown(e, element.id);
-        e.preventDefault(); // Prevent default browser behavior only at boundaries
+      // Navigate to previous/next element when at boundaries
+      if ((e.key === 'ArrowUp' && cursorLineIndex === 0 && selectionStart === 0)) {
+        e.preventDefault();
+        onNavigate('up', element.id);
+        return;
+      } 
+      
+      if ((e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1 && 
+           selectionStart >= charCount - 1)) {
+        e.preventDefault();
+        onNavigate('down', element.id);
+        return;
       }
-      // Otherwise let the browser handle normal navigation
+      
+      // Let browser handle within-element navigation
       return;
     }
     
-    // For Enter key, always pass to EditorKeyboardHandler for processing
+    // Handle Enter key
     if (e.key === 'Enter') {
-      onKeyDown(e, element.id);
+      e.preventDefault();
+      onEnterKey(element.id, e.shiftKey);
       return;
     }
     
-    // For Tab key, always pass to parent
+    // Handle Tab key for cycling through element types
     if (e.key === 'Tab') {
-      onKeyDown(e, element.id);
+      e.preventDefault();
+      
+      let newType: ElementType = 'action';
+      
+      if (elementType === 'action') {
+        newType = 'character';
+      } else if (elementType === 'character') {
+        newType = 'scene-heading';
+      } else if (elementType === 'scene-heading') {
+        newType = 'transition';
+      } else if (elementType === 'transition') {
+        newType = 'action';
+      }
+      
+      onFormatChange(element.id, newType);
       return;
     }
     
-    // For other keys with modifiers (Ctrl/Cmd), pass to parent handler
-    if ((e.ctrlKey || e.metaKey) && 
-        (e.key === '1' || e.key === '2' || e.key === '3' || 
-         e.key === '4' || e.key === '6')) {
-      onKeyDown(e, element.id);
-      return;
+    // Handle keyboard shortcuts for element type formatting
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key) {
+        case '1':
+          e.preventDefault();
+          onFormatChange(element.id, 'scene-heading');
+          break;
+        case '2':
+          e.preventDefault();
+          onFormatChange(element.id, 'action');
+          break;
+        case '3':
+          e.preventDefault();
+          onFormatChange(element.id, 'character');
+          break;
+        case '4':
+          e.preventDefault();
+          onFormatChange(element.id, 'dialogue');
+          break;
+        case '5':
+          e.preventDefault();
+          onFormatChange(element.id, 'parenthetical');
+          break;
+        case '6':
+          e.preventDefault();
+          onFormatChange(element.id, 'transition');
+          break;
+      }
     }
-    
-    // For all other keys, let the browser handle normal input
   };
 
   // Adjust textarea height to content
@@ -111,15 +153,32 @@ const EditorElement = ({
     }
   }, [text]);
 
-  // Apply appropriate class based on element type
+  // Get element class and spacing based on type and context
   const getElementClass = () => {
-    return `${elementType} element-container`;
+    const baseClass = `element-container ${elementType}`;
+    
+    // Add proper spacing based on screenplay format rules
+    if (elementType === 'scene-heading') {
+      return `${baseClass} mt-6`;
+    }
+    if (elementType === 'character') {
+      return `${baseClass} mt-4`;
+    }
+    if (elementType === 'dialogue' && previousElementType !== 'character' && previousElementType !== 'parenthetical') {
+      return `${baseClass} mt-1`;
+    }
+    if (elementType === 'transition') {
+      return `${baseClass} mt-4`;
+    }
+    
+    return baseClass;
   };
 
   // Set the text alignment based on element type
   const getTextAlignment = (): 'left' | 'center' | 'right' => {
     switch (elementType) {
       case 'character':
+        return 'center';
       case 'parenthetical':
         return 'center';
       case 'transition':
@@ -137,7 +196,7 @@ const EditorElement = ({
         ref={inputRef}
         value={text}
         onChange={handleChange}
-        onKeyDown={handleKeyboardEvent}
+        onKeyDown={handleKeyDown}
         onFocus={onFocus}
         className="w-full bg-transparent resize-none outline-none"
         placeholder={getPlaceholderText(elementType)}
@@ -165,7 +224,7 @@ function getPlaceholderText(type: ElementType): string {
     case 'dialogue':
       return 'Character dialogue... (Ctrl+4)';
     case 'parenthetical':
-      return '(action)';
+      return '(action) (Ctrl+5)';
     case 'transition':
       return 'TRANSITION TO: (Ctrl+6)';
     case 'note':

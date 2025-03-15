@@ -1,35 +1,34 @@
 
-import { useEffect } from 'react';
-import { ScriptContent, ScriptElement, Note } from '../lib/types';
+import { useEffect, useRef, useState } from 'react';
+import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
-import EditorKeyboardHandler from './EditorKeyboardHandler';
-import useScriptElements from '../hooks/useScriptElements';
 import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
 import { useFormat } from '@/lib/formatContext';
+import { addContdToCharacter, shouldAddContd } from '@/lib/characterUtils';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
   onChange: (content: ScriptContent) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
-  className?: string; // Added className prop for custom styling
+  className?: string;
 }
 
 const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className }: ScriptEditorProps) => {
   const { formatState } = useFormat();
-  const {
-    elements,
-    activeElementId,
-    setActiveElementId,
-    handleElementChange,
-    getPreviousElementType,
-    addNewElement,
-    changeElementType,
-    setElements
-  } = useScriptElements(initialContent, onChange);
+  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
+  const [activeElementId, setActiveElementId] = useState<string | null>(
+    elements.length > 0 ? elements[0].id : null
+  );
+  const editorRef = useRef<HTMLDivElement>(null);
 
-  // Ensure there's always at least one element to edit
+  // Sync elements with parent component
+  useEffect(() => {
+    onChange({ elements });
+  }, [elements, onChange]);
+
+  // Create default elements if empty
   useEffect(() => {
     if (!elements || elements.length === 0) {
       console.log("No elements found, creating default elements");
@@ -48,27 +47,143 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
       setElements(defaultElements);
       setActiveElementId(defaultElements[0].id);
     }
-  }, [elements, setElements, setActiveElementId]);
+  }, [elements]);
 
-  console.log('ScriptEditor - notes available:', notes?.length || 0);
+  // Get the previous element type for contextual formatting
+  const getPreviousElementType = (index: number): ElementType | undefined => {
+    if (index <= 0) return undefined;
+    return elements[index - 1].type;
+  };
 
-  // Fallback rendering for when elements are not yet available
-  if (!elements || elements.length === 0) {
-    return (
-      <div className={`flex justify-center w-full h-full ${className || ''}`}>
-        <FormatStyler>
-          <div className="script-page">
-            <div className="flex items-center justify-center py-12">
-              <p className="text-lg text-slate-500">Loading editor...</p>
-            </div>
-          </div>
-        </FormatStyler>
-      </div>
+  // Handle element text and type changes
+  const handleElementChange = (id: string, text: string, type: ElementType) => {
+    setElements(prevElements => 
+      prevElements.map(element => 
+        element.id === id ? { ...element, text, type } : element
+      )
     );
-  }
+  };
+
+  // Handle element type changes (manual formatting)
+  const handleFormatChange = (id: string, newType: ElementType) => {
+    setElements(prevElements => {
+      const index = prevElements.findIndex(el => el.id === id);
+      if (index === -1) return prevElements;
+      
+      let updatedElements = [...prevElements];
+      let updatedElement = { ...updatedElements[index], type: newType };
+      
+      // Add (CONT'D) when appropriate for character elements
+      if (newType === 'character') {
+        updatedElement.text = addContdToCharacter(updatedElement.text, index, prevElements);
+      }
+      
+      updatedElements[index] = updatedElement;
+      return updatedElements;
+    });
+  };
+
+  // Handle Enter key press
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    const currentElement = elements[currentIndex];
+    
+    // Handle Shift+Enter for dialogue (creates a line break instead of new element)
+    if (shiftKey && currentElement.type === 'dialogue') {
+      const updatedElements = [...elements];
+      updatedElements[currentIndex] = {
+        ...currentElement,
+        text: currentElement.text + '\n'
+      };
+      setElements(updatedElements);
+      return;
+    }
+    
+    // Determine the next element's type based on screenplay logic
+    let nextType: ElementType;
+    switch (currentElement.type) {
+      case 'scene-heading':
+        nextType = 'action';
+        break;
+      case 'character':
+        nextType = 'dialogue';
+        break;
+      case 'dialogue':
+        nextType = 'action';
+        break;
+      case 'parenthetical':
+        nextType = 'dialogue';
+        break;
+      case 'transition':
+        nextType = 'scene-heading';
+        break;
+      default:
+        nextType = 'action';
+    }
+    
+    // Create a new element
+    const newElement: ScriptElement = {
+      id: generateUniqueId(),
+      type: nextType,
+      text: ''
+    };
+    
+    // Handle character continuation if this is a character after an action
+    if (nextType === 'character' && currentIndex > 0) {
+      // Find the previous character
+      let prevCharIndex = -1;
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        if (elements[i].type === 'character') {
+          prevCharIndex = i;
+          break;
+        }
+      }
+      
+      // Check if we should add CONT'D
+      if (prevCharIndex !== -1) {
+        const charName = elements[prevCharIndex].text.replace(/\s*\(CONT'D\)\s*$/, '');
+        if (shouldAddContd(charName, currentIndex + 1, [...elements, newElement])) {
+          newElement.text = `${charName} (CONT'D)`;
+        } else {
+          newElement.text = charName;
+        }
+      }
+    }
+    
+    const updatedElements = [
+      ...elements.slice(0, currentIndex + 1),
+      newElement,
+      ...elements.slice(currentIndex + 1)
+    ];
+    
+    setElements(updatedElements);
+    setActiveElementId(newElement.id);
+  };
+
+  // Handle navigation between elements
+  const handleNavigate = (direction: 'up' | 'down', id: string) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    if (direction === 'up' && currentIndex > 0) {
+      setActiveElementId(elements[currentIndex - 1].id);
+    } else if (direction === 'down' && currentIndex < elements.length - 1) {
+      setActiveElementId(elements[currentIndex + 1].id);
+    }
+  };
+
+  // Handle focus on element
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
 
   return (
-    <div className={`flex justify-center w-full h-full overflow-auto ${className || ''}`}>
+    <div 
+      className={`flex justify-center w-full h-full overflow-auto ${className || ''}`}
+      ref={editorRef}
+    >
       <FormatStyler>
         <div className="script-page" style={{ 
           transform: `scale(${formatState.zoomLevel})`,
@@ -76,22 +191,17 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
           transition: 'transform 0.2s ease-out'
         }}>
           {elements.map((element, index) => (
-            <EditorKeyboardHandler
+            <EditorElement
               key={element.id}
-              id={element.id}
-              type={element.type}
-              onAddNewElement={addNewElement}
-              onChangeElementType={changeElementType}
-            >
-              <EditorElement
-                element={element}
-                previousElementType={getPreviousElementType(index)}
-                onChange={handleElementChange}
-                onKeyDown={(e) => {/* This gets handled by the EditorKeyboardHandler */}}
-                isActive={activeElementId === element.id}
-                onFocus={() => setActiveElementId(element.id)}
-              />
-            </EditorKeyboardHandler>
+              element={element}
+              previousElementType={getPreviousElementType(index)}
+              onChange={handleElementChange}
+              onFocus={() => handleFocus(element.id)}
+              isActive={activeElementId === element.id}
+              onNavigate={handleNavigate}
+              onEnterKey={handleEnterKey}
+              onFormatChange={handleFormatChange}
+            />
           ))}
         </div>
       </FormatStyler>

@@ -12,8 +12,9 @@ export function detectElementType(text: string, previousElementType?: ElementTyp
     return 'transition';
   }
   
-  // Detect character names (ALL CAPS)
-  if (/^[A-Z][A-Z\s']+$/.test(text) && previousElementType !== 'character') {
+  // Detect character names (ALL CAPS) - ignoring (CONT'D)
+  if (/^[A-Z][A-Z\s']+(\s*\(CONT'D\))?$/.test(text) && 
+      previousElementType !== 'character') {
     return 'character';
   }
   
@@ -23,7 +24,9 @@ export function detectElementType(text: string, previousElementType?: ElementTyp
   }
   
   // If the previous element was a character or parenthetical, treat this as dialogue
-  if (previousElementType === 'character' || previousElementType === 'parenthetical' || previousElementType === 'dialogue') {
+  if (previousElementType === 'character' || 
+      previousElementType === 'parenthetical' || 
+      previousElementType === 'dialogue') {
     return 'dialogue';
   }
   
@@ -36,6 +39,11 @@ export function formatScriptElement(element: { type: ElementType; text: string }
     case 'scene-heading':
       return element.text.toUpperCase();
     case 'character':
+      // Preserve (CONT'D) if it exists
+      const match = element.text.match(/^(.+?)(\s*\(CONT'D\))?$/);
+      if (match && match[1]) {
+        return `${match[1].toUpperCase()}${match[2] || ''}`;
+      }
       return element.text.toUpperCase();
     case 'transition':
       return element.text.toUpperCase();

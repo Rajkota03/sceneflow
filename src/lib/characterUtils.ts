@@ -1,6 +1,7 @@
 
 import { ScriptElement, ElementType } from './types';
 
+// Check if a character should have (CONT'D) added
 export function shouldAddContd(
   characterName: string, 
   index: number, 
@@ -8,35 +9,67 @@ export function shouldAddContd(
 ): boolean {
   if (index <= 0) return false;
   
+  // Find the last time this character spoke
   let lastCharacterIndex = -1;
-  let hasActionBetween = false;
   
   for (let i = index - 1; i >= 0; i--) {
     if (elements[i].type === 'character') {
-      lastCharacterIndex = i;
-      break;
+      // Remove (CONT'D) if present for comparison
+      const cleanName = elements[i].text.replace(/\s*\(CONT'D\)\s*$/, '');
+      
+      if (cleanName.toUpperCase() === characterName.toUpperCase()) {
+        lastCharacterIndex = i;
+        break;
+      } else {
+        // If another character spoke, no CONT'D
+        return false;
+      }
     }
   }
   
   if (lastCharacterIndex === -1) return false;
   
+  // Check if there is action between the last time the character spoke and now
+  let hasActionBetween = false;
+  
   for (let i = lastCharacterIndex + 1; i < index; i++) {
     if (elements[i].type === 'action') {
       hasActionBetween = true;
-    } else if (elements[i].type === 'character' && elements[i].text !== characterName) {
-      return false;
+      break;
     }
   }
   
-  return elements[lastCharacterIndex].text === characterName && hasActionBetween;
+  // Only add (CONT'D) if there's action between character speeches
+  return hasActionBetween;
 }
 
+// Process character name for (CONT'D) appropriately
 export function processCharacterName(
   text: string, 
   index: number, 
   elements: ScriptElement[]
 ): string {
-  const cleanName = text.replace(/\s*\(CONT'D\)\s*$/, '');
+  // Clean the name (remove any existing CONT'D)
+  const cleanName = text.replace(/\s*\(CONT'D\)\s*$/, '').trim();
+  
+  // Make sure name is uppercase for screenplay format
+  const upperName = cleanName.toUpperCase();
+  
+  // Add (CONT'D) if needed
+  if (shouldAddContd(upperName, index, elements)) {
+    return `${upperName} (CONT'D)`;
+  }
+  
+  return upperName;
+}
+
+// Add (CONT'D) to a character name when needed
+export function addContdToCharacter(
+  text: string,
+  index: number,
+  elements: ScriptElement[]
+): string {
+  const cleanName = text.replace(/\s*\(CONT'D\)\s*$/, '').trim();
   
   if (shouldAddContd(cleanName, index, elements)) {
     return `${cleanName} (CONT'D)`;
