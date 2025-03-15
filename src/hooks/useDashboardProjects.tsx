@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
+import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
 import { emptyProject } from '@/lib/mockData';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,12 +12,14 @@ export const useDashboardProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [notes, setNotes] = useState<Note[]>([]);
   const navigate = useNavigate();
   const { session } = useAuth();
 
   useEffect(() => {
     if (session) {
       fetchProjects();
+      fetchNotes();
     } else {
       setIsLoading(false);
     }
@@ -48,14 +51,51 @@ export const useDashboardProjects = () => {
           createdAt: new Date(project.created_at),
           updatedAt: new Date(project.updated_at),
           content: jsonToScriptContent(project.content),
+          notes: project.notes ? (Array.isArray(project.notes) ? project.notes as Note[] : []) : []
         }));
         setProjects(formattedProjects);
+        console.log('Loaded projects:', formattedProjects.length);
       }
     } catch (error) {
       console.error('Error fetching projects:', error);
       setProjects([]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchNotes = async () => {
+    if (!session) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('standalone_notes')
+        .select('*')
+        .eq('author_id', session.user.id)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching notes:', error);
+        toast({
+          title: 'Error fetching notes',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setNotes([]);
+      } else if (data) {
+        const formattedNotes = data.map(note => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          createdAt: new Date(note.created_at),
+          updatedAt: new Date(note.updated_at)
+        }));
+        setNotes(formattedNotes);
+        console.log('Loaded standalone notes:', formattedNotes.length);
+      }
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      setNotes([]);
     }
   };
 
@@ -143,12 +183,91 @@ export const useDashboardProjects = () => {
     }
   };
 
+  const handleCreateNote = async (note: Note) => {
+    if (!session) return;
+    
+    try {
+      const { error } = await supabase
+        .from('standalone_notes')
+        .insert({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          author_id: session.user.id,
+          created_at: note.createdAt.toISOString(),
+          updated_at: note.updatedAt.toISOString()
+        });
+      
+      if (error) {
+        console.error('Error saving note:', error);
+        toast({
+          title: 'Error creating note',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setNotes(prevNotes => [note, ...prevNotes]);
+      console.log('Note created successfully:', note.title);
+      toast({
+        title: "Note created",
+        description: `"${note.title}" has been created successfully.`
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save the note. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!session) return;
+    
+    try {
+      const { error } = await supabase
+        .from('standalone_notes')
+        .delete()
+        .eq('id', noteId)
+        .eq('author_id', session.user.id);
+      
+      if (error) {
+        console.error('Error deleting note:', error);
+        toast({
+          title: 'Error deleting note',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setNotes(notes.filter(note => note.id !== noteId));
+      toast({
+        title: "Note deleted",
+        description: "The note has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the note. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return {
     projects: filteredProjects,
+    notes,
     searchQuery,
     setSearchQuery,
     isLoading,
     handleCreateNewProject,
-    handleDeleteProject
+    handleDeleteProject,
+    handleCreateNote,
+    handleDeleteNote
   };
 };

@@ -9,9 +9,10 @@ import { useNavigate } from 'react-router-dom';
 interface NotesGridProps {
   notes: Note[];
   onDeleteNote: (noteId: string) => void;
+  onViewNote?: (note: Note) => void;
 }
 
-const NotesGrid = ({ notes, onDeleteNote }: NotesGridProps) => {
+const NotesGrid = ({ notes, onDeleteNote, onViewNote }: NotesGridProps) => {
   const navigate = useNavigate();
 
   const formatDate = (date: Date) => {
@@ -19,9 +20,12 @@ const NotesGrid = ({ notes, onDeleteNote }: NotesGridProps) => {
   };
 
   const handleViewNote = (note: Note) => {
-    // Open a dialog to view the note content
-    // For now we'll just show an alert until we implement a note viewer
-    alert(`Note content: ${note.content}`);
+    if (onViewNote) {
+      onViewNote(note);
+    } else {
+      // Fallback behavior
+      alert(`Note content: ${note.content}`);
+    }
   };
 
   return (

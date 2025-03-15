@@ -19,143 +19,42 @@ import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
 const Dashboard = () => {
   const {
     projects,
+    notes,
     searchQuery,
     setSearchQuery,
     isLoading,
     handleCreateNewProject,
-    handleDeleteProject
+    handleDeleteProject,
+    handleCreateNote,
+    handleDeleteNote
   } = useDashboardProjects();
   
   const [activeTab, setActiveTab] = useState("screenplays");
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
   const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
-  const [notes, setNotes] = useState<Note[]>([]);
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
   const { session } = useAuth();
 
-  // Fetch standalone notes (not connected to a project)
-  useEffect(() => {
-    if (!session) return;
-
-    const fetchNotes = async () => {
-      setIsLoadingNotes(true);
-      try {
-        const { data, error } = await supabase
-          .from('standalone_notes')
-          .select('*')
-          .eq('author_id', session.user.id);
-
-        if (error) {
-          console.error('Error fetching notes:', error);
-          toast({
-            title: 'Error loading notes',
-            description: error.message,
-            variant: 'destructive',
-          });
-        } else if (data) {
-          // Convert the data to the Note type
-          const formattedNotes: Note[] = data.map(note => ({
-            id: note.id,
-            title: note.title,
-            content: note.content,
-            createdAt: new Date(note.created_at),
-            updatedAt: new Date(note.updated_at)
-          }));
-          setNotes(formattedNotes);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      } finally {
-        setIsLoadingNotes(false);
-      }
-    };
-
-    if (activeTab === "notes") {
-      fetchNotes();
-    }
-  }, [session, activeTab]);
-
-  const handleCreateNote = async (note: Note) => {
-    if (!session) return;
-    
-    try {
-      const { error } = await supabase
-        .from('standalone_notes')
-        .insert({
-          id: note.id,
-          title: note.title,
-          content: note.content,
-          author_id: session.user.id,
-          created_at: note.createdAt.toISOString(),
-          updated_at: note.updatedAt.toISOString()
-        });
-      
-      if (error) {
-        console.error('Error saving note:', error);
-        toast({
-          title: 'Error creating note',
-          description: error.message,
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setNotes(prevNotes => [...prevNotes, note]);
-      toast({
-        title: "Note created",
-        description: `"${note.title}" has been created successfully.`
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to save the note. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleDeleteNote = async (noteId: string) => {
-    if (!session) return;
-    
-    try {
-      const { error } = await supabase
-        .from('standalone_notes')
-        .delete()
-        .eq('id', noteId)
-        .eq('author_id', session.user.id);
-      
-      if (error) {
-        console.error('Error deleting note:', error);
-        toast({
-          title: 'Error deleting note',
-          description: error.message,
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setNotes(notes.filter(note => note.id !== noteId));
-      toast({
-        title: "Note deleted",
-        description: "The note has been deleted successfully."
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete the note. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
+  console.log('Dashboard - available notes:', notes?.length || 0);
 
   // Filter notes based on search query
-  const filteredNotes = notes.filter(note => 
+  const filteredNotes = notes?.filter(note => 
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
-  );
+  ) || [];
+
+  const handleCreateNoteFromDialog = (note: Note) => {
+    handleCreateNote(note);
+    setCreateNoteDialogOpen(false);
+  };
+
+  const handleViewNote = (note: Note) => {
+    toast({
+      title: "Note details",
+      description: note.content.substring(0, 150) + (note.content.length > 150 ? '...' : '')
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -221,6 +120,7 @@ const Dashboard = () => {
                 <NotesGrid 
                   notes={filteredNotes} 
                   onDeleteNote={handleDeleteNote} 
+                  onViewNote={handleViewNote}
                 />
               ) : (
                 <EmptyState 
@@ -296,7 +196,7 @@ const Dashboard = () => {
       <CreateNoteDialog 
         open={createNoteDialogOpen} 
         onOpenChange={setCreateNoteDialogOpen} 
-        onCreateNote={handleCreateNote} 
+        onCreateNote={handleCreateNoteFromDialog} 
       />
     </div>
   );

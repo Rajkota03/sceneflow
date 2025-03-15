@@ -57,8 +57,7 @@ const EditorMenuBar = ({
     });
   };
 
-  // Add a debug log to check notes
-  console.log('EditorMenuBar received notes:', notes);
+  console.log('EditorMenuBar - notes received:', notes?.length || 0);
 
   return (
     <Menubar className="rounded-none border-none border-b border-[#333333] h-8 bg-[#222222] text-white">
