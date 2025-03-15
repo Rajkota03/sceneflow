@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -190,7 +191,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
         >
-          {mode === 'tag' && (
+          {mode === 'tag' ? (
             <div className="relative z-10">
               <ActSection 
                 actNumber={1}
@@ -251,9 +252,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 taggingMode={mode === 'tag'}
               />
             </div>
-          )}
-          
-          {mode !== 'tag' && (
+          ) : (
             <SortableContext 
               items={beats.map(beat => beat.id)}
               strategy={verticalListSortingStrategy}

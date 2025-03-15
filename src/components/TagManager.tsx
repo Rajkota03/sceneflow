@@ -2,10 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
-import { Tags, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Tags, Filter, X, ChevronDown, ChevronUp, Bookmark, PenTool, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -15,6 +21,8 @@ interface TagManagerProps {
   activeActFilter?: ActType | null;
   projectName?: string;
   structureName?: string;
+  beatMode?: 'on' | 'off';
+  onToggleBeatMode?: (mode: 'on' | 'off') => void;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -24,7 +32,9 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeFilter,
   activeActFilter,
   projectName,
-  structureName
+  structureName,
+  beatMode = 'on',
+  onToggleBeatMode
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
@@ -82,21 +92,61 @@ const TagManager: React.FC<TagManagerProps> = ({
     }
   };
 
-  if (availableTags.length === 0 && Object.values(actCounts).every(count => count === 0)) {
+  const handleBeatModeChange = (mode: 'on' | 'off') => {
+    if (onToggleBeatMode) {
+      onToggleBeatMode(mode);
+    }
+  };
+
+  if (availableTags.length === 0 && Object.values(actCounts).every(count => count === 0) && beatMode === 'off') {
     return null;
   }
 
   return (
     <div className="mb-4">
-      {onFilterByAct && (
-        <ActBar 
-          activeAct={activeActFilter || null} 
-          onSelectAct={handleActFilter} 
-          actCounts={actCounts}
-          projectName={projectName}
-          structureName={structureName}
-        />
-      )}
+      <div className="flex justify-between items-center mb-2">
+        {onFilterByAct && (
+          <ActBar 
+            activeAct={activeActFilter || null} 
+            onSelectAct={handleActFilter} 
+            actCounts={actCounts}
+            projectName={projectName}
+            structureName={structureName}
+          />
+        )}
+        
+        {onToggleBeatMode && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="ml-auto">
+                {beatMode === 'on' ? (
+                  <>
+                    <Bookmark className="h-4 w-4 mr-2" />
+                    <span>Beat Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <PenTool className="h-4 w-4 mr-2" />
+                    <span>Free Mode</span>
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleBeatModeChange('on')}>
+                <Bookmark className="h-4 w-4 mr-2" />
+                <span>Beat Mode</span>
+                {beatMode === 'on' && <Check className="h-4 w-4 ml-2" />}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleBeatModeChange('off')}>
+                <PenTool className="h-4 w-4 mr-2" />
+                <span>Free Mode</span>
+                {beatMode === 'off' && <Check className="h-4 w-4 ml-2" />}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
       
       {availableTags.length > 0 && (
         <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
@@ -105,7 +155,7 @@ const TagManager: React.FC<TagManagerProps> = ({
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2 flex items-center">
                   <Tags size={16} className="mr-2" />
-                  <span className="text-sm font-medium text-slate-700">Bear Bar</span>
+                  <span className="text-sm font-medium text-slate-700">Scene Tags</span>
                   {isTagsOpen ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
                 </Button>
               </CollapsibleTrigger>

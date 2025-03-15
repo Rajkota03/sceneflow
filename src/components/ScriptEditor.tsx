@@ -41,6 +41,7 @@ const ScriptEditor = ({
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
+  const [beatMode, setBeatMode] = useState<'on' | 'off'>('on');
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -287,6 +288,10 @@ const ScriptEditor = ({
     setActiveActFilter(act);
   };
 
+  const handleToggleBeatMode = (mode: 'on' | 'off') => {
+    setBeatMode(mode);
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <div 
@@ -303,6 +308,8 @@ const ScriptEditor = ({
             activeActFilter={activeActFilter}
             projectName={projectName}
             structureName={structureName}
+            beatMode={beatMode}
+            onToggleBeatMode={handleToggleBeatMode}
           />
           
           <FormatStyler currentPage={currentPage}>
@@ -343,6 +350,7 @@ const ScriptEditor = ({
                     onTagsChange={handleTagsChange}
                     characterNames={characterNames}
                     projectId={projectId}
+                    beatMode={beatMode}
                   />
                 ))}
               </div>

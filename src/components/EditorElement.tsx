@@ -19,6 +19,7 @@ interface EditorElementProps {
   onTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
+  beatMode?: 'on' | 'off';
 }
 
 const EditorElement: React.FC<EditorElementProps> = ({ 
@@ -32,7 +33,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
   onEnterKey,
   onTagsChange,
   characterNames,
-  projectId
+  projectId,
+  beatMode = 'on'
 }) => {
   const [text, setText] = useState(element.text);
   const [elementType, setElementType] = useState(element.type);
@@ -114,7 +116,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         />
       </div>
       
-      {isActive && element.type === 'scene-heading' && (
+      {isActive && element.type === 'scene-heading' && beatMode === 'on' && (
         <SceneTags 
           element={element}
           onTagsChange={onTagsChange}
