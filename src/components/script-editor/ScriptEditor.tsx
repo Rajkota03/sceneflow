@@ -1,19 +1,19 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
+import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
 import { shouldAddContd } from '@/lib/characterUtils';
 import TagManager from '../TagManager';
 import ZoomControls from './ZoomControls';
-import ScriptContent from './ScriptContent';
+import ScriptContentComponent from './ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContent;
-  onChange: (content: ScriptContent) => void;
+  initialContent: ScriptContentType;
+  onChange: (content: ScriptContentType) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
@@ -213,7 +213,7 @@ const ScriptEditor = ({
         onToggleBeatMode={handleToggleBeatMode}
       />
       
-      <ScriptContent
+      <ScriptContentComponent
         filteredElements={filteredElements}
         activeElementId={activeElementId}
         currentPage={currentPage}

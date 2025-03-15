@@ -5,7 +5,7 @@ import FormatStyler from '../FormatStyler';
 import ScriptPage from './ScriptPage';
 import { useFormat } from '@/lib/formatContext';
 
-interface ScriptContentProps {
+interface ScriptContentComponentProps {
   filteredElements: ScriptElement[];
   activeElementId: string | null;
   currentPage: number;
@@ -21,7 +21,7 @@ interface ScriptContentProps {
   beatMode: 'on' | 'off';
 }
 
-const ScriptContent: React.FC<ScriptContentProps> = ({
+const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
   filteredElements,
   activeElementId,
   currentPage,
@@ -64,4 +64,4 @@ const ScriptContent: React.FC<ScriptContentProps> = ({
   );
 };
 
-export default ScriptContent;
+export default ScriptContentComponent;
