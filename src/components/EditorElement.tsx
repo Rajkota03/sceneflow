@@ -52,42 +52,67 @@ const EditorElement = ({
     onChange(element.id, newText, detectedType);
   };
 
-  // Handle keyboard events but don't interfere with normal cursor movement
+  // Handle keyboard events for cursor navigation
   const handleKeyboardEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Let the browser handle standard arrow key navigation within the textarea
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      // Only pass the event to parent handler if we're at the boundaries of the textarea
-      const textarea = inputRef.current;
-      if (!textarea) return;
-      
-      const { selectionStart, selectionEnd, value } = textarea;
-      const lines = value.split('\n');
-      
-      // Get current line position
-      let currentLine = 0;
-      let charCount = 0;
-      
-      for (let i = 0; i < lines.length; i++) {
-        charCount += lines[i].length + 1; // +1 for the newline character
-        if (charCount > selectionStart) {
-          currentLine = i;
-          break;
-        }
+    const textarea = inputRef.current;
+    if (!textarea) return;
+    
+    // Get the current state of the textarea
+    const { selectionStart, value } = textarea;
+    const lines = value.split('\n');
+    
+    // Check if cursor is at the beginning or end of the text
+    const isAtBeginning = selectionStart === 0;
+    const isAtEnd = selectionStart === value.length;
+    
+    // Calculate current line position
+    let currentLine = 0;
+    let currentLineStart = 0;
+    let currentLineEnd = 0;
+    let charCount = 0;
+    
+    for (let i = 0; i < lines.length; i++) {
+      const lineLength = lines[i].length;
+      if (charCount <= selectionStart && selectionStart <= charCount + lineLength) {
+        currentLine = i;
+        currentLineStart = charCount;
+        currentLineEnd = charCount + lineLength;
+        break;
       }
-      
-      // Only pass event to parent if at the top or bottom of the text
-      if (e.key === 'ArrowUp' && currentLine === 0) {
-        onKeyDown(e, element.id);
-      } else if (e.key === 'ArrowDown' && currentLine === lines.length - 1) {
-        onKeyDown(e, element.id);
-      }
-      
-      // In all other cases, let the browser handle normal cursor movement
+      // Add line length plus newline character
+      charCount += lineLength + 1;
+    }
+    
+    const isAtFirstLine = currentLine === 0;
+    const isAtLastLine = currentLine === lines.length - 1;
+    const isAtLineStart = selectionStart === currentLineStart;
+    const isAtLineEnd = selectionStart === currentLineEnd;
+    
+    if (e.key === 'ArrowUp' && isAtFirstLine) {
+      // Only pass up arrow event to parent if at the first line
+      onKeyDown(e, element.id);
       return;
     }
     
-    // For all other keys, pass to parent handler
-    onKeyDown(e, element.id);
+    if (e.key === 'ArrowDown' && isAtLastLine) {
+      // Only pass down arrow event to parent if at the last line
+      onKeyDown(e, element.id);
+      return;
+    }
+    
+    if (e.key === 'Enter') {
+      // Always pass Enter key to parent for proper handling
+      onKeyDown(e, element.id);
+      return;
+    }
+    
+    // For all other non-navigation keys, pass to parent handler
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
+        e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+      onKeyDown(e, element.id);
+    }
+    
+    // For other arrow keys, let the browser handle normal cursor movement
   };
 
   // Adjust textarea height to content

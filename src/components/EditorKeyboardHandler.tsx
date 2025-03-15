@@ -26,35 +26,40 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
       return;
     }
     
-    // The arrow key navigation is now handled in the EditorElement component
-    // It will only bubble up here if we're at the boundaries of the textarea
+    // Handle arrow key navigation (now mostly handled in EditorElement)
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
         e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      // No specific handling here, just let it propagate
+      // Let it bubble up to ScriptEditor for handling between elements
       return;
     }
     
+    // Handle Enter key for creating new elements and auto-formatting
     if (e.key === 'Enter') {
+      // Allow Shift+Enter to create a new line in dialogue without creating a new element
       if (e.shiftKey && type === 'dialogue') {
-        // Let the textarea handle this for multi-line dialogue
-        return;
-      } else {
-        e.preventDefault();
-        
-        let nextType: ElementType | undefined = undefined;
-        
-        if (type === 'scene-heading') {
-          nextType = 'action';
-        } else if (type === 'character') {
-          nextType = 'dialogue';
-        } else if (type === 'dialogue' || type === 'parenthetical') {
-          nextType = 'action';
-        }
-        
-        onAddNewElement(id, nextType);
+        return; // Let the textarea handle this for multi-line dialogue
       }
+      
+      e.preventDefault();
+      
+      // Determine the next element's type based on current element type
+      let nextType: ElementType | undefined = undefined;
+      
+      if (type === 'scene-heading') {
+        nextType = 'action';
+      } else if (type === 'character') {
+        nextType = 'dialogue';
+      } else if (type === 'dialogue' || type === 'parenthetical') {
+        nextType = 'action';
+      } else if (type === 'transition') {
+        nextType = 'scene-heading';
+      }
+      // Default to action for other types
+      
+      onAddNewElement(id, nextType);
     }
     
+    // Handle Tab key for cycling through element types
     if (e.key === 'Tab') {
       e.preventDefault();
       
@@ -73,6 +78,7 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
       onChangeElementType(id, newType);
     }
     
+    // Handle keyboard shortcuts for element type formatting
     if (e.ctrlKey || e.metaKey) {
       switch (e.key) {
         case '1':
