@@ -56,7 +56,7 @@ const Structure = () => {
   } = useProjectTitle(projectId, structure, saveStructure);
   
   // Story beats operations
-  const { handleDeleteBeat } = useStoryBeats(structure, saveStructure);
+  const { handleDeleteBeat, handleUpdateBeat } = useStoryBeats(structure, saveStructure);
   
   // Manual save handler
   const handleSaveStructure = () => {
@@ -77,7 +77,7 @@ const Structure = () => {
         structure={structure}
         isLoading={isLoading}
         isSaving={isSaving || isUpdatingTitle}
-        onUpdateBeat={updateBeat}
+        onUpdateBeat={handleUpdateBeat}
         onReorderBeats={reorderBeats}
         onUpdateProjectTitle={handleUpdateProjectTitle}
         onDeleteBeat={handleDeleteBeat}

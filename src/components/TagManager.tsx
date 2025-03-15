@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
@@ -10,14 +11,15 @@ import { supabase } from '@/integrations/supabase/client';
 // Define BeatMode type to match ActBar
 type BeatMode = 'on' | 'off';
 
-// Define a type for act counts that avoids infinite type instantiation
-type ActCountsRecord = Record<string, number> & {
+// Define a fixed record for act counts to avoid deep type instantiation
+interface ActCountsRecord {
   '1': number;
   '2A': number;
   'midpoint': number;
   '2B': number;
   '3': number;
-};
+  [key: string]: number;
+}
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -52,7 +54,7 @@ const TagManager: React.FC<TagManagerProps> = ({
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Define actCounts with explicit type to avoid infinite type instantiation
+  // Define actCounts with explicit type
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
     '1': 0,
     '2A': 0,

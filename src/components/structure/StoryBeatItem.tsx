@@ -49,10 +49,6 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
     setDescription(e.target.value);
   };
 
-  const saveChanges = () => {
-    onUpdate({ title, description });
-  };
-  
   const getActColor = () => {
     switch (beat.actNumber) {
       case 1: return 'border-[#4A90E2] bg-[#EAF2FD] text-[#2171D2]';
@@ -102,12 +98,12 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
       ) : (
         <>
           <div className="flex justify-between items-start">
-            <div className="flex items-center flex-1">
+            <div 
+              className="flex items-center flex-1 cursor-pointer"
+              onClick={() => !readOnly && setIsEditing(true)}
+            >
               <Bookmark size={14} className="mr-1.5 flex-shrink-0" />
-              <div 
-                className={`flex-1 font-medium text-sm ${!readOnly ? 'cursor-pointer' : ''}`}
-                onClick={() => !readOnly && setIsEditing(true)}
-              >
+              <div className="flex-1 font-medium text-sm">
                 {title || "Enter beat title"}
               </div>
             </div>
@@ -138,7 +134,7 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
           </div>
           
           <div 
-            className={`relative mt-1 pl-5 ${!readOnly ? 'cursor-pointer' : ''}`}
+            className="relative mt-1 pl-5 cursor-pointer"
             onClick={() => !readOnly && setIsEditing(true)}
           >
             {description ? (
