@@ -18,12 +18,19 @@ interface NotesMenuProps {
 }
 
 const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
+  // Ensure notes is an array before proceeding
+  const safeNotes = Array.isArray(notes) ? notes : [];
+  
   // Get the most recent 3 notes for the "Recent Notes" section
-  const recentNotes = notes && notes.length > 0 
-    ? [...notes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 3)
+  const recentNotes = safeNotes && safeNotes.length > 0 
+    ? [...safeNotes].sort((a, b) => {
+        const dateA = a.updatedAt instanceof Date ? a.updatedAt : new Date(a.updatedAt);
+        const dateB = b.updatedAt instanceof Date ? b.updatedAt : new Date(b.updatedAt);
+        return dateB.getTime() - dateA.getTime();
+      }).slice(0, 3)
     : [];
 
-  console.log('NotesMenu component - notes available:', notes?.length || 0);
+  console.log('NotesMenu component - notes available:', safeNotes?.length || 0);
   console.log('NotesMenu component - recent notes:', recentNotes?.length || 0);
 
   const handleOpenNote = (note: Note) => {
@@ -46,8 +53,8 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
         
         <MenubarSeparator />
         <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
-        {notes && notes.length > 0 ? (
-          notes.map(note => (
+        {safeNotes && safeNotes.length > 0 ? (
+          safeNotes.map(note => (
             <MenubarItem 
               key={note.id} 
               onClick={() => handleOpenNote(note)} 

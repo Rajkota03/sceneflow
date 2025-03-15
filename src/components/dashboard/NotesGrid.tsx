@@ -16,7 +16,12 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote }: NotesGridProps) => {
   const navigate = useNavigate();
 
   const formatDate = (date: Date) => {
-    return format(new Date(date), 'MMM d, yyyy');
+    try {
+      return format(new Date(date), 'MMM d, yyyy');
+    } catch (error) {
+      console.error('Invalid date format:', error);
+      return 'Unknown date';
+    }
   };
 
   const handleViewNote = (note: Note) => {

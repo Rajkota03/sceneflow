@@ -44,15 +44,29 @@ export const useDashboardProjects = () => {
         });
         setProjects([]);
       } else if (data) {
-        const formattedProjects = data.map(project => ({
-          id: project.id,
-          title: project.title,
-          authorId: project.author_id,
-          createdAt: new Date(project.created_at),
-          updatedAt: new Date(project.updated_at),
-          content: jsonToScriptContent(project.content),
-          notes: project.notes ? (Array.isArray(project.notes) ? project.notes as Note[] : []) : []
-        }));
+        const formattedProjects = data.map(project => {
+          // Properly handle the conversion of project.notes
+          let projectNotes: Note[] = [];
+          if (project.notes && Array.isArray(project.notes)) {
+            projectNotes = (project.notes as any[]).map(note => ({
+              id: note.id || '',
+              title: note.title || '',
+              content: note.content || '',
+              createdAt: new Date(note.createdAt || note.created_at || Date.now()),
+              updatedAt: new Date(note.updatedAt || note.updated_at || Date.now())
+            }));
+          }
+          
+          return {
+            id: project.id,
+            title: project.title,
+            authorId: project.author_id,
+            createdAt: new Date(project.created_at),
+            updatedAt: new Date(project.updated_at),
+            content: jsonToScriptContent(project.content),
+            notes: projectNotes
+          };
+        });
         setProjects(formattedProjects);
         console.log('Loaded projects:', formattedProjects.length);
       }
