@@ -28,7 +28,9 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
       console.log("Found notes array, looking for structure");
       // Look for a note that contains the structure data
       const structureNote = data.notes.find((note: any) => 
-        note && typeof note === 'object' && 
+        note && 
+        typeof note === 'object' && 
+        'id' in note && 
         typeof note.id === 'string' && 
         note.id.startsWith('structure-')
       );
