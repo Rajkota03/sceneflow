@@ -22,6 +22,7 @@ interface ThreeActStructureTimelineProps {
   onReorderBeats?: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle?: (title: string) => void;
   onDeleteBeat?: (beatId: string) => void;
+  onAddBeat?: (actNumber: ActType) => void;
   onSave?: () => void;
   mode?: 'edit' | 'tag';
   onSelectBeatForTagging?: (beat: StoryBeat) => void;
@@ -36,6 +37,7 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
   onReorderBeats,
   onUpdateProjectTitle,
   onDeleteBeat,
+  onAddBeat,
   onSave,
   mode = 'edit',
   onSelectBeatForTagging
@@ -227,25 +229,28 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-screen bg-slate-100">
+      <div className="flex flex-col bg-slate-50 rounded-lg shadow-sm">
         <StructureHeader title={title} projectId={projectId} />
 
-        <div className="flex-grow overflow-auto p-6">
-          <div className="max-w-5xl mx-auto">
-            <StructureTitleEditor
-              title={title}
-              onTitleChange={handleTitleChange}
-              onTitleBlur={handleUpdateTitle}
-              onSave={onSave}
-              isSaving={propIsSaving}
-            />
+        <div className="p-6">
+          <StructureTitleEditor
+            title={title}
+            onTitleChange={handleTitleChange}
+            onTitleBlur={handleUpdateTitle}
+            onSave={onSave}
+            isSaving={propIsSaving}
+          />
 
+          <div className="mt-6 relative timeline-container">
+            {/* Timeline line that connects all sections */}
+            <div className="absolute left-1/2 -translate-x-1/2 w-0.5 bg-gray-300 h-full top-0 z-0"></div>
+            
             <StructureActSections
               beats={beats}
               actBeats={organizedBeats}
               onUpdateBeat={onUpdateBeat || (() => {})}
               onDeleteBeat={onDeleteBeat}
-              onAddBeat={mode === 'edit' ? handleAddBeat : undefined}
+              onAddBeat={mode === 'edit' ? (onAddBeat || handleAddBeat) : undefined}
               onBeatClick={handleBeatClick}
               taggingMode={mode === 'tag'}
             />

@@ -106,6 +106,12 @@ export function useScriptElements(
           if (newType === 'character') {
             newText = processCharacterName(newText, elementIndex, prevElements);
           }
+          
+          // Auto-capitalize scene headings and character names
+          if (newType === 'scene-heading' || newType === 'character') {
+            newText = newText.toUpperCase();
+          }
+          
           return { ...element, type: newType, text: newText };
         }
         return element;

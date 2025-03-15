@@ -77,6 +77,7 @@ export function deserializeNotes(jsonNotes: any[]): Note[] {
   }));
 }
 
+// Update ActType to include distinct midpoint as requested
 export type ActType = 1 | '2A' | 'midpoint' | '2B' | 3;
 
 export interface StoryBeat {
@@ -144,7 +145,7 @@ export const defaultStoryBeats: StoryBeat[] = [
     actNumber: '2A'
   },
   
-  // Midpoint
+  // Midpoint - Now as its own act type
   {
     id: 'beat-7',
     title: 'Midpoint',

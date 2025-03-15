@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from './ui/use-toast';
 
 // Define the BeatMode type to ensure consistent usage
 type BeatMode = 'on' | 'off';
@@ -42,6 +44,39 @@ const ActBar: React.FC<ActBarProps> = ({
   selectedStructureId
 }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
+  const [isLoadingStructures, setIsLoadingStructures] = useState(false);
+  
+  useEffect(() => {
+    // If no structures were provided, fetch them
+    if (availableStructures.length === 0) {
+      const fetchStructures = async () => {
+        setIsLoadingStructures(true);
+        try {
+          const { data, error } = await supabase
+            .from('structures')
+            .select('id, name');
+            
+          if (error) {
+            console.error('Error fetching structures:', error);
+            return;
+          }
+          
+          if (data) {
+            setStructures(data);
+          }
+        } catch (error) {
+          console.error('Error fetching structures:', error);
+        } finally {
+          setIsLoadingStructures(false);
+        }
+      };
+      
+      fetchStructures();
+    } else {
+      setStructures(availableStructures);
+    }
+  }, [availableStructures]);
   
   const acts: { id: ActType; label: string; color: string }[] = [
     { id: 1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
@@ -60,6 +95,12 @@ const ActBar: React.FC<ActBarProps> = ({
   const handleStructureChange = (value: string) => {
     if (onStructureChange) {
       onStructureChange(value);
+    } else {
+      // If no handler was provided, show a toast asking to navigate to structure page
+      toast({
+        title: "Structure Selection",
+        description: "Please go to the Structure page to edit this structure",
+      });
     }
   };
 
@@ -79,16 +120,17 @@ const ActBar: React.FC<ActBarProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {availableStructures.length > 0 && (
+            {structures.length > 0 && (
               <Select 
                 value={selectedStructureId} 
                 onValueChange={handleStructureChange}
+                disabled={isLoadingStructures}
               >
                 <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder="Select structure" />
+                  <SelectValue placeholder={isLoadingStructures ? "Loading..." : "Select structure"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableStructures.map((structure) => (
+                  {structures.map((structure) => (
                     <SelectItem key={structure.id} value={structure.id} className="text-xs">
                       {structure.name}
                     </SelectItem>
@@ -98,7 +140,7 @@ const ActBar: React.FC<ActBarProps> = ({
             )}
             
             {structureName && (
-              <span className="text-sm font-medium text-slate-600">{structureName}</span>
+              <span className="text-sm font-medium text-slate-600 hidden md:inline">{structureName}</span>
             )}
             
             {onToggleBeatMode && (
@@ -113,7 +155,7 @@ const ActBar: React.FC<ActBarProps> = ({
                   )}
                 >
                   <Zap size={14} />
-                  <span>Beat Mode</span>
+                  <span className="hidden md:inline">Beat Mode</span>
                   {beatMode === 'on' && <Check size={14} className="ml-1" />}
                 </Button>
                 
@@ -124,7 +166,7 @@ const ActBar: React.FC<ActBarProps> = ({
                   className="h-7 flex items-center gap-1 text-xs"
                 >
                   <ZapOff size={14} />
-                  <span>Free Mode</span>
+                  <span className="hidden md:inline">Free Mode</span>
                   {beatMode === 'off' && <Check size={14} className="ml-1" />}
                 </Button>
               </div>

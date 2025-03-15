@@ -6,6 +6,7 @@ import { Tags, Filter, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define BeatMode type to match ActBar
 type BeatMode = 'on' | 'off';
@@ -23,6 +24,7 @@ interface TagManagerProps {
   availableStructures?: { id: string; name: string }[];
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
+  projectId?: string;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -37,7 +39,8 @@ const TagManager: React.FC<TagManagerProps> = ({
   onToggleBeatMode,
   availableStructures = [],
   onStructureChange,
-  selectedStructureId
+  selectedStructureId,
+  projectId
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
@@ -48,6 +51,36 @@ const TagManager: React.FC<TagManagerProps> = ({
     3: 0
   });
   const [isTagsOpen, setIsTagsOpen] = useState(true);
+  const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
+
+  useEffect(() => {
+    // If we have a projectId but no available structures were provided, fetch them
+    if (projectId && availableStructures.length === 0) {
+      const fetchStructures = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('structures')
+            .select('id, name')
+            .eq('projectId', projectId);
+            
+          if (error) {
+            console.error('Error fetching structures:', error);
+            return;
+          }
+          
+          if (data) {
+            setStructures(data);
+          }
+        } catch (error) {
+          console.error('Error fetching structures:', error);
+        }
+      };
+      
+      fetchStructures();
+    } else {
+      setStructures(availableStructures);
+    }
+  }, [projectId, availableStructures]);
 
   useEffect(() => {
     // Collect all unique tags from scene headings
@@ -108,7 +141,7 @@ const TagManager: React.FC<TagManagerProps> = ({
             structureName={structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
-            availableStructures={availableStructures}
+            availableStructures={structures}
             onStructureChange={onStructureChange}
             selectedStructureId={selectedStructureId}
           />

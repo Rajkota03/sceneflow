@@ -49,10 +49,9 @@ const ActSection: React.FC<ActSectionProps> = ({
     }
   };
   
-  // Always render the section, even if there are no beats
   return (
-    <div className="mb-8 relative z-10">
-      <div className={`relative rounded-lg shadow-sm p-4 mx-8 ${getBgColor()} ${getBorderColor()} border`}>
+    <div className="mb-4 relative">
+      <div className={`relative rounded-lg shadow-sm p-4 ${getBgColor()} ${getBorderColor()} border`}>
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-sm font-semibold">{title}</h3>
           
@@ -104,6 +103,11 @@ const ActSection: React.FC<ActSectionProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Connector line to next section */}
+      {actNumber !== 3 && (
+        <div className="absolute left-1/2 -translate-x-1/2 h-4 w-0.5 bg-gray-300 bottom-0 transform translate-y-full"></div>
+      )}
     </div>
   );
 };

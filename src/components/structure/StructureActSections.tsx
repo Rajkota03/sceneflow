@@ -28,7 +28,7 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
 }) => {
   return (
     <SortableContext items={beats.map(beat => beat.id)} strategy={verticalListSortingStrategy}>
-      <div className="space-y-8">
+      <div className="space-y-4">
         {/* Act 1 */}
         <ActSection
           actNumber={1}
