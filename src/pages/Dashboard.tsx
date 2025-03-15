@@ -1,4 +1,3 @@
-
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
@@ -9,12 +8,10 @@ import LoadingState from '@/components/dashboard/LoadingState';
 import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { useAuth } from '@/App';
-import { supabase } from '@/integrations/supabase/client';
 import { Note } from '@/lib/types';
-import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
+import NotePopover from '@/components/notes/NotePopover';
 
 const Dashboard = () => {
   const {
@@ -33,8 +30,7 @@ const Dashboard = () => {
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
   const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
-  const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
-  const { session } = useAuth();
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
 
   console.log('Dashboard - available notes:', notes?.length || 0);
 
@@ -44,16 +40,38 @@ const Dashboard = () => {
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
   ) || [];
 
-  const handleCreateNoteFromDialog = (note: Note) => {
-    handleCreateNote(note);
-    setCreateNoteDialogOpen(false);
+  const handleCreateNoteFromPopover = (noteData: Partial<Note>) => {
+    const newNote: Note = {
+      id: `note-${Date.now()}`,
+      title: noteData.title || 'Untitled Note',
+      content: noteData.content || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    handleCreateNote(newNote);
   };
 
   const handleViewNote = (note: Note) => {
+    setSelectedNote(note);
     toast({
       title: "Note details",
       description: note.content.substring(0, 150) + (note.content.length > 150 ? '...' : '')
     });
+  };
+
+  const handleUpdateNote = (noteData: Partial<Note>) => {
+    if (selectedNote) {
+      const updatedNote: Note = {
+        ...selectedNote,
+        title: noteData.title || selectedNote.title,
+        content: noteData.content || selectedNote.content,
+        updatedAt: new Date()
+      };
+      
+      handleCreateNote(updatedNote); // Re-use create function to update
+      setSelectedNote(null);
+    }
   };
 
   return (
@@ -110,8 +128,16 @@ const Dashboard = () => {
               <DashboardHeader 
                 searchQuery={notesSearchQuery} 
                 setSearchQuery={setNotesSearchQuery}
-                onCreateNewProject={() => setCreateNoteDialogOpen(true)}
+                onCreateNewProject={() => {
+                  // This is now handled by the NotePopover
+                }}
                 projectType="note"
+                customCreateButton={
+                  <NotePopover
+                    onSave={handleCreateNoteFromPopover}
+                    buttonText="Create New Note"
+                  />
+                }
               />
               
               {isLoadingNotes ? (
@@ -126,9 +152,26 @@ const Dashboard = () => {
                 <EmptyState 
                   searchQuery={notesSearchQuery}
                   clearSearch={() => setNotesSearchQuery('')}
-                  createNewProject={() => setCreateNoteDialogOpen(true)}
+                  createNewProject={() => {
+                    // This button is no longer used, we have the NotePopover instead
+                  }}
                   emptyMessage="No notes yet"
                   createMessage="Create your first note"
+                  customCreateButton={
+                    <NotePopover
+                      onSave={handleCreateNoteFromPopover}
+                      buttonText="Create your first note"
+                      className="mt-4"
+                    />
+                  }
+                />
+              )}
+              
+              {selectedNote && (
+                <NotePopover
+                  initialNote={selectedNote}
+                  onSave={handleUpdateNote}
+                  buttonText={`Edit: ${selectedNote.title}`}
                 />
               )}
             </TabsContent>
@@ -192,12 +235,6 @@ const Dashboard = () => {
       </main>
       
       <Footer />
-      
-      <CreateNoteDialog 
-        open={createNoteDialogOpen} 
-        onOpenChange={setCreateNoteDialogOpen} 
-        onCreateNote={handleCreateNoteFromDialog} 
-      />
     </div>
   );
 };

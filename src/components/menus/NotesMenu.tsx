@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -10,10 +10,11 @@ import {
 import { NotebookPen, Plus, FileText, Clock, Edit } from 'lucide-react';
 import { Note } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
+import NotePopover from '@/components/notes/NotePopover';
 
 interface NotesMenuProps {
   notes: Note[];
-  onCreateNote: () => void;
+  onCreateNote: (note: Note) => void;
   onOpenNote: (note: Note) => void;
   onEditNote?: (note: Note) => void;
 }
@@ -21,6 +22,8 @@ interface NotesMenuProps {
 const NotesMenu = ({ notes, onCreateNote, onOpenNote, onEditNote }: NotesMenuProps) => {
   // Ensure notes is an array before proceeding
   const safeNotes = Array.isArray(notes) ? notes : [];
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   
   // Get the most recent 3 notes for the "Recent Notes" section
   const recentNotes = safeNotes && safeNotes.length > 0 
@@ -43,14 +46,40 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote, onEditNote }: NotesMenuPro
     });
   };
 
-  const handleEditNote = (note: Note, event: React.MouseEvent) => {
-    event.stopPropagation();
+  const handleCreateNote = (noteData: Partial<Note>) => {
+    const newNote: Note = {
+      id: `note-${Date.now()}`,
+      title: noteData.title || 'Untitled Note',
+      content: noteData.content || '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    onCreateNote(newNote);
+  };
+
+  const handleEditNote = (note: Note, event?: React.MouseEvent) => {
+    if (event) event.stopPropagation();
+    setSelectedNote(note);
+    setIsEditing(true);
+    
     if (onEditNote) {
       onEditNote(note);
-      toast({
-        title: "Edit note",
-        description: `Editing "${note.title}".`
-      });
+    }
+  };
+
+  const handleUpdateNote = (noteData: Partial<Note>) => {
+    if (selectedNote && onEditNote) {
+      const updatedNote: Note = {
+        ...selectedNote,
+        title: noteData.title || selectedNote.title,
+        content: noteData.content || selectedNote.content,
+        updatedAt: new Date()
+      };
+      
+      onEditNote(updatedNote);
+      setSelectedNote(null);
+      setIsEditing(false);
     }
   };
 
@@ -58,10 +87,13 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote, onEditNote }: NotesMenuPro
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Notes</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={onCreateNote} className="cursor-pointer">
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Note
-        </MenubarItem>
+        <div className="pb-2">
+          <NotePopover 
+            onSave={handleCreateNote}
+            triggerClassName="w-full justify-start"
+            buttonText="Create New Note"
+          />
+        </div>
         
         <MenubarSeparator />
         <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
