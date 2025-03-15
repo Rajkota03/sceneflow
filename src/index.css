@@ -87,11 +87,14 @@
   font-weight: bold;
   margin-bottom: 1em;
   text-align: left;
+  width: 100%;
 }
 
 .action {
   margin-bottom: 1em;
   text-align: left;
+  width: 100%;
+  white-space: pre-wrap;
 }
 
 .character {
@@ -119,10 +122,22 @@
   text-align: right;
   text-transform: uppercase;
   margin: 1em 0;
+  width: 100%;
 }
 
 .element-container {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* PDF export specific styles */
+.pdf-export p {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
+  line-height: 1 !important;
 }
 
 /* Character suggestions dropdown styles */
@@ -150,4 +165,26 @@
 ::selection {
   background-color: rgba(0, 120, 212, 0.2);
   color: inherit;
+}
+
+/* Print-specific styles */
+@media print {
+  .script-page {
+    box-shadow: none;
+    width: 8.5in;
+    height: 11in;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .script-page-content {
+    padding: 1in 1in 1in 1.5in;
+  }
+  
+  /* Ensure proper text formatting in print */
+  .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
+    font-family: 'Courier Prime', monospace !important;
+    font-size: 12pt !important;
+    line-height: 1 !important;
+  }
 }

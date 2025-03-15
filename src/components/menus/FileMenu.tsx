@@ -207,13 +207,15 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
       textareas.forEach(textarea => {
         const text = textarea.value;
         const p = document.createElement('p');
-        p.textContent = text;
+        p.innerHTML = text.replace(/\n/g, '<br>');
+        
         p.style.margin = '0';
         p.style.padding = '0';
         p.style.fontFamily = 'Courier Prime, monospace';
         p.style.fontSize = '12pt';
-        p.style.lineHeight = '1.2';
+        p.style.lineHeight = '1';
         p.style.whiteSpace = 'pre-wrap';
+        p.style.width = '100%';
         
         const elementContainer = textarea.closest('.element-container');
         if (elementContainer) {
@@ -222,6 +224,7 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
             p.style.fontWeight = 'bold';
             p.style.textAlign = 'left';
             p.style.marginBottom = '1em';
+            p.style.width = '100%';
           } 
           else if (elementContainer.classList.contains('character')) {
             p.style.textTransform = 'uppercase';
@@ -245,11 +248,15 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
             p.style.textAlign = 'right';
             p.style.textTransform = 'uppercase';
             p.style.margin = '1em 0';
+            p.style.width = '100%';
           }
           else if (elementContainer.classList.contains('action')) {
             p.style.marginBottom = '1em';
             p.style.textAlign = 'left';
+            p.style.width = '100%';
           }
+          
+          p.className = Array.from(elementContainer.classList).join(' ');
         }
         
         textarea.parentNode?.replaceChild(p, textarea);
@@ -258,11 +265,21 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
       const uiElements = clonedPage.querySelectorAll('.btn-handle, button, .character-suggestions');
       uiElements.forEach(el => el.parentNode?.removeChild(el));
       
+      const scriptPageContent = clonedPage.querySelector('.script-page-content');
+      if (scriptPageContent) {
+        (scriptPageContent as HTMLElement).style.padding = '1in 1in 1in 1.5in';
+        (scriptPageContent as HTMLElement).style.boxSizing = 'border-box';
+        (scriptPageContent as HTMLElement).style.height = '11in';
+        (scriptPageContent as HTMLElement).style.width = '8.5in';
+      }
+      
       const canvas = await html2canvas(clonedPage, {
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: 8.5 * 96,
+        height: 11 * 96,
       });
       
       pdf.addImage(
