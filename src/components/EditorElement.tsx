@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
 import { formatScriptElement, detectElementType } from '../lib/formatScript';
@@ -51,16 +52,42 @@ const EditorElement = ({
     onChange(element.id, newText, detectedType);
   };
 
-  // Handle keyboard event to allow arrow key navigation
+  // Handle keyboard events but don't interfere with normal cursor movement
   const handleKeyboardEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    // Only pass to the parent handler if it's not arrow key navigation
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
-      onKeyDown(e, element.id);
+    // Let the browser handle standard arrow key navigation within the textarea
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      // Only pass the event to parent handler if we're at the boundaries of the textarea
+      const textarea = inputRef.current;
+      if (!textarea) return;
+      
+      const { selectionStart, selectionEnd, value } = textarea;
+      const lines = value.split('\n');
+      
+      // Get current line position
+      let currentLine = 0;
+      let charCount = 0;
+      
+      for (let i = 0; i < lines.length; i++) {
+        charCount += lines[i].length + 1; // +1 for the newline character
+        if (charCount > selectionStart) {
+          currentLine = i;
+          break;
+        }
+      }
+      
+      // Only pass event to parent if at the top or bottom of the text
+      if (e.key === 'ArrowUp' && currentLine === 0) {
+        onKeyDown(e, element.id);
+      } else if (e.key === 'ArrowDown' && currentLine === lines.length - 1) {
+        onKeyDown(e, element.id);
+      }
+      
+      // In all other cases, let the browser handle normal cursor movement
       return;
     }
     
-    // Let browser handle standard text cursor movements
-    // This ensures up/down works normally within the textarea
+    // For all other keys, pass to parent handler
+    onKeyDown(e, element.id);
   };
 
   // Adjust textarea height to content

@@ -26,9 +26,11 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
       return;
     }
     
-    // Don't intercept arrow key navigation
+    // The arrow key navigation is now handled in the EditorElement component
+    // It will only bubble up here if we're at the boundaries of the textarea
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
         e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      // No specific handling here, just let it propagate
       return;
     }
     
