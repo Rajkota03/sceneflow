@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { ElementType, ScriptElement } from '@/lib/types';
 import { formatType } from '@/lib/formatScript';
@@ -89,7 +90,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           
           {showSuggestions && (
             <CharacterSuggestions 
-              onSelect={handleTypeChange}
+              onSelect={(selected) => handleTypeChange(selected as ElementType)}
               onClose={toggleSuggestions}
               currentType={elementType}
             />

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
-import { ThreeActStructure, StoryBeat } from '@/lib/types';
+import { ThreeActStructure, StoryBeat, ActType } from '@/lib/types';
 import ActSection from './ActSection';
 import { Button } from '@/components/ui/button';
 import { Loader, AlertTriangle, Save, Edit, Bookmark } from 'lucide-react';
@@ -190,12 +189,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
           collisionDetection={closestCenter}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
-          disabled={mode === 'tag'}
         >
-          <SortableContext 
-            items={beats.map(beat => beat.id)}
-            strategy={verticalListSortingStrategy}
-          >
+          {mode === 'tag' && (
             <div className="relative z-10">
               <ActSection 
                 actNumber={1}
@@ -256,7 +251,75 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 taggingMode={mode === 'tag'}
               />
             </div>
-          </SortableContext>
+          )}
+          
+          {mode !== 'tag' && (
+            <SortableContext 
+              items={beats.map(beat => beat.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="relative z-10">
+                <ActSection 
+                  actNumber={1}
+                  title="Act 1: Setup"
+                  beats={act1Beats}
+                  onUpdateBeat={onUpdateBeat}
+                  onDeleteBeat={handleDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                <ActSection 
+                  actNumber={'2A'}
+                  title="Act 2A: Rising Action"
+                  beats={act2ABeats}
+                  onUpdateBeat={onUpdateBeat}
+                  onDeleteBeat={handleDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                <div className="relative mb-4 z-20">
+                  <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-[#FFCCCB]"></div>
+                  <div className="flex justify-center">
+                    <div className="bg-[#FFCCCB] text-gray-800 px-6 py-1 rounded-full text-sm font-bold z-10 flex items-center shadow-sm border border-gray-200">
+                      <Bookmark className="h-4 w-4 mr-1" /> 
+                      Midpoint (50%)
+                    </div>
+                  </div>
+                  <ActSection 
+                    actNumber={'midpoint'}
+                    title="Midpoint: Major Turning Point"
+                    beats={midpointBeat}
+                    onUpdateBeat={onUpdateBeat}
+                    onDeleteBeat={handleDeleteBeat}
+                    onBeatClick={handleBeatClick}
+                    taggingMode={mode === 'tag'}
+                  />
+                </div>
+                
+                <ActSection 
+                  actNumber={'2B'}
+                  title="Act 2B: Complications"
+                  beats={act2BBeats}
+                  onUpdateBeat={onUpdateBeat}
+                  onDeleteBeat={handleDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                <ActSection 
+                  actNumber={3}
+                  title="Act 3: Resolution"
+                  beats={act3Beats}
+                  onUpdateBeat={onUpdateBeat}
+                  onDeleteBeat={handleDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+              </div>
+            </SortableContext>
+          )}
         </DndContext>
       </div>
       

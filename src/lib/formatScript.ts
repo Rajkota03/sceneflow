@@ -1,4 +1,3 @@
-
 import { ElementType } from './types';
 
 export function detectElementType(text: string, previousElementType?: ElementType): ElementType {
@@ -54,4 +53,26 @@ export function formatScriptElement(element: { type: ElementType; text: string }
 
 export function generateUniqueId(): string {
   return Math.random().toString(36).substring(2, 11);
+}
+
+// Add the formatType function that was missing
+export function formatType(type: ElementType): string {
+  switch (type) {
+    case 'scene-heading':
+      return 'Scene Heading';
+    case 'action':
+      return 'Action';
+    case 'character':
+      return 'Character';
+    case 'dialogue':
+      return 'Dialogue';
+    case 'parenthetical':
+      return 'Parenthetical';
+    case 'transition':
+      return 'Transition';
+    case 'note':
+      return 'Note';
+    default:
+      return type;
+  }
 }
