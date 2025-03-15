@@ -2,6 +2,7 @@
 import React from 'react';
 import { StoryBeat, ActType } from '@/lib/types';
 import StoryBeatItem from './StoryBeatItem';
+import { SortableItem } from './SortableItem';
 
 interface ActSectionProps {
   actNumber: ActType;
@@ -29,11 +30,12 @@ const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpda
       </div>
       <div className="border border-t-0 rounded-b-md p-4 bg-white">
         {beats.map((beat) => (
-          <StoryBeatItem 
-            key={beat.id} 
-            beat={beat} 
-            onUpdate={onUpdateBeat} 
-          />
+          <SortableItem key={beat.id} id={beat.id}>
+            <StoryBeatItem 
+              beat={beat} 
+              onUpdate={onUpdateBeat} 
+            />
+          </SortableItem>
         ))}
       </div>
     </div>
