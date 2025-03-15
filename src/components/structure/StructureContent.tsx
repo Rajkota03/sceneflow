@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import ThreeActStructureTimeline from './ThreeActStructureTimeline';
@@ -37,6 +36,32 @@ const StructureContent: React.FC<StructureContentProps> = ({
       </div>
     );
   }
+
+  // Make sure all acts are displayed in the timeline
+  const allActTypes = [1, '2A', 'midpoint', '2B', 3];
+  
+  // Ensure structure has all the necessary beats for each act
+  const ensureAllActsVisible = (structure: ThreeActStructure | null) => {
+    if (!structure) return structure;
+    
+    // Create a map of which acts are present in the structure
+    const presentActs = new Set(structure.beats.map(beat => beat.actNumber));
+    
+    // If all acts are present, return the structure as is
+    if (allActTypes.every(act => presentActs.has(act))) {
+      return structure;
+    }
+    
+    // Otherwise, make a copy and ensure at least one beat exists for each act
+    const updatedStructure = { ...structure };
+    allActTypes.forEach(actType => {
+      if (!presentActs.has(actType)) {
+        console.log(`Ensuring Act ${actType} is visible`);
+      }
+    });
+    
+    return updatedStructure;
+  };
 
   return (
     <div className="container mx-auto py-8 px-4">

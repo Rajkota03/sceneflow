@@ -45,37 +45,44 @@ const ActSection: React.FC<ActSectionProps> = ({
     }
   };
   
+  // Always render the section, even if there are no beats
   return (
     <div className="mb-8 relative z-10">
       <div className={`relative rounded-lg shadow-sm p-4 mx-8 ${getBgColor()} ${getBorderColor()} border`}>
         <h3 className="text-sm font-semibold mb-2">{title}</h3>
         
-        <div className="space-y-3">
-          {beats.map((beat) => (
-            taggingMode ? (
-              <div 
-                key={beat.id}
-                className="cursor-pointer transform transition hover:scale-105"
-                onClick={() => onBeatClick && onBeatClick(beat)}
-              >
-                <StoryBeatItem 
-                  beat={beat}
-                  onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
-                  onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
-                  readOnly={true}
-                />
-              </div>
-            ) : (
-              <SortableItem key={beat.id} id={beat.id}>
-                <StoryBeatItem 
-                  beat={beat}
-                  onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
-                  onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
-                />
-              </SortableItem>
-            )
-          ))}
-        </div>
+        {beats.length > 0 ? (
+          <div className="space-y-3">
+            {beats.map((beat) => (
+              taggingMode ? (
+                <div 
+                  key={beat.id}
+                  className="cursor-pointer transform transition hover:scale-105"
+                  onClick={() => onBeatClick && onBeatClick(beat)}
+                >
+                  <StoryBeatItem 
+                    beat={beat}
+                    onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
+                    onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
+                    readOnly={true}
+                  />
+                </div>
+              ) : (
+                <SortableItem key={beat.id} id={beat.id}>
+                  <StoryBeatItem 
+                    beat={beat}
+                    onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
+                    onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
+                  />
+                </SortableItem>
+              )
+            ))}
+          </div>
+        ) : (
+          <div className="py-4 text-center text-gray-500 italic text-sm">
+            No beats in this act. Drag beats here or add new ones.
+          </div>
+        )}
       </div>
     </div>
   );

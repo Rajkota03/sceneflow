@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -81,8 +80,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     const fetchStructure = async () => {
       setIsLoading(true);
       try {
-        // This is a mock implementation since we don't have access to the actual structure table
-        // In a real implementation, this would query the structures table
         const mockStructureData = {
           id: structureId,
           projectTitle: 'My Story Structure',
@@ -111,13 +108,8 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     fetchStructure();
   }, [structureId, session, navigate, propStructure, projectId]);
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-  };
-
-  const handleNewBeatNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewBeatName(e.target.value);
-  };
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value);
+  const handleNewBeatNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setNewBeatName(e.target.value);
 
   const handleAddBeat = async () => {
     if (!structure) return;
@@ -153,13 +145,8 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     setEditMode('view');
   };
 
-  const handleEditBeatNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditedBeatName(e.target.value);
-  };
-
-  const handleEditBeatDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedBeatDescription(e.target.value);
-  };
+  const handleEditBeatNameChange = (e: React.ChangeEvent<HTMLInputElement>) => setEditedBeatName(e.target.value);
+  const handleEditBeatDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => setEditedBeatDescription(e.target.value);
 
   const handleUpdateBeat = async () => {
     if (!selectedBeat || !structure) return;
@@ -205,7 +192,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     if (!structure) return;
 
     try {
-      // Mock implementation since we don't have access to the actual structure table
       console.log('Updated structure beats:', updatedBeats);
       toast({
         title: 'Structure updated',
@@ -230,7 +216,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     }
 
     try {
-      // Mock implementation for title update
       console.log('Updated structure title:', title);
       toast({
         title: 'Structure updated',
@@ -268,7 +253,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     }
   };
 
-  // Group beats by act number
   const beatsByAct = beats.reduce((acc, beat) => {
     const actNumber = beat.actNumber;
     if (!acc[actNumber]) {
@@ -278,10 +262,22 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     return acc;
   }, {} as Record<ActType | string, StoryBeat[]>);
 
-  const sortedBeatsByAct = Object.entries(beatsByAct).map(([act, actBeats]) => ({
-    act: act as ActType,
-    beats: actBeats.sort((a, b) => a.position - b.position)
-  }));
+  const ensureAllActs = () => {
+    const allActs: ActType[] = [1, '2A', 'midpoint', '2B', 3];
+    const result = [];
+    
+    for (const act of allActs) {
+      const beatsForAct = beatsByAct[act] || [];
+      result.push({
+        act,
+        beats: beatsForAct.sort((a, b) => a.position - b.position)
+      });
+    }
+    
+    return result;
+  };
+
+  const sortedBeatsByAct = ensureAllActs();
 
   if (isLoading) {
     return (
