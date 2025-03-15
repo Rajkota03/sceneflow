@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ScriptEditor from '../components/ScriptEditor';
@@ -16,6 +17,10 @@ import { supabase } from '@/integrations/supabase/client';
 import TitlePageView from '@/components/TitlePageView';
 import { TitlePageData } from '@/components/TitlePageEditor';
 import { Json } from '@/integrations/supabase/types';
+import NotesMenu from '@/components/notes/NotesMenu';
+import NoteWindow from '@/components/notes/NoteWindow';
+import { Note } from '@/lib/types';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -37,6 +42,12 @@ const Editor = () => {
     basedOn: '',
     contact: ''
   });
+  
+  // Notes-related state
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [openNotes, setOpenNotes] = useState<Note[]>([]);
+  const [splitScreenNote, setSplitScreenNote] = useState<Note | null>(null);
+  const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (titlePageData && titlePageData.title) {
@@ -149,6 +160,12 @@ const Editor = () => {
               contact: session.user.email || ''
             });
           }
+          
+          // Fetch notes if there are any
+          if (data.notes) {
+            const notesData = data.notes as Json as unknown as Note[];
+            setNotes(notesData);
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -187,7 +204,7 @@ const Editor = () => {
     }, 20000);
     
     return () => clearTimeout(autoSaveTimer);
-  }, [content, title, project, isLoading, session, titlePageData]);
+  }, [content, title, project, isLoading, session, titlePageData, notes]);
 
   const handleSave = async (isAutoSave = false) => {
     if (!project || !session) return;
@@ -206,7 +223,8 @@ const Editor = () => {
           title,
           content: scriptContentToJson(content),
           updated_at: new Date().toISOString(),
-          title_page: titlePageData as unknown as Json
+          title_page: titlePageData as unknown as Json,
+          notes: notes as unknown as Json
         })
         .eq('id', project.id);
       
@@ -278,7 +296,8 @@ const Editor = () => {
           title: newTitle,
           author_id: session.user.id,
           content: scriptContentToJson(content),
-          title_page: updatedTitlePageData as unknown as Json
+          title_page: updatedTitlePageData as unknown as Json,
+          notes: notes as unknown as Json
         })
         .select('id')
         .single();
@@ -325,6 +344,45 @@ const Editor = () => {
   const toggleTitlePage = () => {
     setShowTitlePage(!showTitlePage);
   };
+  
+  // Notes handlers
+  const handleOpenNote = (note: Note) => {
+    if (!openNotes.some(n => n.id === note.id)) {
+      setOpenNotes([...openNotes, note]);
+    }
+  };
+  
+  const handleCloseNote = (noteId: string) => {
+    setOpenNotes(openNotes.filter(note => note.id !== noteId));
+    
+    if (splitScreenNote && splitScreenNote.id === noteId) {
+      setSplitScreenNote(null);
+    }
+  };
+  
+  const handleCreateNote = (note: Note) => {
+    setNotes([...notes, note]);
+    handleOpenNote(note);
+  };
+  
+  const handleDeleteNote = (noteId: string) => {
+    setNotes(notes.filter(note => note.id !== noteId));
+    handleCloseNote(noteId);
+  };
+  
+  const handleSplitScreen = (note: Note) => {
+    setSplitScreenNote(note);
+    // Remove from floating notes if it exists there
+    setOpenNotes(openNotes.filter(n => n.id !== note.id));
+  };
+  
+  const exitSplitScreen = () => {
+    if (splitScreenNote) {
+      // Move the note back to floating notes
+      setOpenNotes([...openNotes, splitScreenNote]);
+      setSplitScreenNote(null);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -350,7 +408,7 @@ const Editor = () => {
 
   return (
     <FormatProvider>
-      <div className="h-screen flex flex-col bg-slate-100 overflow-hidden">
+      <div className="h-screen flex flex-col bg-slate-100 overflow-hidden" ref={mainContainerRef}>
         <EditorMenuBar 
           onSave={() => handleSave()} 
           onSaveAs={handleSaveAs} 
@@ -388,6 +446,13 @@ const Editor = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            <NotesMenu 
+              notes={notes}
+              onOpenNote={handleOpenNote}
+              onCreateNote={handleCreateNote}
+              onDeleteNote={handleDeleteNote}
+            />
+            
             <Button
               onClick={() => handleSave()}
               disabled={isSaving}
@@ -421,12 +486,63 @@ const Editor = () => {
           <div>100%</div>
         </div>
         
-        <main className="flex-grow overflow-auto py-4 px-4 bg-[#EEEEEE]">
-          {showTitlePage ? (
-            <TitlePageView data={titlePageData} />
+        <main className="flex-grow overflow-hidden py-4 px-4 bg-[#EEEEEE] relative">
+          {splitScreenNote ? (
+            <ResizablePanelGroup direction="horizontal" className="h-full">
+              <ResizablePanel defaultSize={70} minSize={30}>
+                {showTitlePage ? (
+                  <TitlePageView data={titlePageData} />
+                ) : (
+                  <ScriptEditor initialContent={content} onChange={handleContentChange} />
+                )}
+              </ResizablePanel>
+              
+              <ResizableHandle withHandle />
+              
+              <ResizablePanel defaultSize={30} minSize={20}>
+                <div className="h-full flex flex-col">
+                  <div className="bg-gray-50 px-3 py-2 flex justify-between items-center border-b">
+                    <h3 className="text-sm font-medium">Notes</h3>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={exitSplitScreen}
+                      className="text-xs h-7"
+                    >
+                      Exit Split View
+                    </Button>
+                  </div>
+                  <div className="flex-grow overflow-auto p-3">
+                    <NoteWindow 
+                      note={splitScreenNote} 
+                      onClose={() => handleCloseNote(splitScreenNote.id)} 
+                      onSplitScreen={() => {}} 
+                      isFloating={false} 
+                    />
+                  </div>
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
           ) : (
-            <ScriptEditor initialContent={content} onChange={handleContentChange} />
+            <>
+              {showTitlePage ? (
+                <TitlePageView data={titlePageData} />
+              ) : (
+                <ScriptEditor initialContent={content} onChange={handleContentChange} />
+              )}
+            </>
           )}
+          
+          {/* Floating Notes */}
+          {openNotes.map(note => (
+            <NoteWindow 
+              key={note.id}
+              note={note}
+              onClose={() => handleCloseNote(note.id)}
+              onSplitScreen={handleSplitScreen}
+              isFloating={true}
+            />
+          ))}
         </main>
       </div>
     </FormatProvider>

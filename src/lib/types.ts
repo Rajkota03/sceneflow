@@ -1,4 +1,3 @@
-
 import { Json } from '@/integrations/supabase/types';
 
 export interface ScriptElement {
@@ -20,7 +19,14 @@ export interface Project {
   content: ScriptContent;
 }
 
-// Define the ElementType union type which is used throughout the application
+export type Note = {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export type ElementType = 
   | 'scene-heading' 
   | 'action' 
@@ -30,7 +36,6 @@ export type ElementType =
   | 'transition' 
   | 'note';
 
-// Helper functions to convert between ScriptContent and Json
 export const scriptContentToJson = (content: ScriptContent): Json => {
   return content as unknown as Json;
 };
@@ -40,11 +45,9 @@ export const jsonToScriptContent = (json: Json | null): ScriptContent => {
     return { elements: [] };
   }
   
-  // If it's already in the correct format with elements array
   if (typeof json === 'object' && json !== null && 'elements' in json) {
     return json as unknown as ScriptContent;
   }
   
-  // Default empty content
   return { elements: [] };
 };
