@@ -38,7 +38,7 @@ const StructureContent: React.FC<StructureContentProps> = ({
     );
   }
 
-  // Make sure all acts are displayed in the timeline
+  // Make sure we use the ActType for allActTypes array
   const allActTypes: ActType[] = [1, '2A', 'midpoint', '2B', 3];
   
   return (

@@ -2,20 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import {
-  ThreeActStructure,
-  StoryBeat,
-  ActType
-} from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/use-toast';
-import { ArrowLeft, Loader } from 'lucide-react';
+import { arrayMove } from '@dnd-kit/sortable';
+import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import { useAuth } from '@/App';
+import { toast } from '@/components/ui/use-toast';
 import StructureHeader from './StructureHeader';
-import { SortableItem } from './SortableItem';
-import ActSection from './ActSection';
+import { LoadingState, NotFoundState } from './StructureStates';
+import StructureTitleEditor from './StructureTitleEditor';
+import StructureActSections from './StructureActSections';
+import useStructureBeatsOrganizer from '@/hooks/useStructureBeatsOrganizer';
 
 interface ThreeActStructureTimelineProps {
   projectId?: string;
@@ -54,10 +49,13 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
   const [selectedBeat, setSelectedBeat] = useState<StoryBeat | null>(null);
   const [isLoading, setIsLoading] = useState(propIsLoading !== undefined ? propIsLoading : true);
 
+  // Extract the beats organization logic to a custom hook
+  const { organizedBeats } = useStructureBeatsOrganizer(beats);
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates => sortableKeyboardCoordinates,
     })
   );
 
@@ -178,52 +176,14 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     }
   };
 
-  const beatsByAct = beats.reduce((acc, beat) => {
-    const actNumber = beat.actNumber;
-    if (!acc[actNumber]) {
-      acc[actNumber] = [];
-    }
-    acc[actNumber].push(beat);
-    return acc;
-  }, {} as Record<ActType | string, StoryBeat[]>);
-
-  const ensureAllActs = () => {
-    const allActs: ActType[] = [1, '2A', 'midpoint', '2B', 3];
-    const result = [];
-    
-    for (const act of allActs) {
-      const beatsForAct = beatsByAct[act] || [];
-      result.push({
-        act,
-        beats: beatsForAct.sort((a, b) => a.position - b.position)
-      });
-    }
-    
-    return result;
-  };
-
-  const sortedBeatsByAct = ensureAllActs();
-
+  // Show loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="flex flex-col items-center">
-          <Loader className="animate-spin h-8 w-8 text-primary mb-4" />
-          <p className="text-slate-600">Loading structure...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
+  // Show not found state
   if (!structure) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="text-center">
-          <p className="text-xl font-medium text-slate-900 mb-4">Structure not found</p>
-          <Button onClick={() => navigate('/dashboard?tab=structures')}>Return to Dashboard</Button>
-        </div>
-      </div>
-    );
+    return <NotFoundState />;
   }
 
   return (
@@ -237,82 +197,22 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
 
         <div className="flex-grow overflow-auto p-6">
           <div className="max-w-5xl mx-auto">
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                  <Input
-                    type="text"
-                    placeholder="Enter structure title"
-                    value={title}
-                    onChange={handleTitleChange}
-                    onBlur={handleUpdateTitle}
-                    className="text-xl font-semibold text-gray-800 bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-primary"
-                  />
-                </h2>
-                {onSave && (
-                  <Button onClick={onSave}>Save</Button>
-                )}
-              </div>
-            </div>
+            <StructureTitleEditor
+              title={title}
+              onTitleChange={handleTitleChange}
+              onTitleBlur={handleUpdateTitle}
+              onSave={onSave}
+              isSaving={propIsSaving}
+            />
 
-            <SortableContext items={beats.map(beat => beat.id)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-8">
-                {/* Act 1 */}
-                <ActSection
-                  actNumber={1}
-                  title="Act 1 - Setup"
-                  beats={sortedBeatsByAct.find(item => item.act === 1)?.beats || []}
-                  onUpdateBeat={onUpdateBeat || (() => {})}
-                  onDeleteBeat={onDeleteBeat}
-                  onBeatClick={handleBeatClick}
-                  taggingMode={mode === 'tag'}
-                />
-                
-                {/* Act 2A */}
-                <ActSection
-                  actNumber="2A"
-                  title="Act 2A - Confrontation (First Half)"
-                  beats={sortedBeatsByAct.find(item => item.act === '2A')?.beats || []}
-                  onUpdateBeat={onUpdateBeat || (() => {})}
-                  onDeleteBeat={onDeleteBeat}
-                  onBeatClick={handleBeatClick}
-                  taggingMode={mode === 'tag'}
-                />
-                
-                {/* Midpoint */}
-                <ActSection
-                  actNumber="midpoint"
-                  title="Midpoint"
-                  beats={sortedBeatsByAct.find(item => item.act === 'midpoint')?.beats || []}
-                  onUpdateBeat={onUpdateBeat || (() => {})}
-                  onDeleteBeat={onDeleteBeat}
-                  onBeatClick={handleBeatClick}
-                  taggingMode={mode === 'tag'}
-                />
-                
-                {/* Act 2B */}
-                <ActSection
-                  actNumber="2B"
-                  title="Act 2B - Confrontation (Second Half)"
-                  beats={sortedBeatsByAct.find(item => item.act === '2B')?.beats || []}
-                  onUpdateBeat={onUpdateBeat || (() => {})}
-                  onDeleteBeat={onDeleteBeat}
-                  onBeatClick={handleBeatClick}
-                  taggingMode={mode === 'tag'}
-                />
-                
-                {/* Act 3 */}
-                <ActSection
-                  actNumber={3}
-                  title="Act 3 - Resolution"
-                  beats={sortedBeatsByAct.find(item => item.act === 3)?.beats || []}
-                  onUpdateBeat={onUpdateBeat || (() => {})}
-                  onDeleteBeat={onDeleteBeat}
-                  onBeatClick={handleBeatClick}
-                  taggingMode={mode === 'tag'}
-                />
-              </div>
-            </SortableContext>
+            <StructureActSections
+              beats={beats}
+              actBeats={organizedBeats}
+              onUpdateBeat={onUpdateBeat || (() => {})}
+              onDeleteBeat={onDeleteBeat}
+              onBeatClick={handleBeatClick}
+              taggingMode={mode === 'tag'}
+            />
           </div>
         </div>
       </div>
