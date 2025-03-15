@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -5,6 +6,8 @@ import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
 import { useFormat } from '@/lib/formatContext';
 import { addContdToCharacter, shouldAddContd } from '@/lib/characterUtils';
+import { Slider } from '@/components/ui/slider';
+import { ZoomIn, ZoomOut } from 'lucide-react';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -15,12 +18,13 @@ interface ScriptEditorProps {
 }
 
 const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className }: ScriptEditorProps) => {
-  const { formatState } = useFormat();
+  const { formatState, zoomIn, zoomOut, resetZoom } = useFormat();
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
   const [characterNames, setCharacterNames] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Sync elements with parent component
@@ -60,6 +64,19 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
       setActiveElementId(defaultElements[0].id);
     }
   }, [elements]);
+
+  // Calculate the zoom percentage for display
+  const zoomPercentage = Math.round(formatState.zoomLevel * 100);
+
+  // Handle zoom slider change
+  const handleZoomChange = (value: number[]) => {
+    const newZoomLevel = value[0] / 100;
+    // Update the format context with the new zoom level
+    const { formatState: currentState, setZoomLevel } = useFormat();
+    if (setZoomLevel) {
+      setZoomLevel(newZoomLevel);
+    }
+  };
 
   // Get the previous element type for contextual formatting
   const getPreviousElementType = (index: number): ElementType | undefined => {
@@ -192,35 +209,65 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   };
 
   return (
-    <div 
-      className={`flex justify-center w-full h-full overflow-auto ${className || ''}`}
-      ref={editorRef}
-    >
-      <FormatStyler>
-        <div className="script-page" style={{ 
-          transform: `scale(${formatState.zoomLevel})`,
-          transformOrigin: 'top center',
-          transition: 'transform 0.2s ease-out',
-          fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-        }}>
-          <div className="script-page-content">
-            {elements.map((element, index) => (
-              <EditorElement
-                key={element.id}
-                element={element}
-                previousElementType={getPreviousElementType(index)}
-                onChange={handleElementChange}
-                onFocus={() => handleFocus(element.id)}
-                isActive={activeElementId === element.id}
-                onNavigate={handleNavigate}
-                onEnterKey={handleEnterKey}
-                onFormatChange={handleFormatChange}
-                characterNames={characterNames}
-              />
-            ))}
+    <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
+      <div 
+        className="flex justify-center w-full h-full overflow-auto"
+        ref={editorRef}
+      >
+        <FormatStyler currentPage={currentPage}>
+          <div className="script-page" style={{ 
+            transform: `scale(${formatState.zoomLevel})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease-out',
+            fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+          }}>
+            <div className="script-page-content">
+              {elements.map((element, index) => (
+                <EditorElement
+                  key={element.id}
+                  element={element}
+                  previousElementType={getPreviousElementType(index)}
+                  onChange={handleElementChange}
+                  onFocus={() => handleFocus(element.id)}
+                  isActive={activeElementId === element.id}
+                  onNavigate={handleNavigate}
+                  onEnterKey={handleEnterKey}
+                  onFormatChange={handleFormatChange}
+                  characterNames={characterNames}
+                />
+              ))}
+            </div>
           </div>
+        </FormatStyler>
+      </div>
+      
+      {/* Zoom slider control */}
+      <div className="zoom-control flex items-center justify-center space-x-4 py-2 px-4 bg-gray-100 border-t border-gray-200 absolute bottom-0 left-0 right-0">
+        <ZoomOut 
+          size={18} 
+          className="text-gray-600 cursor-pointer" 
+          onClick={zoomOut}
+        />
+        <div className="w-64">
+          <Slider
+            defaultValue={[formatState.zoomLevel * 100]}
+            min={50}
+            max={150}
+            step={5}
+            value={[zoomPercentage]}
+            onValueChange={handleZoomChange}
+            className="w-full"
+          />
         </div>
-      </FormatStyler>
+        <ZoomIn 
+          size={18} 
+          className="text-gray-600 cursor-pointer" 
+          onClick={zoomIn}
+        />
+        <span className="text-xs text-gray-600 min-w-[40px] text-center">
+          {zoomPercentage}%
+        </span>
+      </div>
     </div>
   );
 };

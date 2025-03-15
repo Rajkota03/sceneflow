@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
 import { useFormat } from '@/lib/formatContext';
+import { Slider } from '@/components/ui/slider';
 
 interface ViewMenuProps {
   showTitlePage?: boolean;
@@ -18,7 +19,7 @@ interface ViewMenuProps {
 }
 
 const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
-  const { zoomIn, zoomOut, resetZoom } = useFormat();
+  const { zoomIn, zoomOut, resetZoom, formatState, setZoomLevel } = useFormat();
   const [darkMode, setDarkMode] = useState(false);
   const [showRuler, setShowRuler] = useState(false);
   const [showPageNumbers, setShowPageNumbers] = useState(true);
@@ -64,6 +65,13 @@ const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
     }
   };
 
+  // Zoom slider value change handler
+  const handleZoomChange = (value: number[]) => {
+    if (setZoomLevel) {
+      setZoomLevel(value[0] / 100);
+    }
+  };
+
   return (
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">View</MenubarTrigger>
@@ -93,6 +101,19 @@ const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
           Default Zoom
           <MenubarShortcut>⌘0</MenubarShortcut>
         </MenubarItem>
+        <div className="px-2 py-2">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs">{Math.round(formatState.zoomLevel * 100)}%</span>
+            <Slider
+              defaultValue={[formatState.zoomLevel * 100]}
+              min={50}
+              max={150}
+              step={5}
+              onValueChange={handleZoomChange}
+              className="w-40"
+            />
+          </div>
+        </div>
         <MenubarSeparator />
         <MenubarCheckboxItem checked={showRuler} onClick={toggleRuler}>
           Show Ruler

@@ -6,9 +6,15 @@ interface FormatStylerProps {
   children: React.ReactNode;
   forPrint?: boolean;
   forExport?: boolean;
+  currentPage?: number;
 }
 
-const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false, forExport = false }) => {
+const FormatStyler: React.FC<FormatStylerProps> = ({ 
+  children, 
+  forPrint = false, 
+  forExport = false,
+  currentPage = 1
+}) => {
   const { formatState } = useFormat();
   
   const style: React.CSSProperties = {
@@ -41,6 +47,13 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false,
       className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
     >
       {children}
+      
+      {/* Page number indicator - only show when not printing/exporting */}
+      {!forPrint && !forExport && (
+        <div className="page-number absolute top-4 right-8 text-gray-700 font-courier font-normal text-sm">
+          {currentPage}
+        </div>
+      )}
     </div>
   );
 };

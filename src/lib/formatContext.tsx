@@ -32,6 +32,7 @@ interface FormatContextType {
   zoomIn: () => void;
   zoomOut: () => void;
   resetZoom: () => void;
+  setZoomLevel: (level: number) => void;
 }
 
 const initialFormatState: FormatState = {
@@ -116,6 +117,13 @@ export const FormatProvider = ({ children }: { children: ReactNode }) => {
     setFormatState(prev => ({ ...prev, zoomLevel: 1 }));
   };
 
+  const setZoomLevel = (level: number) => {
+    setFormatState(prev => ({ 
+      ...prev, 
+      zoomLevel: Math.max(0.5, Math.min(level, 1.5)) 
+    }));
+  };
+
   return (
     <FormatContext.Provider
       value={{
@@ -133,7 +141,8 @@ export const FormatProvider = ({ children }: { children: ReactNode }) => {
         setSpaceBefore,
         zoomIn,
         zoomOut,
-        resetZoom
+        resetZoom,
+        setZoomLevel
       }}
     >
       {children}
