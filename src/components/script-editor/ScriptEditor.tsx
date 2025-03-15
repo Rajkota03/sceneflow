@@ -15,6 +15,12 @@ import { supabase } from '@/integrations/supabase/client';
 // Define BeatMode type to be consistent
 type BeatMode = 'on' | 'off';
 
+// Define Structure interface to match our database table
+interface Structure {
+  id: string;
+  name: string;
+}
+
 interface ScriptEditorProps {
   initialContent: ScriptContentType;
   onChange: (content: ScriptContentType) => void;
@@ -24,11 +30,6 @@ interface ScriptEditorProps {
   projectName?: string;
   structureName?: string;
   projectId?: string;
-}
-
-interface Structure {
-  id: string;
-  name: string;
 }
 
 const ScriptEditor = ({ 
@@ -89,6 +90,7 @@ const ScriptEditor = ({
   useEffect(() => {
     const fetchStructures = async () => {
       try {
+        // Use the correct table name 'structures' that we just created
         const { data, error } = await supabase
           .from('structures')
           .select('id, name');
@@ -99,7 +101,8 @@ const ScriptEditor = ({
         }
         
         if (data) {
-          setAvailableStructures(data);
+          // Handle the successfully fetched structures
+          setAvailableStructures(data as Structure[]);
           // If we don't have a selected structure yet, select the first one
           if (data.length > 0 && !selectedStructureId) {
             setSelectedStructureId(data[0].id);

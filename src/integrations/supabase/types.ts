@@ -69,6 +69,33 @@ export type Database = {
         }
         Relationships: []
       }
+      structures: {
+        Row: {
+          beats: Json
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          beats?: Json
+          created_at?: string
+          description?: string | null
+          id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          beats?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
