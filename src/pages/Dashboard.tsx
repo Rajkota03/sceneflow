@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
   const { session } = useAuth();
@@ -43,14 +44,15 @@ const Dashboard = () => {
   const [currentNote, setCurrentNote] = useState<Note | null>(null);
   const [structures, setStructures] = useState<{projectId: string, projectTitle: string, structure: ThreeActStructure}[]>([]);
   const [isLoadingStructures, setIsLoadingStructures] = useState(false);
+  const [hasInitializedStructures, setHasInitializedStructures] = useState(false);
 
   console.log('Dashboard - available notes:', notes?.length || 0);
 
   useEffect(() => {
-    if (activeTab === "structures" && session) {
+    if (activeTab === "structures" && session && projects.length > 0 && !hasInitializedStructures) {
       fetchStructures();
     }
-  }, [activeTab, session, projects]);
+  }, [activeTab, session, projects, hasInitializedStructures]);
 
   const fetchStructures = async () => {
     if (!session || !projects.length) return;
@@ -94,6 +96,7 @@ const Dashboard = () => {
       }
       
       setStructures(structuresData);
+      setHasInitializedStructures(true);
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -171,6 +174,23 @@ const Dashboard = () => {
     const firstProject = projects[0];
     window.location.href = `/structure/${firstProject.id}`;
   };
+  
+  // Structure placeholder skeleton for loading state
+  const StructurePlaceholder = () => (
+    <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
+      <div className="flex justify-between items-start mb-2">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-6 w-6 rounded" />
+      </div>
+      <Skeleton className="h-4 w-32 mb-3" />
+      <div className="grid grid-cols-3 gap-1 mb-3">
+        <Skeleton className="h-2 w-full" />
+        <Skeleton className="h-2 w-full" />
+        <Skeleton className="h-2 w-full" />
+      </div>
+      <Skeleton className="h-3 w-24" />
+    </div>
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -272,7 +292,11 @@ const Dashboard = () => {
               />
               
               {isLoadingStructures ? (
-                <LoadingState />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3].map((i) => (
+                    <StructurePlaceholder key={i} />
+                  ))}
+                </div>
               ) : filteredStructures.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {filteredStructures.map((item) => (
