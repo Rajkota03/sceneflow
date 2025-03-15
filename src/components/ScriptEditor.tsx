@@ -190,19 +190,21 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
           transformOrigin: 'top center',
           transition: 'transform 0.2s ease-out'
         }}>
-          {elements.map((element, index) => (
-            <EditorElement
-              key={element.id}
-              element={element}
-              previousElementType={getPreviousElementType(index)}
-              onChange={handleElementChange}
-              onFocus={() => handleFocus(element.id)}
-              isActive={activeElementId === element.id}
-              onNavigate={handleNavigate}
-              onEnterKey={handleEnterKey}
-              onFormatChange={handleFormatChange}
-            />
-          ))}
+          <div className="script-page-content">
+            {elements.map((element, index) => (
+              <EditorElement
+                key={element.id}
+                element={element}
+                previousElementType={getPreviousElementType(index)}
+                onChange={handleElementChange}
+                onFocus={() => handleFocus(element.id)}
+                isActive={activeElementId === element.id}
+                onNavigate={handleNavigate}
+                onEnterKey={handleEnterKey}
+                onFormatChange={handleFormatChange}
+              />
+            ))}
+          </div>
         </div>
       </FormatStyler>
     </div>

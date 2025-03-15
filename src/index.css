@@ -63,15 +63,22 @@
 .script-page {
   width: 8.5in;
   height: 11in;
-  padding: 1in;
+  padding: 0;
+  margin: 0 auto;
   font-family: 'Courier Prime', monospace;
   font-size: 12pt;
   line-height: 1;
   color: #000;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 0 auto;
   overflow: visible;
+  position: relative;
+}
+
+.script-page-content {
+  padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left */
+  height: 100%;
+  box-sizing: border-box;
 }
 
 /* Element-specific formatting */
@@ -79,6 +86,7 @@
   text-transform: uppercase;
   font-weight: bold;
   margin-bottom: 1em;
+  text-align: left;
 }
 
 .action {

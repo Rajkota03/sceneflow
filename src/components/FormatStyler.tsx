@@ -25,15 +25,14 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false,
     textAlign: formatState.alignment || 'left',
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
-    marginTop: `${formatState.spaceBefore}pt`,
     width: '100%',
     maxWidth: '8.5in',
     height: forPrint || forExport ? 'auto' : 'auto',
     minHeight: forPrint || forExport ? 'auto' : '11in',
     margin: '0 auto',
-    padding: '0.5in',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box' as 'border-box',
+    overflow: 'visible',
   };
 
   return (
