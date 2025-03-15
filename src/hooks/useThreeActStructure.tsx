@@ -105,11 +105,22 @@ export const useThreeActStructure = (projectId: string) => {
         note && typeof note === 'object' && note.id && note.id.startsWith('structure-')
       );
       
+      // Prepare the structure data for storage in JSON format
+      const structureForStorage = {
+        ...updatedStructure,
+        createdAt: updatedStructure.createdAt instanceof Date 
+          ? updatedStructure.createdAt.toISOString() 
+          : updatedStructure.createdAt,
+        updatedAt: updatedStructure.updatedAt instanceof Date 
+          ? updatedStructure.updatedAt.toISOString() 
+          : updatedStructure.updatedAt
+      };
+      
       // Update or add the structure note
       if (structureIndex >= 0) {
-        notes[structureIndex] = updatedStructure;
+        notes[structureIndex] = structureForStorage;
       } else {
-        notes.push(updatedStructure);
+        notes.push(structureForStorage);
       }
       
       // Update the project with the new notes array
