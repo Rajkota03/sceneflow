@@ -9,7 +9,7 @@ const StructureToolsSidebar: React.FC = () => {
         <h2 className="text-lg font-medium mb-4">Structure Tools</h2>
         <div className="space-y-2">
           <Button variant="outline" className="w-full justify-start">
-            Four-Part Structure
+            Four-Act Structure
           </Button>
           <Button variant="outline" className="w-full justify-start text-gray-500" disabled>
             Save the Cat Beats (Coming Soon)

@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { Note, ThreeActStructure } from '@/lib/types'; // Added ThreeActStructure import
+import { Note, ThreeActStructure, createDefaultStructure } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +19,7 @@ import DeleteStructureDialog from '@/components/dashboard/DeleteStructureDialog'
 const Dashboard = () => {
   const { session } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const tabFromQuery = queryParams.get('tab');
   
@@ -51,7 +51,6 @@ const Dashboard = () => {
   console.log('Dashboard - available notes:', notes?.length || 0);
 
   useEffect(() => {
-    // Set active tab from URL query parameter
     if (tabFromQuery && ['screenplays', 'notes', 'structures'].includes(tabFromQuery)) {
       setActiveTab(tabFromQuery);
     }
@@ -63,7 +62,6 @@ const Dashboard = () => {
     }
   }, [activeTab, session, projects, hasInitializedStructures]);
 
-  // Update URL when tab changes
   useEffect(() => {
     const newUrl = `${window.location.pathname}?tab=${activeTab}`;
     window.history.replaceState({}, '', newUrl);
@@ -171,7 +169,17 @@ const Dashboard = () => {
     setIsNoteEditorOpen(true);
   };
 
-  const createNewStructure = () => {
+  const createNewStructure = async () => {
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create a structure.",
+        variant: "destructive"
+      });
+      navigate('/sign-in');
+      return;
+    }
+    
     if (projects.length === 0) {
       toast({
         title: "No projects found",
@@ -182,7 +190,79 @@ const Dashboard = () => {
     }
     
     const firstProject = projects[0];
-    window.location.href = `/structure/${firstProject.id}`;
+    
+    try {
+      const newStructure = createDefaultStructure(firstProject.id, firstProject.title);
+      
+      const { data, error: fetchError } = await supabase
+        .from('projects')
+        .select('notes')
+        .eq('id', firstProject.id)
+        .eq('author_id', session.user.id)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching project:', fetchError);
+        toast({
+          title: 'Error',
+          description: 'Failed to create structure',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      const structureForStorage = {
+        id: newStructure.id,
+        projectId: newStructure.projectId,
+        projectTitle: newStructure.projectTitle,
+        createdAt: newStructure.createdAt.toISOString(),
+        updatedAt: newStructure.updatedAt.toISOString(),
+        beats: newStructure.beats.map(beat => ({
+          id: beat.id,
+          title: beat.title,
+          description: beat.description,
+          position: beat.position,
+          actNumber: beat.actNumber,
+          isMidpoint: beat.isMidpoint
+        }))
+      };
+      
+      let notes = Array.isArray(data?.notes) ? [...data.notes] : [];
+      notes.push(structureForStorage);
+      
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({
+          notes: notes,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', firstProject.id)
+        .eq('author_id', session.user.id);
+      
+      if (updateError) {
+        console.error('Error updating project:', updateError);
+        toast({
+          title: 'Error',
+          description: 'Failed to create structure',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Structure created successfully',
+      });
+      
+      navigate(`/structure/${firstProject.id}`);
+    } catch (error) {
+      console.error('Error creating structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create structure',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDeleteStructure = async (projectId: string, e: React.MouseEvent) => {
