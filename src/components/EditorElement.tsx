@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
 import { formatScriptElement, detectElementType } from '../lib/formatScript';
@@ -34,11 +33,6 @@ const EditorElement = ({
   // Update local state when element type changes from outside
   useEffect(() => {
     setElementType(element.type);
-    
-    // If this element becomes a character, ensure it's immediately center-aligned
-    if (element.type === 'character' && inputRef.current) {
-      inputRef.current.style.textAlign = 'center';
-    }
   }, [element.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -57,62 +51,48 @@ const EditorElement = ({
     const textarea = inputRef.current;
     if (!textarea) return;
     
-    // Get the current state of the textarea
-    const { selectionStart, value } = textarea;
-    const lines = value.split('\n');
-    
-    // Check if cursor is at the beginning or end of the text
-    const isAtBeginning = selectionStart === 0;
-    const isAtEnd = selectionStart === value.length;
-    
-    // Calculate current line position
-    let currentLine = 0;
-    let currentLineStart = 0;
-    let currentLineEnd = 0;
-    let charCount = 0;
-    
-    for (let i = 0; i < lines.length; i++) {
-      const lineLength = lines[i].length;
-      if (charCount <= selectionStart && selectionStart <= charCount + lineLength) {
-        currentLine = i;
-        currentLineStart = charCount;
-        currentLineEnd = charCount + lineLength;
-        break;
+    // For arrow up/down keys, let the browser handle normal navigation within the textarea
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      const { selectionStart, value } = textarea;
+      const lines = value.split('\n');
+      
+      // Calculate current cursor position
+      let cursorLineIndex = 0;
+      let charCount = 0;
+      
+      for (let i = 0; i < lines.length; i++) {
+        if (charCount <= selectionStart && selectionStart <= charCount + lines[i].length) {
+          cursorLineIndex = i;
+          break;
+        }
+        // Add line length plus newline character
+        charCount += lines[i].length + 1;
       }
-      // Add line length plus newline character
-      charCount += lineLength + 1;
-    }
-    
-    const isAtFirstLine = currentLine === 0;
-    const isAtLastLine = currentLine === lines.length - 1;
-    const isAtLineStart = selectionStart === currentLineStart;
-    const isAtLineEnd = selectionStart === currentLineEnd;
-    
-    if (e.key === 'ArrowUp' && isAtFirstLine) {
-      // Only pass up arrow event to parent if at the first line
-      onKeyDown(e, element.id);
+      
+      // Only pass arrow key events to parent if we're at boundaries
+      if ((e.key === 'ArrowUp' && cursorLineIndex === 0 && selectionStart <= lines[0].length) || 
+          (e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1)) {
+        onKeyDown(e, element.id);
+      }
+      // Otherwise let the browser handle normal navigation
       return;
     }
     
-    if (e.key === 'ArrowDown' && isAtLastLine) {
-      // Only pass down arrow event to parent if at the last line
-      onKeyDown(e, element.id);
-      return;
-    }
-    
+    // For Enter key, always pass to EditorKeyboardHandler for processing
     if (e.key === 'Enter') {
-      // Always pass Enter key to parent for proper handling
       onKeyDown(e, element.id);
       return;
     }
     
-    // For all other non-navigation keys, pass to parent handler
-    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown' && 
-        e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+    // For other keys with modifiers (Ctrl/Cmd), pass to parent handler
+    if ((e.ctrlKey || e.metaKey) && 
+        (e.key === '1' || e.key === '2' || e.key === '3' || 
+         e.key === '4' || e.key === '6')) {
       onKeyDown(e, element.id);
+      return;
     }
     
-    // For other arrow keys, let the browser handle normal cursor movement
+    // For all other keys, let the browser handle normal input
   };
 
   // Adjust textarea height to content
@@ -130,14 +110,17 @@ const EditorElement = ({
 
   // Set the text alignment based on element type
   const getTextAlignment = (): 'left' | 'center' | 'right' => {
-    if (elementType === 'character' || elementType === 'parenthetical') {
-      return 'center';
-    } else if (elementType === 'transition') {
-      return 'right';
-    } else if (elementType === 'dialogue') {
-      return 'center';
+    switch (elementType) {
+      case 'character':
+      case 'parenthetical':
+        return 'center';
+      case 'transition':
+        return 'right';
+      case 'dialogue':
+        return 'center';
+      default:
+        return 'left';
     }
-    return 'left';
   };
 
   return (

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { ElementType } from '../lib/types';
 
 interface EditorKeyboardHandlerProps {
@@ -26,13 +26,6 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
       return;
     }
     
-    // Handle arrow key navigation (now mostly handled in EditorElement)
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || 
-        e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      // Let it bubble up to ScriptEditor for handling between elements
-      return;
-    }
-    
     // Handle Enter key for creating new elements and auto-formatting
     if (e.key === 'Enter') {
       // Allow Shift+Enter to create a new line in dialogue without creating a new element
@@ -46,13 +39,15 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
       let nextType: ElementType | undefined = undefined;
       
       if (type === 'scene-heading') {
-        nextType = 'action';
+        nextType = 'action'; // After Scene Heading, move to Action
       } else if (type === 'character') {
-        nextType = 'dialogue';
-      } else if (type === 'dialogue' || type === 'parenthetical') {
-        nextType = 'action';
+        nextType = 'dialogue'; // After Character, move to Dialogue
+      } else if (type === 'dialogue') {
+        nextType = 'action'; // After Dialogue, move to Action
+      } else if (type === 'parenthetical') {
+        nextType = 'dialogue'; // Parentheticals stay within Dialogue
       } else if (type === 'transition') {
-        nextType = 'scene-heading';
+        nextType = 'scene-heading'; // After Transition, move to Scene Heading
       }
       // Default to action for other types
       
@@ -92,6 +87,7 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
         case '3':
           e.preventDefault();
           onChangeElementType(id, 'character');
+          // Character formatting is applied via CSS in EditorElement
           break;
         case '4':
           e.preventDefault();
@@ -100,6 +96,7 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
         case '6':
           e.preventDefault();
           onChangeElementType(id, 'transition');
+          // Transition formatting is applied via CSS in EditorElement
           break;
       }
     }
