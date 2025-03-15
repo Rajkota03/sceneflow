@@ -1,43 +1,44 @@
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PlusCircle, Search } from "lucide-react";
 
 interface DashboardHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onCreateNewProject: () => void;
+  projectType?: 'screenplay' | 'note' | 'structure';
 }
 
-const DashboardHeader = ({ 
-  searchQuery, 
-  setSearchQuery, 
-  onCreateNewProject 
+const DashboardHeader = ({
+  searchQuery,
+  setSearchQuery,
+  onCreateNewProject,
+  projectType = 'screenplay'
 }: DashboardHeaderProps) => {
+  const projectLabels = {
+    screenplay: "Screenplay",
+    note: "Note",
+    structure: "Structure"
+  };
+
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-      <div>
-        <h1 className="text-3xl font-serif font-bold text-slate-900 mb-2">My Projects</h1>
-        <p className="text-slate-600">Manage your screenplays and scripts</p>
+    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+      <div className="relative w-full sm:w-auto flex-1 max-w-md">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+        <Input
+          type="search"
+          placeholder={`Search ${projectLabels[projectType]}s...`}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 bg-white shadow-sm border-slate-200"
+        />
       </div>
       
-      <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
-          <Input 
-            type="text" 
-            placeholder="Search projects" 
-            className="w-full pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <Button onClick={onCreateNewProject} className="flex items-center">
-          <Plus size={18} className="mr-2" />
-          New Project
-        </Button>
-      </div>
+      <Button onClick={onCreateNewProject} className="w-full sm:w-auto">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        New {projectLabels[projectType]}
+      </Button>
     </div>
   );
 };

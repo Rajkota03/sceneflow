@@ -14,7 +14,7 @@ const ProjectCard = ({ project, onDelete }: ProjectCardProps) => {
   const timeAgo = formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true });
   
   return (
-    <div className="glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg group">
+    <div className="glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg group border border-slate-200 bg-white">
       <div className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
@@ -53,7 +53,7 @@ const ProjectCard = ({ project, onDelete }: ProjectCardProps) => {
         </div>
         
         <div className="mt-4 text-sm bg-slate-50 rounded-md p-3 font-mono">
-          <p className="line-clamp-3 text-slate-600">
+          <p className="line-clamp-3 text-left text-slate-600">
             {project.content.elements.map(element => element.text).join('\n').substring(0, 150)}
             {project.content.elements.map(element => element.text).join('\n').length > 150 ? '...' : ''}
           </p>

@@ -1,28 +1,52 @@
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { FileText, PlusCircle, Search, X } from "lucide-react";
+import { ReactNode } from "react";
 
 interface EmptyStateProps {
   searchQuery: string;
   clearSearch: () => void;
   createNewProject: () => void;
+  emptyMessage?: string;
+  createMessage?: string;
+  icon?: ReactNode;
 }
 
-const EmptyState = ({ searchQuery, clearSearch, createNewProject }: EmptyStateProps) => {
-  if (searchQuery) {
-    return (
-      <div className="text-center py-16">
-        <p className="text-xl font-medium text-slate-900 mb-3">No projects match your search</p>
-        <p className="text-slate-600 mb-6">Try adjusting your search terms</p>
-        <Button variant="outline" onClick={clearSearch}>Clear Search</Button>
-      </div>
-    );
-  }
-  
+const EmptyState = ({
+  searchQuery,
+  clearSearch,
+  createNewProject,
+  emptyMessage = "No projects found",
+  createMessage = "Create a new project",
+  icon = <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+}: EmptyStateProps) => {
   return (
-    <div className="text-center py-16">
-      <p className="text-xl font-medium text-slate-900 mb-3">You don't have any projects yet</p>
-      <p className="text-slate-600 mb-6">Create your first screenplay</p>
-      <Button onClick={createNewProject}>Create New Project</Button>
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      {searchQuery ? (
+        <>
+          <Search className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-xl font-medium mb-2">No results found</h3>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            We couldn't find any projects matching "{searchQuery}"
+          </p>
+          <Button variant="outline" onClick={clearSearch}>
+            <X className="mr-2 h-4 w-4" />
+            Clear search
+          </Button>
+        </>
+      ) : (
+        <>
+          {icon}
+          <h3 className="text-xl font-medium mb-2">{emptyMessage}</h3>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Get started by creating your first project
+          </p>
+          <Button onClick={createNewProject}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            {createMessage}
+          </Button>
+        </>
+      )}
     </div>
   );
 };
