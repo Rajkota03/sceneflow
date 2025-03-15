@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ScriptEditor from '../components/ScriptEditor';
@@ -428,10 +427,17 @@ const Editor = () => {
       if (splitScreenNote && splitScreenNote.id === updatedNote.id) {
         setSplitScreenNote(updatedNote);
       }
+      
+      // After saving the note, automatically trigger the project save
+      handleSave(false);
     } else {
       // Create new note
-      setNotes([...notes, updatedNote]);
+      const newNotes = [...notes, updatedNote];
+      setNotes(newNotes);
       handleOpenNote(updatedNote);
+      
+      // After creating the note, automatically trigger the project save
+      handleSave(false);
     }
   };
 

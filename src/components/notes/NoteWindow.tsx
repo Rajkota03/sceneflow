@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Minimize, Maximize, ExternalLink, Edit } from 'lucide-react';
+import { X, Minimize, Maximize, ExternalLink, Edit, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Note } from '@/lib/types';
 import Draggable from 'react-draggable';
@@ -16,11 +16,24 @@ interface NoteWindowProps {
 const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: NoteWindowProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 400 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pages, setPages] = useState<string[]>(['']);
   const noteRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     // Log the note when it renders to verify its data
     console.log('NoteWindow rendering note:', note?.id, note?.title);
+    
+    // Split content into pages if it contains page break markers
+    if (note?.content && note.content.includes('---PAGE_BREAK---')) {
+      setPages(note.content.split('---PAGE_BREAK---'));
+    } else if (note?.content) {
+      setPages([note.content]);
+    } else {
+      setPages(['']);
+    }
+    
+    setCurrentPage(1);
   }, [note]);
   
   const toggleCollapse = () => {
@@ -61,6 +74,14 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
       document.removeEventListener('mouseup', handleResizeMouseUp);
     };
   }, []);
+
+  const handlePageChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    } else if (direction === 'next' && currentPage < pages.length) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   if (!note) {
     console.error('Note is undefined in NoteWindow');
@@ -103,7 +124,7 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
               className="h-6 w-6" 
               onClick={() => onEditNote(note)}
             >
-              <Edit size={12} />
+              <Pencil size={12} />
             </Button>
           )}
           <Button 
@@ -118,9 +139,37 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
       </div>
       
       {!isCollapsed && (
-        <div className="flex-grow p-3 overflow-auto whitespace-pre-wrap text-sm">
-          {note.content}
-        </div>
+        <>
+          <div className="flex-grow p-3 overflow-auto whitespace-pre-wrap text-sm">
+            {pages[currentPage - 1]}
+          </div>
+          
+          {pages.length > 1 && (
+            <div className="flex items-center justify-between border-t p-1 bg-gray-50">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handlePageChange('prev')}
+                disabled={currentPage === 1}
+                className="h-6 text-xs px-2"
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-gray-500">
+                Page {currentPage} of {pages.length}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handlePageChange('next')}
+                disabled={currentPage === pages.length}
+                className="h-6 text-xs px-2"
+              >
+                Next
+              </Button>
+            </div>
+          )}
+        </>
       )}
       
       {isFloating && !isCollapsed && (
