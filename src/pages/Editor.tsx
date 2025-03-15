@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ScriptEditor from '../components/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check } from 'lucide-react';
@@ -159,13 +159,7 @@ const Editor = () => {
               let processedNotes: Note[] = [];
               
               if (Array.isArray(notesRawData)) {
-                processedNotes = notesRawData.map(note => ({
-                  id: String(note.id || `note-${Date.now()}`),
-                  title: String(note.title || 'Untitled Note'),
-                  content: String(note.content || ''),
-                  createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
-                  updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
-                }));
+                processedNotes = deserializeNotes(notesRawData);
               }
               
               console.log('Processed notes:', processedNotes.length);

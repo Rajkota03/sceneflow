@@ -1,3 +1,4 @@
+
 import { Json } from '@/integrations/supabase/types';
 
 export interface ScriptElement {
@@ -64,7 +65,7 @@ export function serializeNotes(notes: Note[]): any[] {
   }));
 }
 
-export function deserializeNotes(jsonNotes: any): Note[] {
+export function deserializeNotes(jsonNotes: any[]): Note[] {
   if (!jsonNotes || !Array.isArray(jsonNotes)) return [];
   
   return jsonNotes.map(note => ({

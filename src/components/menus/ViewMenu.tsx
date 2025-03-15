@@ -12,7 +12,12 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { useFormat } from '@/lib/formatContext';
 
-const ViewMenu = () => {
+interface ViewMenuProps {
+  showTitlePage?: boolean;
+  onToggleTitlePage?: () => void;
+}
+
+const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
   const { zoomIn, zoomOut, resetZoom } = useFormat();
   const [darkMode, setDarkMode] = useState(false);
   const [showRuler, setShowRuler] = useState(false);
@@ -70,6 +75,11 @@ const ViewMenu = () => {
           Full Screen
           <MenubarShortcut>F11</MenubarShortcut>
         </MenubarItem>
+        {onToggleTitlePage && (
+          <MenubarCheckboxItem checked={!!showTitlePage} onClick={onToggleTitlePage}>
+            Show Title Page
+          </MenubarCheckboxItem>
+        )}
         <MenubarSeparator />
         <MenubarItem onClick={zoomIn}>
           Zoom In

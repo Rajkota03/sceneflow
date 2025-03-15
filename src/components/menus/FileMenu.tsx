@@ -20,9 +20,10 @@ import FormatStyler from '../FormatStyler';
 interface FileMenuProps {
   onSave: () => void;
   onSaveAs: (newTitle: string) => void;
+  onTitlePage: () => void;
 }
 
-const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
+const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
   const navigate = useNavigate();
   const importFileRef = useRef<HTMLInputElement>(null);
 
@@ -349,6 +350,9 @@ const FileMenu = ({ onSave, onSaveAs }: FileMenuProps) => {
         <MenubarItem onClick={handleSaveAs}>
           Save As...
           <MenubarShortcut>⇧⌘S</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={onTitlePage}>
+          Title Page
         </MenubarItem>
         <MenubarItem onClick={handleExportPDF}>
           Export PDF
