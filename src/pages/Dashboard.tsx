@@ -1,4 +1,3 @@
-
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
@@ -14,6 +13,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Note } from '@/lib/types';
 import NotePopover from '@/components/notes/NotePopover';
 import NoteEditor from '@/components/notes/NoteEditor';
+import { Button } from '@/components/ui/button';
 
 const Dashboard = () => {
   const {
@@ -39,7 +39,6 @@ const Dashboard = () => {
 
   console.log('Dashboard - available notes:', notes?.length || 0);
 
-  // Filter notes based on search query
   const filteredNotes = notes?.filter(note => 
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
