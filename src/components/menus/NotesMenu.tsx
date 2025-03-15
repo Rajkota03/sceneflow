@@ -35,7 +35,7 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
         <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
         {notes.length > 0 ? (
           notes.map(note => (
-            <MenubarItem key={note.id} onClick={() => onOpenNote(note)}>
+            <MenubarItem key={note.id} onClick={() => onOpenNote(note)} className="cursor-pointer">
               <FileText className="mr-2 h-4 w-4" />
               {note.title}
             </MenubarItem>
@@ -50,7 +50,7 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
         <div className="px-2 py-1 text-xs text-muted-foreground">Recent Notes</div>
         {recentNotes.length > 0 ? (
           recentNotes.map(note => (
-            <MenubarItem key={`recent-${note.id}`} onClick={() => onOpenNote(note)}>
+            <MenubarItem key={`recent-${note.id}`} onClick={() => onOpenNote(note)} className="cursor-pointer">
               <Clock className="mr-2 h-4 w-4" />
               {note.title}
             </MenubarItem>
