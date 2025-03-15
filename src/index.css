@@ -88,6 +88,8 @@
   padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left */
   height: 100%;
   box-sizing: border-box;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
 }
 
 /* Element-specific formatting */
@@ -97,6 +99,7 @@
   margin-bottom: 1em;
   text-align: left;
   width: 100%;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .action {
@@ -104,6 +107,7 @@
   text-align: left;
   width: 100%;
   white-space: pre-wrap;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .character {
@@ -111,6 +115,7 @@
   text-align: center;
   width: 30%;
   margin: 1em auto 0.1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .dialogue {
@@ -118,6 +123,7 @@
   margin: 0 auto 1em;
   text-align: left;
   padding-left: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .parenthetical {
@@ -125,6 +131,7 @@
   margin: 0 auto 0.1em;
   text-align: left;
   padding-left: 1.5em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .transition {
@@ -132,12 +139,14 @@
   text-transform: uppercase;
   margin: 1em 0;
   width: 100%;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .element-container {
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 /* PDF export specific styles */
@@ -147,6 +156,12 @@
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   line-height: 1 !important;
+}
+
+/* Make sure all textareas use the correct font */
+.script-page-content textarea {
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
 }
 
 /* Character suggestions dropdown styles */

@@ -18,8 +18,8 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   const { formatState } = useFormat();
   
   const style: React.CSSProperties = {
-    fontFamily: formatState.font || 'Courier Final Draft, Courier Prime, monospace',
-    fontSize: `${formatState.fontSize}pt`,
+    fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+    fontSize: '12pt',
     fontWeight: formatState.isBold ? 'bold' : 'normal',
     fontStyle: formatState.isItalic ? 'italic' : 'normal',
     textDecoration: [

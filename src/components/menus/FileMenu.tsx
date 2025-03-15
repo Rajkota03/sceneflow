@@ -163,7 +163,7 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
           `;
           
           const formatStyler = document.createElement('div');
-          formatStyler.style.fontFamily = 'Courier Prime, monospace';
+          formatStyler.style.fontFamily = 'Courier Final Draft, Courier Prime, monospace';
           formatStyler.style.fontSize = '12pt';
           formatStyler.style.width = '8.5in';
           formatStyler.style.padding = '0.5in';
@@ -211,9 +211,9 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
         
         p.style.margin = '0';
         p.style.padding = '0';
-        p.style.fontFamily = 'Courier Prime, monospace';
+        p.style.fontFamily = 'Courier Final Draft, Courier Prime, monospace';
         p.style.fontSize = '12pt';
-        p.style.lineHeight = '1';
+        p.style.lineHeight = '1.2';
         p.style.whiteSpace = 'pre-wrap';
         p.style.width = '100%';
         
@@ -271,7 +271,16 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
         (scriptPageContent as HTMLElement).style.boxSizing = 'border-box';
         (scriptPageContent as HTMLElement).style.height = '11in';
         (scriptPageContent as HTMLElement).style.width = '8.5in';
+        (scriptPageContent as HTMLElement).style.fontFamily = 'Courier Final Draft, Courier Prime, monospace';
+        (scriptPageContent as HTMLElement).style.fontSize = '12pt';
       }
+      
+      const allElements = clonedPage.querySelectorAll('*');
+      allElements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.fontFamily = 'Courier Final Draft, Courier Prime, monospace';
+        }
+      });
       
       const canvas = await html2canvas(clonedPage, {
         scale: 2,
@@ -280,6 +289,14 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
         backgroundColor: '#ffffff',
         width: 8.5 * 96,
         height: 11 * 96,
+        onclone: (document, element) => {
+          const allElements = element.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el instanceof HTMLElement) {
+              el.style.fontFamily = 'Courier Final Draft, Courier Prime, monospace';
+            }
+          });
+        }
       });
       
       pdf.addImage(

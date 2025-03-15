@@ -221,7 +221,10 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
             transition: 'transform 0.2s ease-out',
             fontFamily: 'Courier Final Draft, Courier Prime, monospace'
           }}>
-            <div className="script-page-content">
+            <div className="script-page-content" style={{
+              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+              fontSize: '12pt'
+            }}>
               {elements.map((element, index) => (
                 <EditorElement
                   key={element.id}
