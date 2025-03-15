@@ -1,7 +1,6 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
 import { Session } from '@supabase/supabase-js';
 import Index from './pages/Index';
 import SignUp from './pages/SignUp';
@@ -12,11 +11,7 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import Structure from './pages/Structure';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from './integrations/supabase/client';
 
 interface AuthContextType {
   session: Session | null;
@@ -39,14 +34,25 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Auth state checking started");
+    
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Session retrieved:", session ? "Session exists" : "No session");
       setSession(session);
+      setIsLoading(false);
+    }).catch(error => {
+      console.error("Error getting session:", error);
       setIsLoading(false);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", _event);
       setSession(session);
     });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {

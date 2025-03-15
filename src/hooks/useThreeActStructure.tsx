@@ -18,6 +18,7 @@ export const useThreeActStructure = (projectId: string) => {
       setIsLoading(true);
       
       try {
+        console.log("Fetching structure for project:", projectId);
         const { data, error } = await supabase
           .from('projects')
           .select('notes')
@@ -39,12 +40,14 @@ export const useThreeActStructure = (projectId: string) => {
         let structureData: ThreeActStructure | null = null;
         
         if (data?.notes && Array.isArray(data.notes)) {
+          console.log("Found notes array, looking for structure");
           // Look for a note that contains the structure data
           const structureNote = data.notes.find((note: any) => 
             note && typeof note === 'object' && note.id && note.id.startsWith('structure-')
           );
           
           if (structureNote) {
+            console.log("Found structure note:", structureNote.id);
             structureData = structureNote as unknown as ThreeActStructure;
             // Ensure dates are Date objects
             structureData.createdAt = new Date(structureData.createdAt);
@@ -54,6 +57,7 @@ export const useThreeActStructure = (projectId: string) => {
         
         // If no structure found, create a default one
         if (!structureData) {
+          console.log("No structure found, creating default");
           structureData = createDefaultStructure(projectId);
         }
         
@@ -79,6 +83,7 @@ export const useThreeActStructure = (projectId: string) => {
     setIsSaving(true);
     
     try {
+      console.log("Saving structure:", updatedStructure.id);
       // First, get the current notes array
       const { data, error: fetchError } = await supabase
         .from('projects')
@@ -129,6 +134,7 @@ export const useThreeActStructure = (projectId: string) => {
         notes.push(structureForStorage);
       }
       
+      console.log("Updating project with structure");
       // Update the project with the new notes array
       const { error: updateError } = await supabase
         .from('projects')
