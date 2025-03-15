@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
 import { generateUniqueId } from '../lib/formatScript';

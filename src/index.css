@@ -62,6 +62,7 @@
 /* Screenplay formatting styles */
 .script-page {
   width: 8.5in;
+  height: 11in;
   padding: 1in;
   font-family: 'Courier Prime', monospace;
   font-size: 12pt;
@@ -69,6 +70,8 @@
   color: #000;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  overflow: visible;
 }
 
 /* Element-specific formatting */
@@ -114,12 +117,18 @@
   position: relative;
 }
 
+/* Remove the border highlight when focusing on an element */
 .element-container:focus-within {
-  box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.2);
-  border-radius: 2px;
+  outline: none;
 }
 
 /* Add some extra space to elements */
 .element-container + .element-container {
   margin-top: 0.25em;
+}
+
+/* Custom selection style */
+::selection {
+  background-color: rgba(0, 120, 212, 0.2);
+  color: inherit;
 }
