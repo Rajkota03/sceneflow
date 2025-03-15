@@ -1,6 +1,7 @@
 
 import { toast } from '@/components/ui/use-toast';
-import { ThreeActStructure, StoryBeat } from '@/lib/types';
+import { ThreeActStructure, StoryBeat, ActType } from '@/lib/types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const useStoryBeats = (
   structure: ThreeActStructure | null,
@@ -21,7 +22,8 @@ export const useStoryBeats = (
     // Create updated structure
     const updatedStructure = {
       ...structure,
-      beats: reorderedBeats
+      beats: reorderedBeats,
+      updatedAt: new Date()
     };
     
     // Save the updated structure
@@ -33,8 +35,46 @@ export const useStoryBeats = (
     });
   };
   
+  const handleAddBeat = (actNumber: ActType) => {
+    if (!structure) return;
+    
+    // Calculate the position for the new beat
+    const actBeats = structure.beats.filter(beat => beat.actNumber === actNumber);
+    const position = actBeats.length > 0 
+      ? Math.max(...actBeats.map(beat => beat.position)) + 1 
+      : structure.beats.length;
+    
+    // Create a new beat
+    const newBeat: StoryBeat = {
+      id: `beat-${uuidv4()}`,
+      title: `New Beat`,
+      description: 'Add your beat description here',
+      position: position,
+      actNumber: actNumber,
+      isMidpoint: actNumber === 'midpoint'
+    };
+    
+    // Add the new beat to the structure
+    const updatedStructure = {
+      ...structure,
+      beats: [...structure.beats, newBeat],
+      updatedAt: new Date()
+    };
+    
+    // Save the updated structure
+    saveStructure(updatedStructure);
+    
+    toast({
+      title: 'Beat Added',
+      description: `New beat added to ${actNumber === 'midpoint' ? 'Midpoint' : `Act ${actNumber}`}`,
+    });
+    
+    return newBeat;
+  };
+  
   return {
-    handleDeleteBeat
+    handleDeleteBeat,
+    handleAddBeat
   };
 };
 

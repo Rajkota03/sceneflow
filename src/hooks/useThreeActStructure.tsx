@@ -96,31 +96,42 @@ export const useThreeActStructure = (projectId: string) => {
     } finally {
       setIsSaving(false);
     }
-  }, [projectId, session, saveStructureData]);
+  }, [projectId, session]);
 
   const updateBeat = useCallback((beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
     console.log("Updating beat:", beatId, updates);
     
     const updatedStructure = createUpdatedStructureWithBeat(structure, beatId, updates);
-    // Don't auto-save for now, let user save manually
     setStructure(updatedStructure);
+    // Don't auto-save on direct input changes - this prevents saving on every keystroke
+    // Auto-save will happen when the user blurs the field or clicks save
   }, [structure]);
+
+  const saveUpdatedBeat = useCallback((beatId: string, updates: Partial<StoryBeat>) => {
+    if (!structure) return;
+    console.log("Saving beat update:", beatId, updates);
+    
+    const updatedStructure = createUpdatedStructureWithBeat(structure, beatId, updates);
+    saveStructure(updatedStructure);
+  }, [structure, saveStructure]);
 
   const reorderBeats = useCallback((beats: StoryBeat[]) => {
     if (!structure) return;
     console.log("Reordering beats");
     
     const updatedStructure = createUpdatedStructureWithReorderedBeats(structure, beats);
-    // Don't auto-save for now, let user save manually
     setStructure(updatedStructure);
-  }, [structure]);
+    // Auto-save on reordering - user expects drag and drop to persist
+    saveStructure(updatedStructure);
+  }, [structure, saveStructure]);
 
   return {
     structure,
     isLoading,
     isSaving,
     updateBeat,
+    saveUpdatedBeat,
     reorderBeats,
     saveStructure,
     initializeStructure

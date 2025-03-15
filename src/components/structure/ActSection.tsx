@@ -3,6 +3,8 @@ import React from 'react';
 import { StoryBeat, ActType } from '@/lib/types';
 import StoryBeatItem from './StoryBeatItem';
 import { SortableItem } from './SortableItem';
+import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ActSectionProps {
   actNumber: ActType;
@@ -11,6 +13,7 @@ interface ActSectionProps {
   onUpdateBeat: (beatId: string, updates: Partial<StoryBeat>) => void;
   onDeleteBeat?: (beatId: string) => void;
   onBeatClick?: (beat: StoryBeat) => void;
+  onAddBeat?: (actNumber: ActType) => void;
   taggingMode?: boolean;
 }
 
@@ -21,6 +24,7 @@ const ActSection: React.FC<ActSectionProps> = ({
   onUpdateBeat,
   onDeleteBeat,
   onBeatClick,
+  onAddBeat,
   taggingMode = false
 }) => {
   const getBgColor = () => {
@@ -49,7 +53,21 @@ const ActSection: React.FC<ActSectionProps> = ({
   return (
     <div className="mb-8 relative z-10">
       <div className={`relative rounded-lg shadow-sm p-4 mx-8 ${getBgColor()} ${getBorderColor()} border`}>
-        <h3 className="text-sm font-semibold mb-2">{title}</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-semibold">{title}</h3>
+          
+          {onAddBeat && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 p-0 text-gray-600 hover:text-gray-900"
+              onClick={() => onAddBeat(actNumber)}
+            >
+              <PlusCircle size={16} />
+              <span className="ml-1 text-xs">Add Beat</span>
+            </Button>
+          )}
+        </div>
         
         {beats.length > 0 ? (
           <div className="space-y-3">
@@ -80,7 +98,9 @@ const ActSection: React.FC<ActSectionProps> = ({
           </div>
         ) : (
           <div className="py-4 text-center text-gray-500 italic text-sm">
-            No beats in this act. Drag beats here or add new ones.
+            {onAddBeat ? 
+              "Add your first beat to this act" : 
+              "No beats in this act. Drag beats here or add new ones."}
           </div>
         )}
       </div>

@@ -13,6 +13,7 @@ interface StructureContentProps {
   onReorderBeats: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle: (title: string) => void;
   onDeleteBeat: (beatId: string) => void;
+  onAddBeat?: (actNumber: ActType) => void;
   onSave?: () => void;
 }
 
@@ -24,6 +25,7 @@ const StructureContent: React.FC<StructureContentProps> = ({
   onReorderBeats,
   onUpdateProjectTitle,
   onDeleteBeat,
+  onAddBeat,
   onSave
 }) => {
   // Show loading state

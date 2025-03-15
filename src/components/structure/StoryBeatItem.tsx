@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StoryBeat } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,12 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
   const [title, setTitle] = useState(beat.title);
   const [description, setDescription] = useState(beat.description);
   
+  // Update local state when beat props change
+  useEffect(() => {
+    setTitle(beat.title);
+    setDescription(beat.description);
+  }, [beat.title, beat.description]);
+  
   const handleSave = () => {
     onUpdate({ title, description });
     setIsEditing(false);
@@ -36,12 +42,14 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
-    onUpdate({ title: e.target.value });
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setDescription(e.target.value);
-    onUpdate({ description: e.target.value });
+  };
+
+  const saveChanges = () => {
+    onUpdate({ title, description });
   };
   
   const getActColor = () => {
@@ -61,14 +69,14 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
         <div className="space-y-2">
           <Input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={handleTitleChange}
             className="font-medium"
             placeholder="Beat title"
           />
           
           <Textarea
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={handleDescriptionChange}
             className="text-sm"
             placeholder="Beat description"
             rows={3}
@@ -88,18 +96,20 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
       ) : (
         <>
           <div className="flex justify-between items-start">
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <Bookmark size={14} className="mr-1.5 flex-shrink-0" />
               <Input
                 value={title}
                 onChange={handleTitleChange}
+                onBlur={saveChanges}
                 className="border-0 p-0 h-auto font-medium text-sm bg-transparent focus-visible:ring-0"
                 placeholder="Enter beat title"
+                readOnly={readOnly}
               />
             </div>
             
             {!readOnly && (
-              <div className="flex space-x-1">
+              <div className="flex space-x-1 ml-2">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -126,8 +136,10 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
           <Textarea
             value={description}
             onChange={handleDescriptionChange}
+            onBlur={saveChanges}
             className="text-xs text-gray-600 mt-1 pl-5 border-0 resize-none bg-transparent p-0 focus-visible:ring-0 min-h-[20px]"
             placeholder="Enter beat description"
+            readOnly={readOnly}
           />
         </>
       )}
