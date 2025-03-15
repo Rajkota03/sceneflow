@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Minimize, Maximize, ArrowsMaximize } from 'lucide-react';
+import { X, Minimize, Maximize, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Note } from '@/lib/types';
 import Draggable from 'react-draggable';
@@ -81,7 +81,7 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating }: NoteWindowProp
                 className="h-6 w-6" 
                 onClick={() => onSplitScreen(note)}
               >
-                <ArrowsMaximize size={12} />
+                <ExternalLink size={12} />
               </Button>
             </>
           )}

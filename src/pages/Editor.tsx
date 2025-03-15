@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -165,6 +164,8 @@ const Editor = () => {
           if (data.notes) {
             const notesData = data.notes as Json as unknown as Note[];
             setNotes(notesData);
+          } else {
+            setNotes([]);
           }
         }
       } catch (error) {

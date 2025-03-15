@@ -1,3 +1,4 @@
+
 import { Json } from '@/integrations/supabase/types';
 
 export interface ScriptElement {
@@ -17,6 +18,7 @@ export interface Project {
   createdAt: Date | string;
   updatedAt: Date | string;
   content: ScriptContent;
+  notes?: Note[];
 }
 
 export type Note = {
