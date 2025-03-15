@@ -5,7 +5,7 @@ import ScriptEditor from '../components/ScriptEditor';
 import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes, serializeNotes } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
-import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check } from 'lucide-react';
+import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
