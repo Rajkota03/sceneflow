@@ -33,6 +33,16 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
     setDescription(beat.description);
     setIsEditing(false);
   };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    onUpdate({ title: e.target.value });
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value);
+    onUpdate({ description: e.target.value });
+  };
   
   const getActColor = () => {
     switch (beat.actNumber) {
@@ -80,7 +90,12 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
           <div className="flex justify-between items-start">
             <div className="flex items-center">
               <Bookmark size={14} className="mr-1.5 flex-shrink-0" />
-              <h4 className="font-medium text-sm">{beat.title}</h4>
+              <Input
+                value={title}
+                onChange={handleTitleChange}
+                className="border-0 p-0 h-auto font-medium text-sm bg-transparent focus-visible:ring-0"
+                placeholder="Enter beat title"
+              />
             </div>
             
             {!readOnly && (
@@ -108,7 +123,12 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
             )}
           </div>
           
-          <p className="text-xs text-gray-600 mt-1 pl-5">{beat.description}</p>
+          <Textarea
+            value={description}
+            onChange={handleDescriptionChange}
+            className="text-xs text-gray-600 mt-1 pl-5 border-0 resize-none bg-transparent p-0 focus-visible:ring-0 min-h-[20px]"
+            placeholder="Enter beat description"
+          />
         </>
       )}
     </div>

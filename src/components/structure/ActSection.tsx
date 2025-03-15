@@ -64,7 +64,7 @@ const ActSection: React.FC<ActSectionProps> = ({
                     beat={beat}
                     onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
                     onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
-                    readOnly={true}
+                    readOnly={false}
                   />
                 </div>
               ) : (

@@ -11,6 +11,8 @@ import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import { supabase } from '@/integrations/supabase/client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 // Define BeatMode type to be consistent
 type BeatMode = 'on' | 'off';
@@ -90,7 +92,6 @@ const ScriptEditor = ({
   useEffect(() => {
     const fetchStructures = async () => {
       try {
-        // Use the correct table name 'structures' that we just created
         const { data, error } = await supabase
           .from('structures')
           .select('id, name');
@@ -248,6 +249,27 @@ const ScriptEditor = ({
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
+      {/* Structure selector */}
+      <div className="bg-white border-b p-2 flex items-center">
+        <div className="flex items-center space-x-2 mr-4">
+          <Label htmlFor="structure-select" className="text-sm font-medium">
+            Structure:
+          </Label>
+          <Select value={selectedStructureId} onValueChange={handleStructureChange}>
+            <SelectTrigger id="structure-select" className="w-[180px]">
+              <SelectValue placeholder="Select a structure" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableStructures.map((structure) => (
+                <SelectItem key={structure.id} value={structure.id}>
+                  {structure.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
       {/* Tag manager with Act Bar for filtering scenes - always shown for beatMode toggle */}
       <TagManager 
         scriptContent={{ elements }} 
