@@ -53,7 +53,6 @@ export const jsonToScriptContent = (json: Json | null): ScriptContent => {
   return { elements: [] };
 };
 
-// Note-related utilities
 export function serializeNotes(notes: Note[]): any[] {
   if (!notes || !Array.isArray(notes)) return [];
   
@@ -97,7 +96,7 @@ export const defaultStoryBeats: StoryBeat[] = [
   {
     id: 'beat-1',
     title: 'Hook',
-    description: 'Grab the audience's attention with an intriguing opening scene.',
+    description: "Grab the audience's attention with an intriguing opening scene.",
     position: 0,
     actNumber: 1
   },
@@ -134,7 +133,7 @@ export const defaultStoryBeats: StoryBeat[] = [
   {
     id: 'beat-6',
     title: 'Midpoint',
-    description: 'A major reversal or revelation that raises the stakes and changes the protagonist\'s perspective.',
+    description: "A major reversal or revelation that raises the stakes and changes the protagonist's perspective.",
     position: 5,
     actNumber: 2
   },
@@ -157,7 +156,7 @@ export const defaultStoryBeats: StoryBeat[] = [
   {
     id: 'beat-9',
     title: 'Climax',
-    description: 'The final confrontation where the story\'s central conflict is resolved.',
+    description: "The final confrontation where the story's central conflict is resolved.",
     position: 8,
     actNumber: 3
   },
