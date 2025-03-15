@@ -215,31 +215,47 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
         p.style.lineHeight = '1.2';
         p.style.whiteSpace = 'pre-wrap';
         
-        const elementContainer = textarea.closest('[class*="-element"]');
+        const elementContainer = textarea.closest('.element-container');
         if (elementContainer) {
-          if (elementContainer.classList.contains('scene-heading-element')) {
+          if (elementContainer.classList.contains('scene-heading')) {
             p.style.textTransform = 'uppercase';
             p.style.fontWeight = 'bold';
-          } else if (elementContainer.classList.contains('character-element')) {
+            p.style.textAlign = 'left';
+            p.style.marginBottom = '1em';
+          } 
+          else if (elementContainer.classList.contains('character')) {
             p.style.textTransform = 'uppercase';
-            p.style.fontWeight = 'bold';
             p.style.textAlign = 'center';
-          } else if (elementContainer.classList.contains('dialogue-element')) {
-            p.style.textAlign = 'center';
-          } else if (elementContainer.classList.contains('parenthetical-element')) {
-            p.style.textAlign = 'center';
-            p.style.fontStyle = 'italic';
-          } else if (elementContainer.classList.contains('transition-element')) {
+            p.style.width = '30%';
+            p.style.margin = '1em auto 0.1em';
+          } 
+          else if (elementContainer.classList.contains('dialogue')) {
+            p.style.width = '65%';
+            p.style.margin = '0 auto 1em';
+            p.style.textAlign = 'left';
+            p.style.paddingLeft = '1em';
+          } 
+          else if (elementContainer.classList.contains('parenthetical')) {
+            p.style.width = '40%';
+            p.style.margin = '0 auto 0.1em';
+            p.style.textAlign = 'left';
+            p.style.paddingLeft = '1.5em';
+          } 
+          else if (elementContainer.classList.contains('transition')) {
             p.style.textAlign = 'right';
             p.style.textTransform = 'uppercase';
-            p.style.fontWeight = 'bold';
+            p.style.margin = '1em 0';
+          }
+          else if (elementContainer.classList.contains('action')) {
+            p.style.marginBottom = '1em';
+            p.style.textAlign = 'left';
           }
         }
         
         textarea.parentNode?.replaceChild(p, textarea);
       });
       
-      const uiElements = clonedPage.querySelectorAll('.btn-handle, button');
+      const uiElements = clonedPage.querySelectorAll('.btn-handle, button, .character-suggestions');
       uiElements.forEach(el => el.parentNode?.removeChild(el));
       
       const canvas = await html2canvas(clonedPage, {

@@ -125,6 +125,17 @@
   position: relative;
 }
 
+/* Character suggestions dropdown styles */
+.character-suggestions {
+  position: absolute;
+  z-index: 100;
+  width: 60%;
+  left: 20%;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
 /* Remove the border highlight when focusing on an element */
 .element-container:focus-within {
   outline: none;

@@ -21,12 +21,25 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
+  const [characterNames, setCharacterNames] = useState<string[]>([]);
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Sync elements with parent component
   useEffect(() => {
     onChange({ elements });
   }, [elements, onChange]);
+
+  // Extract character names from elements
+  useEffect(() => {
+    const names = elements
+      .filter(el => el.type === 'character')
+      .map(el => el.text.replace(/\s*\(CONT'D\)\s*$/, '').trim()) // Remove (CONT'D) for storage
+      .filter((name, index, self) => 
+        name && self.indexOf(name) === index  // Only include unique names
+      );
+    
+    setCharacterNames(names);
+  }, [elements]);
 
   // Create default elements if empty
   useEffect(() => {
@@ -202,6 +215,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
                 onNavigate={handleNavigate}
                 onEnterKey={handleEnterKey}
                 onFormatChange={handleFormatChange}
+                characterNames={characterNames}
               />
             ))}
           </div>

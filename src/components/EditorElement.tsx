@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
 import { formatScriptElement } from '../lib/formatScript';
+import CharacterSuggestions from './CharacterSuggestions';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -12,6 +13,7 @@ interface EditorElementProps {
   onNavigate: (direction: 'up' | 'down', id: string) => void;
   onEnterKey: (id: string, shiftKey: boolean) => void;
   onFormatChange: (id: string, newFormat: ElementType) => void;
+  characterNames?: string[];
 }
 
 const EditorElement = ({ 
@@ -22,11 +24,14 @@ const EditorElement = ({
   isActive,
   onNavigate,
   onEnterKey,
-  onFormatChange
+  onFormatChange,
+  characterNames = []
 }: EditorElementProps) => {
   const [text, setText] = useState(element.text);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [elementType, setElementType] = useState<ElementType>(element.type);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
 
   // Focus on this element if it's active
   useEffect(() => {
@@ -44,6 +49,21 @@ const EditorElement = ({
     const newText = e.target.value;
     setText(newText);
     onChange(element.id, newText, elementType);
+    
+    // Show character suggestions if this is a character element
+    if (elementType === 'character' && characterNames.length > 0) {
+      const filtered = characterNames.filter(name => 
+        name.toLowerCase().includes(newText.toLowerCase())
+      );
+      setFilteredSuggestions(filtered);
+      setShowSuggestions(filtered.length > 0);
+    }
+  };
+
+  const handleSelectCharacter = (character: string) => {
+    setText(character);
+    onChange(element.id, character, elementType);
+    setShowSuggestions(false);
   };
 
   // Handle keyboard events for navigation and formatting
@@ -54,19 +74,24 @@ const EditorElement = ({
     // Handle arrow key navigation
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const { selectionStart, value } = textarea;
-      const lines = value.split('\n');
+      
+      // If suggestions are showing and arrow keys are pressed, let the dropdown handle it
+      if (showSuggestions && elementType === 'character') {
+        return;
+      }
       
       // Calculate current cursor position
       let cursorLineIndex = 0;
       let charCount = 0;
       
-      for (let i = 0; i < lines.length; i++) {
-        if (charCount <= selectionStart && selectionStart <= charCount + lines[i].length) {
+      for (let i = 0; i < value.split('\n').length; i++) {
+        const lineLength = value.split('\n')[i].length;
+        if (charCount <= selectionStart && selectionStart <= charCount + lineLength) {
           cursorLineIndex = i;
           break;
         }
         // Add line length plus newline character
-        charCount += lines[i].length + 1;
+        charCount += lineLength + 1;
       }
       
       // Navigate to previous/next element when at boundaries
@@ -76,8 +101,8 @@ const EditorElement = ({
         return;
       } 
       
-      if ((e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1 && 
-           selectionStart >= charCount - 1)) {
+      if ((e.key === 'ArrowDown' && cursorLineIndex === value.split('\n').length - 1 && 
+           selectionStart >= value.length - 1)) {
         e.preventDefault();
         onNavigate('down', element.id);
         return;
@@ -87,8 +112,22 @@ const EditorElement = ({
       return;
     }
     
+    // Hide suggestions on Escape
+    if (e.key === 'Escape' && showSuggestions) {
+      e.preventDefault();
+      setShowSuggestions(false);
+      return;
+    }
+    
     // Handle Enter key
     if (e.key === 'Enter') {
+      // If suggestions are showing, select the first one
+      if (showSuggestions && filteredSuggestions.length > 0) {
+        e.preventDefault();
+        handleSelectCharacter(filteredSuggestions[0]);
+        return;
+      }
+      
       e.preventDefault();
       onEnterKey(element.id, e.shiftKey);
       return;
@@ -190,14 +229,23 @@ const EditorElement = ({
     }
   };
 
+  // Hide suggestions when this element loses focus
+  const handleBlur = () => {
+    // Use a timeout to allow clicks on the suggestions to register
+    setTimeout(() => {
+      setShowSuggestions(false);
+    }, 200);
+  };
+
   return (
-    <div className={getElementClass()}>
+    <div className={getElementClass()} style={{ position: 'relative' }}>
       <textarea
         ref={inputRef}
         value={text}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         onFocus={onFocus}
+        onBlur={handleBlur}
         className="w-full bg-transparent resize-none outline-none"
         placeholder={getPlaceholderText(elementType)}
         rows={1}
@@ -209,6 +257,13 @@ const EditorElement = ({
           minHeight: '1.2em'
         }}
       />
+      {elementType === 'character' && (
+        <CharacterSuggestions 
+          suggestions={filteredSuggestions}
+          onSelect={handleSelectCharacter}
+          isVisible={showSuggestions && isActive}
+        />
+      )}
     </div>
   );
 };
