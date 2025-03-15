@@ -20,6 +20,9 @@ interface TagManagerProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
+  availableStructures?: { id: string; name: string }[];
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -31,7 +34,10 @@ const TagManager: React.FC<TagManagerProps> = ({
   projectName,
   structureName,
   beatMode = 'on',
-  onToggleBeatMode
+  onToggleBeatMode,
+  availableStructures = [],
+  onStructureChange,
+  selectedStructureId
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
@@ -89,11 +95,7 @@ const TagManager: React.FC<TagManagerProps> = ({
     }
   };
 
-  // Don't render anything if beatMode is off
-  if (beatMode === 'off') {
-    return null;
-  }
-
+  // Always render the ActBar so the user can toggle between modes
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
@@ -106,11 +108,14 @@ const TagManager: React.FC<TagManagerProps> = ({
             structureName={structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
+            availableStructures={availableStructures}
+            onStructureChange={onStructureChange}
+            selectedStructureId={selectedStructureId}
           />
         )}
       </div>
       
-      {availableTags.length > 0 && (
+      {beatMode === 'on' && availableTags.length > 0 && (
         <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
           <div className="p-3">
             <div className="flex justify-between items-center">

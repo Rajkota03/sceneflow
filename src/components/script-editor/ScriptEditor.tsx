@@ -10,6 +10,7 @@ import ScriptContentComponent from './ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
+import { supabase } from '@/integrations/supabase/client';
 
 // Define BeatMode type to be consistent
 type BeatMode = 'on' | 'off';
@@ -23,6 +24,11 @@ interface ScriptEditorProps {
   projectName?: string;
   structureName?: string;
   projectId?: string;
+}
+
+interface Structure {
+  id: string;
+  name: string;
 }
 
 const ScriptEditor = ({ 
@@ -40,6 +46,8 @@ const ScriptEditor = ({
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  const [availableStructures, setAvailableStructures] = useState<Structure[]>([]);
+  const [selectedStructureId, setSelectedStructureId] = useState<string>('');
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Use custom hooks for state management
@@ -76,6 +84,34 @@ const ScriptEditor = ({
       setActiveElementId(defaultElements[0].id);
     }
   }, [elements, setElements, setActiveElementId]);
+
+  // Fetch available structures from Supabase
+  useEffect(() => {
+    const fetchStructures = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('structures')
+          .select('id, name');
+          
+        if (error) {
+          console.error('Error fetching structures:', error);
+          return;
+        }
+        
+        if (data) {
+          setAvailableStructures(data);
+          // If we don't have a selected structure yet, select the first one
+          if (data.length > 0 && !selectedStructureId) {
+            setSelectedStructureId(data[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching structures:', error);
+      }
+    };
+    
+    fetchStructures();
+  }, [selectedStructureId]);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -201,9 +237,15 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
+  const handleStructureChange = (structureId: string) => {
+    setSelectedStructureId(structureId);
+    // You could also load structure-specific tags here if needed
+    console.log(`Selected structure: ${structureId}`);
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      {/* Tag manager with Act Bar for filtering scenes */}
+      {/* Tag manager with Act Bar for filtering scenes - always shown for beatMode toggle */}
       <TagManager 
         scriptContent={{ elements }} 
         onFilterByTag={handleFilterByTag}
@@ -214,6 +256,9 @@ const ScriptEditor = ({
         structureName={structureName}
         beatMode={beatMode}
         onToggleBeatMode={handleToggleBeatMode}
+        availableStructures={availableStructures}
+        onStructureChange={handleStructureChange}
+        selectedStructureId={selectedStructureId}
       />
       
       <ScriptContentComponent

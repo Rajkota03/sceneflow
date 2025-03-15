@@ -5,6 +5,13 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Filter, Zap, ZapOff, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Define the BeatMode type to ensure consistent usage
 type BeatMode = 'on' | 'off';
@@ -17,6 +24,9 @@ interface ActBarProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
+  availableStructures?: { id: string; name: string }[];
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -26,7 +36,10 @@ const ActBar: React.FC<ActBarProps> = ({
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
   beatMode = 'on',
-  onToggleBeatMode
+  onToggleBeatMode,
+  availableStructures = [],
+  onStructureChange,
+  selectedStructureId
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   
@@ -44,11 +57,13 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   };
 
-  // Don't render in free mode
-  if (beatMode === 'off') {
-    return null;
-  }
+  const handleStructureChange = (value: string) => {
+    if (onStructureChange) {
+      onStructureChange(value);
+    }
+  };
 
+  // Always render the component, but conditionally render its contents based on beatMode
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3 w-full">
       <div className="p-3">
@@ -64,7 +79,27 @@ const ActBar: React.FC<ActBarProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-slate-600">{structureName}</span>
+            {availableStructures.length > 0 && (
+              <Select 
+                value={selectedStructureId} 
+                onValueChange={handleStructureChange}
+              >
+                <SelectTrigger className="w-[180px] h-8 text-xs">
+                  <SelectValue placeholder="Select structure" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableStructures.map((structure) => (
+                    <SelectItem key={structure.id} value={structure.id} className="text-xs">
+                      {structure.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+            
+            {structureName && (
+              <span className="text-sm font-medium text-slate-600">{structureName}</span>
+            )}
             
             {onToggleBeatMode && (
               <div className="flex items-center gap-2">
@@ -109,27 +144,29 @@ const ActBar: React.FC<ActBarProps> = ({
         </div>
         
         <CollapsibleContent>
-          <div className="grid grid-cols-5 gap-1 mt-2">
-            {acts.map((act) => (
-              <button
-                key={act.id}
-                onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
-                className={cn(
-                  act.color,
-                  'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
-                  activeAct === act.id ? 'border-2' : 'border opacity-95',
-                  activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
-                )}
-              >
-                {act.label}
-                {actCounts[act.id] > 0 && (
-                  <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                    {actCounts[act.id]}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {beatMode === 'on' && (
+            <div className="grid grid-cols-5 gap-1 mt-2">
+              {acts.map((act) => (
+                <button
+                  key={act.id}
+                  onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
+                  className={cn(
+                    act.color,
+                    'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
+                    activeAct === act.id ? 'border-2' : 'border opacity-95',
+                    activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
+                  )}
+                >
+                  {act.label}
+                  {actCounts[act.id] > 0 && (
+                    <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                      {actCounts[act.id]}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </CollapsibleContent>
       </div>
     </Collapsible>
