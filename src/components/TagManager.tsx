@@ -43,12 +43,12 @@ const TagManager: React.FC<TagManagerProps> = ({
   projectId
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
-    1: 0,
+  const [actCounts, setActCounts] = useState<Record<string, number>>({
+    '1': 0,
     '2A': 0,
     'midpoint': 0,
     '2B': 0,
-    3: 0
+    '3': 0
   });
   const [isTagsOpen, setIsTagsOpen] = useState(true);
   const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
@@ -85,12 +85,12 @@ const TagManager: React.FC<TagManagerProps> = ({
   useEffect(() => {
     // Collect all unique tags from scene headings
     const tags = new Set<string>();
-    const actTagCounts: Record<ActType | string, number> = {
-      1: 0,
+    const actTagCounts: Record<string, number> = {
+      '1': 0,
       '2A': 0,
       'midpoint': 0,
       '2B': 0,
-      3: 0
+      '3': 0
     };
 
     scriptContent.elements.forEach(element => {
@@ -100,7 +100,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           
           // Count scenes by act tag
           if (tag.startsWith('Act 1:')) {
-            actTagCounts[1]++;
+            actTagCounts['1']++;
           } else if (tag.startsWith('Act 2A:')) {
             actTagCounts['2A']++;
           } else if (tag.startsWith('Midpoint:')) {
@@ -108,7 +108,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           } else if (tag.startsWith('Act 2B:')) {
             actTagCounts['2B']++;
           } else if (tag.startsWith('Act 3:')) {
-            actTagCounts[3]++;
+            actTagCounts['3']++;
           }
         });
       }
