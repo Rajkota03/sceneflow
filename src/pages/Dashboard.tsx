@@ -76,48 +76,44 @@ const Dashboard = () => {
     }
   }, [session, activeTab]);
 
-  const handleCreateNote = (note: Note) => {
-    const saveNote = async () => {
-      if (!session) return;
-      
-      try {
-        const { error } = await supabase
-          .from('standalone_notes')
-          .insert({
-            id: note.id,
-            title: note.title,
-            content: note.content,
-            author_id: session.user.id,
-            created_at: note.createdAt.toISOString(),
-            updated_at: note.updatedAt.toISOString()
-          });
-        
-        if (error) {
-          console.error('Error saving note:', error);
-          toast({
-            title: 'Error creating note',
-            description: error.message,
-            variant: 'destructive',
-          });
-          return;
-        }
-        
-        setNotes([...notes, note]);
-        toast({
-          title: "Note created",
-          description: `"${note.title}" has been created successfully.`
+  const handleCreateNote = async (note: Note) => {
+    if (!session) return;
+    
+    try {
+      const { error } = await supabase
+        .from('standalone_notes')
+        .insert({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          author_id: session.user.id,
+          created_at: note.createdAt.toISOString(),
+          updated_at: note.updatedAt.toISOString()
         });
-      } catch (error) {
-        console.error('Error:', error);
+      
+      if (error) {
+        console.error('Error saving note:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to save the note. Please try again.',
+          title: 'Error creating note',
+          description: error.message,
           variant: 'destructive',
         });
+        return;
       }
-    };
-    
-    saveNote();
+      
+      setNotes(prevNotes => [...prevNotes, note]);
+      toast({
+        title: "Note created",
+        description: `"${note.title}" has been created successfully.`
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save the note. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDeleteNote = async (noteId: string) => {

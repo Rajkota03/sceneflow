@@ -18,10 +18,10 @@ const NotesGrid = ({ notes, onDeleteNote }: NotesGridProps) => {
     return format(new Date(date), 'MMM d, yyyy');
   };
 
-  const handleClick = (note: Note) => {
-    // When clicking a note, redirect to editor with the note ID as a parameter
-    // For now we'll just show the note in a dialog
-    alert(`Opening note: ${note.title}`);
+  const handleViewNote = (note: Note) => {
+    // Open a dialog to view the note content
+    // For now we'll just show an alert until we implement a note viewer
+    alert(`Note content: ${note.content}`);
   };
 
   return (
@@ -51,7 +51,7 @@ const NotesGrid = ({ notes, onDeleteNote }: NotesGridProps) => {
               {formatDate(note.createdAt)}
             </CardDescription>
           </CardHeader>
-          <CardContent onClick={() => handleClick(note)} className="cursor-pointer">
+          <CardContent onClick={() => handleViewNote(note)} className="cursor-pointer">
             <p className="text-sm text-muted-foreground line-clamp-3 h-14">{note.content}</p>
           </CardContent>
           <CardFooter className="pt-2 pb-3">
@@ -59,7 +59,7 @@ const NotesGrid = ({ notes, onDeleteNote }: NotesGridProps) => {
               variant="ghost" 
               size="sm" 
               className="text-xs text-primary w-full"
-              onClick={() => handleClick(note)}
+              onClick={() => handleViewNote(note)}
             >
               View Note
             </Button>
