@@ -48,9 +48,12 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     >
       {children}
       
-      {/* Page number indicator - only show when not printing/exporting */}
+      {/* Page number indicator - enhanced visibility */}
       {!forPrint && !forExport && (
-        <div className="page-number absolute top-4 right-8 text-gray-700 font-courier font-normal text-sm">
+        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
+          fontFamily: "Courier Final Draft, Courier Prime, monospace",
+          fontSize: "12pt",
+        }}>
           {currentPage}
         </div>
       )}

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   MenubarMenu, 
@@ -65,10 +64,14 @@ const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
     }
   };
 
-  // Zoom slider value change handler
   const handleZoomChange = (value: number[]) => {
     if (setZoomLevel) {
       setZoomLevel(value[0] / 100);
+      
+      toast({
+        title: "Zoom Level Changed",
+        description: `Zoom level set to ${Math.round(value[0])}%`,
+      });
     }
   };
 
@@ -103,7 +106,7 @@ const ViewMenu = ({ showTitlePage, onToggleTitlePage }: ViewMenuProps) => {
         </MenubarItem>
         <div className="px-2 py-2">
           <div className="flex items-center space-x-2">
-            <span className="text-xs">{Math.round(formatState.zoomLevel * 100)}%</span>
+            <span className="text-xs font-medium">{Math.round(formatState.zoomLevel * 100)}%</span>
             <Slider
               defaultValue={[formatState.zoomLevel * 100]}
               min={50}
