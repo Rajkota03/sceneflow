@@ -1,14 +1,30 @@
 
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import useThreeActStructure from '@/hooks/useThreeActStructure';
 import useProjectTitle from '@/hooks/useProjectTitle';
 import useStoryBeats from '@/hooks/useStoryBeats';
 import StructureHeader from '@/components/structure/StructureHeader';
 import StructureContent from '@/components/structure/StructureContent';
+import { useAuth } from '@/App';
+import { toast } from '@/components/ui/use-toast';
 
 const Structure = () => {
   const { projectId } = useParams<{ projectId: string }>();
+  const { session } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to access this page",
+        variant: "destructive"
+      });
+      navigate('/sign-in');
+    }
+  }, [session, navigate]);
   
   // Core structure hook for managing the story structure
   const {
@@ -29,10 +45,17 @@ const Structure = () => {
   // Story beats operations
   const { handleDeleteBeat } = useStoryBeats(structure, saveStructure);
   
+  // Manual save handler
+  const handleSaveStructure = () => {
+    if (structure) {
+      saveStructure(structure);
+    }
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <StructureHeader 
-        title="Story Structure" 
+        title={structure?.projectTitle || "Story Structure"} 
         projectId={projectId} 
       />
       
@@ -44,6 +67,7 @@ const Structure = () => {
         onReorderBeats={reorderBeats}
         onUpdateProjectTitle={handleUpdateProjectTitle}
         onDeleteBeat={handleDeleteBeat}
+        onSave={handleSaveStructure}
       />
     </div>
   );

@@ -258,6 +258,8 @@ const Dashboard = () => {
         description: 'Structure created successfully',
       });
       
+      await fetchStructures();
+      
       navigate(`/structure/${firstProject.id}`);
     } catch (error) {
       console.error('Error creating structure:', error);

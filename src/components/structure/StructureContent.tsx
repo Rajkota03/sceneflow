@@ -12,6 +12,7 @@ interface StructureContentProps {
   onReorderBeats: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle: (title: string) => void;
   onDeleteBeat: (beatId: string) => void;
+  onSave?: () => void;
 }
 
 const StructureContent: React.FC<StructureContentProps> = ({
@@ -21,7 +22,8 @@ const StructureContent: React.FC<StructureContentProps> = ({
   onUpdateBeat,
   onReorderBeats,
   onUpdateProjectTitle,
-  onDeleteBeat
+  onDeleteBeat,
+  onSave
 }) => {
   return (
     <div className="container mx-auto py-8 px-4">
@@ -37,6 +39,7 @@ const StructureContent: React.FC<StructureContentProps> = ({
             onReorderBeats={onReorderBeats}
             onUpdateProjectTitle={onUpdateProjectTitle}
             onDeleteBeat={onDeleteBeat}
+            onSave={onSave}
           />
         </div>
       </div>

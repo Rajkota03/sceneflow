@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -15,6 +16,7 @@ interface Props {
   onReorderBeats: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle?: (title: string) => void;
   onDeleteBeat?: (beatId: string) => void;
+  onSave?: () => void;
 }
 
 const ThreeActStructureTimeline: React.FC<Props> = ({
@@ -24,7 +26,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
   onUpdateBeat,
   onReorderBeats,
   onUpdateProjectTitle,
-  onDeleteBeat
+  onDeleteBeat,
+  onSave
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -145,7 +148,12 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
               Saving...
             </span>
           )}
-          <Button size="sm" className="text-xs">
+          <Button 
+            size="sm" 
+            className="text-xs"
+            onClick={onSave}
+            disabled={isSaving}
+          >
             <Save className="h-4 w-4 mr-1" />
             Save Structure
           </Button>
