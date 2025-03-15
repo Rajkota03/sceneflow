@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
@@ -12,13 +11,12 @@ import { supabase } from '@/integrations/supabase/client';
 type BeatMode = 'on' | 'off';
 
 // Define a type for act counts that avoids infinite type instantiation
-type ActCountsRecord = {
+type ActCountsRecord = Record<string, number> & {
   '1': number;
   '2A': number;
   'midpoint': number;
   '2B': number;
   '3': number;
-  [key: string]: number;
 };
 
 interface TagManagerProps {
