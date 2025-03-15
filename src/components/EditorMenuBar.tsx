@@ -25,6 +25,7 @@ interface EditorMenuBarProps {
   notes: Note[];
   onCreateNote: () => void;
   onOpenNote: (note: Note) => void;
+  onEditNote?: (note: Note) => void;
 }
 
 const EditorMenuBar = ({
@@ -37,7 +38,8 @@ const EditorMenuBar = ({
   onToggleTitlePage,
   notes,
   onCreateNote,
-  onOpenNote
+  onOpenNote,
+  onEditNote
 }: EditorMenuBarProps) => {
   // Ensure notes is always an array
   const safeNotes = Array.isArray(notes) ? notes : [];
@@ -57,6 +59,7 @@ const EditorMenuBar = ({
         notes={safeNotes}
         onCreateNote={onCreateNote}
         onOpenNote={onOpenNote}
+        onEditNote={onEditNote}
       />
       <HelpMenu />
     </Menubar>

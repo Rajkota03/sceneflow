@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Minimize, Maximize, ExternalLink } from 'lucide-react';
+import { X, Minimize, Maximize, ExternalLink, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Note } from '@/lib/types';
 import Draggable from 'react-draggable';
@@ -10,9 +10,10 @@ interface NoteWindowProps {
   onClose: () => void;
   onSplitScreen: (note: Note) => void;
   isFloating: boolean;
+  onEditNote?: (note: Note) => void;
 }
 
-const NoteWindow = ({ note, onClose, onSplitScreen, isFloating }: NoteWindowProps) => {
+const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: NoteWindowProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 400 });
   const noteRef = useRef<HTMLDivElement>(null);
@@ -94,6 +95,16 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating }: NoteWindowProp
                 <ExternalLink size={12} />
               </Button>
             </>
+          )}
+          {onEditNote && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6" 
+              onClick={() => onEditNote(note)}
+            >
+              <Edit size={12} />
+            </Button>
           )}
           <Button 
             variant="ghost" 

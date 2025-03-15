@@ -1,7 +1,8 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ScriptEditor from '../components/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes } from '../lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes, serializeNotes } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check } from 'lucide-react';
@@ -18,6 +19,7 @@ import { Json } from '@/integrations/supabase/types';
 import NotesMenu from '@/components/notes/NotesMenu';
 import NoteWindow from '@/components/notes/NoteWindow';
 import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
+import NoteEditor from '@/components/notes/NoteEditor';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Editor = () => {
@@ -45,6 +47,8 @@ const Editor = () => {
   const [openNotes, setOpenNotes] = useState<Note[]>([]);
   const [splitScreenNote, setSplitScreenNote] = useState<Note | null>(null);
   const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
+  const [noteEditorOpen, setNoteEditorOpen] = useState(false);
+  const [currentEditNote, setCurrentEditNote] = useState<Note | null>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -357,7 +361,8 @@ const Editor = () => {
   };
   
   const handleCreateNoteClick = () => {
-    setCreateNoteDialogOpen(true);
+    setCurrentEditNote(null);
+    setNoteEditorOpen(true);
   };
   
   const handleCreateNote = (note: Note) => {
@@ -366,6 +371,7 @@ const Editor = () => {
   };
   
   const handleOpenNote = (note: Note) => {
+    console.log('Opening note in Editor component:', note);
     if (!openNotes.some(n => n.id === note.id)) {
       setOpenNotes([...openNotes, note]);
     }
@@ -398,6 +404,34 @@ const Editor = () => {
     if (splitScreenNote) {
       setOpenNotes([...openNotes, splitScreenNote]);
       setSplitScreenNote(null);
+    }
+  };
+
+  const handleEditNote = (note: Note) => {
+    setCurrentEditNote(note);
+    setNoteEditorOpen(true);
+  };
+
+  const handleSaveNote = (updatedNote: Note) => {
+    if (currentEditNote) {
+      // Update existing note
+      setNotes(notes.map(note => 
+        note.id === updatedNote.id ? updatedNote : note
+      ));
+      
+      // Update the note in openNotes if it's open
+      setOpenNotes(openNotes.map(note => 
+        note.id === updatedNote.id ? updatedNote : note
+      ));
+      
+      // Update splitScreenNote if that's the one being edited
+      if (splitScreenNote && splitScreenNote.id === updatedNote.id) {
+        setSplitScreenNote(updatedNote);
+      }
+    } else {
+      // Create new note
+      setNotes([...notes, updatedNote]);
+      handleOpenNote(updatedNote);
     }
   };
 
@@ -437,6 +471,7 @@ const Editor = () => {
           notes={notes}
           onCreateNote={handleCreateNoteClick}
           onOpenNote={handleOpenNote}
+          onEditNote={handleEditNote}
         />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
@@ -471,6 +506,7 @@ const Editor = () => {
               onOpenNote={handleOpenNote}
               onCreateNote={handleCreateNote}
               onDeleteNote={handleDeleteNote}
+              onEditNote={handleEditNote}
             />
             
             <Button
@@ -523,22 +559,38 @@ const Editor = () => {
                 <div className="h-full flex flex-col">
                   <div className="bg-gray-50 px-3 py-2 flex justify-between items-center border-b">
                     <h3 className="text-sm font-medium">Notes</h3>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={exitSplitScreen}
-                      className="text-xs h-7"
-                    >
-                      Exit Split View
-                    </Button>
+                    <div className="flex space-x-2">
+                      {splitScreenNote && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => handleEditNote(splitScreenNote)}
+                          className="text-xs h-7"
+                        >
+                          <Edit size={14} className="mr-1" />
+                          Edit
+                        </Button>
+                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={exitSplitScreen}
+                        className="text-xs h-7"
+                      >
+                        Exit Split View
+                      </Button>
+                    </div>
                   </div>
                   <div className="flex-grow overflow-auto p-3">
-                    <NoteWindow 
-                      note={splitScreenNote} 
-                      onClose={() => handleCloseNote(splitScreenNote.id)} 
-                      onSplitScreen={() => {}} 
-                      isFloating={false} 
-                    />
+                    {splitScreenNote && (
+                      <NoteWindow 
+                        note={splitScreenNote} 
+                        onClose={() => handleCloseNote(splitScreenNote.id)} 
+                        onSplitScreen={() => {}} 
+                        isFloating={false}
+                        onEditNote={handleEditNote}
+                      />
+                    )}
                   </div>
                 </div>
               </ResizablePanel>
@@ -560,14 +612,16 @@ const Editor = () => {
               onClose={() => handleCloseNote(note.id)}
               onSplitScreen={handleSplitScreen}
               isFloating={true}
+              onEditNote={handleEditNote}
             />
           ))}
         </main>
         
-        <CreateNoteDialog 
-          open={createNoteDialogOpen} 
-          onOpenChange={setCreateNoteDialogOpen} 
-          onCreateNote={handleCreateNote} 
+        <NoteEditor 
+          open={noteEditorOpen} 
+          onOpenChange={setNoteEditorOpen} 
+          note={currentEditNote}
+          onSaveNote={handleSaveNote}
         />
       </div>
     </FormatProvider>

@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { NotebookPen, Plus, Trash2 } from 'lucide-react';
+import { NotebookPen, Plus, Trash2, Edit } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -19,9 +19,10 @@ interface NotesMenuProps {
   onOpenNote: (note: Note) => void;
   onCreateNote: (note: Note) => void;
   onDeleteNote: (noteId: string) => void;
+  onEditNote?: (note: Note) => void;
 }
 
-const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuProps) => {
+const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }: NotesMenuProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
@@ -61,6 +62,11 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
     });
   };
 
+  const handleNoteClick = (note: Note) => {
+    console.log('Opening note:', note.title);
+    onOpenNote(note);
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -79,11 +85,26 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
               {safeNotes.map(note => (
                 <DropdownMenuItem 
                   key={note.id} 
-                  onClick={() => onOpenNote(note)}
-                  className="cursor-pointer"
+                  onClick={() => handleNoteClick(note)}
+                  className="cursor-pointer flex justify-between"
                 >
-                  <NotebookPen size={14} className="mr-2 text-muted-foreground" />
-                  <span className="truncate">{note.title}</span>
+                  <div className="flex items-center">
+                    <NotebookPen size={14} className="mr-2 text-muted-foreground" />
+                    <span className="truncate">{note.title}</span>
+                  </div>
+                  {onEditNote && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-5 w-5 ml-2" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditNote(note);
+                      }}
+                    >
+                      <Edit size={12} />
+                    </Button>
+                  )}
                 </DropdownMenuItem>
               ))}
               <div className="h-px bg-muted my-1" />

@@ -7,7 +7,7 @@ import {
   MenubarItem, 
   MenubarSeparator
 } from '@/components/ui/menubar';
-import { NotebookPen, Plus, FileText, Clock } from 'lucide-react';
+import { NotebookPen, Plus, FileText, Clock, Edit } from 'lucide-react';
 import { Note } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 
@@ -15,9 +15,10 @@ interface NotesMenuProps {
   notes: Note[];
   onCreateNote: () => void;
   onOpenNote: (note: Note) => void;
+  onEditNote?: (note: Note) => void;
 }
 
-const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
+const NotesMenu = ({ notes, onCreateNote, onOpenNote, onEditNote }: NotesMenuProps) => {
   // Ensure notes is an array before proceeding
   const safeNotes = Array.isArray(notes) ? notes : [];
   
@@ -34,12 +35,23 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
   console.log('NotesMenu component - recent notes:', recentNotes?.length || 0);
 
   const handleOpenNote = (note: Note) => {
-    console.log('Opening note:', note.title);
+    console.log('Opening note from menu:', note.title);
     onOpenNote(note);
     toast({
       title: "Note opened",
       description: `"${note.title}" has been opened.`
     });
+  };
+
+  const handleEditNote = (note: Note, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (onEditNote) {
+      onEditNote(note);
+      toast({
+        title: "Edit note",
+        description: `Editing "${note.title}".`
+      });
+    }
   };
 
   return (
@@ -57,11 +69,21 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
           safeNotes.map(note => (
             <MenubarItem 
               key={note.id} 
-              onClick={() => handleOpenNote(note)} 
-              className="cursor-pointer"
+              className="cursor-pointer flex justify-between items-center group"
+              onClick={() => handleOpenNote(note)}
             >
-              <FileText className="mr-2 h-4 w-4" />
-              {note.title}
+              <div className="flex items-center">
+                <FileText className="mr-2 h-4 w-4" />
+                {note.title}
+              </div>
+              {onEditNote && (
+                <button 
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-accent rounded"
+                  onClick={(e) => handleEditNote(note, e)}
+                >
+                  <Edit className="h-3 w-3" />
+                </button>
+              )}
             </MenubarItem>
           ))
         ) : (
