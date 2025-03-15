@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
-import { Tags, Filter, X } from 'lucide-react';
+import { Tags, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -29,6 +30,7 @@ const TagManager: React.FC<TagManagerProps> = ({
     '2B': 0,
     3: 0
   });
+  const [isTagsOpen, setIsTagsOpen] = useState(true);
 
   useEffect(() => {
     // Collect all unique tags from scene headings
@@ -91,38 +93,45 @@ const TagManager: React.FC<TagManagerProps> = ({
       )}
       
       {availableTags.length > 0 && (
-        <div className="p-3 bg-white border border-slate-200 rounded-md">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center text-sm font-medium text-slate-700">
-              <Tags size={16} className="mr-2" />
-              <span>Scene Tags</span>
+        <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
+          <div className="p-3">
+            <div className="flex justify-between items-center">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2 flex items-center">
+                  <Tags size={16} className="mr-2" />
+                  <span className="text-sm font-medium text-slate-700">Scene Tags</span>
+                  {isTagsOpen ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
+                </Button>
+              </CollapsibleTrigger>
+              
+              {activeFilter && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onFilterByTag(null)}
+                  className="h-7 text-xs text-slate-600"
+                >
+                  <X size={14} className="mr-1" />
+                  Clear Filter
+                </Button>
+              )}
             </div>
             
-            {activeFilter && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onFilterByTag(null)}
-                className="h-7 text-xs text-slate-600"
-              >
-                <X size={14} className="mr-1" />
-                Clear Filter
-              </Button>
-            )}
+            <CollapsibleContent>
+              <div className="flex flex-wrap items-center gap-1 mt-2">
+                {availableTags.map(tag => (
+                  <SceneTag
+                    key={tag}
+                    tag={tag}
+                    selectable
+                    selected={activeFilter === tag}
+                    onClick={() => onFilterByTag(activeFilter === tag ? null : tag)}
+                  />
+                ))}
+              </div>
+            </CollapsibleContent>
           </div>
-          
-          <div className="flex flex-wrap items-center gap-1 mt-2">
-            {availableTags.map(tag => (
-              <SceneTag
-                key={tag}
-                tag={tag}
-                selectable
-                selected={activeFilter === tag}
-                onClick={() => onFilterByTag(activeFilter === tag ? null : tag)}
-              />
-            ))}
-          </div>
-        </div>
+        </Collapsible>
       )}
     </div>
   );

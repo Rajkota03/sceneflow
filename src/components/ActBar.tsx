@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ActType } from '@/lib/types';
-import { Filter } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 interface ActBarProps {
   activeAct: ActType | null;
@@ -16,6 +17,8 @@ const ActBar: React.FC<ActBarProps> = ({
   onSelectAct,
   actCounts
 }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  
   const acts: { id: ActType; label: string; color: string }[] = [
     { id: 1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
     { id: '2A', label: 'Act 2A', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
@@ -25,43 +28,53 @@ const ActBar: React.FC<ActBarProps> = ({
   ];
 
   return (
-    <div className="p-3 bg-slate-50 rounded-md shadow-sm mb-3">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium text-slate-700">Story Structure</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onSelectAct(null)}
-          disabled={activeAct === null}
-          className="h-7 text-xs text-slate-600"
-        >
-          <Filter size={14} className="mr-1" />
-          Show All
-        </Button>
-      </div>
-      
-      <div className="grid grid-cols-5 gap-1">
-        {acts.map((act) => (
-          <button
-            key={act.id}
-            onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
-            className={cn(
-              act.color,
-              'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
-              activeAct === act.id ? 'border-2' : 'border opacity-95',
-              activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
-            )}
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3">
+      <div className="p-3">
+        <div className="flex items-center justify-between">
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
+              <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
+              {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </Button>
+          </CollapsibleTrigger>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onSelectAct(null)}
+            disabled={activeAct === null}
+            className="h-7 text-xs text-slate-600"
           >
-            {act.label}
-            {actCounts[act.id] > 0 && (
-              <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                {actCounts[act.id]}
-              </span>
-            )}
-          </button>
-        ))}
+            <Filter size={14} className="mr-1" />
+            Show All
+          </Button>
+        </div>
+        
+        <CollapsibleContent>
+          <div className="grid grid-cols-5 gap-1 mt-2">
+            {acts.map((act) => (
+              <button
+                key={act.id}
+                onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
+                className={cn(
+                  act.color,
+                  'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
+                  activeAct === act.id ? 'border-2' : 'border opacity-95',
+                  activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
+                )}
+              >
+                {act.label}
+                {actCounts[act.id] > 0 && (
+                  <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                    {actCounts[act.id]}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </CollapsibleContent>
       </div>
-    </div>
+    </Collapsible>
   );
 };
 
