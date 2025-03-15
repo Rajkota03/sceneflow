@@ -37,7 +37,7 @@ export const useThreeActStructure = (projectId: string) => {
     loadStructure();
   }, [projectId, session]);
 
-  const saveStructure = async (updatedStructure: ThreeActStructure) => {
+  const saveStructure = useCallback(async (updatedStructure: ThreeActStructure) => {
     if (!session || !projectId || !updatedStructure) return;
     
     setIsSaving(true);
@@ -60,17 +60,28 @@ export const useThreeActStructure = (projectId: string) => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [projectId, session]);
 
   const initializeStructure = useCallback(async (defaultStructure: ThreeActStructure) => {
     if (!session || !projectId) return;
     
-    setIsSaving(true);
     console.log("Initializing new structure:", defaultStructure.id);
+    setIsSaving(true);
     
     try {
-      await saveStructureData(defaultStructure, projectId, session.user.id);
-      setStructure(defaultStructure);
+      // Make sure dates are proper Date objects before saving
+      const preparedStructure = {
+        ...defaultStructure,
+        createdAt: defaultStructure.createdAt instanceof Date 
+          ? defaultStructure.createdAt 
+          : new Date(defaultStructure.createdAt),
+        updatedAt: defaultStructure.updatedAt instanceof Date 
+          ? defaultStructure.updatedAt 
+          : new Date(defaultStructure.updatedAt)
+      };
+      
+      await saveStructureData(preparedStructure, projectId, session.user.id);
+      setStructure(preparedStructure);
       toast({
         title: 'Structure Created',
         description: 'New story structure initialized successfully',
@@ -85,25 +96,25 @@ export const useThreeActStructure = (projectId: string) => {
     } finally {
       setIsSaving(false);
     }
-  }, [projectId, session]);
+  }, [projectId, session, saveStructureData]);
 
-  const updateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
+  const updateBeat = useCallback((beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
     console.log("Updating beat:", beatId, updates);
     
     const updatedStructure = createUpdatedStructureWithBeat(structure, beatId, updates);
     // Don't auto-save for now, let user save manually
     setStructure(updatedStructure);
-  };
+  }, [structure]);
 
-  const reorderBeats = (beats: StoryBeat[]) => {
+  const reorderBeats = useCallback((beats: StoryBeat[]) => {
     if (!structure) return;
     console.log("Reordering beats");
     
     const updatedStructure = createUpdatedStructureWithReorderedBeats(structure, beats);
     // Don't auto-save for now, let user save manually
     setStructure(updatedStructure);
-  };
+  }, [structure]);
 
   return {
     structure,

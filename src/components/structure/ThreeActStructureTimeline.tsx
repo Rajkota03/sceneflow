@@ -54,7 +54,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
     
     const { active, over } = event;
     
-    if (!over || active.id === over.id || !structure) return;
+    if (!over || active.id === over.id || !structure || !structure.beats) return;
     
     const oldIndex = structure.beats.findIndex(beat => beat.id === active.id);
     const newIndex = structure.beats.findIndex(beat => beat.id === over.id);
@@ -103,6 +103,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
     );
   }
   
+  // Ensure beats is always an array
   const beats = structure.beats || [];
   
   const act1Beats = beats.filter(beat => beat.actNumber === 1).sort((a, b) => a.position - b.position);

@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, StoryBeat, createDefaultStructure } from '@/lib/types';
-import { toast } from '@/components/ui/use-toast';
 import { Json } from '@/integrations/supabase/types';
 
 /**
@@ -35,10 +34,21 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
       if (structureNote) {
         console.log("Found structure note:", structureNote.id);
         structureData = structureNote as unknown as ThreeActStructure;
-        // Ensure beats array exists
+        // Ensure beats array exists and is properly formed
         if (!structureData.beats || !Array.isArray(structureData.beats)) {
           structureData.beats = [];
         }
+        
+        // Make sure each beat has all required properties
+        structureData.beats = structureData.beats.map(beat => ({
+          id: beat.id || `beat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: beat.title || '',
+          description: beat.description || '',
+          position: typeof beat.position === 'number' ? beat.position : 0,
+          actNumber: beat.actNumber,
+          isMidpoint: !!beat.isMidpoint
+        }));
+        
         // Ensure dates are Date objects
         structureData.createdAt = new Date(structureData.createdAt);
         structureData.updatedAt = new Date(structureData.updatedAt);
@@ -85,20 +95,23 @@ export const serializeStructureForStorage = (structure: ThreeActStructure) => {
       ? structure.createdAt 
       : updatedAt);
   
+  // Make sure each beat has all required properties
+  const beats = (structure.beats || []).map(beat => ({
+    id: beat.id || `beat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    title: beat.title || '',
+    description: beat.description || '',
+    position: typeof beat.position === 'number' ? beat.position : 0,
+    actNumber: beat.actNumber,
+    isMidpoint: !!beat.isMidpoint
+  }));
+  
   return {
     id: structure.id,
     projectId: structure.projectId,
     projectTitle: structure.projectTitle,
     createdAt: createdAt,
     updatedAt: updatedAt,
-    beats: (structure.beats || []).map(beat => ({
-      id: beat.id,
-      title: beat.title || '',
-      description: beat.description || '',
-      position: typeof beat.position === 'number' ? beat.position : 0,
-      actNumber: beat.actNumber,
-      isMidpoint: !!beat.isMidpoint
-    }))
+    beats: beats
   };
 };
 
