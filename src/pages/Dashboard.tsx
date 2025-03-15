@@ -215,8 +215,12 @@ const Dashboard = () => {
         id: newStructure.id,
         projectId: newStructure.projectId,
         projectTitle: newStructure.projectTitle,
-        createdAt: newStructure.createdAt.toISOString(),
-        updatedAt: newStructure.updatedAt.toISOString(),
+        createdAt: newStructure.createdAt instanceof Date 
+          ? newStructure.createdAt.toISOString() 
+          : newStructure.createdAt,
+        updatedAt: newStructure.updatedAt instanceof Date 
+          ? newStructure.updatedAt.toISOString() 
+          : newStructure.updatedAt,
         beats: newStructure.beats.map(beat => ({
           id: beat.id,
           title: beat.title,
