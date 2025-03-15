@@ -15,9 +15,19 @@ interface ScriptEditorProps {
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
+  projectName?: string;
+  structureName?: string;
 }
 
-const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className }: ScriptEditorProps) => {
+const ScriptEditor = ({ 
+  initialContent, 
+  onChange, 
+  notes, 
+  onNoteCreate, 
+  className,
+  projectName = "Untitled Project",
+  structureName = "Three Act Structure"
+}: ScriptEditorProps) => {
   const { formatState, zoomIn, zoomOut, resetZoom } = useFormat();
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(
@@ -288,6 +298,8 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
             onFilterByAct={handleFilterByAct}
             activeFilter={activeTagFilter}
             activeActFilter={activeActFilter}
+            projectName={projectName}
+            structureName={structureName}
           />
           
           <FormatStyler currentPage={currentPage}>

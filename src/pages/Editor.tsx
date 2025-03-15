@@ -554,6 +554,8 @@ const Editor = () => {
                       initialContent={content} 
                       onChange={handleContentChange} 
                       className="overflow-auto"
+                      projectName={title}
+                      structureName="Three Act Structure"
                     />
                   )}
                 </div>
@@ -606,7 +608,12 @@ const Editor = () => {
               {showTitlePage ? (
                 <TitlePageView data={titlePageData} />
               ) : (
-                <ScriptEditor initialContent={content} onChange={handleContentChange} />
+                <ScriptEditor 
+                  initialContent={content} 
+                  onChange={handleContentChange}
+                  projectName={title}
+                  structureName="Three Act Structure" 
+                />
               )}
             </>
           )}

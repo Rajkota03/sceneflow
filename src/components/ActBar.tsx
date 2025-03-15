@@ -10,12 +10,16 @@ interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
   actCounts: Record<ActType | string, number>;
+  projectName?: string;
+  structureName?: string;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
   activeAct, 
   onSelectAct,
-  actCounts
+  actCounts,
+  projectName = "Untitled Project",
+  structureName = "Three Act Structure"
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   
@@ -31,23 +35,29 @@ const ActBar: React.FC<ActBarProps> = ({
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3">
       <div className="p-3">
         <div className="flex items-center justify-between">
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
-              <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
-              {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-            </Button>
-          </CollapsibleTrigger>
+          <div className="flex items-center">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
+                <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
+                {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </Button>
+            </CollapsibleTrigger>
+            <span className="ml-2 text-sm font-medium text-slate-600">{projectName}</span>
+          </div>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onSelectAct(null)}
-            disabled={activeAct === null}
-            className="h-7 text-xs text-slate-600"
-          >
-            <Filter size={14} className="mr-1" />
-            Show All
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-600">{structureName}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSelectAct(null)}
+              disabled={activeAct === null}
+              className="h-7 text-xs text-slate-600"
+            >
+              <Filter size={14} className="mr-1" />
+              Show All
+            </Button>
+          </div>
         </div>
         
         <CollapsibleContent>

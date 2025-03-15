@@ -39,6 +39,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     transition: 'all 0.2s ease',
     boxSizing: 'border-box' as 'border-box',
     overflow: 'visible',
+    position: 'relative',
   };
 
   return (

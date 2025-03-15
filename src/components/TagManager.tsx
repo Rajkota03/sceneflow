@@ -13,6 +13,8 @@ interface TagManagerProps {
   onFilterByAct?: (act: ActType | null) => void;
   activeFilter: string | null;
   activeActFilter?: ActType | null;
+  projectName?: string;
+  structureName?: string;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -20,7 +22,9 @@ const TagManager: React.FC<TagManagerProps> = ({
   onFilterByTag,
   onFilterByAct,
   activeFilter,
-  activeActFilter
+  activeActFilter,
+  projectName,
+  structureName
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
@@ -89,6 +93,8 @@ const TagManager: React.FC<TagManagerProps> = ({
           activeAct={activeActFilter || null} 
           onSelectAct={handleActFilter} 
           actCounts={actCounts}
+          projectName={projectName}
+          structureName={structureName}
         />
       )}
       
