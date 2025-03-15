@@ -4,7 +4,7 @@ import ScriptEditor from '../components/ScriptEditor';
 import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes, serializeNotes } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
-import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit } from 'lucide-react';
+import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
@@ -413,30 +413,24 @@ const Editor = () => {
 
   const handleSaveNote = (updatedNote: Note) => {
     if (currentEditNote) {
-      // Update existing note
       setNotes(notes.map(note => 
         note.id === updatedNote.id ? updatedNote : note
       ));
       
-      // Update the note in openNotes if it's open
       setOpenNotes(openNotes.map(note => 
         note.id === updatedNote.id ? updatedNote : note
       ));
       
-      // Update splitScreenNote if that's the one being edited
       if (splitScreenNote && splitScreenNote.id === updatedNote.id) {
         setSplitScreenNote(updatedNote);
       }
       
-      // After saving the note, automatically trigger the project save
       handleSave(false);
     } else {
-      // Create new note
       const newNotes = [...notes, updatedNote];
       setNotes(newNotes);
       handleOpenNote(updatedNote);
       
-      // After creating the note, automatically trigger the project save
       handleSave(false);
     }
   };
@@ -552,11 +546,17 @@ const Editor = () => {
           {splitScreenNote ? (
             <ResizablePanelGroup direction="horizontal" className="h-full">
               <ResizablePanel defaultSize={70} minSize={30}>
-                {showTitlePage ? (
-                  <TitlePageView data={titlePageData} />
-                ) : (
-                  <ScriptEditor initialContent={content} onChange={handleContentChange} />
-                )}
+                <div className="h-full overflow-auto">
+                  {showTitlePage ? (
+                    <TitlePageView data={titlePageData} />
+                  ) : (
+                    <ScriptEditor 
+                      initialContent={content} 
+                      onChange={handleContentChange} 
+                      className="overflow-auto"
+                    />
+                  )}
+                </div>
               </ResizablePanel>
               
               <ResizableHandle withHandle />
@@ -573,7 +573,7 @@ const Editor = () => {
                           onClick={() => handleEditNote(splitScreenNote)}
                           className="text-xs h-7"
                         >
-                          <Edit size={14} className="mr-1" />
+                          <Pencil size={14} className="mr-1" />
                           Edit
                         </Button>
                       )}

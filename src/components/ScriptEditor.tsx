@@ -13,9 +13,10 @@ interface ScriptEditorProps {
   onChange: (content: ScriptContent) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
+  className?: string; // Added className prop for custom styling
 }
 
-const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate }: ScriptEditorProps) => {
+const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const {
     elements,
@@ -54,7 +55,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate }: ScriptE
   // Fallback rendering for when elements are not yet available
   if (!elements || elements.length === 0) {
     return (
-      <div className="flex justify-center w-full h-full">
+      <div className={`flex justify-center w-full h-full ${className || ''}`}>
         <FormatStyler>
           <div className="script-page">
             <div className="flex items-center justify-center py-12">
@@ -67,7 +68,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate }: ScriptE
   }
 
   return (
-    <div className="flex justify-center w-full h-full">
+    <div className={`flex justify-center w-full h-full overflow-auto ${className || ''}`}>
       <FormatStyler>
         <div className="script-page" style={{ 
           transform: `scale(${formatState.zoomLevel})`,

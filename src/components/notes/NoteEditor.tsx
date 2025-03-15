@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { 
   Dialog, 
@@ -29,8 +30,10 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
   const [pages, setPages] = useState<string[]>(['']);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [editorHeight, setEditorHeight] = useState(300);
-  const isNewNote = !note?.id;
   const nodeRef = useRef(null);
+
+  // Determine if this is a new note (no ID) or existing note edit
+  const isNewNote = !note?.id;
 
   useEffect(() => {
     if (note) {
@@ -67,7 +70,7 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     const fullContent = pages.join('---PAGE_BREAK---');
     
     const updatedNote: Note = {
-      id: note?.id || '', // This ID will be replaced with a unique one when creating a new note
+      id: note?.id || '', // Pass empty string for new notes, keep existing ID for edits
       title: noteTitle,
       content: fullContent,
       createdAt: note?.createdAt || new Date(),
@@ -79,6 +82,11 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     
     if (isNewNote) {
       onOpenChange(false);
+    } else {
+      toast({
+        title: "Note updated",
+        description: `"${noteTitle}" has been updated successfully.`
+      });
     }
   };
 
