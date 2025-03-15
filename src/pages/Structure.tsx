@@ -42,6 +42,7 @@ const Structure = () => {
   // Initialize default structure if none exists and we're not loading
   useEffect(() => {
     if (!isLoading && !structure && projectId && session) {
+      console.log("Initializing default structure for project:", projectId);
       const defaultStructure = createDefaultStructure(projectId);
       initializeStructure(defaultStructure);
     }
@@ -59,6 +60,7 @@ const Structure = () => {
   // Manual save handler
   const handleSaveStructure = () => {
     if (structure) {
+      console.log("Manual save structure triggered");
       saveStructure(structure);
     }
   };

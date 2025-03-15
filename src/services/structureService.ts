@@ -35,6 +35,10 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
       if (structureNote) {
         console.log("Found structure note:", structureNote.id);
         structureData = structureNote as unknown as ThreeActStructure;
+        // Ensure beats array exists
+        if (!structureData.beats || !Array.isArray(structureData.beats)) {
+          structureData.beats = [];
+        }
         // Ensure dates are Date objects
         structureData.createdAt = new Date(structureData.createdAt);
         structureData.updatedAt = new Date(structureData.updatedAt);
@@ -73,21 +77,27 @@ function isStructureNote(note: Json): note is { id: string } {
  * Serializes a structure for storage in Supabase
  */
 export const serializeStructureForStorage = (structure: ThreeActStructure) => {
+  // Ensure the structure has all required properties
+  const updatedAt = new Date().toISOString();
+  const createdAt = structure.createdAt instanceof Date 
+    ? structure.createdAt.toISOString() 
+    : (typeof structure.createdAt === 'string' 
+      ? structure.createdAt 
+      : updatedAt);
+  
   return {
     id: structure.id,
     projectId: structure.projectId,
     projectTitle: structure.projectTitle,
-    createdAt: structure.createdAt instanceof Date 
-      ? structure.createdAt.toISOString() 
-      : structure.createdAt,
-    updatedAt: new Date().toISOString(), // Always use current time for updates
-    beats: structure.beats.map(beat => ({
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+    beats: (structure.beats || []).map(beat => ({
       id: beat.id,
-      title: beat.title,
-      description: beat.description,
-      position: beat.position,
+      title: beat.title || '',
+      description: beat.description || '',
+      position: typeof beat.position === 'number' ? beat.position : 0,
       actNumber: beat.actNumber,
-      isMidpoint: beat.isMidpoint
+      isMidpoint: !!beat.isMidpoint
     }))
   };
 };

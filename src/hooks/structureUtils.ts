@@ -9,7 +9,10 @@ export const createUpdatedStructureWithBeat = (
   beatId: string,
   updates: Partial<StoryBeat>
 ): ThreeActStructure => {
-  const updatedBeats = structure.beats.map(beat => 
+  // Ensure beats array exists
+  const beats = structure.beats || [];
+  
+  const updatedBeats = beats.map(beat => 
     beat.id === beatId ? { ...beat, ...updates } : beat
   );
   

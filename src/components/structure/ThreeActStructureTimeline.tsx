@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
@@ -31,7 +31,14 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [projectTitle, setProjectTitle] = useState(structure?.projectTitle || '');
+  const [projectTitle, setProjectTitle] = useState('');
+  
+  // Sync project title when structure changes
+  useEffect(() => {
+    if (structure?.projectTitle) {
+      setProjectTitle(structure.projectTitle);
+    }
+  }, [structure?.projectTitle]);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -92,7 +99,6 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
         <p className="text-sm text-gray-600 mb-4 text-center">
           Unable to load the story structure for this project.
         </p>
-        <Button>Create Structure</Button>
       </div>
     );
   }

@@ -20,6 +20,7 @@ export const useThreeActStructure = (projectId: string) => {
       
       try {
         const structureData = await fetchStructureData(projectId, session.user.id);
+        console.log("Loaded structure data:", structureData?.id);
         setStructure(structureData);
       } catch (error) {
         console.error('Error:', error);
@@ -40,6 +41,7 @@ export const useThreeActStructure = (projectId: string) => {
     if (!session || !projectId || !updatedStructure) return;
     
     setIsSaving(true);
+    console.log("Saving structure:", updatedStructure.id);
     
     try {
       await saveStructureData(updatedStructure, projectId, session.user.id);
@@ -64,6 +66,7 @@ export const useThreeActStructure = (projectId: string) => {
     if (!session || !projectId) return;
     
     setIsSaving(true);
+    console.log("Initializing new structure:", defaultStructure.id);
     
     try {
       await saveStructureData(defaultStructure, projectId, session.user.id);
@@ -86,16 +89,20 @@ export const useThreeActStructure = (projectId: string) => {
 
   const updateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
+    console.log("Updating beat:", beatId, updates);
     
     const updatedStructure = createUpdatedStructureWithBeat(structure, beatId, updates);
-    saveStructure(updatedStructure);
+    // Don't auto-save for now, let user save manually
+    setStructure(updatedStructure);
   };
 
   const reorderBeats = (beats: StoryBeat[]) => {
     if (!structure) return;
+    console.log("Reordering beats");
     
     const updatedStructure = createUpdatedStructureWithReorderedBeats(structure, beats);
-    saveStructure(updatedStructure);
+    // Don't auto-save for now, let user save manually
+    setStructure(updatedStructure);
   };
 
   return {
