@@ -25,16 +25,6 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote, onEditNote }: NotesGridPro
     }
   };
 
-  const handleViewNote = (note: Note) => {
-    if (onViewNote) {
-      onViewNote(note);
-    } else {
-      // Fallback behavior
-      console.log('Viewing note:', note.title);
-      alert(`Note content: ${note.content}`);
-    }
-  };
-
   if (!notes || notes.length === 0) {
     return (
       <div className="text-center p-8 bg-slate-50 rounded-md border border-slate-200">
@@ -72,18 +62,10 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote, onEditNote }: NotesGridPro
               {formatDate(note.createdAt)}
             </CardDescription>
           </CardHeader>
-          <CardContent onClick={() => handleViewNote(note)} className="cursor-pointer">
+          <CardContent className="cursor-pointer" onClick={() => onEditNote && onEditNote(note)}>
             <p className="text-sm text-muted-foreground line-clamp-3 h-14">{note.content}</p>
           </CardContent>
-          <CardFooter className="pt-2 pb-3 flex justify-between">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-xs text-primary"
-              onClick={() => handleViewNote(note)}
-            >
-              View Note
-            </Button>
+          <CardFooter className="pt-2 pb-3">
             {onEditNote && (
               <Button 
                 variant="ghost" 

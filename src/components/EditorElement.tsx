@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
 import { formatScriptElement, detectElementType } from '../lib/formatScript';
@@ -52,10 +51,16 @@ const EditorElement = ({
     onChange(element.id, newText, detectedType);
   };
 
-  // Enable keyboard paste event
-  const handlePaste = (e: React.ClipboardEvent) => {
-    // Allow default paste behavior
-    // The browser will handle inserting the text
+  // Handle keyboard event to allow arrow key navigation
+  const handleKeyboardEvent = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Only pass to the parent handler if it's not arrow key navigation
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+      onKeyDown(e, element.id);
+      return;
+    }
+    
+    // Let browser handle standard text cursor movements
+    // This ensures up/down works normally within the textarea
   };
 
   // Adjust textarea height to content
@@ -89,9 +94,8 @@ const EditorElement = ({
         ref={inputRef}
         value={text}
         onChange={handleChange}
-        onKeyDown={(e) => onKeyDown(e, element.id)}
+        onKeyDown={handleKeyboardEvent}
         onFocus={onFocus}
-        onPaste={handlePaste}
         className="w-full bg-transparent resize-none outline-none"
         placeholder={getPlaceholderText(elementType)}
         rows={1}
