@@ -60,7 +60,13 @@ const EditorElement: React.FC<EditorElementProps> = ({
   }, [text]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newText = e.target.value;
+    let newText = e.target.value;
+    
+    // Auto-capitalize scene headings and character names as they type
+    if (elementType === 'scene-heading' || elementType === 'character') {
+      newText = newText.toUpperCase();
+    }
+    
     setText(newText);
     onChange(element.id, newText, elementType);
     
@@ -103,7 +109,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           className={cn(
             "w-full p-2 text-sm focus:outline-none resize-none border-0 rounded-r-md bg-transparent overflow-hidden",
             {
-              'font-bold': elementType === 'character',
+              'font-bold uppercase': elementType === 'character' || elementType === 'scene-heading',
+              'uppercase': elementType === 'transition',
               'italic': elementType === 'action'
             }
           )} 

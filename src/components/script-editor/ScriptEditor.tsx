@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
@@ -14,10 +13,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
-// Define BeatMode type to be consistent
 type BeatMode = 'on' | 'off';
 
-// Define Structure interface to match our database table
 interface Structure {
   id: string;
   name: string;
@@ -51,9 +48,7 @@ const ScriptEditor = ({
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
   const [availableStructures, setAvailableStructures] = useState<Structure[]>([]);
   const [selectedStructureId, setSelectedStructureId] = useState<string>('');
-  const editorRef = useRef<HTMLDivElement>(null);
 
-  // Use custom hooks for state management
   const {
     elements,
     setElements,
@@ -88,7 +83,6 @@ const ScriptEditor = ({
     }
   }, [elements, setElements, setActiveElementId]);
 
-  // Fetch available structures from Supabase
   useEffect(() => {
     const fetchStructures = async () => {
       try {
@@ -102,9 +96,7 @@ const ScriptEditor = ({
         }
         
         if (data) {
-          // Handle the successfully fetched structures
           setAvailableStructures(data as Structure[]);
-          // If we don't have a selected structure yet, select the first one
           if (data.length > 0 && !selectedStructureId) {
             setSelectedStructureId(data[0].id);
           }
@@ -243,13 +235,11 @@ const ScriptEditor = ({
 
   const handleStructureChange = (structureId: string) => {
     setSelectedStructureId(structureId);
-    // You could also load structure-specific tags here if needed
     console.log(`Selected structure: ${structureId}`);
   };
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      {/* Structure selector */}
       <div className="bg-white border-b p-2 flex items-center">
         <div className="flex items-center space-x-2 mr-4">
           <Label htmlFor="structure-select" className="text-sm font-medium">
@@ -270,7 +260,6 @@ const ScriptEditor = ({
         </div>
       </div>
       
-      {/* Tag manager with Act Bar for filtering scenes - always shown for beatMode toggle */}
       <TagManager 
         scriptContent={{ elements }} 
         onFilterByTag={handleFilterByTag}
@@ -302,7 +291,6 @@ const ScriptEditor = ({
         beatMode={beatMode}
       />
       
-      {/* Zoom slider control */}
       <ZoomControls 
         zoomPercentage={zoomPercentage}
         onZoomChange={handleZoomChange}

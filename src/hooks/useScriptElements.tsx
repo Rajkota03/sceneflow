@@ -21,9 +21,17 @@ export function useScriptElements(
 
   const handleElementChange = (id: string, text: string, type: ElementType) => {
     setElements(prevElements => 
-      prevElements.map(element => 
-        element.id === id ? { ...element, text, type } : element
-      )
+      prevElements.map(element => {
+        if (element.id === id) {
+          let updatedText = text;
+          // Auto-capitalize scene headings and character names
+          if (type === 'scene-heading' || type === 'character') {
+            updatedText = text.toUpperCase();
+          }
+          return { ...element, text: updatedText, type };
+        }
+        return element;
+      })
     );
   };
 

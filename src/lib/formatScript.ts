@@ -1,3 +1,4 @@
+
 import { ElementType } from './types';
 
 export function detectElementType(text: string, previousElementType?: ElementType): ElementType {
