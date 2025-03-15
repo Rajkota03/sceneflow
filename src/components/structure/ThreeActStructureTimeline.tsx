@@ -18,6 +18,7 @@ import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import StructureHeader from './StructureHeader';
 import { SortableItem } from './SortableItem';
+import ActSection from './ActSection';
 
 interface ThreeActStructureTimelineProps {
   projectId?: string;
@@ -267,6 +268,21 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     }
   };
 
+  // Group beats by act number
+  const beatsByAct = beats.reduce((acc, beat) => {
+    const actNumber = beat.actNumber;
+    if (!acc[actNumber]) {
+      acc[actNumber] = [];
+    }
+    acc[actNumber].push(beat);
+    return acc;
+  }, {} as Record<ActType | string, StoryBeat[]>);
+
+  const sortedBeatsByAct = Object.entries(beatsByAct).map(([act, actBeats]) => ({
+    act: act as ActType,
+    beats: actBeats.sort((a, b) => a.position - b.position)
+  }));
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -299,7 +315,7 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
         <StructureHeader title={title} projectId={projectId} />
 
         <div className="flex-grow overflow-auto p-6">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="mb-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-800 mb-2">
@@ -315,7 +331,7 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
               </div>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-6">
               <div className="flex items-center">
                 <Input
                   type="text"
@@ -328,88 +344,146 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Beats</h3>
-                <div className="space-y-2">
-                  <SortableContext items={beats.map(beat => beat.id)} strategy={verticalListSortingStrategy}>
-                    {beats.map((beat) => (
-                      <SortableItem key={beat.id} id={beat.id}>
-                        <div
-                          className="bg-gray-50 rounded-md shadow-sm p-3 flex items-center justify-between hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleBeatClick(beat)}
-                        >
-                          <div className="flex items-center">
-                            <GripVertical size={16} className="text-gray-400 mr-2 cursor-grab" />
-                            <span className="text-gray-700 font-medium">{beat.title}</span>
+            {selectedBeat && (
+              <div className="bg-white rounded-md shadow-sm p-4 mb-6">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Beat Details</h3>
+                {selectedBeat && editMode === "view" && (
+                  <>
+                    <div className="mb-2">
+                      <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
+                      <p className="text-gray-800">{selectedBeat.title}</p>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-600 text-sm font-medium mb-1">Description:</label>
+                      <p className="text-gray-800">{selectedBeat.description || 'No description provided.'}</p>
+                    </div>
+                    <Button onClick={() => setEditMode('edit')} className="w-full justify-center">
+                      <Edit size={16} className="mr-2" /> Edit Beat
+                    </Button>
+                  </>
+                )}
+
+                {selectedBeat && editMode === "edit" && (
+                  <>
+                    <div className="mb-2">
+                      <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
+                      <Input
+                        type="text"
+                        value={editedBeatName}
+                        onChange={handleEditBeatNameChange}
+                        className="bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-primary"
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-gray-600 text-sm font-medium mb-1">Description:</label>
+                      <Textarea
+                        value={editedBeatDescription}
+                        onChange={handleEditBeatDescriptionChange}
+                        className="bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-primary"
+                      />
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button onClick={handleUpdateBeat} className="w-1/2 justify-center">
+                        Update
+                      </Button>
+                      <Button onClick={handleDeleteBeat} variant="destructive" className="w-1/2 justify-center">
+                        <Trash2 size={16} className="mr-2" /> Delete
+                      </Button>
+                    </div>
+                    <Button onClick={handleCancelEdit} variant="ghost" className="mt-2 w-full justify-center">
+                      <X size={16} className="mr-2" /> Cancel
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+
+            <SortableContext items={beats.map(beat => beat.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-8">
+                {/* Act 1 */}
+                <ActSection
+                  actNumber={1}
+                  title="Act 1 - Setup"
+                  beats={sortedBeatsByAct.find(item => item.act === 1)?.beats || []}
+                  onUpdateBeat={onUpdateBeat || (() => {})}
+                  onDeleteBeat={onDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                {/* Act 2A */}
+                <ActSection
+                  actNumber="2A"
+                  title="Act 2A - Confrontation (First Half)"
+                  beats={sortedBeatsByAct.find(item => item.act === '2A')?.beats || []}
+                  onUpdateBeat={onUpdateBeat || (() => {})}
+                  onDeleteBeat={onDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                {/* Midpoint */}
+                <ActSection
+                  actNumber="midpoint"
+                  title="Midpoint"
+                  beats={sortedBeatsByAct.find(item => item.act === 'midpoint')?.beats || []}
+                  onUpdateBeat={onUpdateBeat || (() => {})}
+                  onDeleteBeat={onDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                {/* Act 2B */}
+                <ActSection
+                  actNumber="2B"
+                  title="Act 2B - Confrontation (Second Half)"
+                  beats={sortedBeatsByAct.find(item => item.act === '2B')?.beats || []}
+                  onUpdateBeat={onUpdateBeat || (() => {})}
+                  onDeleteBeat={onDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                {/* Act 3 */}
+                <ActSection
+                  actNumber={3}
+                  title="Act 3 - Resolution"
+                  beats={sortedBeatsByAct.find(item => item.act === 3)?.beats || []}
+                  onUpdateBeat={onUpdateBeat || (() => {})}
+                  onDeleteBeat={onDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
+                />
+                
+                {/* Unassigned beats */}
+                {sortedBeatsByAct.some(item => !['1', '2A', 'midpoint', '2B', '3'].includes(String(item.act))) && (
+                  <div className="mb-8">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Unassigned Beats</h3>
+                    {sortedBeatsByAct
+                      .filter(item => !['1', '2A', 'midpoint', '2B', '3'].includes(String(item.act)))
+                      .map(item => (
+                        <div key={`unassigned-${item.act}`} className="mb-4">
+                          <div className="space-y-2">
+                            {item.beats.map(beat => (
+                              <SortableItem key={beat.id} id={beat.id}>
+                                <div
+                                  className="bg-gray-50 rounded-md shadow-sm p-3 flex items-center justify-between hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleBeatClick(beat)}
+                                >
+                                  <div className="flex items-center">
+                                    <GripVertical size={16} className="text-gray-400 mr-2 cursor-grab" />
+                                    <span className="text-gray-700 font-medium">{beat.title}</span>
+                                  </div>
+                                </div>
+                              </SortableItem>
+                            ))}
                           </div>
                         </div>
-                      </SortableItem>
-                    ))}
-                  </SortableContext>
-                </div>
-              </div>
-
-              <div>
-                {selectedBeat ? (
-                  <div className="bg-white rounded-md shadow-sm p-4">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Beat Details</h3>
-                    {selectedBeat && editMode === "view" && (
-                      <>
-                        <div className="mb-2">
-                          <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
-                          <p className="text-gray-800">{selectedBeat.title}</p>
-                        </div>
-                        <div className="mb-4">
-                          <label className="block text-gray-600 text-sm font-medium mb-1">Description:</label>
-                          <p className="text-gray-800">{selectedBeat.description || 'No description provided.'}</p>
-                        </div>
-                        <Button onClick={() => setEditMode('edit')} className="w-full justify-center">
-                          <Edit size={16} className="mr-2" /> Edit Beat
-                        </Button>
-                      </>
-                    )}
-
-                    {selectedBeat && editMode === "edit" && (
-                      <>
-                        <div className="mb-2">
-                          <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
-                          <Input
-                            type="text"
-                            value={editedBeatName}
-                            onChange={handleEditBeatNameChange}
-                            className="bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-primary"
-                          />
-                        </div>
-                        <div className="mb-4">
-                          <label className="block text-gray-600 text-sm font-medium mb-1">Description:</label>
-                          <Textarea
-                            value={editedBeatDescription}
-                            onChange={handleEditBeatDescriptionChange}
-                            className="bg-white border-gray-300 focus-visible:ring-2 focus-visible:ring-primary"
-                          />
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button onClick={handleUpdateBeat} className="w-1/2 justify-center">
-                            Update
-                          </Button>
-                          <Button onClick={handleDeleteBeat} variant="destructive" className="w-1/2 justify-center">
-                            <Trash2 size={16} className="mr-2" /> Delete
-                          </Button>
-                        </div>
-                        <Button onClick={handleCancelEdit} variant="ghost" className="mt-2 w-full justify-center">
-                          <X size={16} className="mr-2" /> Cancel
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-md shadow-sm p-4">
-                    <p className="text-gray-600">Select a beat to view details.</p>
+                      ))}
                   </div>
                 )}
               </div>
-            </div>
+            </SortableContext>
           </div>
         </div>
       </div>
