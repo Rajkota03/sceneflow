@@ -35,7 +35,7 @@ interface FormatContextType {
 }
 
 const initialFormatState: FormatState = {
-  font: 'Courier Prime',
+  font: 'Courier Final Draft',
   fontSize: 12,
   isBold: false,
   isItalic: false,

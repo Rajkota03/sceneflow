@@ -1,7 +1,16 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Import the Courier Final Draft font */
+@font-face {
+  font-family: 'Courier Final Draft';
+  src: url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff2') format('woff2'),
+       url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @layer base {
   :root {
@@ -65,7 +74,7 @@
   height: 11in;
   padding: 0;
   margin: 0 auto;
-  font-family: 'Courier Prime', monospace;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
   font-size: 12pt;
   line-height: 1;
   color: #000;
@@ -135,7 +144,7 @@
 .pdf-export p {
   margin: 0;
   padding: 0;
-  font-family: 'Courier Prime', monospace !important;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   line-height: 1 !important;
 }
@@ -183,7 +192,7 @@
   
   /* Ensure proper text formatting in print */
   .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
-    font-family: 'Courier Prime', monospace !important;
+    font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
     font-size: 12pt !important;
     line-height: 1 !important;
   }

@@ -142,8 +142,8 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
       text: ''
     };
     
-    // Handle character continuation if this is a character after an action
-    if (nextType === 'character') {
+    // Handle character continuation if this is a character element
+    if (nextType === 'character' as ElementType) {
       // Find the previous character
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
@@ -200,7 +200,8 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
         <div className="script-page" style={{ 
           transform: `scale(${formatState.zoomLevel})`,
           transformOrigin: 'top center',
-          transition: 'transform 0.2s ease-out'
+          transition: 'transform 0.2s ease-out',
+          fontFamily: 'Courier Final Draft, Courier Prime, monospace'
         }}>
           <div className="script-page-content">
             {elements.map((element, index) => (

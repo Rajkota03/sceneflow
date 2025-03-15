@@ -12,7 +12,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({ children, forPrint = false,
   const { formatState } = useFormat();
   
   const style: React.CSSProperties = {
-    fontFamily: formatState.font || 'Courier Prime, monospace',
+    fontFamily: formatState.font || 'Courier Final Draft, Courier Prime, monospace',
     fontSize: `${formatState.fontSize}pt`,
     fontWeight: formatState.isBold ? 'bold' : 'normal',
     fontStyle: formatState.isItalic ? 'italic' : 'normal',
