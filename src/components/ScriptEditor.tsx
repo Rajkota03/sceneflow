@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -17,6 +18,7 @@ interface ScriptEditorProps {
   className?: string;
   projectName?: string;
   structureName?: string;
+  projectId?: string;
 }
 
 const ScriptEditor = ({ 
@@ -26,7 +28,8 @@ const ScriptEditor = ({
   onNoteCreate, 
   className,
   projectName = "Untitled Project",
-  structureName = "Three Act Structure"
+  structureName = "Three Act Structure",
+  projectId
 }: ScriptEditorProps) => {
   const { formatState, zoomIn, zoomOut, resetZoom } = useFormat();
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
@@ -339,6 +342,7 @@ const ScriptEditor = ({
                     onFormatChange={handleFormatChange}
                     onTagsChange={handleTagsChange}
                     characterNames={characterNames}
+                    projectId={projectId}
                   />
                 ))}
               </div>

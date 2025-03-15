@@ -556,6 +556,7 @@ const Editor = () => {
                       className="overflow-auto"
                       projectName={title}
                       structureName="Three Act Structure"
+                      projectId={projectId}
                     />
                   )}
                 </div>
@@ -613,6 +614,7 @@ const Editor = () => {
                   onChange={handleContentChange}
                   projectName={title}
                   structureName="Three Act Structure" 
+                  projectId={projectId}
                 />
               )}
             </>

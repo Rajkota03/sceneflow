@@ -17,6 +17,8 @@ interface Props {
   onUpdateProjectTitle?: (title: string) => void;
   onDeleteBeat?: (beatId: string) => void;
   onSave?: () => void;
+  onSelectBeatForTagging?: (beat: StoryBeat) => void;
+  mode?: 'edit' | 'tag';
 }
 
 const ThreeActStructureTimeline: React.FC<Props> = ({
@@ -27,7 +29,9 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
   onReorderBeats,
   onUpdateProjectTitle,
   onDeleteBeat,
-  onSave
+  onSave,
+  onSelectBeatForTagging,
+  mode = 'edit'
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -78,6 +82,12 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
   const handleDeleteBeat = (beatId: string) => {
     if (onDeleteBeat) {
       onDeleteBeat(beatId);
+    }
+  };
+
+  const handleBeatClick = (beat: StoryBeat) => {
+    if (mode === 'tag' && onSelectBeatForTagging) {
+      onSelectBeatForTagging(beat);
     }
   };
   
@@ -153,15 +163,22 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
               Saving...
             </span>
           )}
-          <Button 
-            size="sm" 
-            className="text-xs"
-            onClick={onSave}
-            disabled={isSaving}
-          >
-            <Save className="h-4 w-4 mr-1" />
-            Save Structure
-          </Button>
+          {mode === 'edit' && (
+            <Button 
+              size="sm" 
+              className="text-xs"
+              onClick={onSave}
+              disabled={isSaving}
+            >
+              <Save className="h-4 w-4 mr-1" />
+              Save Structure
+            </Button>
+          )}
+          {mode === 'tag' && (
+            <div className="text-xs text-gray-600">
+              Click on a beat to tag your scene with it
+            </div>
+          )}
         </div>
       </div>
       
@@ -173,6 +190,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
           collisionDetection={closestCenter}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={handleDragEnd}
+          disabled={mode === 'tag'}
         >
           <SortableContext 
             items={beats.map(beat => beat.id)}
@@ -185,6 +203,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 beats={act1Beats}
                 onUpdateBeat={onUpdateBeat}
                 onDeleteBeat={handleDeleteBeat}
+                onBeatClick={handleBeatClick}
+                taggingMode={mode === 'tag'}
               />
               
               <ActSection 
@@ -193,6 +213,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 beats={act2ABeats}
                 onUpdateBeat={onUpdateBeat}
                 onDeleteBeat={handleDeleteBeat}
+                onBeatClick={handleBeatClick}
+                taggingMode={mode === 'tag'}
               />
               
               <div className="relative mb-4 z-20">
@@ -209,6 +231,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                   beats={midpointBeat}
                   onUpdateBeat={onUpdateBeat}
                   onDeleteBeat={handleDeleteBeat}
+                  onBeatClick={handleBeatClick}
+                  taggingMode={mode === 'tag'}
                 />
               </div>
               
@@ -218,6 +242,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 beats={act2BBeats}
                 onUpdateBeat={onUpdateBeat}
                 onDeleteBeat={handleDeleteBeat}
+                onBeatClick={handleBeatClick}
+                taggingMode={mode === 'tag'}
               />
               
               <ActSection 
@@ -226,6 +252,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 beats={act3Beats}
                 onUpdateBeat={onUpdateBeat}
                 onDeleteBeat={handleDeleteBeat}
+                onBeatClick={handleBeatClick}
+                taggingMode={mode === 'tag'}
               />
             </div>
           </SortableContext>
@@ -233,7 +261,9 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
       </div>
       
       <div className="mt-6 text-xs text-center text-gray-500">
-        Drag items to reorder or click the edit button to customize beat details
+        {mode === 'edit' ? 
+          "Drag items to reorder or click the edit button to customize beat details" : 
+          "Click a story beat to apply it as a tag to your scene"}
       </div>
     </div>
   );

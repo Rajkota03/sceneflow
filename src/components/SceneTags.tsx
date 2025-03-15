@@ -1,19 +1,30 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScriptElement, ActType } from '@/lib/types';
+import { ScriptElement, ActType, StoryBeat, ThreeActStructure } from '@/lib/types';
 import TagInput from './TagInput';
-import { Tags, Bookmark } from 'lucide-react';
+import { Tags, Bookmark, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ThreeActStructureTimeline from './structure/ThreeActStructureTimeline';
+import useThreeActStructure from '@/hooks/useThreeActStructure';
 
 interface SceneTagsProps {
   element: ScriptElement;
   onTagsChange: (elementId: string, tags: string[]) => void;
+  projectId?: string;
 }
 
-const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange }) => {
+const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId }) => {
   const [tags, setTags] = useState<string[]>(element.tags || []);
   const [selectedAct, setSelectedAct] = useState<ActType | null>(null);
+  const [isStructureDialogOpen, setIsStructureDialogOpen] = useState(false);
+  
+  const {
+    structure,
+    isLoading,
+    updateBeat
+  } = useThreeActStructure(projectId || 'unknown');
 
   useEffect(() => {
     setTags(element.tags || []);
@@ -77,6 +88,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange }) => {
     setTags(newTags);
     setSelectedAct(act);
     onTagsChange(element.id, newTags);
+  };
+
+  const handleSelectBeatForTagging = (beat: StoryBeat) => {
+    handleActSelection(beat.actNumber, beat.title);
+    setIsStructureDialogOpen(false);
   };
 
   if (element.type !== 'scene-heading') {
@@ -169,11 +185,49 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange }) => {
         )}
       </div>
       
+      <div className="mb-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full text-xs h-7"
+          onClick={() => setIsStructureDialogOpen(true)}
+        >
+          <Bookmark size={14} className="mr-1" />
+          Tag from Story Structure
+        </Button>
+      </div>
+      
       <TagInput
         tags={tags}
         onAddTag={handleAddTag}
         onRemoveTag={handleRemoveTag}
       />
+      
+      <Dialog open={isStructureDialogOpen} onOpenChange={setIsStructureDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Tag Scene with Story Beat</DialogTitle>
+          </DialogHeader>
+          
+          {structure && (
+            <ThreeActStructureTimeline
+              structure={structure}
+              isLoading={isLoading}
+              isSaving={false}
+              onUpdateBeat={updateBeat}
+              onReorderBeats={() => {}}
+              onSelectBeatForTagging={handleSelectBeatForTagging}
+              mode="tag"
+            />
+          )}
+          
+          {!structure && !isLoading && (
+            <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-sm text-amber-800">
+              No story structure found for this project. Create one in the Structures tab to use this feature.
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
