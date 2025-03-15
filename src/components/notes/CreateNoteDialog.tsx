@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -25,7 +24,6 @@ const CreateNoteDialog = ({ open, onOpenChange, onCreateNote }: CreateNoteDialog
   const [noteContent, setNoteContent] = useState('');
 
   useEffect(() => {
-    // Reset form when dialog opens
     if (open) {
       setNoteTitle('');
       setNoteContent('');
@@ -43,7 +41,7 @@ const CreateNoteDialog = ({ open, onOpenChange, onCreateNote }: CreateNoteDialog
     }
     
     const newNote: Note = {
-      id: `note-${Date.now()}`,
+      id: '',
       title: noteTitle,
       content: noteContent,
       createdAt: new Date(),

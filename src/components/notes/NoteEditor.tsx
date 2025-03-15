@@ -67,7 +67,7 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     const fullContent = pages.join('---PAGE_BREAK---');
     
     const updatedNote: Note = {
-      id: note?.id || `note-${Date.now()}`,
+      id: note?.id || '', // This ID will be replaced with a unique one when creating a new note
       title: noteTitle,
       content: fullContent,
       createdAt: note?.createdAt || new Date(),
@@ -76,11 +76,6 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     
     console.log(isNewNote ? 'Creating new note:' : 'Updating note:', updatedNote);
     onSaveNote(updatedNote);
-    
-    toast({
-      title: isNewNote ? "Note created" : "Note updated",
-      description: `"${noteTitle}" has been ${isNewNote ? 'created' : 'updated'} successfully.`
-    });
     
     if (isNewNote) {
       onOpenChange(false);

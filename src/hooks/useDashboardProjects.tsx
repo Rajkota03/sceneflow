@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
 import { emptyProject } from '@/lib/mockData';
 import { useAuth } from '@/App';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, generateUniqueNoteId, checkNoteExists } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { TitlePageData } from '@/components/TitlePageEditor';
 
@@ -45,7 +44,6 @@ export const useDashboardProjects = () => {
         setProjects([]);
       } else if (data) {
         const formattedProjects = data.map(project => {
-          // Properly handle the conversion of project.notes
           let projectNotes: Note[] = [];
           if (project.notes && Array.isArray(project.notes)) {
             projectNotes = (project.notes as any[]).map(note => ({
@@ -201,15 +199,24 @@ export const useDashboardProjects = () => {
     if (!session) return;
     
     try {
+      const uniqueNoteId = generateUniqueNoteId();
+      
+      const newNote: Note = {
+        ...note,
+        id: uniqueNoteId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
       const { error } = await supabase
         .from('standalone_notes')
         .insert({
-          id: note.id,
-          title: note.title,
-          content: note.content,
+          id: newNote.id,
+          title: newNote.title,
+          content: newNote.content,
           author_id: session.user.id,
-          created_at: note.createdAt.toISOString(),
-          updated_at: note.updatedAt.toISOString()
+          created_at: newNote.createdAt.toISOString(),
+          updated_at: newNote.updatedAt.toISOString()
         });
       
       if (error) {
@@ -222,12 +229,13 @@ export const useDashboardProjects = () => {
         return;
       }
       
-      setNotes(prevNotes => [note, ...prevNotes]);
-      console.log('Note created successfully:', note.title);
+      setNotes(prevNotes => [newNote, ...prevNotes]);
+      console.log('Note created successfully:', newNote.title);
       toast({
         title: "Note created",
-        description: `"${note.title}" has been created successfully.`
+        description: `"${newNote.title}" has been created successfully.`
       });
+      return newNote;
     } catch (error) {
       console.error('Error:', error);
       toast({
@@ -235,6 +243,7 @@ export const useDashboardProjects = () => {
         description: 'Failed to save the note. Please try again.',
         variant: 'destructive',
       });
+      return null;
     }
   };
 

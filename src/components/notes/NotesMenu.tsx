@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { NotebookPen, Plus, Trash2, Edit } from 'lucide-react';
 import { 
@@ -44,7 +43,7 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }
     }
     
     const newNote: Note = {
-      id: `note-${Date.now()}`,
+      id: '', // This will be replaced with a unique ID in the handleCreateNote function
       title: newNoteTitle,
       content: newNoteContent,
       createdAt: new Date(),
@@ -55,11 +54,6 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }
     setNewNoteTitle('');
     setNewNoteContent('');
     setIsCreateDialogOpen(false);
-    
-    toast({
-      title: "Note created",
-      description: `"${newNoteTitle}" has been created successfully.`
-    });
   };
 
   const handleNoteClick = (note: Note) => {
