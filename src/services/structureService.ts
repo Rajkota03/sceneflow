@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, StoryBeat, createDefaultStructure } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
+import { Json } from '@/integrations/supabase/types';
 
 /**
  * Fetches the structure for a specific project
@@ -26,12 +28,8 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
     if (data?.notes && Array.isArray(data.notes)) {
       console.log("Found notes array, looking for structure");
       // Look for a note that contains the structure data
-      const structureNote = data.notes.find((note: any) => 
-        note && 
-        typeof note === 'object' && 
-        'id' in note && 
-        typeof note.id === 'string' && 
-        note.id.startsWith('structure-')
+      const structureNote = data.notes.find((note: Json) => 
+        isStructureNote(note)
       );
       
       if (structureNote) {
@@ -55,6 +53,19 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
     throw error;
   }
 };
+
+/**
+ * Checks if a note is a structure note
+ */
+function isStructureNote(note: Json): note is { id: string } {
+  return (
+    note !== null &&
+    typeof note === 'object' &&
+    'id' in note &&
+    typeof note.id === 'string' &&
+    note.id.startsWith('structure-')
+  );
+}
 
 /**
  * Serializes a structure for storage in Supabase
@@ -104,10 +115,8 @@ export const saveStructureData = async (
     let notes = Array.isArray(data?.notes) ? [...data.notes] : [];
     
     // Find if there's an existing structure note
-    const structureIndex = notes.findIndex((note: any) => 
-      note && typeof note === 'object' && 
-      typeof note.id === 'string' && 
-      note.id.startsWith('structure-')
+    const structureIndex = notes.findIndex((note: Json) => 
+      isStructureNote(note)
     );
     
     // Serialize the structure for storage
