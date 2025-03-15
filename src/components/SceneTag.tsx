@@ -43,11 +43,11 @@ const SceneTag: React.FC<SceneTagProps> = ({
   return (
     <div 
       className={cn(
-        'inline-flex items-center px-2 py-1 rounded-full text-xs mr-1 mb-1',
+        'inline-flex items-center px-2 py-1 rounded-full text-xs mr-1 mb-1 transition-all',
         isActTag ? getActTagColor() : (
           selected 
             ? 'bg-primary text-primary-foreground' 
-            : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
         ),
         selectable ? 'cursor-pointer' : '',
         className

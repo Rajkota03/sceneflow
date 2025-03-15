@@ -22,7 +22,6 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeActFilter
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [actCounts, setActCounts] = useState<Record<ActType | string, number>>({
     1: 0,
     '2A': 0,
@@ -82,7 +81,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   }
 
   return (
-    <div className="p-2 bg-slate-50 border border-slate-200 rounded-md mb-4">
+    <div className="mb-4">
       {onFilterByAct && (
         <ActBar 
           activeAct={activeActFilter || null} 
@@ -91,46 +90,38 @@ const TagManager: React.FC<TagManagerProps> = ({
         />
       )}
       
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center text-sm font-medium text-slate-700">
-          <Tags size={16} className="mr-2" />
-          <span>Scene Tags</span>
-        </div>
-        
-        <div className="flex items-center">
-          {activeFilter && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onFilterByTag(null)}
-              className="h-7 text-xs mr-2 text-slate-600"
-            >
-              <X size={14} className="mr-1" />
-              Clear Filter
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="h-7 text-xs"
-          >
-            {isExpanded ? "Hide" : "Show All"}
-          </Button>
-        </div>
-      </div>
-      
-      {(isExpanded || activeFilter) && (
-        <div className="flex flex-wrap items-center mt-2">
-          {availableTags.map(tag => (
-            <SceneTag
-              key={tag}
-              tag={tag}
-              selectable
-              selected={activeFilter === tag}
-              onClick={() => onFilterByTag(activeFilter === tag ? null : tag)}
-            />
-          ))}
+      {availableTags.length > 0 && (
+        <div className="p-3 bg-white border border-slate-200 rounded-md">
+          <div className="flex justify-between items-center mb-2">
+            <div className="flex items-center text-sm font-medium text-slate-700">
+              <Tags size={16} className="mr-2" />
+              <span>Scene Tags</span>
+            </div>
+            
+            {activeFilter && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => onFilterByTag(null)}
+                className="h-7 text-xs text-slate-600"
+              >
+                <X size={14} className="mr-1" />
+                Clear Filter
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-1 mt-2">
+            {availableTags.map(tag => (
+              <SceneTag
+                key={tag}
+                tag={tag}
+                selectable
+                selected={activeFilter === tag}
+                onClick={() => onFilterByTag(activeFilter === tag ? null : tag)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

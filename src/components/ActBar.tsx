@@ -25,15 +25,15 @@ const ActBar: React.FC<ActBarProps> = ({
   ];
 
   return (
-    <div className="mb-4 p-2 bg-white rounded-md shadow-sm">
+    <div className="p-3 bg-slate-50 rounded-md shadow-sm mb-3">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium">Act Bar</h3>
+        <h3 className="text-sm font-medium text-slate-700">Story Structure</h3>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onSelectAct(null)}
           disabled={activeAct === null}
-          className="h-7 text-xs"
+          className="h-7 text-xs text-slate-600"
         >
           <Filter size={14} className="mr-1" />
           Show All
@@ -47,9 +47,9 @@ const ActBar: React.FC<ActBarProps> = ({
             onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
             className={cn(
               act.color,
-              'h-8 rounded flex items-center justify-center text-xs font-medium transition-all',
-              activeAct === act.id ? 'border-2' : 'border opacity-90',
-              activeAct !== null && activeAct !== act.id ? 'opacity-60' : 'opacity-100'
+              'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
+              activeAct === act.id ? 'border-2' : 'border opacity-95',
+              activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
             )}
           >
             {act.label}
