@@ -1,3 +1,4 @@
+
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
@@ -8,14 +9,18 @@ import LoadingState from '@/components/dashboard/LoadingState';
 import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import { Note } from '@/lib/types';
+import { Note, ThreeActStructure } from '@/lib/types';
 import NotePopover from '@/components/notes/NotePopover';
 import NoteEditor from '@/components/notes/NoteEditor';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/App';
+import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
+  const { session } = useAuth();
   const {
     projects,
     notes,
@@ -36,13 +41,79 @@ const Dashboard = () => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Note | null>(null);
+  const [structures, setStructures] = useState<{projectId: string, projectTitle: string, structure: ThreeActStructure}[]>([]);
+  const [isLoadingStructures, setIsLoadingStructures] = useState(false);
 
   console.log('Dashboard - available notes:', notes?.length || 0);
+
+  useEffect(() => {
+    if (activeTab === "structures" && session) {
+      fetchStructures();
+    }
+  }, [activeTab, session, projects]);
+
+  const fetchStructures = async () => {
+    if (!session || !projects.length) return;
+    
+    setIsLoadingStructures(true);
+    try {
+      const structuresData = [];
+      
+      for (const project of projects) {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('notes')
+          .eq('id', project.id)
+          .eq('author_id', session.user.id)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching structure:', error);
+          continue;
+        }
+        
+        // Check if there's a three-act structure in the notes
+        if (data?.notes && Array.isArray(data.notes)) {
+          // Look for a note that contains the structure data
+          const structureNote = data.notes.find((note: any) => 
+            note && 
+            typeof note === 'object' && 
+            'id' in note && 
+            typeof note.id === 'string' && 
+            note.id.startsWith('structure-')
+          );
+          
+          if (structureNote) {
+            structuresData.push({
+              projectId: project.id,
+              projectTitle: project.title,
+              structure: structureNote as unknown as ThreeActStructure
+            });
+          }
+        }
+      }
+      
+      setStructures(structuresData);
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load structures',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingStructures(false);
+    }
+  };
 
   const filteredNotes = notes?.filter(note => 
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
   ) || [];
+
+  const filteredStructures = structures.filter(item => 
+    item.projectTitle.toLowerCase().includes(structuresSearchQuery.toLowerCase())
+  );
 
   const handleCreateNoteFromPopover = (noteData: Partial<Note>) => {
     const newNote: Note = {
@@ -84,6 +155,21 @@ const Dashboard = () => {
   const handleCreateNewNote = () => {
     setCurrentNote(null); // Ensure we're creating a new note
     setIsNoteEditorOpen(true);
+  };
+
+  const createNewStructure = () => {
+    if (projects.length === 0) {
+      toast({
+        title: "No projects found",
+        description: "You need to create a project first before adding a structure.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Navigate to structure page of the first project
+    const firstProject = projects[0];
+    window.location.href = `/structure/${firstProject.id}`;
   };
 
   return (
@@ -178,55 +264,78 @@ const Dashboard = () => {
               <DashboardHeader 
                 searchQuery={structuresSearchQuery} 
                 setSearchQuery={setStructuresSearchQuery}
-                onCreateNewProject={() => {
-                  toast({
-                    title: "Creating a new structure",
-                    description: "This functionality will be available soon!",
-                  });
-                }}
+                onCreateNewProject={createNewStructure}
                 projectType="structure"
+                customCreateButton={
+                  <Button onClick={createNewStructure}>Create New Structure</Button>
+                }
               />
-              <div className="border border-border rounded-lg p-8 mt-4 bg-card">
-                <div className="text-center max-w-md mx-auto">
-                  <Network className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
-                  <h3 className="text-2xl font-medium mb-2">Story Structure Tools</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Break down your screenplay using classic story structures or create your own custom
-                    templates with interactive scene cards and direct script linking.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <Network className="h-4 w-4 text-primary" />
+              
+              {isLoadingStructures ? (
+                <LoadingState />
+              ) : filteredStructures.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredStructures.map((item) => (
+                    <Link 
+                      to={`/structure/${item.projectId}`} 
+                      key={item.structure.id}
+                      className="block"
+                    >
+                      <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
+                        <div className="flex justify-between items-start mb-2">
+                          <h3 className="font-medium text-lg">{item.projectTitle}</h3>
+                          <div className="bg-primary/10 p-1 rounded">
+                            <Network className="h-4 w-4 text-primary" />
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Three-Act Structure
+                        </p>
+                        <div className="grid grid-cols-3 gap-1 mb-3">
+                          <div className="bg-purple-100 h-2 rounded"></div>
+                          <div className="bg-blue-100 h-2 rounded"></div>
+                          <div className="bg-green-100 h-2 rounded"></div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Updated {new Date(item.structure.updatedAt).toLocaleDateString()}
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">Story Templates</p>
-                        <p className="text-muted-foreground">3-Act, Hero's Journey, Save the Cat</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <FileText className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Scene Cards</p>
-                        <p className="text-muted-foreground">Visualize and reorganize your story</p>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => {
-                      toast({
-                        title: "Creating a new structure",
-                        description: "This functionality will be available soon!",
-                      });
-                    }}
-                    className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    Coming Soon
-                  </button>
+                    </Link>
+                  ))}
                 </div>
-              </div>
+              ) : (
+                <div className="border border-border rounded-lg p-8 mt-4 bg-card">
+                  <div className="text-center max-w-md mx-auto">
+                    <Network className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
+                    <h3 className="text-2xl font-medium mb-2">Story Structure Tools</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Break down your screenplay using classic story structures or create your own custom
+                      templates with interactive scene cards and direct script linking.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm mb-6">
+                      <div className="flex items-start gap-2">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <Network className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Story Templates</p>
+                          <p className="text-muted-foreground">3-Act, Hero's Journey, Save the Cat</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <div className="bg-primary/10 p-2 rounded-full">
+                          <FileText className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium">Scene Cards</p>
+                          <p className="text-muted-foreground">Visualize and reorganize your story</p>
+                        </div>
+                      </div>
+                    </div>
+                    <Button onClick={createNewStructure}>Create Your First Structure</Button>
+                  </div>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

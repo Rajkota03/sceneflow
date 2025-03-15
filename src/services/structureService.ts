@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, StoryBeat, createDefaultStructure } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
