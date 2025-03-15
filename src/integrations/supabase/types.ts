@@ -15,6 +15,7 @@ export type Database = {
           content: Json
           created_at: string
           id: string
+          notes: Json | null
           title: string
           title_page: Json | null
           updated_at: string
@@ -24,6 +25,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id: string
+          notes?: Json | null
           title: string
           title_page?: Json | null
           updated_at?: string
@@ -33,6 +35,7 @@ export type Database = {
           content?: Json
           created_at?: string
           id?: string
+          notes?: Json | null
           title?: string
           title_page?: Json | null
           updated_at?: string

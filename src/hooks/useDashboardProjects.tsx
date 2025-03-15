@@ -76,6 +76,7 @@ export const useDashboardProjects = () => {
       title: `Untitled Screenplay ${projects.length + 1}`,
       createdAt: new Date(),
       updatedAt: new Date(),
+      notes: []
     };
     
     const defaultTitlePageData: TitlePageData = {
@@ -93,7 +94,8 @@ export const useDashboardProjects = () => {
           title: newProject.title,
           author_id: newProject.authorId,
           content: scriptContentToJson(newProject.content),
-          title_page: defaultTitlePageData
+          title_page: defaultTitlePageData,
+          notes: []
         })
         .select();
       
@@ -107,7 +109,6 @@ export const useDashboardProjects = () => {
         return;
       }
       
-      // Optimistically add to local state
       setProjects([newProject, ...projects]);
       navigate(`/editor/${newProject.id}`);
     } catch (error) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ScriptEditor from '../components/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson } from '../lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check } from 'lucide-react';
@@ -18,7 +18,6 @@ import { TitlePageData } from '@/components/TitlePageEditor';
 import { Json } from '@/integrations/supabase/types';
 import NotesMenu from '@/components/notes/NotesMenu';
 import NoteWindow from '@/components/notes/NoteWindow';
-import { Note } from '@/lib/types';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Editor = () => {
@@ -47,12 +46,6 @@ const Editor = () => {
   const [openNotes, setOpenNotes] = useState<Note[]>([]);
   const [splitScreenNote, setSplitScreenNote] = useState<Note | null>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (titlePageData && titlePageData.title) {
-      localStorage.setItem('currentTitlePageData', JSON.stringify(titlePageData));
-    }
-  }, [titlePageData]);
 
   useEffect(() => {
     if (!session || !projectId) return;
@@ -160,7 +153,6 @@ const Editor = () => {
             });
           }
           
-          // Fetch notes if there are any
           if (data.notes) {
             const notesData = data.notes as Json as unknown as Note[];
             setNotes(notesData);
@@ -346,7 +338,6 @@ const Editor = () => {
     setShowTitlePage(!showTitlePage);
   };
   
-  // Notes handlers
   const handleOpenNote = (note: Note) => {
     if (!openNotes.some(n => n.id === note.id)) {
       setOpenNotes([...openNotes, note]);
@@ -373,13 +364,11 @@ const Editor = () => {
   
   const handleSplitScreen = (note: Note) => {
     setSplitScreenNote(note);
-    // Remove from floating notes if it exists there
     setOpenNotes(openNotes.filter(n => n.id !== note.id));
   };
   
   const exitSplitScreen = () => {
     if (splitScreenNote) {
-      // Move the note back to floating notes
       setOpenNotes([...openNotes, splitScreenNote]);
       setSplitScreenNote(null);
     }
@@ -534,7 +523,6 @@ const Editor = () => {
             </>
           )}
           
-          {/* Floating Notes */}
           {openNotes.map(note => (
             <NoteWindow 
               key={note.id}
