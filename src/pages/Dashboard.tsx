@@ -6,10 +6,15 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import ProjectGrid from '@/components/dashboard/ProjectGrid';
 import EmptyState from '@/components/dashboard/EmptyState';
 import LoadingState from '@/components/dashboard/LoadingState';
+import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/App';
+import { supabase } from '@/integrations/supabase/client';
+import { Note } from '@/lib/types';
+import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
 
 const Dashboard = () => {
   const {
@@ -24,20 +29,137 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("screenplays");
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
   const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
+  const { session } = useAuth();
 
-  const handleCreateNote = () => {
-    toast({
-      title: "Creating a new note",
-      description: "This functionality will be available soon!",
-    });
+  // Fetch standalone notes (not connected to a project)
+  useEffect(() => {
+    if (!session) return;
+
+    const fetchNotes = async () => {
+      setIsLoadingNotes(true);
+      try {
+        const { data, error } = await supabase
+          .from('standalone_notes')
+          .select('*')
+          .eq('author_id', session.user.id);
+
+        if (error) {
+          console.error('Error fetching notes:', error);
+          toast({
+            title: 'Error loading notes',
+            description: error.message,
+            variant: 'destructive',
+          });
+        } else if (data) {
+          // Convert the data to the Note type
+          const formattedNotes: Note[] = data.map(note => ({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            createdAt: new Date(note.created_at),
+            updatedAt: new Date(note.updated_at)
+          }));
+          setNotes(formattedNotes);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setIsLoadingNotes(false);
+      }
+    };
+
+    if (activeTab === "notes") {
+      fetchNotes();
+    }
+  }, [session, activeTab]);
+
+  const handleCreateNote = (note: Note) => {
+    const saveNote = async () => {
+      if (!session) return;
+      
+      try {
+        const { error } = await supabase
+          .from('standalone_notes')
+          .insert({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            author_id: session.user.id,
+            created_at: note.createdAt.toISOString(),
+            updated_at: note.updatedAt.toISOString()
+          });
+        
+        if (error) {
+          console.error('Error saving note:', error);
+          toast({
+            title: 'Error creating note',
+            description: error.message,
+            variant: 'destructive',
+          });
+          return;
+        }
+        
+        setNotes([...notes, note]);
+        toast({
+          title: "Note created",
+          description: `"${note.title}" has been created successfully.`
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to save the note. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    };
+    
+    saveNote();
   };
 
-  const handleCreateStructure = () => {
-    toast({
-      title: "Creating a new structure",
-      description: "This functionality will be available soon!",
-    });
+  const handleDeleteNote = async (noteId: string) => {
+    if (!session) return;
+    
+    try {
+      const { error } = await supabase
+        .from('standalone_notes')
+        .delete()
+        .eq('id', noteId)
+        .eq('author_id', session.user.id);
+      
+      if (error) {
+        console.error('Error deleting note:', error);
+        toast({
+          title: 'Error deleting note',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setNotes(notes.filter(note => note.id !== noteId));
+      toast({
+        title: "Note deleted",
+        description: "The note has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the note. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
+
+  // Filter notes based on search query
+  const filteredNotes = notes.filter(note => 
+    note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
+    note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -93,52 +215,38 @@ const Dashboard = () => {
               <DashboardHeader 
                 searchQuery={notesSearchQuery} 
                 setSearchQuery={setNotesSearchQuery}
-                onCreateNewProject={handleCreateNote}
+                onCreateNewProject={() => setCreateNoteDialogOpen(true)}
                 projectType="note"
               />
-              <div className="border border-border rounded-lg p-8 mt-4 bg-card">
-                <div className="text-center max-w-md mx-auto">
-                  <NotebookPen className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
-                  <h3 className="text-2xl font-medium mb-2">Screenplay Notes</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Organize your thoughts, research, and character details with rich text formatting, 
-                    tagging, and direct links to your screenplay.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <FileText className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Rich Text Editor</p>
-                        <p className="text-muted-foreground">Format with headings, lists, and more</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-primary/10 p-2 rounded-full">
-                        <NotebookPen className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Tagging System</p>
-                        <p className="text-muted-foreground">Organize by character, plot, theme, etc.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={handleCreateNote}
-                    className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  >
-                    Coming Soon
-                  </button>
-                </div>
-              </div>
+              
+              {isLoadingNotes ? (
+                <LoadingState />
+              ) : filteredNotes.length > 0 ? (
+                <NotesGrid 
+                  notes={filteredNotes} 
+                  onDeleteNote={handleDeleteNote} 
+                />
+              ) : (
+                <EmptyState 
+                  searchQuery={notesSearchQuery}
+                  clearSearch={() => setNotesSearchQuery('')}
+                  createNewProject={() => setCreateNoteDialogOpen(true)}
+                  emptyMessage="No notes yet"
+                  createMessage="Create your first note"
+                />
+              )}
             </TabsContent>
             
             <TabsContent value="structures" className="mt-6">
               <DashboardHeader 
                 searchQuery={structuresSearchQuery} 
                 setSearchQuery={setStructuresSearchQuery}
-                onCreateNewProject={handleCreateStructure}
+                onCreateNewProject={() => {
+                  toast({
+                    title: "Creating a new structure",
+                    description: "This functionality will be available soon!",
+                  });
+                }}
                 projectType="structure"
               />
               <div className="border border-border rounded-lg p-8 mt-4 bg-card">
@@ -170,7 +278,12 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <button 
-                    onClick={handleCreateStructure}
+                    onClick={() => {
+                      toast({
+                        title: "Creating a new structure",
+                        description: "This functionality will be available soon!",
+                      });
+                    }}
                     className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                   >
                     Coming Soon
@@ -183,6 +296,12 @@ const Dashboard = () => {
       </main>
       
       <Footer />
+      
+      <CreateNoteDialog 
+        open={createNoteDialogOpen} 
+        onOpenChange={setCreateNoteDialogOpen} 
+        onCreateNote={handleCreateNote} 
+      />
     </div>
   );
 };
