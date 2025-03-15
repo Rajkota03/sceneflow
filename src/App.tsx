@@ -70,8 +70,8 @@ function App() {
         <div className="min-h-screen">
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/signin" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/sign-in" element={<SignIn />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/:projectId" element={<Editor />} />
             <Route path="/structure/:projectId" element={<Structure />} />
