@@ -109,12 +109,15 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
     );
   }
   
+  // Ensure structure.beats exists before filtering
+  const beats = structure.beats || [];
+  
   // Group beats by act
-  const act1Beats = structure.beats.filter(beat => beat.actNumber === 1).sort((a, b) => a.position - b.position);
-  const act2ABeats = structure.beats.filter(beat => beat.actNumber === '2A').sort((a, b) => a.position - b.position);
-  const midpointBeat = structure.beats.filter(beat => beat.actNumber === 'midpoint' || beat.isMidpoint);
-  const act2BBeats = structure.beats.filter(beat => beat.actNumber === '2B').sort((a, b) => a.position - b.position);
-  const act3Beats = structure.beats.filter(beat => beat.actNumber === 3).sort((a, b) => a.position - b.position);
+  const act1Beats = beats.filter(beat => beat.actNumber === 1).sort((a, b) => a.position - b.position);
+  const act2ABeats = beats.filter(beat => beat.actNumber === '2A').sort((a, b) => a.position - b.position);
+  const midpointBeat = beats.filter(beat => beat.actNumber === 'midpoint' || beat.isMidpoint);
+  const act2BBeats = beats.filter(beat => beat.actNumber === '2B').sort((a, b) => a.position - b.position);
+  const act3Beats = beats.filter(beat => beat.actNumber === 3).sort((a, b) => a.position - b.position);
   
   return (
     <div className="bg-gray-50 rounded-md p-4 md:p-6">
@@ -177,7 +180,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
           onDragEnd={handleDragEnd}
         >
           <SortableContext 
-            items={structure.beats.map(beat => beat.id)}
+            items={beats.map(beat => beat.id)}
             strategy={verticalListSortingStrategy}
           >
             <div className="relative z-10">
