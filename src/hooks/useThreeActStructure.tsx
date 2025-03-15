@@ -20,7 +20,7 @@ export const useThreeActStructure = (projectId: string) => {
       try {
         const { data, error } = await supabase
           .from('projects')
-          .select('structure')
+          .select('notes')
           .eq('id', projectId)
           .eq('author_id', session.user.id)
           .single();
@@ -35,16 +35,26 @@ export const useThreeActStructure = (projectId: string) => {
           return;
         }
         
-        let structureData: ThreeActStructure;
+        // Check if there's a three-act structure in the notes
+        let structureData: ThreeActStructure | null = null;
         
-        if (!data?.structure) {
-          structureData = createDefaultStructure(projectId);
-        } else {
-          structureData = data.structure as unknown as ThreeActStructure;
+        if (data?.notes && Array.isArray(data.notes)) {
+          // Look for a note that contains the structure data
+          const structureNote = data.notes.find((note: any) => 
+            note && typeof note === 'object' && note.id && note.id.startsWith('structure-')
+          );
           
-          // Ensure dates are Date objects
-          structureData.createdAt = new Date(structureData.createdAt);
-          structureData.updatedAt = new Date(structureData.updatedAt);
+          if (structureNote) {
+            structureData = structureNote as unknown as ThreeActStructure;
+            // Ensure dates are Date objects
+            structureData.createdAt = new Date(structureData.createdAt);
+            structureData.updatedAt = new Date(structureData.updatedAt);
+          }
+        }
+        
+        // If no structure found, create a default one
+        if (!structureData) {
+          structureData = createDefaultStructure(projectId);
         }
         
         setStructure(structureData);
@@ -69,17 +79,51 @@ export const useThreeActStructure = (projectId: string) => {
     setIsSaving(true);
     
     try {
-      const { error } = await supabase
+      // First, get the current notes array
+      const { data, error: fetchError } = await supabase
+        .from('projects')
+        .select('notes')
+        .eq('id', projectId)
+        .eq('author_id', session.user.id)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching notes:', fetchError);
+        toast({
+          title: 'Error',
+          description: 'Failed to update story structure',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Prepare the notes array
+      let notes = Array.isArray(data?.notes) ? [...data.notes] : [];
+      
+      // Find if there's an existing structure note
+      const structureIndex = notes.findIndex((note: any) => 
+        note && typeof note === 'object' && note.id && note.id.startsWith('structure-')
+      );
+      
+      // Update or add the structure note
+      if (structureIndex >= 0) {
+        notes[structureIndex] = updatedStructure;
+      } else {
+        notes.push(updatedStructure);
+      }
+      
+      // Update the project with the new notes array
+      const { error: updateError } = await supabase
         .from('projects')
         .update({
-          structure: updatedStructure,
+          notes: notes,
           updated_at: new Date().toISOString(),
         })
         .eq('id', projectId)
         .eq('author_id', session.user.id);
       
-      if (error) {
-        console.error('Error saving structure:', error);
+      if (updateError) {
+        console.error('Error saving structure:', updateError);
         toast({
           title: 'Error',
           description: 'Failed to save story structure',
@@ -89,6 +133,10 @@ export const useThreeActStructure = (projectId: string) => {
       }
       
       setStructure(updatedStructure);
+      toast({
+        title: 'Success',
+        description: 'Story structure saved successfully',
+      });
     } catch (error) {
       console.error('Error:', error);
       toast({

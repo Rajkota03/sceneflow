@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
@@ -79,6 +80,6 @@ function App() {
 }
 
 export { AuthContext };
-export { AuthContextType };
+export type { AuthContextType };
 
 export default App;
