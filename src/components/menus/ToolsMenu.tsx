@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -11,6 +12,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 
 const ToolsMenu = () => {
+  const { projectId } = useParams<{ projectId: string }>();
   const [isSceneNavigatorOpen, setIsSceneNavigatorOpen] = useState(false);
   
   const toggleSceneNavigator = () => {
@@ -63,6 +65,18 @@ const ToolsMenu = () => {
       description: "Select a .fountain or .fdx file to import into Scene Flow.",
     });
   };
+  
+  const openStructure = () => {
+    if (projectId) {
+      window.location.href = `/structure/${projectId}`;
+    } else {
+      toast({
+        title: "Error",
+        description: "Cannot access structure tool: No project is currently open.",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <MenubarMenu>
@@ -82,6 +96,9 @@ const ToolsMenu = () => {
           Scene Report
         </MenubarItem>
         <MenubarSeparator />
+        <MenubarItem onClick={openStructure}>
+          Story Structure
+        </MenubarItem>
         <MenubarItem onClick={runSpellCheck}>
           Grammar & Spell Check
         </MenubarItem>
