@@ -1,5 +1,6 @@
+
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
-import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
+import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
 import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
@@ -26,6 +27,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   const [characterNames, setCharacterNames] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -34,36 +36,69 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     onChange({ elements });
   }, [elements, onChange]);
 
-  // Apply tag filtering
+  // Apply filtering (tag or act-based)
   useEffect(() => {
-    if (!activeTagFilter) {
+    if (!activeTagFilter && !activeActFilter) {
       setFilteredElements(elements);
       return;
     }
 
-    // Find all scene headings with the tag and the elements between them
-    const filteredIds = new Set<string>();
-    let includeNext = false;
+    let filtered = [...elements];
     
-    elements.forEach((element, index) => {
-      // If it's a scene heading with the tag, include it and set flag to include following elements
-      if (element.type === 'scene-heading') {
-        if (element.tags?.includes(activeTagFilter)) {
+    // Tag-based filtering
+    if (activeTagFilter) {
+      const filteredIds = new Set<string>();
+      let includeNext = false;
+      
+      elements.forEach((element) => {
+        if (element.type === 'scene-heading') {
+          if (element.tags?.includes(activeTagFilter)) {
+            filteredIds.add(element.id);
+            includeNext = true;
+          } else {
+            includeNext = false;
+          }
+        } else if (includeNext) {
           filteredIds.add(element.id);
-          includeNext = true;
-        } else {
-          includeNext = false;
         }
-      } else if (includeNext) {
-        // Include elements until the next scene heading
-        filteredIds.add(element.id);
-      }
-    });
+      });
+      
+      filtered = elements.filter(element => filteredIds.has(element.id));
+    }
     
-    // Filter the elements
-    const filtered = elements.filter(element => filteredIds.has(element.id));
+    // Act-based filtering
+    if (activeActFilter) {
+      const filteredIds = new Set<string>();
+      let includeNext = false;
+      
+      elements.forEach((element) => {
+        if (element.type === 'scene-heading') {
+          // Check if any tag in this scene matches the selected act
+          const matchesAct = element.tags?.some(tag => {
+            if (activeActFilter === 1) return tag.startsWith('Act 1:');
+            if (activeActFilter === '2A') return tag.startsWith('Act 2A:');
+            if (activeActFilter === 'midpoint') return tag.startsWith('Midpoint:');
+            if (activeActFilter === '2B') return tag.startsWith('Act 2B:');
+            if (activeActFilter === 3) return tag.startsWith('Act 3:');
+            return false;
+          });
+          
+          if (matchesAct) {
+            filteredIds.add(element.id);
+            includeNext = true;
+          } else {
+            includeNext = false;
+          }
+        } else if (includeNext) {
+          filteredIds.add(element.id);
+        }
+      });
+      
+      filtered = elements.filter(element => filteredIds.has(element.id));
+    }
+    
     setFilteredElements(filtered);
-  }, [elements, activeTagFilter]);
+  }, [elements, activeTagFilter, activeActFilter]);
 
   // Extract character names from elements
   useEffect(() => {
@@ -253,6 +288,14 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   // Handle tag filtering
   const handleFilterByTag = (tag: string | null) => {
     setActiveTagFilter(tag);
+    if (tag !== null) {
+      setActiveActFilter(null);
+    }
+  };
+
+  // Handle act filtering
+  const handleFilterByAct = (act: ActType | null) => {
+    setActiveActFilter(act);
   };
 
   return (
@@ -262,11 +305,13 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
         ref={editorRef}
       >
         <div className="w-full max-w-4xl mx-auto">
-          {/* Tag manager for filtering scenes */}
+          {/* Tag manager with Act Bar for filtering scenes */}
           <TagManager 
             scriptContent={{ elements }} 
             onFilterByTag={handleFilterByTag}
+            onFilterByAct={handleFilterByAct}
             activeFilter={activeTagFilter}
+            activeActFilter={activeActFilter}
           />
           
           <FormatStyler currentPage={currentPage}>
@@ -285,7 +330,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
                     key={element.id}
                     element={element}
                     previousElementType={getPreviousElementType(
-                      activeTagFilter 
+                      activeTagFilter || activeActFilter
                         ? filteredElements.findIndex(el => el.id === element.id) - 1
                         : index - 1
                     )}
