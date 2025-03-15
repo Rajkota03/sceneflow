@@ -1,34 +1,21 @@
 
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import ProjectGrid from '@/components/dashboard/ProjectGrid';
-import EmptyState from '@/components/dashboard/EmptyState';
-import LoadingState from '@/components/dashboard/LoadingState';
-import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen, Network, Bookmark, Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { FileText, NotebookPen, Network } from 'lucide-react';
+import { Note } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
-import { Note, ThreeActStructure } from '@/lib/types';
-import NotePopover from '@/components/notes/NotePopover';
-import NoteEditor from '@/components/notes/NoteEditor';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
-import { Link, useLocation } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
+// Import the tab components
+import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
+import NotesTab from '@/components/dashboard/NotesTab';
+import StructuresTab from '@/components/dashboard/StructuresTab';
+import DeleteStructureDialog from '@/components/dashboard/DeleteStructureDialog';
 
 const Dashboard = () => {
   const { session } = useAuth();
@@ -271,22 +258,6 @@ const Dashboard = () => {
     }
   };
 
-  const StructurePlaceholder = () => (
-    <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
-      <div className="flex justify-between items-start mb-2">
-        <Skeleton className="h-6 w-40" />
-        <Skeleton className="h-6 w-6 rounded" />
-      </div>
-      <Skeleton className="h-4 w-32 mb-3" />
-      <div className="grid grid-cols-3 gap-1 mb-3">
-        <Skeleton className="h-2 w-full" />
-        <Skeleton className="h-2 w-full" />
-        <Skeleton className="h-2 w-full" />
-      </div>
-      <Skeleton className="h-3 w-24" />
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -312,164 +283,42 @@ const Dashboard = () => {
             </TabsList>
             
             <TabsContent value="screenplays" className="mt-6">
-              <DashboardHeader 
+              <ScreenplaysTab
+                projects={projects}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
-                onCreateNewProject={handleCreateNewProject}
-                projectType="screenplay"
+                isLoading={isLoading}
+                handleCreateNewProject={handleCreateNewProject}
+                handleDeleteProject={handleDeleteProject}
               />
-              
-              {isLoading ? (
-                <LoadingState />
-              ) : projects.length > 0 ? (
-                <ProjectGrid 
-                  projects={projects} 
-                  onDeleteProject={handleDeleteProject} 
-                />
-              ) : (
-                <EmptyState 
-                  searchQuery={searchQuery}
-                  clearSearch={() => setSearchQuery('')}
-                  createNewProject={handleCreateNewProject}
-                  emptyMessage="No screenplays yet"
-                  createMessage="Create your first screenplay"
-                />
-              )}
             </TabsContent>
             
             <TabsContent value="notes" className="mt-6">
-              <DashboardHeader 
-                searchQuery={notesSearchQuery} 
+              <NotesTab
+                notes={filteredNotes}
+                searchQuery={notesSearchQuery}
                 setSearchQuery={setNotesSearchQuery}
-                onCreateNewProject={handleCreateNewNote}
-                projectType="note"
-                customCreateButton={
-                  <Button onClick={handleCreateNewNote}>Create New Note</Button>
-                }
-              />
-              
-              {isLoadingNotes ? (
-                <LoadingState />
-              ) : filteredNotes.length > 0 ? (
-                <NotesGrid 
-                  notes={filteredNotes} 
-                  onDeleteNote={handleDeleteNote} 
-                  onViewNote={handleViewNote}
-                  onEditNote={handleEditNote}
-                />
-              ) : (
-                <EmptyState 
-                  searchQuery={notesSearchQuery}
-                  clearSearch={() => setNotesSearchQuery('')}
-                  createNewProject={handleCreateNewNote}
-                  emptyMessage="No notes yet"
-                  createMessage="Create your first note"
-                />
-              )}
-              
-              <NoteEditor 
-                open={isNoteEditorOpen}
-                onOpenChange={setIsNoteEditorOpen}
-                note={currentNote}
-                onSaveNote={handleSaveNote}
+                isLoading={isLoadingNotes}
+                handleCreateNote={handleCreateNewNote}
+                handleDeleteNote={handleDeleteNote}
+                handleViewNote={handleViewNote}
+                handleEditNote={handleEditNote}
+                isNoteEditorOpen={isNoteEditorOpen}
+                setIsNoteEditorOpen={setIsNoteEditorOpen}
+                currentNote={currentNote}
+                handleSaveNote={handleSaveNote}
               />
             </TabsContent>
             
             <TabsContent value="structures" className="mt-6">
-              <DashboardHeader 
-                searchQuery={structuresSearchQuery} 
+              <StructuresTab
+                structures={filteredStructures}
+                searchQuery={structuresSearchQuery}
                 setSearchQuery={setStructuresSearchQuery}
-                onCreateNewProject={createNewStructure}
-                projectType="structure"
-                customCreateButton={
-                  <Button onClick={createNewStructure}>Create New Structure</Button>
-                }
+                isLoading={isLoadingStructures}
+                createNewStructure={createNewStructure}
+                handleDeleteStructure={handleDeleteStructure}
               />
-              
-              {isLoadingStructures ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {[1, 2, 3].map((i) => (
-                    <StructurePlaceholder key={i} />
-                  ))}
-                </div>
-              ) : filteredStructures.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredStructures.map((item) => (
-                    <Link 
-                      to={`/structure/${item.projectId}`} 
-                      key={item.structure.id}
-                      className="block"
-                    >
-                      <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
-                        <div className="flex justify-between items-start mb-2">
-                          <h3 className="font-medium text-lg">{item.projectTitle}</h3>
-                          <div className="flex items-center space-x-2">
-                            <div className="bg-primary/10 p-1 rounded">
-                              <Network className="h-4 w-4 text-primary" />
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                              onClick={(e) => handleDeleteStructure(item.projectId, e)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Delete structure</span>
-                            </Button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Four-Part Story Structure
-                        </p>
-                        <div className="grid grid-cols-5 gap-1 mb-3">
-                          <div className="bg-purple-100 h-2 rounded"></div>
-                          <div className="bg-blue-100 h-2 rounded"></div>
-                          <div className="bg-yellow-300 h-3 -mt-0.5 rounded flex items-center justify-center">
-                            <div className="bg-yellow-500 h-1 w-1 rounded-full"></div>
-                          </div>
-                          <div className="bg-blue-100 h-2 rounded"></div>
-                          <div className="bg-green-100 h-2 rounded"></div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Updated {new Date(item.structure.updatedAt).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="border border-border rounded-lg p-8 mt-4 bg-card">
-                  <div className="text-center max-w-md mx-auto">
-                    <Network className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
-                    <h3 className="text-2xl font-medium mb-2">Story Structure Tools</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Break down your screenplay using classical story structures with a special emphasis on the critical midpoint, 
-                      creating a four-part framework with interactive scene cards.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm mb-6">
-                      <div className="flex items-start gap-2">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Network className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Four-Part Structure</p>
-                          <p className="text-muted-foreground">Act 1, 2A, Midpoint, 2B, Act 3</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                          <Bookmark className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Highlighted Midpoint</p>
-                          <p className="text-muted-foreground">Visual emphasis on the crucial turning point</p>
-                        </div>
-                      </div>
-                    </div>
-                    <Button onClick={createNewStructure}>Create Your First Structure</Button>
-                  </div>
-                </div>
-              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -477,22 +326,11 @@ const Dashboard = () => {
       
       <Footer />
       
-      <AlertDialog open={!!structureToDelete} onOpenChange={(open) => !open && setStructureToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Structure</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this structure? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteStructure} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteStructureDialog
+        open={!!structureToDelete}
+        onOpenChange={(open) => !open && setStructureToDelete(null)}
+        onConfirm={confirmDeleteStructure}
+      />
     </div>
   );
 };
