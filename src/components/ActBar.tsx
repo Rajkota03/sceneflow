@@ -5,8 +5,6 @@ import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Filter, Zap, ZapOff, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { Switch } from './ui/switch';
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 interface ActBarProps {
   activeAct: ActType | null;

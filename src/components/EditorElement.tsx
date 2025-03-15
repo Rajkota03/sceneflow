@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ElementType, ScriptElement } from '@/lib/types';
 import { formatType } from '@/lib/formatScript';
 import CharacterSuggestions from './CharacterSuggestions';
-import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SceneTags from './SceneTags';
 
@@ -73,30 +72,16 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setElementType(newType);
     onFormatChange(element.id, newType);
   };
-
-  const toggleSuggestions = () => {
-    setShowSuggestions(!showSuggestions);
-  };
   
   return (
     <div className={`editor-element relative ${element.type} ${isActive ? 'active' : ''}`}>
       <div className="flex items-start">
         <div className="element-type-selector relative">
-          <button 
-            onClick={toggleSuggestions}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-l-md border border-gray-300 px-2 py-1 text-sm focus:outline-none"
+          <div 
+            className="bg-gray-100 text-gray-700 rounded-l-md border border-gray-300 px-2 py-1 text-sm focus:outline-none"
           >
             {formatType(elementType)}
-            <ChevronDown className="inline-block ml-1 w-4 h-4" />
-          </button>
-          
-          {showSuggestions && (
-            <CharacterSuggestions 
-              onSelect={(selected) => handleTypeChange(selected as ElementType)}
-              onClose={toggleSuggestions}
-              currentType={elementType}
-            />
-          )}
+          </div>
         </div>
         
         <textarea
