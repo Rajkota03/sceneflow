@@ -100,11 +100,11 @@ const Structure = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/dashboard?tab=structures')}
               className="text-gray-600"
             >
               <ArrowLeft size={18} className="mr-1" />
-              Back to Dashboard
+              Back to Structures
             </Button>
             <h1 className="text-xl font-semibold text-gray-800">Story Structure</h1>
           </div>

@@ -1,3 +1,4 @@
+
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
@@ -16,7 +17,7 @@ import NoteEditor from '@/components/notes/NoteEditor';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   AlertDialog,
@@ -31,6 +32,10 @@ import {
 
 const Dashboard = () => {
   const { session } = useAuth();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const tabFromQuery = queryParams.get('tab');
+  
   const {
     projects,
     notes,
@@ -44,7 +49,7 @@ const Dashboard = () => {
     handleUpdateNote
   } = useDashboardProjects();
   
-  const [activeTab, setActiveTab] = useState("screenplays");
+  const [activeTab, setActiveTab] = useState(tabFromQuery || "screenplays");
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
   const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
@@ -59,10 +64,23 @@ const Dashboard = () => {
   console.log('Dashboard - available notes:', notes?.length || 0);
 
   useEffect(() => {
+    // Set active tab from URL query parameter
+    if (tabFromQuery && ['screenplays', 'notes', 'structures'].includes(tabFromQuery)) {
+      setActiveTab(tabFromQuery);
+    }
+  }, [tabFromQuery]);
+
+  useEffect(() => {
     if (activeTab === "structures" && session && projects.length > 0 && !hasInitializedStructures) {
       fetchStructures();
     }
   }, [activeTab, session, projects, hasInitializedStructures]);
+
+  // Update URL when tab changes
+  useEffect(() => {
+    const newUrl = `${window.location.pathname}?tab=${activeTab}`;
+    window.history.replaceState({}, '', newUrl);
+  }, [activeTab]);
 
   const fetchStructures = async () => {
     if (!session || !projects.length) return;
