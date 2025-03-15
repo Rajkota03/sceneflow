@@ -55,8 +55,8 @@ const Structure = () => {
     handleUpdateProjectTitle
   } = useProjectTitle(projectId, structure, saveStructure);
   
-  // Story beats operations
-  const { handleDeleteBeat, handleUpdateBeat } = useStoryBeats(structure, saveStructure);
+  // Story beats operations - but no longer using delete functionality
+  const { handleUpdateBeat } = useStoryBeats(structure, saveStructure);
   
   // Manual save handler
   const handleSaveStructure = () => {
@@ -80,7 +80,7 @@ const Structure = () => {
         onUpdateBeat={handleUpdateBeat}
         onReorderBeats={reorderBeats}
         onUpdateProjectTitle={handleUpdateProjectTitle}
-        onDeleteBeat={handleDeleteBeat}
+        onDeleteBeat={undefined} // Remove delete functionality
         onSave={handleSaveStructure}
       />
     </div>

@@ -1,4 +1,3 @@
-
 import { toast } from '@/components/ui/use-toast';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 
@@ -6,6 +5,7 @@ export const useStoryBeats = (
   structure: ThreeActStructure | null,
   saveStructure: (updatedStructure: ThreeActStructure) => void
 ) => {
+  // We keep the function but it won't be exposed
   const handleDeleteBeat = (beatId: string) => {
     if (!structure) return;
     
@@ -37,6 +37,8 @@ export const useStoryBeats = (
   const handleUpdateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
     
+    console.log('Updating beat:', beatId, updates); // Added for debugging
+    
     // Find and update the specified beat
     const updatedBeats = structure.beats.map(beat => 
       beat.id === beatId ? { ...beat, ...updates } : beat
@@ -59,8 +61,8 @@ export const useStoryBeats = (
   };
   
   return {
-    handleDeleteBeat,
     handleUpdateBeat
+    // We don't expose handleDeleteBeat anymore
   };
 };
 

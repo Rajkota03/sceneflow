@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StoryBeat, ActType } from '@/lib/types';
 import StoryBeatItem from './StoryBeatItem';
@@ -95,7 +96,6 @@ const ActSection: React.FC<ActSectionProps> = ({
                   <StoryBeatItem 
                     beat={beat}
                     onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
-                    onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
                     readOnly={false}
                   />
                 </div>
@@ -104,7 +104,6 @@ const ActSection: React.FC<ActSectionProps> = ({
                   <StoryBeatItem 
                     beat={beat}
                     onUpdate={(updates) => onUpdateBeat(beat.id, updates)}
-                    onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
                     readOnly={false}
                   />
                 </SortableItem>

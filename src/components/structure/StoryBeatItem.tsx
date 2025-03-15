@@ -4,7 +4,7 @@ import { StoryBeat } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Trash2, X, Save, Bookmark, PencilLine } from 'lucide-react';
+import { Edit, X, Save, Bookmark, PencilLine } from 'lucide-react';
 
 interface StoryBeatItemProps {
   beat: StoryBeat;
@@ -119,16 +119,7 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
                   <Edit size={12} />
                 </Button>
                 
-                {onDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    onClick={onDelete}
-                  >
-                    <Trash2 size={12} />
-                  </Button>
-                )}
+                {/* Delete button has been removed as requested */}
               </div>
             )}
           </div>

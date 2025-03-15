@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
@@ -10,14 +11,16 @@ import { supabase } from '@/integrations/supabase/client';
 // Define BeatMode type to match ActBar
 type BeatMode = 'on' | 'off';
 
-// Define a non-recursive type for act counts
+// Fix the recursive type by creating a non-recursive interface
+// This interface explicitly lists all keys to prevent deep instantiation
 interface ActCountsRecord {
   '1': number;
   '2A': number;
   'midpoint': number;
   '2B': number;
   '3': number;
-  [key: string]: number; // Allow string indexing but avoid recursive definition
+  // Use a separate indexer that doesn't reference the type itself
+  [key: string]: number;
 }
 
 interface TagManagerProps {
@@ -53,7 +56,7 @@ const TagManager: React.FC<TagManagerProps> = ({
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Define actCounts with explicit non-recursive type
+  // Initialize with a stable object structure to avoid recursive type issues
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
     '1': 0,
     '2A': 0,
@@ -98,7 +101,7 @@ const TagManager: React.FC<TagManagerProps> = ({
     // Collect all unique tags from scene headings
     const tags = new Set<string>();
     
-    // Use the explicit ActCountsRecord type
+    // Create a concrete object of the exact interface shape
     const actTagCounts: ActCountsRecord = {
       '1': 0,
       '2A': 0,

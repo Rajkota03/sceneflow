@@ -33,7 +33,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           title="Act 1 - Setup"
           beats={actBeats.find(item => item.act === 1)?.beats || []}
           onUpdateBeat={onUpdateBeat}
-          onDeleteBeat={onDeleteBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -44,7 +43,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           title="Act 2A - Confrontation (First Half)"
           beats={actBeats.find(item => item.act === '2A')?.beats || []}
           onUpdateBeat={onUpdateBeat}
-          onDeleteBeat={onDeleteBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -55,7 +53,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           title="Midpoint"
           beats={actBeats.find(item => item.act === 'midpoint')?.beats || []}
           onUpdateBeat={onUpdateBeat}
-          onDeleteBeat={onDeleteBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -66,7 +63,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           title="Act 2B - Confrontation (Second Half)"
           beats={actBeats.find(item => item.act === '2B')?.beats || []}
           onUpdateBeat={onUpdateBeat}
-          onDeleteBeat={onDeleteBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -77,7 +73,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           title="Act 3 - Resolution"
           beats={actBeats.find(item => item.act === 3)?.beats || []}
           onUpdateBeat={onUpdateBeat}
-          onDeleteBeat={onDeleteBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
