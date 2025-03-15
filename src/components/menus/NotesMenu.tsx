@@ -31,30 +31,34 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
           Create New Note
         </MenubarItem>
         
-        {notes.length > 0 && (
-          <>
-            <MenubarSeparator />
-            <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
-            {notes.map(note => (
-              <MenubarItem key={note.id} onClick={() => onOpenNote(note)}>
-                <FileText className="mr-2 h-4 w-4" />
-                {note.title}
-              </MenubarItem>
-            ))}
-          </>
+        <MenubarSeparator />
+        <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
+        {notes.length > 0 ? (
+          notes.map(note => (
+            <MenubarItem key={note.id} onClick={() => onOpenNote(note)}>
+              <FileText className="mr-2 h-4 w-4" />
+              {note.title}
+            </MenubarItem>
+          ))
+        ) : (
+          <MenubarItem disabled>
+            <span className="text-muted-foreground italic">No notes available</span>
+          </MenubarItem>
         )}
         
-        {recentNotes.length > 0 && (
-          <>
-            <MenubarSeparator />
-            <div className="px-2 py-1 text-xs text-muted-foreground">Recent Notes</div>
-            {recentNotes.map(note => (
-              <MenubarItem key={`recent-${note.id}`} onClick={() => onOpenNote(note)}>
-                <Clock className="mr-2 h-4 w-4" />
-                {note.title}
-              </MenubarItem>
-            ))}
-          </>
+        <MenubarSeparator />
+        <div className="px-2 py-1 text-xs text-muted-foreground">Recent Notes</div>
+        {recentNotes.length > 0 ? (
+          recentNotes.map(note => (
+            <MenubarItem key={`recent-${note.id}`} onClick={() => onOpenNote(note)}>
+              <Clock className="mr-2 h-4 w-4" />
+              {note.title}
+            </MenubarItem>
+          ))
+        ) : (
+          <MenubarItem disabled>
+            <span className="text-muted-foreground italic">No recent notes</span>
+          </MenubarItem>
         )}
       </MenubarContent>
     </MenubarMenu>
