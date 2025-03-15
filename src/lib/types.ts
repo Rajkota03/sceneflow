@@ -1,3 +1,4 @@
+
 import { Json } from '@/integrations/supabase/types';
 
 export interface ScriptElement {
@@ -75,17 +76,21 @@ export function deserializeNotes(jsonNotes: any[]): Note[] {
   }));
 }
 
+export type ActType = 1 | '2A' | 'midpoint' | '2B' | 3;
+
 export interface StoryBeat {
   id: string;
   title: string;
   description: string;
   position: number;
-  actNumber: 1 | 2 | 3;
+  actNumber: ActType;
+  isMidpoint?: boolean;
 }
 
 export interface ThreeActStructure {
   id: string;
   projectId: string;
+  projectTitle?: string;
   beats: StoryBeat[];
   createdAt: Date | string;
   updatedAt: Date | string;
@@ -122,57 +127,77 @@ export const defaultStoryBeats: StoryBeat[] = [
     actNumber: 1
   },
   
-  // Act 2
+  // Act 2A
   {
     id: 'beat-5',
     title: 'First Pinch Point',
     description: 'The protagonist faces the first real encounter with the antagonistic forces.',
     position: 4,
-    actNumber: 2
+    actNumber: '2A'
   },
   {
     id: 'beat-6',
-    title: 'Midpoint',
-    description: "A major reversal or revelation that raises the stakes and changes the protagonist's perspective.",
+    title: 'Rising Action',
+    description: 'The protagonist faces increasing challenges and complications.',
     position: 5,
-    actNumber: 2
+    actNumber: '2A'
   },
+  
+  // Midpoint
   {
     id: 'beat-7',
+    title: 'Midpoint',
+    description: 'A major reversal, revelation, or shift in perspective that changes everything.',
+    position: 6,
+    actNumber: 'midpoint',
+    isMidpoint: true
+  },
+  
+  // Act 2B
+  {
+    id: 'beat-8',
     title: 'Second Pinch Point',
     description: 'Another reminder of the antagonistic forces, often with increased intensity.',
-    position: 6,
-    actNumber: 2
+    position: 7,
+    actNumber: '2B'
+  },
+  {
+    id: 'beat-9',
+    title: 'Pre-Climax',
+    description: 'Events build toward the final confrontation as stakes continue to rise.',
+    position: 8,
+    actNumber: '2B'
   },
   
   // Act 3
   {
-    id: 'beat-8',
+    id: 'beat-10',
     title: 'Third Plot Point',
     description: 'The darkest moment where all seems lost for the protagonist.',
-    position: 7,
+    position: 9,
     actNumber: 3
   },
   {
-    id: 'beat-9',
+    id: 'beat-11',
     title: 'Climax',
     description: "The final confrontation where the story's central conflict is resolved.",
-    position: 8,
+    position: 10,
     actNumber: 3
   },
   {
-    id: 'beat-10',
+    id: 'beat-12',
     title: 'Resolution',
     description: 'Tying up loose ends and showing the new normal after the conflict is resolved.',
-    position: 9,
+    position: 11,
     actNumber: 3
   }
 ];
 
-export function createDefaultStructure(projectId: string): ThreeActStructure {
+export function createDefaultStructure(projectId: string, projectTitle?: string): ThreeActStructure {
   return {
     id: `structure-${Date.now()}`,
     projectId,
+    projectTitle,
     beats: [...defaultStoryBeats],
     createdAt: new Date(),
     updatedAt: new Date()

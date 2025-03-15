@@ -29,15 +29,27 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({ beat, onUpdate }) => {
     setIsEditing(false);
   };
 
+  const getBeatStyles = () => {
+    if (beat.actNumber === 'midpoint' || beat.isMidpoint) {
+      return 'border-l-4 border-l-yellow-500 bg-yellow-50 border-2 border-yellow-300';
+    }
+    
+    switch (beat.actNumber) {
+      case 1:
+        return 'border-l-4 border-l-purple-400 bg-purple-50';
+      case '2A':
+      case '2B':
+        return 'border-l-4 border-l-blue-400 bg-blue-50';
+      case 3:
+        return 'border-l-4 border-l-green-400 bg-green-50';
+      default:
+        return 'border-l-4 border-l-gray-400 bg-gray-50';
+    }
+  };
+
   return (
     <div 
-      className={`p-4 mb-4 border rounded-md shadow-sm ${
-        beat.actNumber === 1
-          ? 'border-l-4 border-l-purple-400 bg-purple-50'
-          : beat.actNumber === 2
-          ? 'border-l-4 border-l-blue-400 bg-blue-50'
-          : 'border-l-4 border-l-green-400 bg-green-50'
-      }`}
+      className={`p-4 mb-4 border rounded-md shadow-sm ${getBeatStyles()}`}
     >
       <div className="flex justify-between items-start mb-2">
         {isEditing ? (
@@ -48,7 +60,9 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({ beat, onUpdate }) => {
             className="font-semibold text-sm"
           />
         ) : (
-          <h3 className="font-semibold text-sm">{title}</h3>
+          <h3 className={`font-semibold text-sm ${beat.isMidpoint ? 'text-yellow-800' : ''}`}>
+            {title}
+          </h3>
         )}
         
         <Button 

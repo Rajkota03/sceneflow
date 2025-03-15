@@ -1,4 +1,3 @@
-
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
@@ -8,7 +7,7 @@ import EmptyState from '@/components/dashboard/EmptyState';
 import LoadingState from '@/components/dashboard/LoadingState';
 import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen, Network } from 'lucide-react';
+import { FileText, NotebookPen, Network, Bookmark } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { Note, ThreeActStructure } from '@/lib/types';
@@ -74,9 +73,7 @@ const Dashboard = () => {
           continue;
         }
         
-        // Check if there's a three-act structure in the notes
         if (data?.notes && Array.isArray(data.notes)) {
-          // Look for a note that contains the structure data
           const structureNote = data.notes.find((note: any) => 
             note && 
             typeof note === 'object' && 
@@ -145,10 +142,8 @@ const Dashboard = () => {
 
   const handleSaveNote = (updatedNote: Note) => {
     if (updatedNote.id) {
-      // This is an existing note being updated
       handleUpdateNote(updatedNote);
     } else {
-      // This is a new note
       handleCreateNote(updatedNote);
     }
     setIsNoteEditorOpen(false);
@@ -156,7 +151,7 @@ const Dashboard = () => {
   };
 
   const handleCreateNewNote = () => {
-    setCurrentNote(null); // Ensure we're creating a new note
+    setCurrentNote(null);
     setIsNoteEditorOpen(true);
   };
 
@@ -170,12 +165,10 @@ const Dashboard = () => {
       return;
     }
     
-    // Navigate to structure page of the first project
     const firstProject = projects[0];
     window.location.href = `/structure/${firstProject.id}`;
   };
-  
-  // Structure placeholder skeleton for loading state
+
   const StructurePlaceholder = () => (
     <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
       <div className="flex justify-between items-start mb-2">
@@ -313,10 +306,14 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3">
-                          Three-Act Structure
+                          Four-Part Story Structure
                         </p>
-                        <div className="grid grid-cols-3 gap-1 mb-3">
+                        <div className="grid grid-cols-5 gap-1 mb-3">
                           <div className="bg-purple-100 h-2 rounded"></div>
+                          <div className="bg-blue-100 h-2 rounded"></div>
+                          <div className="bg-yellow-300 h-3 -mt-0.5 rounded flex items-center justify-center">
+                            <div className="bg-yellow-500 h-1 w-1 rounded-full"></div>
+                          </div>
                           <div className="bg-blue-100 h-2 rounded"></div>
                           <div className="bg-green-100 h-2 rounded"></div>
                         </div>
@@ -333,8 +330,8 @@ const Dashboard = () => {
                     <Network className="h-16 w-16 text-muted-foreground mb-4 mx-auto" />
                     <h3 className="text-2xl font-medium mb-2">Story Structure Tools</h3>
                     <p className="text-muted-foreground mb-6">
-                      Break down your screenplay using classic story structures or create your own custom
-                      templates with interactive scene cards and direct script linking.
+                      Break down your screenplay using classical story structures with a special emphasis on the critical midpoint, 
+                      creating a four-part framework with interactive scene cards.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm mb-6">
                       <div className="flex items-start gap-2">
@@ -342,17 +339,17 @@ const Dashboard = () => {
                           <Network className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">Story Templates</p>
-                          <p className="text-muted-foreground">3-Act, Hero's Journey, Save the Cat</p>
+                          <p className="font-medium">Four-Part Structure</p>
+                          <p className="text-muted-foreground">Act 1, 2A, Midpoint, 2B, Act 3</p>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <FileText className="h-4 w-4 text-primary" />
+                          <Bookmark className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="font-medium">Scene Cards</p>
-                          <p className="text-muted-foreground">Visualize and reorganize your story</p>
+                          <p className="font-medium">Highlighted Midpoint</p>
+                          <p className="text-muted-foreground">Visual emphasis on the crucial turning point</p>
                         </div>
                       </div>
                     </div>

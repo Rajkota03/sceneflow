@@ -79,7 +79,8 @@ export const useThreeActStructure = (projectId: string) => {
     isLoading,
     isSaving,
     updateBeat,
-    reorderBeats
+    reorderBeats,
+    saveStructure
   };
 };
 

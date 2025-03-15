@@ -12,7 +12,7 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
     console.log("Fetching structure for project:", projectId);
     const { data, error } = await supabase
       .from('projects')
-      .select('notes')
+      .select('notes, title')
       .eq('id', projectId)
       .eq('author_id', userId)
       .single();
@@ -38,13 +38,15 @@ export const fetchStructureData = async (projectId: string, userId: string) => {
         // Ensure dates are Date objects
         structureData.createdAt = new Date(structureData.createdAt);
         structureData.updatedAt = new Date(structureData.updatedAt);
+        // Add project title if available
+        structureData.projectTitle = data.title;
       }
     }
     
     // If no structure found, create a default one
     if (!structureData) {
       console.log("No structure found, creating default");
-      structureData = createDefaultStructure(projectId);
+      structureData = createDefaultStructure(projectId, data?.title);
     }
     
     return structureData;
@@ -74,6 +76,7 @@ export const serializeStructureForStorage = (structure: ThreeActStructure) => {
   return {
     id: structure.id,
     projectId: structure.projectId,
+    projectTitle: structure.projectTitle,
     createdAt: structure.createdAt instanceof Date 
       ? structure.createdAt.toISOString() 
       : structure.createdAt,
@@ -83,7 +86,8 @@ export const serializeStructureForStorage = (structure: ThreeActStructure) => {
       title: beat.title,
       description: beat.description,
       position: beat.position,
-      actNumber: beat.actNumber
+      actNumber: beat.actNumber,
+      isMidpoint: beat.isMidpoint
     }))
   };
 };

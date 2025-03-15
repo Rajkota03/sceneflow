@@ -1,22 +1,68 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import ThreeActStructureTimeline from '@/components/structure/ThreeActStructureTimeline';
 import useThreeActStructure from '@/hooks/useThreeActStructure';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/App';
+import { toast } from '@/components/ui/use-toast';
 
 const Structure = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const [isUpdatingTitle, setIsUpdatingTitle] = useState(false);
   
   const {
     structure,
     isLoading,
     isSaving,
     updateBeat,
-    reorderBeats
+    reorderBeats,
+    saveStructure
   } = useThreeActStructure(projectId || '');
+  
+  const handleUpdateProjectTitle = async (newTitle: string) => {
+    if (!session || !projectId) return;
+    
+    setIsUpdatingTitle(true);
+    
+    try {
+      // Update the project title in the database
+      const { error } = await supabase
+        .from('projects')
+        .update({ title: newTitle })
+        .eq('id', projectId)
+        .eq('author_id', session.user.id);
+      
+      if (error) throw error;
+      
+      // Update the structure with the new title
+      if (structure) {
+        const updatedStructure = {
+          ...structure,
+          projectTitle: newTitle
+        };
+        saveStructure(updatedStructure);
+      }
+      
+      toast({
+        title: 'Success',
+        description: 'Project title updated',
+      });
+    } catch (error) {
+      console.error('Error updating project title:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update project title',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingTitle(false);
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gray-100">
@@ -44,7 +90,7 @@ const Structure = () => {
               <h2 className="text-lg font-medium mb-4">Structure Tools</h2>
               <div className="space-y-2">
                 <Button variant="outline" className="w-full justify-start">
-                  Three-Act Structure
+                  Four-Part Structure
                 </Button>
                 <Button variant="outline" className="w-full justify-start text-gray-500" disabled>
                   Save the Cat Beats (Coming Soon)
@@ -63,9 +109,10 @@ const Structure = () => {
             <ThreeActStructureTimeline 
               structure={structure}
               isLoading={isLoading}
-              isSaving={isSaving}
+              isSaving={isSaving || isUpdatingTitle}
               onUpdateBeat={updateBeat}
               onReorderBeats={reorderBeats}
+              onUpdateProjectTitle={handleUpdateProjectTitle}
             />
           </div>
         </div>
