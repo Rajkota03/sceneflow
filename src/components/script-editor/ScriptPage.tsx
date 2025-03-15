@@ -3,6 +3,9 @@ import React from 'react';
 import { ScriptElement, ElementType } from '@/lib/types';
 import EditorElement from '../EditorElement';
 
+// Define the BeatMode type to be consistent
+type BeatMode = 'on' | 'off';
+
 interface ScriptPageProps {
   elements: ScriptElement[];
   activeElementId: string | null;
@@ -17,7 +20,7 @@ interface ScriptPageProps {
   handleTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode: 'on' | 'off';
+  beatMode: BeatMode;
 }
 
 const ScriptPage: React.FC<ScriptPageProps> = ({

@@ -5,6 +5,9 @@ import FormatStyler from '../FormatStyler';
 import ScriptPage from './ScriptPage';
 import { useFormat } from '@/lib/formatContext';
 
+// Define the BeatMode type to be consistent
+type BeatMode = 'on' | 'off';
+
 interface ScriptContentComponentProps {
   filteredElements: ScriptElement[];
   activeElementId: string | null;
@@ -18,7 +21,7 @@ interface ScriptContentComponentProps {
   handleTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode: 'on' | 'off';
+  beatMode: BeatMode;
 }
 
 const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({

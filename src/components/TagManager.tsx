@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
+// Define BeatMode type to match ActBar
+type BeatMode = 'on' | 'off';
+
 interface TagManagerProps {
   scriptContent: ScriptContent;
   onFilterByTag: (tag: string | null) => void;
@@ -15,8 +18,8 @@ interface TagManagerProps {
   activeActFilter?: ActType | null;
   projectName?: string;
   structureName?: string;
-  beatMode?: 'on' | 'off';
-  onToggleBeatMode?: (mode: 'on' | 'off') => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 

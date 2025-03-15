@@ -11,6 +11,9 @@ import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 
+// Define BeatMode type to be consistent
+type BeatMode = 'on' | 'off';
+
 interface ScriptEditorProps {
   initialContent: ScriptContentType;
   onChange: (content: ScriptContentType) => void;
@@ -36,7 +39,7 @@ const ScriptEditor = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
-  const [beatMode, setBeatMode] = useState<'on' | 'off'>('on');
+  const [beatMode, setBeatMode] = useState<BeatMode>('on');
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Use custom hooks for state management
@@ -194,7 +197,7 @@ const ScriptEditor = ({
     setActiveActFilter(act);
   };
 
-  const handleToggleBeatMode = (mode: 'on' | 'off') => {
+  const handleToggleBeatMode = (mode: BeatMode) => {
     setBeatMode(mode);
   };
 

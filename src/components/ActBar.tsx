@@ -6,14 +6,17 @@ import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Filter, Zap, ZapOff, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
+// Define the BeatMode type to ensure consistent usage
+type BeatMode = 'on' | 'off';
+
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
   actCounts: Record<ActType | string, number>;
   projectName?: string;
   structureName?: string;
-  beatMode?: 'on' | 'off';
-  onToggleBeatMode?: (mode: 'on' | 'off') => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -35,7 +38,7 @@ const ActBar: React.FC<ActBarProps> = ({
     { id: 3, label: 'Act 3', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
   ];
 
-  const handleBeatModeToggle = (value: 'on' | 'off') => {
+  const handleBeatModeToggle = (value: BeatMode) => {
     if (onToggleBeatMode) {
       onToggleBeatMode(value);
     }
