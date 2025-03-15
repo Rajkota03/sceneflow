@@ -99,7 +99,7 @@ const TagManager: React.FC<TagManagerProps> = ({
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2 flex items-center">
                   <Tags size={16} className="mr-2" />
-                  <span className="text-sm font-medium text-slate-700">Scene Tags</span>
+                  <span className="text-sm font-medium text-slate-700">Bear Bar</span>
                   {isTagsOpen ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
                 </Button>
               </CollapsibleTrigger>

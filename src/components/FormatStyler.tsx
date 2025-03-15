@@ -47,16 +47,6 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
     >
       {children}
-      
-      {/* Page number indicator - enhanced visibility */}
-      {!forPrint && !forExport && (
-        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: "Courier Final Draft, Courier Prime, monospace",
-          fontSize: "12pt",
-        }}>
-          {currentPage}
-        </div>
-      )}
     </div>
   );
 };

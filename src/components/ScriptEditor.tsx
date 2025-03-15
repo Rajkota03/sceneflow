@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -31,12 +30,10 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
   const editorRef = useRef<HTMLDivElement>(null);
 
-  // Sync elements with parent component
   useEffect(() => {
     onChange({ elements });
   }, [elements, onChange]);
 
-  // Apply filtering (tag or act-based)
   useEffect(() => {
     if (!activeTagFilter && !activeActFilter) {
       setFilteredElements(elements);
@@ -100,19 +97,17 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     setFilteredElements(filtered);
   }, [elements, activeTagFilter, activeActFilter]);
 
-  // Extract character names from elements
   useEffect(() => {
     const names = elements
       .filter(el => el.type === 'character')
-      .map(el => el.text.replace(/\s*\(CONT'D\)\s*$/, '').trim()) // Remove (CONT'D) for storage
+      .map(el => el.text.replace(/\s*\(CONT'D\)\s*$/, '').trim())
       .filter((name, index, self) => 
-        name && self.indexOf(name) === index  // Only include unique names
+        name && self.indexOf(name) === index
       );
     
     setCharacterNames(names);
   }, [elements]);
 
-  // Create default elements if empty
   useEffect(() => {
     if (!elements || elements.length === 0) {
       console.log("No elements found, creating default elements");
@@ -133,26 +128,21 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     }
   }, [elements]);
 
-  // Calculate the zoom percentage for display
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
-  // Handle zoom slider change
   const handleZoomChange = (value: number[]) => {
     const newZoomLevel = value[0] / 100;
-    // Update the format context with the new zoom level
     const { formatState: currentState, setZoomLevel } = useFormat();
     if (setZoomLevel) {
       setZoomLevel(newZoomLevel);
     }
   };
 
-  // Get the previous element type for contextual formatting
   const getPreviousElementType = (index: number): ElementType | undefined => {
     if (index <= 0) return undefined;
     return elements[index - 1].type;
   };
 
-  // Handle element text and type changes
   const handleElementChange = (id: string, text: string, type: ElementType) => {
     setElements(prevElements => 
       prevElements.map(element => 
@@ -161,7 +151,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     );
   };
 
-  // Handle element type changes (manual formatting)
   const handleFormatChange = (id: string, newType: ElementType) => {
     setElements(prevElements => {
       const index = prevElements.findIndex(el => el.id === id);
@@ -170,7 +159,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
       let updatedElements = [...prevElements];
       let updatedElement = { ...updatedElements[index], type: newType };
       
-      // Add (CONT'D) when appropriate for character elements
       if (newType === 'character') {
         updatedElement.text = addContdToCharacter(updatedElement.text, index, prevElements);
       }
@@ -180,14 +168,12 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     });
   };
 
-  // Handle Enter key press
   const handleEnterKey = (id: string, shiftKey: boolean) => {
     const currentIndex = elements.findIndex(el => el.id === id);
     if (currentIndex === -1) return;
     
     const currentElement = elements[currentIndex];
     
-    // Handle Shift+Enter for dialogue (creates a line break instead of new element)
     if (shiftKey && currentElement.type === 'dialogue') {
       const updatedElements = [...elements];
       updatedElements[currentIndex] = {
@@ -198,7 +184,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
       return;
     }
     
-    // Determine the next element's type based on screenplay logic
     let nextType: ElementType;
     switch (currentElement.type) {
       case 'scene-heading':
@@ -220,16 +205,13 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
         nextType = 'action';
     }
     
-    // Create a new element
     const newElement: ScriptElement = {
       id: generateUniqueId(),
       type: nextType,
       text: ''
     };
     
-    // Handle character continuation if this is a character element
     if (nextType === 'character' as ElementType) {
-      // Find the previous character
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
         if (elements[i].type === 'character') {
@@ -238,7 +220,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
         }
       }
       
-      // Check if we should add CONT'D
       if (prevCharIndex !== -1) {
         const charName = elements[prevCharIndex].text.replace(/\s*\(CONT'D\)\s*$/, '');
         if (shouldAddContd(charName, currentIndex + 1, [...elements, newElement])) {
@@ -259,7 +240,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     setActiveElementId(newElement.id);
   };
 
-  // Handle navigation between elements
   const handleNavigate = (direction: 'up' | 'down', id: string) => {
     const currentIndex = elements.findIndex(el => el.id === id);
     if (currentIndex === -1) return;
@@ -271,12 +251,10 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     }
   };
 
-  // Handle focus on element
   const handleFocus = (id: string) => {
     setActiveElementId(id);
   };
 
-  // Handle tags change for elements
   const handleTagsChange = (elementId: string, tags: string[]) => {
     setElements(prevElements =>
       prevElements.map(element =>
@@ -285,7 +263,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     );
   };
 
-  // Handle tag filtering
   const handleFilterByTag = (tag: string | null) => {
     setActiveTagFilter(tag);
     if (tag !== null) {
@@ -293,7 +270,6 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     }
   };
 
-  // Handle act filtering
   const handleFilterByAct = (act: ActType | null) => {
     setActiveActFilter(act);
   };
@@ -323,8 +299,17 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
             }}>
               <div className="script-page-content" style={{
                 fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-                fontSize: '12pt'
+                fontSize: '12pt',
+                position: 'relative'
               }}>
+                {/* Page number now positioned inside the page */}
+                <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
+                  fontFamily: "Courier Final Draft, Courier Prime, monospace",
+                  fontSize: "12pt",
+                }}>
+                  {currentPage}
+                </div>
+                
                 {filteredElements.map((element, index) => (
                   <EditorElement
                     key={element.id}
