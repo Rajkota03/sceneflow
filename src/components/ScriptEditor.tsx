@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -144,7 +143,7 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     };
     
     // Handle character continuation if this is a character after an action
-    if (nextType === 'character' && currentIndex > 0) {
+    if (nextType === 'character') {
       // Find the previous character
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
