@@ -211,13 +211,14 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
           
           {structure && (
             <ThreeActStructureTimeline
+              projectId={projectId}
               structure={structure}
               isLoading={isLoading}
               isSaving={false}
               onUpdateBeat={updateBeat}
               onReorderBeats={() => {}}
-              onSelectBeatForTagging={handleSelectBeatForTagging}
               mode="tag"
+              onSelectBeatForTagging={handleSelectBeatForTagging}
             />
           )}
           

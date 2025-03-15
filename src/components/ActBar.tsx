@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Filter, Zap, ZapOff } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, Zap, ZapOff, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { Switch } from './ui/switch';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
@@ -61,30 +61,32 @@ const ActBar: React.FC<ActBarProps> = ({
             <span className="text-sm font-medium text-slate-600">{structureName}</span>
             
             {onToggleBeatMode && (
-              <ToggleGroup type="single" value={beatMode} onValueChange={(value) => value && handleBeatModeToggle(value as 'on' | 'off')}>
-                <ToggleGroupItem 
-                  value="on" 
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={beatMode === 'on' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleBeatModeToggle('on')}
                   className={cn(
-                    "flex items-center gap-1 text-xs relative",
-                    beatMode === 'on' && "bg-primary text-primary-foreground after:absolute after:inset-0 after:animate-pulse after:bg-primary/20 after:rounded-md after:z-[-1]"
+                    "h-7 flex items-center gap-1 relative text-xs",
+                    beatMode === 'on' && "after:absolute after:inset-0 after:animate-pulse after:bg-primary/20 after:rounded-md after:z-[-1]"
                   )}
-                  aria-label="Beat Mode"
                 >
                   <Zap size={14} />
                   <span>Beat Mode</span>
-                </ToggleGroupItem>
-                <ToggleGroupItem 
-                  value="off" 
-                  className={cn(
-                    "flex items-center gap-1 text-xs",
-                    beatMode === 'off' && "bg-muted text-muted-foreground"
-                  )}
-                  aria-label="Free Mode"
+                  {beatMode === 'on' && <Check size={14} className="ml-1" />}
+                </Button>
+                
+                <Button
+                  variant={beatMode === 'off' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => handleBeatModeToggle('off')}
+                  className="h-7 flex items-center gap-1 text-xs"
                 >
                   <ZapOff size={14} />
                   <span>Free Mode</span>
-                </ToggleGroupItem>
-              </ToggleGroup>
+                  {beatMode === 'off' && <Check size={14} className="ml-1" />}
+                </Button>
+              </div>
             )}
             
             <Button

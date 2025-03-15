@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useDrag, useDrop } from 'react-dnd';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ThreeActStructure,
-  Beat,
-  Project,
-  emptyProject,
-  ScriptContent,
-  jsonToScriptContent,
-  scriptContentToJson
+  StoryBeat,
+  ActType
 } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,28 +16,64 @@ import { ArrowLeft, Plus, GripVertical, Edit, Trash2, X, Loader } from 'lucide-r
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import StructureHeader from './StructureHeader';
-import { Json } from '@/integrations/supabase/types';
+import { SortableItem } from './SortableItem';
 
 interface ThreeActStructureTimelineProps {
   projectId?: string;
+  structure?: ThreeActStructure | null;
+  isLoading?: boolean;
+  isSaving?: boolean;
+  onUpdateBeat?: (beatId: string, updates: Partial<StoryBeat>) => void;
+  onReorderBeats?: (beats: StoryBeat[]) => void;
+  onUpdateProjectTitle?: (title: string) => void;
+  onDeleteBeat?: (beatId: string) => void;
+  onSave?: () => void;
+  mode?: 'edit' | 'tag';
+  onSelectBeatForTagging?: (beat: StoryBeat) => void;
 }
 
-const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ projectId }) => {
+const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ 
+  projectId,
+  structure: propStructure,
+  isLoading: propIsLoading,
+  isSaving: propIsSaving,
+  onUpdateBeat,
+  onReorderBeats,
+  onUpdateProjectTitle,
+  onDeleteBeat,
+  onSave,
+  mode = 'edit',
+  onSelectBeatForTagging
+}) => {
   const { structureId } = useParams<{ structureId: string }>();
   const navigate = useNavigate();
   const { session } = useAuth();
 
-  const [structure, setStructure] = useState<ThreeActStructure | null>(null);
-  const [beats, setBeats] = useState<Beat[]>([]);
+  const [structure, setStructure] = useState<ThreeActStructure | null>(propStructure || null);
+  const [beats, setBeats] = useState<StoryBeat[]>([]);
   const [title, setTitle] = useState('');
   const [newBeatName, setNewBeatName] = useState('');
-  const [selectedBeat, setSelectedBeat] = useState<Beat | null>(null);
+  const [selectedBeat, setSelectedBeat] = useState<StoryBeat | null>(null);
   const [editedBeatName, setEditedBeatName] = useState('');
   const [editedBeatDescription, setEditedBeatDescription] = useState('');
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
-  const [isLoading, setIsLoading] = useState(true);
+  const [editMode, setEditMode] = useState<'view' | 'edit'>('view');
+  const [isLoading, setIsLoading] = useState(propIsLoading !== undefined ? propIsLoading : true);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
+    if (propStructure) {
+      setStructure(propStructure);
+      setBeats(propStructure.beats || []);
+      setTitle(propStructure.projectTitle || '');
+      return;
+    }
+
     if (!session || !structureId) return;
 
     const fetchStructure = async () => {
@@ -66,16 +97,17 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
         } else if (data) {
           const formattedStructure: ThreeActStructure = {
             id: data.id,
-            title: data.title,
+            projectId: data.project_id || '',
+            projectTitle: data.title,
             authorId: data.author_id,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),
-            beats: data.beats as Beat[],
+            beats: data.beats as StoryBeat[],
           };
 
           setStructure(formattedStructure);
-          setBeats(formattedStructure.beats);
-          setTitle(formattedStructure.title);
+          setBeats(formattedStructure.beats || []);
+          setTitle(formattedStructure.projectTitle || '');
         }
       } catch (error) {
         console.error('Error:', error);
@@ -91,7 +123,7 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
     };
 
     fetchStructure();
-  }, [structureId, session, navigate]);
+  }, [structureId, session, navigate, propStructure]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -104,25 +136,35 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
   const handleAddBeat = async () => {
     if (!structure) return;
 
-    const newBeat: Beat = {
+    const newBeat: StoryBeat = {
       id: uuidv4(),
-      name: newBeatName,
+      title: newBeatName,
       description: '',
-      order: beats.length,
+      position: beats.length,
+      actNumber: 1 as ActType,
     };
 
     const updatedBeats = [...beats, newBeat];
     setBeats(updatedBeats);
     setNewBeatName('');
 
-    await updateStructureBeats(updatedBeats);
+    if (onReorderBeats) {
+      onReorderBeats(updatedBeats);
+    } else {
+      await updateStructureBeats(updatedBeats);
+    }
   };
 
-  const handleBeatClick = (beat: Beat) => {
+  const handleBeatClick = (beat: StoryBeat) => {
+    if (mode === 'tag' && onSelectBeatForTagging) {
+      onSelectBeatForTagging(beat);
+      return;
+    }
+
     setSelectedBeat(beat);
-    setEditedBeatName(beat.name);
+    setEditedBeatName(beat.title);
     setEditedBeatDescription(beat.description);
-    setMode('view');
+    setEditMode('view');
   };
 
   const handleEditBeatNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,14 +179,18 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
     if (!selectedBeat || !structure) return;
 
     const updatedBeats = beats.map(beat =>
-      beat.id === selectedBeat.id ? { ...beat, name: editedBeatName, description: editedBeatDescription } : beat
+      beat.id === selectedBeat.id ? { ...beat, title: editedBeatName, description: editedBeatDescription } : beat
     );
 
     setBeats(updatedBeats);
-    setSelectedBeat({ ...selectedBeat, name: editedBeatName, description: editedBeatDescription });
-    setMode('view');
+    setSelectedBeat({ ...selectedBeat, title: editedBeatName, description: editedBeatDescription });
+    setEditMode('view');
 
-    await updateStructureBeats(updatedBeats);
+    if (onUpdateBeat) {
+      onUpdateBeat(selectedBeat.id, { title: editedBeatName, description: editedBeatDescription });
+    } else {
+      await updateStructureBeats(updatedBeats);
+    }
   };
 
   const handleDeleteBeat = async () => {
@@ -153,19 +199,23 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
     const updatedBeats = beats.filter(beat => beat.id !== selectedBeat.id);
     setBeats(updatedBeats);
     setSelectedBeat(null);
-    setMode('view');
+    setEditMode('view');
 
-    await updateStructureBeats(updatedBeats);
+    if (onDeleteBeat) {
+      onDeleteBeat(selectedBeat.id);
+    } else {
+      await updateStructureBeats(updatedBeats);
+    }
   };
 
   const handleCancelEdit = () => {
     if (!selectedBeat) return;
-    setEditedBeatName(selectedBeat.name);
+    setEditedBeatName(selectedBeat.title);
     setEditedBeatDescription(selectedBeat.description);
-    setMode('view');
+    setEditMode('view');
   };
 
-  const updateStructureBeats = async (updatedBeats: Beat[]) => {
+  const updateStructureBeats = async (updatedBeats: StoryBeat[]) => {
     if (!structure) return;
 
     try {
@@ -203,6 +253,11 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
   const handleUpdateTitle = async () => {
     if (!structure) return;
 
+    if (onUpdateProjectTitle) {
+      onUpdateProjectTitle(title);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('structures')
@@ -235,33 +290,27 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
     }
   };
 
-  const moveBeat = useCallback(async (dragIndex: number, hoverIndex: number) => {
-    const dragBeat = beats[dragIndex];
-    const updatedBeats = [...beats];
-    updatedBeats.splice(dragIndex, 1);
-    updatedBeats.splice(hoverIndex, 0, dragBeat);
-
-    // Optimistically update the order
-    const reorderedBeats = updatedBeats.map((beat, index) => ({ ...beat, order: index }));
-    setBeats(reorderedBeats);
-
-    // Update the structure with the new order
-    await updateStructureBeats(reorderedBeats);
-  }, [beats]);
-
-  const renderBeat = useCallback((beat: Beat, index: number) => {
-    return (
-      <BeatComponent
-        key={beat.id}
-        index={index}
-        id={beat.id}
-        name={beat.name}
-        description={beat.description}
-        onClick={() => handleBeatClick(beat)}
-        moveBeat={moveBeat}
-      />
-    );
-  }, [moveBeat]);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = beats.findIndex(beat => beat.id === active.id);
+      const newIndex = beats.findIndex(beat => beat.id === over.id);
+      
+      const newBeats = arrayMove(beats, oldIndex, newIndex).map((beat, index) => ({
+        ...beat,
+        position: index
+      }));
+      
+      setBeats(newBeats);
+      
+      if (onReorderBeats) {
+        onReorderBeats(newBeats);
+      } else {
+        updateStructureBeats(newBeats);
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -286,7 +335,11 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
   }
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       <div className="flex flex-col h-screen bg-slate-100">
         <StructureHeader title={title} projectId={projectId} />
 
@@ -324,7 +377,21 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
               <div>
                 <h3 className="text-lg font-semibold text-gray-700 mb-2">Beats</h3>
                 <div className="space-y-2">
-                  {beats.map((beat, index) => renderBeat(beat, index))}
+                  <SortableContext items={beats.map(beat => beat.id)} strategy={verticalListSortingStrategy}>
+                    {beats.map((beat) => (
+                      <SortableItem key={beat.id} id={beat.id}>
+                        <div
+                          className="bg-gray-50 rounded-md shadow-sm p-3 flex items-center justify-between hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleBeatClick(beat)}
+                        >
+                          <div className="flex items-center">
+                            <GripVertical size={16} className="text-gray-400 mr-2 cursor-grab" />
+                            <span className="text-gray-700 font-medium">{beat.title}</span>
+                          </div>
+                        </div>
+                      </SortableItem>
+                    ))}
+                  </SortableContext>
                 </div>
               </div>
 
@@ -332,23 +399,23 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
                 {selectedBeat ? (
                   <div className="bg-white rounded-md shadow-sm p-4">
                     <h3 className="text-lg font-semibold text-gray-700 mb-2">Beat Details</h3>
-                    {selectedBeat && mode === "view" && (
+                    {selectedBeat && editMode === "view" && (
                       <>
                         <div className="mb-2">
                           <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
-                          <p className="text-gray-800">{selectedBeat.name}</p>
+                          <p className="text-gray-800">{selectedBeat.title}</p>
                         </div>
                         <div className="mb-4">
                           <label className="block text-gray-600 text-sm font-medium mb-1">Description:</label>
                           <p className="text-gray-800">{selectedBeat.description || 'No description provided.'}</p>
                         </div>
-                        <Button onClick={() => setMode('edit')} className="w-full justify-center">
+                        <Button onClick={() => setEditMode('edit')} className="w-full justify-center">
                           <Edit size={16} className="mr-2" /> Edit Beat
                         </Button>
                       </>
                     )}
 
-                    {selectedBeat && mode === "edit" && (
+                    {selectedBeat && editMode === "edit" && (
                       <>
                         <div className="mb-2">
                           <label className="block text-gray-600 text-sm font-medium mb-1">Name:</label>
@@ -391,70 +458,8 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({ p
           </div>
         </div>
       </div>
-    </DndProvider>
+    </DndContext>
   );
 };
-
-interface BeatComponentProps {
-  index: number;
-  id: string;
-  name: string;
-  description: string;
-  onClick: () => void;
-  moveBeat: (dragIndex: number, hoverIndex: number) => void;
-}
-
-const BeatComponent: React.FC<BeatComponentProps> = React.memo(({ index, id, name, description, onClick, moveBeat }) => {
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  const [, drag] = useDrag({
-    type: 'beat',
-    item: { id, index },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  });
-
-  const [, drop] = useDrop({
-    accept: 'beat',
-    hover: (item: { id: string, index: number }, monitor) => {
-      if (!ref.current) {
-        return;
-      }
-      const dragIndex = item.index;
-      const hoverIndex = index;
-      if (dragIndex === hoverIndex) {
-        return;
-      }
-      const hoverBoundingRect = ref.current?.getBoundingClientRect();
-      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-      const clientOffset = monitor.getClientOffset();
-      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-        return;
-      }
-      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-        return;
-      }
-      moveBeat(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
-  });
-
-  drag(drop(ref));
-
-  return (
-    <div
-      ref={ref}
-      className="bg-gray-50 rounded-md shadow-sm p-3 flex items-center justify-between hover:bg-gray-100 cursor-pointer"
-      onClick={onClick}
-    >
-      <div className="flex items-center">
-        <GripVertical size={16} className="text-gray-400 mr-2 cursor-grab" />
-        <span className="text-gray-700 font-medium">{name}</span>
-      </div>
-    </div>
-  );
-});
 
 export default ThreeActStructureTimeline;

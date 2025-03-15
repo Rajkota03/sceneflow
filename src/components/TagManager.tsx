@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
-import { Tags, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Tags, Filter, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
@@ -106,7 +106,7 @@ const TagManager: React.FC<TagManagerProps> = ({
         )}
       </div>
       
-      {availableTags.length > 0 && (
+      {availableTags.length > 0 && beatMode === 'on' && (
         <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
           <div className="p-3">
             <div className="flex justify-between items-center">
