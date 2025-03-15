@@ -43,6 +43,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   projectId
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  // Define actCounts as Record<string, number> to avoid infinite type instantiation
   const [actCounts, setActCounts] = useState<Record<string, number>>({
     '1': 0,
     '2A': 0,
@@ -85,6 +86,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   useEffect(() => {
     // Collect all unique tags from scene headings
     const tags = new Set<string>();
+    // Define actTagCounts with the same type as actCounts
     const actTagCounts: Record<string, number> = {
       '1': 0,
       '2A': 0,
@@ -136,7 +138,13 @@ const TagManager: React.FC<TagManagerProps> = ({
           <ActBar 
             activeAct={activeActFilter || null} 
             onSelectAct={handleActFilter} 
-            actCounts={actCounts}
+            actCounts={{
+              1: actCounts['1'],
+              '2A': actCounts['2A'], 
+              'midpoint': actCounts['midpoint'], 
+              '2B': actCounts['2B'], 
+              3: actCounts['3']
+            }}
             projectName={projectName}
             structureName={structureName}
             beatMode={beatMode}

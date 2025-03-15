@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ThreeActStructure, StoryBeat, ActType } from '@/lib/types';
+import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import ThreeActStructureTimeline from './ThreeActStructureTimeline';
 import StructureToolsSidebar from './StructureToolsSidebar';
 import { PlusCircle, Loader } from 'lucide-react';
@@ -19,7 +19,6 @@ interface StructureContentProps {
   onReorderBeats: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle: (title: string) => void;
   onDeleteBeat: (beatId: string) => void;
-  onAddBeat?: (actNumber: ActType) => void;
   onSave?: () => void;
   onChangeStructure?: (structureId: string) => void;
 }
@@ -32,7 +31,6 @@ const StructureContent: React.FC<StructureContentProps> = ({
   onReorderBeats,
   onUpdateProjectTitle,
   onDeleteBeat,
-  onAddBeat,
   onSave,
   onChangeStructure
 }) => {
@@ -208,7 +206,6 @@ const StructureContent: React.FC<StructureContentProps> = ({
             onReorderBeats={onReorderBeats}
             onUpdateProjectTitle={onUpdateProjectTitle}
             onDeleteBeat={onDeleteBeat}
-            onAddBeat={onAddBeat}
             onSave={onSave}
           />
         </div>

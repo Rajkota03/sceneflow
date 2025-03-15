@@ -8,7 +8,7 @@ import StructureHeader from '@/components/structure/StructureHeader';
 import StructureContent from '@/components/structure/StructureContent';
 import { useAuth } from '@/App';
 import { toast } from '@/components/ui/use-toast';
-import { createDefaultStructure, ActType } from '@/lib/types';
+import { createDefaultStructure } from '@/lib/types';
 
 const Structure = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -56,7 +56,7 @@ const Structure = () => {
   } = useProjectTitle(projectId, structure, saveStructure);
   
   // Story beats operations
-  const { handleDeleteBeat, handleAddBeat } = useStoryBeats(structure, saveStructure);
+  const { handleDeleteBeat } = useStoryBeats(structure, saveStructure);
   
   // Manual save handler
   const handleSaveStructure = () => {
@@ -64,12 +64,6 @@ const Structure = () => {
       console.log("Manual save structure triggered");
       saveStructure(structure);
     }
-  };
-  
-  // Handler for adding a new beat to a specific act
-  const handleAddBeatToAct = (actNumber: ActType) => {
-    if (!structure) return;
-    handleAddBeat(actNumber);
   };
   
   return (
@@ -87,7 +81,6 @@ const Structure = () => {
         onReorderBeats={reorderBeats}
         onUpdateProjectTitle={handleUpdateProjectTitle}
         onDeleteBeat={handleDeleteBeat}
-        onAddBeat={handleAddBeatToAct}
         onSave={handleSaveStructure}
       />
     </div>

@@ -12,7 +12,6 @@ interface StructureActSectionsProps {
   }[];
   onUpdateBeat: (beatId: string, updates: Partial<StoryBeat>) => void;
   onDeleteBeat?: (beatId: string) => void;
-  onAddBeat?: (actNumber: ActType) => void;
   onBeatClick: (beat: StoryBeat) => void;
   taggingMode?: boolean;
 }
@@ -22,7 +21,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
   actBeats,
   onUpdateBeat,
   onDeleteBeat,
-  onAddBeat,
   onBeatClick,
   taggingMode = false
 }) => {
@@ -36,7 +34,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           beats={actBeats.find(item => item.act === 1)?.beats || []}
           onUpdateBeat={onUpdateBeat}
           onDeleteBeat={onDeleteBeat}
-          onAddBeat={onAddBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -48,7 +45,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           beats={actBeats.find(item => item.act === '2A')?.beats || []}
           onUpdateBeat={onUpdateBeat}
           onDeleteBeat={onDeleteBeat}
-          onAddBeat={onAddBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -60,7 +56,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           beats={actBeats.find(item => item.act === 'midpoint')?.beats || []}
           onUpdateBeat={onUpdateBeat}
           onDeleteBeat={onDeleteBeat}
-          onAddBeat={onAddBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -72,7 +67,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           beats={actBeats.find(item => item.act === '2B')?.beats || []}
           onUpdateBeat={onUpdateBeat}
           onDeleteBeat={onDeleteBeat}
-          onAddBeat={onAddBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />
@@ -84,7 +78,6 @@ const StructureActSections: React.FC<StructureActSectionsProps> = ({
           beats={actBeats.find(item => item.act === 3)?.beats || []}
           onUpdateBeat={onUpdateBeat}
           onDeleteBeat={onDeleteBeat}
-          onAddBeat={onAddBeat}
           onBeatClick={onBeatClick}
           taggingMode={taggingMode}
         />

@@ -11,7 +11,6 @@ import { LoadingState, NotFoundState } from './StructureStates';
 import StructureTitleEditor from './StructureTitleEditor';
 import StructureActSections from './StructureActSections';
 import useStructureBeatsOrganizer from '@/hooks/useStructureBeatsOrganizer';
-import { v4 as uuidv4 } from 'uuid';
 
 interface ThreeActStructureTimelineProps {
   projectId?: string;
@@ -22,7 +21,6 @@ interface ThreeActStructureTimelineProps {
   onReorderBeats?: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle?: (title: string) => void;
   onDeleteBeat?: (beatId: string) => void;
-  onAddBeat?: (actNumber: ActType) => void;
   onSave?: () => void;
   mode?: 'edit' | 'tag';
   onSelectBeatForTagging?: (beat: StoryBeat) => void;
@@ -37,7 +35,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
   onReorderBeats,
   onUpdateProjectTitle,
   onDeleteBeat,
-  onAddBeat,
   onSave,
   mode = 'edit',
   onSelectBeatForTagging
@@ -112,40 +109,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
     }
 
     setSelectedBeat(beat);
-  };
-
-  const handleAddBeat = (actNumber: ActType) => {
-    if (!structure) return;
-    
-    // Calculate the position for the new beat
-    const actBeats = beats.filter(beat => beat.actNumber === actNumber);
-    const position = actBeats.length > 0 
-      ? Math.max(...actBeats.map(beat => beat.position)) + 1 
-      : beats.length;
-    
-    // Create a new beat
-    const newBeat: StoryBeat = {
-      id: `beat-${uuidv4()}`,
-      title: `New Beat`,
-      description: 'Add your beat description here',
-      position: position,
-      actNumber: actNumber,
-      isMidpoint: actNumber === 'midpoint'
-    };
-    
-    const updatedBeats = [...beats, newBeat];
-    setBeats(updatedBeats);
-    
-    if (onReorderBeats) {
-      onReorderBeats(updatedBeats);
-    } else {
-      updateStructureBeats(updatedBeats);
-    }
-
-    toast({
-      title: 'Beat Added',
-      description: `New beat added to ${actNumber === 'midpoint' ? 'Midpoint' : `Act ${actNumber}`}`,
-    });
   };
 
   const updateStructureBeats = async (updatedBeats: StoryBeat[]) => {
@@ -250,7 +213,6 @@ const ThreeActStructureTimeline: React.FC<ThreeActStructureTimelineProps> = ({
               actBeats={organizedBeats}
               onUpdateBeat={onUpdateBeat || (() => {})}
               onDeleteBeat={onDeleteBeat}
-              onAddBeat={mode === 'edit' ? (onAddBeat || handleAddBeat) : undefined}
               onBeatClick={handleBeatClick}
               taggingMode={mode === 'tag'}
             />
