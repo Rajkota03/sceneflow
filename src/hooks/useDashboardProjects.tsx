@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
@@ -199,12 +200,12 @@ export const useDashboardProjects = () => {
     if (!session) return;
     
     try {
-      const uniqueNoteId = generateUniqueNoteId();
+      const uniqueNoteId = note.id || generateUniqueNoteId();
       
       const newNote: Note = {
         ...note,
         id: uniqueNoteId,
-        createdAt: new Date(),
+        createdAt: note.createdAt || new Date(),
         updatedAt: new Date()
       };
       
@@ -241,6 +242,56 @@ export const useDashboardProjects = () => {
       toast({
         title: 'Error',
         description: 'Failed to save the note. Please try again.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
+  const handleUpdateNote = async (note: Note) => {
+    if (!session || !note.id) return;
+    
+    try {
+      const updatedNote: Note = {
+        ...note,
+        updatedAt: new Date()
+      };
+      
+      const { error } = await supabase
+        .from('standalone_notes')
+        .update({
+          title: updatedNote.title,
+          content: updatedNote.content,
+          updated_at: updatedNote.updatedAt.toISOString()
+        })
+        .eq('id', updatedNote.id)
+        .eq('author_id', session.user.id);
+      
+      if (error) {
+        console.error('Error updating note:', error);
+        toast({
+          title: 'Error updating note',
+          description: error.message,
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setNotes(prevNotes => prevNotes.map(n => 
+        n.id === updatedNote.id ? updatedNote : n
+      ));
+      
+      console.log('Note updated successfully:', updatedNote.title);
+      toast({
+        title: "Note updated",
+        description: `"${updatedNote.title}" has been updated successfully.`
+      });
+      return updatedNote;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update the note. Please try again.',
         variant: 'destructive',
       });
       return null;
@@ -291,6 +342,7 @@ export const useDashboardProjects = () => {
     handleCreateNewProject,
     handleDeleteProject,
     handleCreateNote,
+    handleUpdateNote,
     handleDeleteNote
   };
 };

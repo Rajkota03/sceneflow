@@ -1,7 +1,7 @@
 
 import { Note } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { NotebookPen, Calendar, Trash2 } from 'lucide-react';
+import { NotebookPen, Calendar, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +10,10 @@ interface NotesGridProps {
   notes: Note[];
   onDeleteNote: (noteId: string) => void;
   onViewNote?: (note: Note) => void;
+  onEditNote?: (note: Note) => void;
 }
 
-const NotesGrid = ({ notes, onDeleteNote, onViewNote }: NotesGridProps) => {
+const NotesGrid = ({ notes, onDeleteNote, onViewNote, onEditNote }: NotesGridProps) => {
   const navigate = useNavigate();
 
   const formatDate = (date: Date) => {
@@ -74,15 +75,29 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote }: NotesGridProps) => {
           <CardContent onClick={() => handleViewNote(note)} className="cursor-pointer">
             <p className="text-sm text-muted-foreground line-clamp-3 h-14">{note.content}</p>
           </CardContent>
-          <CardFooter className="pt-2 pb-3">
+          <CardFooter className="pt-2 pb-3 flex justify-between">
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-xs text-primary w-full"
+              className="text-xs text-primary"
               onClick={() => handleViewNote(note)}
             >
               View Note
             </Button>
+            {onEditNote && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-primary flex items-center"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditNote(note);
+                }}
+              >
+                <Pencil className="h-3 w-3 mr-1" />
+                Edit
+              </Button>
+            )}
           </CardFooter>
         </Card>
       ))}
