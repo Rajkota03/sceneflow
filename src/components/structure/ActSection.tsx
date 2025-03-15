@@ -15,11 +15,11 @@ interface ActSectionProps {
 const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpdateBeat, onDeleteBeat }) => {
   const getActColor = () => {
     switch (actNumber) {
-      case 1: return 'bg-purple-700';
-      case '2A': return 'bg-blue-700';
-      case 'midpoint': return 'bg-yellow-600';
-      case '2B': return 'bg-blue-700';
-      case 3: return 'bg-green-700';
+      case 1: return 'bg-[#4A90E2]'; // Soft Blue
+      case '2A': return 'bg-[#F5A623]'; // Golden Yellow
+      case 'midpoint': return 'bg-[#D0021B]'; // Bold Red
+      case '2B': return 'bg-[#F57C00]'; // Deep Orange
+      case 3: return 'bg-[#009688]'; // Strong Green
       default: return 'bg-gray-700';
     }
   };

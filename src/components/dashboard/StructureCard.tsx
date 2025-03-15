@@ -66,13 +66,13 @@ const StructureCard: React.FC<StructureCardProps> = ({
         Four-Act Structure
       </p>
       <div className="grid grid-cols-5 gap-1 mb-3">
-        <div className="bg-purple-100 h-2 rounded"></div>
-        <div className="bg-blue-100 h-2 rounded"></div>
-        <div className="bg-yellow-300 h-3 -mt-0.5 rounded flex items-center justify-center">
-          <div className="bg-yellow-500 h-1 w-1 rounded-full"></div>
+        <div className="bg-[#4A90E2] h-2 rounded"></div>
+        <div className="bg-[#F5A623] h-2 rounded"></div>
+        <div className="bg-[#D0021B] h-3 -mt-0.5 rounded flex items-center justify-center">
+          <div className="bg-white h-1 w-1 rounded-full"></div>
         </div>
-        <div className="bg-blue-100 h-2 rounded"></div>
-        <div className="bg-green-100 h-2 rounded"></div>
+        <div className="bg-[#F57C00] h-2 rounded"></div>
+        <div className="bg-[#009688] h-2 rounded"></div>
       </div>
       <div className="text-xs text-muted-foreground">
         Updated {new Date(structure.updatedAt).toLocaleDateString()}
