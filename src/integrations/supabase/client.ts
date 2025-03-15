@@ -2,10 +2,10 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://cxnmgrtcguwpwoueqwyl.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4bm1ncnRjZ3V3cHdvdWVxd3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5Nzg1MzksImV4cCI6MjA1NzU1NDUzOX0.sh1GrJK8cI9e3vgurUjN3deVJaGX7Js1BzMAAQcvwa4";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://cxnmgrtcguwpwoueqwyl.supabase.co";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4bm1ncnRjZ3V3cHdvdWVxd3lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE5Nzg1MzksImV4cCI6MjA1NzU1NDUzOX0.sh1GrJK8cI9e3vgurUjN3deVJaGX7Js1BzMAAQcvwa4";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Helper function to check if a note exists by ID
 export async function checkNoteExists(noteId: string): Promise<boolean> {
