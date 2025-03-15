@@ -105,15 +105,21 @@ export const useThreeActStructure = (projectId: string) => {
         note && typeof note === 'object' && note.id && note.id.startsWith('structure-')
       );
       
-      // Prepare the structure data for storage in JSON format
+      // Fully serialize the structure data for storage in JSON format
       const structureForStorage = {
-        ...updatedStructure,
+        id: updatedStructure.id,
+        projectId: updatedStructure.projectId,
         createdAt: updatedStructure.createdAt instanceof Date 
           ? updatedStructure.createdAt.toISOString() 
           : updatedStructure.createdAt,
-        updatedAt: updatedStructure.updatedAt instanceof Date 
-          ? updatedStructure.updatedAt.toISOString() 
-          : updatedStructure.updatedAt
+        updatedAt: new Date().toISOString(), // Always use current time for updates
+        beats: updatedStructure.beats.map(beat => ({
+          id: beat.id,
+          title: beat.title,
+          description: beat.description,
+          position: beat.position,
+          actNumber: beat.actNumber
+        }))
       };
       
       // Update or add the structure note
