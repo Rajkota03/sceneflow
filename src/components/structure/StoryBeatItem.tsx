@@ -4,7 +4,7 @@ import { StoryBeat } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Trash2, X, Save, Bookmark } from 'lucide-react';
+import { Edit, Trash2, X, Save, Bookmark, PencilLine } from 'lucide-react';
 
 interface StoryBeatItemProps {
   beat: StoryBeat;
@@ -20,6 +20,7 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
   readOnly = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const [title, setTitle] = useState(beat.title);
   const [description, setDescription] = useState(beat.description);
   
@@ -64,7 +65,11 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
   };
   
   return (
-    <div className={`p-3 rounded-md shadow-sm border-l-4 ${getActColor()} bg-white`}>
+    <div 
+      className={`p-3 rounded-md shadow-sm border-l-4 ${getActColor()} bg-white transition-all hover:shadow-md`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {isEditing ? (
         <div className="space-y-2">
           <Input
@@ -72,13 +77,14 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
             onChange={handleTitleChange}
             className="font-medium"
             placeholder="Beat title"
+            autoFocus
           />
           
           <Textarea
             value={description}
             onChange={handleDescriptionChange}
-            className="text-sm"
-            placeholder="Beat description"
+            className="text-sm min-h-[80px]"
+            placeholder="Enter your story details for this beat..."
             rows={3}
           />
           
@@ -98,14 +104,12 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
           <div className="flex justify-between items-start">
             <div className="flex items-center flex-1">
               <Bookmark size={14} className="mr-1.5 flex-shrink-0" />
-              <Input
-                value={title}
-                onChange={handleTitleChange}
-                onBlur={saveChanges}
-                className="border-0 p-0 h-auto font-medium text-sm bg-transparent focus-visible:ring-0"
-                placeholder="Enter beat title"
-                readOnly={readOnly}
-              />
+              <div 
+                className={`flex-1 font-medium text-sm ${!readOnly ? 'cursor-pointer' : ''}`}
+                onClick={() => !readOnly && setIsEditing(true)}
+              >
+                {title || "Enter beat title"}
+              </div>
             </div>
             
             {!readOnly && (
@@ -133,14 +137,26 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
             )}
           </div>
           
-          <Textarea
-            value={description}
-            onChange={handleDescriptionChange}
-            onBlur={saveChanges}
-            className="text-xs text-gray-600 mt-1 pl-5 border-0 resize-none bg-transparent p-0 focus-visible:ring-0 min-h-[20px]"
-            placeholder="Enter beat description"
-            readOnly={readOnly}
-          />
+          <div 
+            className={`relative mt-1 pl-5 ${!readOnly ? 'cursor-pointer' : ''}`}
+            onClick={() => !readOnly && setIsEditing(true)}
+          >
+            {description ? (
+              <p className="text-xs text-gray-600 whitespace-pre-line">
+                {description}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400 italic">
+                Click to add your story details for this beat...
+              </p>
+            )}
+            
+            {isHovered && !readOnly && !isEditing && (
+              <div className="absolute right-0 bottom-0 bg-white bg-opacity-70 p-1 rounded-full">
+                <PencilLine size={12} className="text-gray-500" />
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>

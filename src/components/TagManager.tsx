@@ -11,6 +11,16 @@ import { supabase } from '@/integrations/supabase/client';
 // Define BeatMode type to match ActBar
 type BeatMode = 'on' | 'off';
 
+// Define a type for act counts that avoids infinite type instantiation
+type ActCountsRecord = {
+  '1': number;
+  '2A': number;
+  'midpoint': number;
+  '2B': number;
+  '3': number;
+  [key: string]: number;
+};
+
 interface TagManagerProps {
   scriptContent: ScriptContent;
   onFilterByTag: (tag: string | null) => void;
@@ -43,14 +53,16 @@ const TagManager: React.FC<TagManagerProps> = ({
   projectId
 }) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  // Define actCounts as Record<string, number> to avoid infinite type instantiation
-  const [actCounts, setActCounts] = useState<Record<string, number>>({
+  
+  // Define actCounts with explicit type to avoid infinite type instantiation
+  const [actCounts, setActCounts] = useState<ActCountsRecord>({
     '1': 0,
     '2A': 0,
     'midpoint': 0,
     '2B': 0,
     '3': 0
   });
+  
   const [isTagsOpen, setIsTagsOpen] = useState(true);
   const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
 
@@ -86,8 +98,9 @@ const TagManager: React.FC<TagManagerProps> = ({
   useEffect(() => {
     // Collect all unique tags from scene headings
     const tags = new Set<string>();
-    // Define actTagCounts with the same type as actCounts
-    const actTagCounts: Record<string, number> = {
+    
+    // Define with explicit type to avoid type errors
+    const actTagCounts: ActCountsRecord = {
       '1': 0,
       '2A': 0,
       'midpoint': 0,

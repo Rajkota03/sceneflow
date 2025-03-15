@@ -34,8 +34,33 @@ export const useStoryBeats = (
     });
   };
   
+  const handleUpdateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
+    if (!structure) return;
+    
+    // Find and update the specified beat
+    const updatedBeats = structure.beats.map(beat => 
+      beat.id === beatId ? { ...beat, ...updates } : beat
+    );
+    
+    // Create updated structure
+    const updatedStructure = {
+      ...structure,
+      beats: updatedBeats,
+      updatedAt: new Date()
+    };
+    
+    // Save the updated structure
+    saveStructure(updatedStructure);
+    
+    toast({
+      title: 'Beat updated',
+      description: 'Your story beat has been updated successfully',
+    });
+  };
+  
   return {
-    handleDeleteBeat
+    handleDeleteBeat,
+    handleUpdateBeat
   };
 };
 
