@@ -196,9 +196,9 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
               />
               
               <div className="relative mb-4 z-20">
-                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-[#FFDEE2]"></div>
+                <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-[#FFCCCB]"></div>
                 <div className="flex justify-center">
-                  <div className="bg-[#FFDEE2] text-gray-800 px-6 py-1 rounded-full text-sm font-bold z-10 flex items-center shadow-sm border border-gray-200">
+                  <div className="bg-[#FFCCCB] text-gray-800 px-6 py-1 rounded-full text-sm font-bold z-10 flex items-center shadow-sm border border-gray-200">
                     <Bookmark className="h-4 w-4 mr-1" /> 
                     Midpoint (50%)
                   </div>

@@ -17,7 +17,7 @@ const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpda
     switch (actNumber) {
       case 1: return 'bg-[#D3E4FD]'; // Soft Blue
       case '2A': return 'bg-[#FEF7CD]'; // Soft Yellow
-      case 'midpoint': return 'bg-[#FFDEE2]'; // Soft Pink/Red
+      case 'midpoint': return 'bg-[#FFCCCB]'; // Soft Red
       case '2B': return 'bg-[#FDE1D3]'; // Soft Orange/Peach
       case 3: return 'bg-[#F2FCE2]'; // Soft Green
       default: return 'bg-gray-200';

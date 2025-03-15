@@ -68,7 +68,7 @@ const StructureCard: React.FC<StructureCardProps> = ({
       <div className="grid grid-cols-5 gap-1 mb-3">
         <div className="bg-[#D3E4FD] h-2 rounded border border-gray-100"></div>
         <div className="bg-[#FEF7CD] h-2 rounded border border-gray-100"></div>
-        <div className="bg-[#FFDEE2] h-3 -mt-0.5 rounded flex items-center justify-center border border-gray-100">
+        <div className="bg-[#FFCCCB] h-3 -mt-0.5 rounded flex items-center justify-center border border-gray-100">
           <div className="bg-white h-1 w-1 rounded-full"></div>
         </div>
         <div className="bg-[#FDE1D3] h-2 rounded border border-gray-100"></div>
