@@ -27,7 +27,10 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
   
-  console.log('Notes component received notes:', notes);
+  // Ensure notes is an array
+  const safeNotes = Array.isArray(notes) ? notes : [];
+  
+  console.log('Notes component received notes:', safeNotes?.length || 0);
   
   const handleCreateNote = () => {
     if (!newNoteTitle.trim()) {
@@ -68,12 +71,12 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          {notes && notes.length > 0 ? (
+          {safeNotes && safeNotes.length > 0 ? (
             <>
               <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
                 Open Notes
               </div>
-              {notes.map(note => (
+              {safeNotes.map(note => (
                 <DropdownMenuItem 
                   key={note.id} 
                   onClick={() => onOpenNote(note)}
@@ -90,12 +93,12 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
               No notes yet
             </div>
           )}
-          <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)} className="cursor-pointer">
             <Plus size={14} className="mr-2" />
             Create New Note
           </DropdownMenuItem>
-          {notes && notes.length > 0 && (
-            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+          {safeNotes && safeNotes.length > 0 && (
+            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="cursor-pointer">
               <Trash2 size={14} className="mr-2" />
               Delete Note
             </DropdownMenuItem>
@@ -149,8 +152,8 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
-              {notes && notes.length > 0 ? (
-                notes.map(note => (
+              {safeNotes && safeNotes.length > 0 ? (
+                safeNotes.map(note => (
                   <div key={note.id} className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center">
                       <NotebookPen size={14} className="mr-2 text-muted-foreground" />
@@ -161,7 +164,7 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
                       size="sm" 
                       onClick={() => {
                         onDeleteNote(note.id);
-                        if (notes.length === 1) {
+                        if (safeNotes.length === 1) {
                           setIsDeleteDialogOpen(false);
                         }
                         toast({

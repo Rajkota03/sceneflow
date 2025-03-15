@@ -49,6 +49,8 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate }: ScriptE
     }
   }, [elements, setElements, setActiveElementId]);
 
+  console.log('ScriptEditor - notes available:', notes?.length || 0);
+
   // Fallback rendering for when elements are not yet available
   if (!elements || elements.length === 0) {
     return (

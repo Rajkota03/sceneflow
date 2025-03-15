@@ -29,9 +29,20 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote }: NotesGridProps) => {
       onViewNote(note);
     } else {
       // Fallback behavior
+      console.log('Viewing note:', note.title);
       alert(`Note content: ${note.content}`);
     }
   };
+
+  if (!notes || notes.length === 0) {
+    return (
+      <div className="text-center p-8 bg-slate-50 rounded-md border border-slate-200">
+        <NotebookPen className="h-8 w-8 text-slate-400 mx-auto mb-2" />
+        <h3 className="text-lg font-medium text-slate-900 mb-1">No notes yet</h3>
+        <p className="text-sm text-slate-500">Create your first note to see it here.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
