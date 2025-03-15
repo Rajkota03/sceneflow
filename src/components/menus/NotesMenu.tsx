@@ -5,10 +5,9 @@ import {
   MenubarTrigger, 
   MenubarContent, 
   MenubarItem, 
-  MenubarShortcut,
   MenubarSeparator
 } from '@/components/ui/menubar';
-import { BookText, Plus, FileText } from 'lucide-react';
+import { NotebookPen, Plus, FileText } from 'lucide-react';
 import { Note } from '@/lib/types';
 
 interface NotesMenuProps {
@@ -25,13 +24,12 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
         <MenubarItem onClick={onCreateNote}>
           <Plus className="mr-2 h-4 w-4" />
           Create New Note
-          <MenubarShortcut>⌘N</MenubarShortcut>
         </MenubarItem>
         
         {notes.length > 0 && (
           <>
             <MenubarSeparator />
-            <div className="px-2 py-1 text-xs text-muted-foreground">Recent Notes</div>
+            <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
             {notes.map(note => (
               <MenubarItem key={note.id} onClick={() => onOpenNote(note)}>
                 <FileText className="mr-2 h-4 w-4" />
