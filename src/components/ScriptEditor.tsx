@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState, KeyboardEvent } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -8,6 +7,7 @@ import { useFormat } from '@/lib/formatContext';
 import { addContdToCharacter, shouldAddContd } from '@/lib/characterUtils';
 import { Slider } from '@/components/ui/slider';
 import { ZoomIn, ZoomOut } from 'lucide-react';
+import TagManager from './TagManager';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -25,12 +25,45 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
   );
   const [characterNames, setCharacterNames] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
   const editorRef = useRef<HTMLDivElement>(null);
 
   // Sync elements with parent component
   useEffect(() => {
     onChange({ elements });
   }, [elements, onChange]);
+
+  // Apply tag filtering
+  useEffect(() => {
+    if (!activeTagFilter) {
+      setFilteredElements(elements);
+      return;
+    }
+
+    // Find all scene headings with the tag and the elements between them
+    const filteredIds = new Set<string>();
+    let includeNext = false;
+    
+    elements.forEach((element, index) => {
+      // If it's a scene heading with the tag, include it and set flag to include following elements
+      if (element.type === 'scene-heading') {
+        if (element.tags?.includes(activeTagFilter)) {
+          filteredIds.add(element.id);
+          includeNext = true;
+        } else {
+          includeNext = false;
+        }
+      } else if (includeNext) {
+        // Include elements until the next scene heading
+        filteredIds.add(element.id);
+      }
+    });
+    
+    // Filter the elements
+    const filtered = elements.filter(element => filteredIds.has(element.id));
+    setFilteredElements(filtered);
+  }, [elements, activeTagFilter]);
 
   // Extract character names from elements
   useEffect(() => {
@@ -208,40 +241,68 @@ const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate, className
     setActiveElementId(id);
   };
 
+  // Handle tags change for elements
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, tags } : element
+      )
+    );
+  };
+
+  // Handle tag filtering
+  const handleFilterByTag = (tag: string | null) => {
+    setActiveTagFilter(tag);
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <div 
         className="flex justify-center w-full h-full overflow-auto"
         ref={editorRef}
       >
-        <FormatStyler currentPage={currentPage}>
-          <div className="script-page" style={{ 
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out',
-            fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-          }}>
-            <div className="script-page-content" style={{
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              fontSize: '12pt'
+        <div className="w-full max-w-4xl mx-auto">
+          {/* Tag manager for filtering scenes */}
+          <TagManager 
+            scriptContent={{ elements }} 
+            onFilterByTag={handleFilterByTag}
+            activeFilter={activeTagFilter}
+          />
+          
+          <FormatStyler currentPage={currentPage}>
+            <div className="script-page" style={{ 
+              transform: `scale(${formatState.zoomLevel})`,
+              transformOrigin: 'top center',
+              transition: 'transform 0.2s ease-out',
+              fontFamily: 'Courier Final Draft, Courier Prime, monospace'
             }}>
-              {elements.map((element, index) => (
-                <EditorElement
-                  key={element.id}
-                  element={element}
-                  previousElementType={getPreviousElementType(index)}
-                  onChange={handleElementChange}
-                  onFocus={() => handleFocus(element.id)}
-                  isActive={activeElementId === element.id}
-                  onNavigate={handleNavigate}
-                  onEnterKey={handleEnterKey}
-                  onFormatChange={handleFormatChange}
-                  characterNames={characterNames}
-                />
-              ))}
+              <div className="script-page-content" style={{
+                fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+                fontSize: '12pt'
+              }}>
+                {filteredElements.map((element, index) => (
+                  <EditorElement
+                    key={element.id}
+                    element={element}
+                    previousElementType={getPreviousElementType(
+                      activeTagFilter 
+                        ? filteredElements.findIndex(el => el.id === element.id) - 1
+                        : index - 1
+                    )}
+                    onChange={handleElementChange}
+                    onFocus={() => handleFocus(element.id)}
+                    isActive={activeElementId === element.id}
+                    onNavigate={handleNavigate}
+                    onEnterKey={handleEnterKey}
+                    onFormatChange={handleFormatChange}
+                    onTagsChange={handleTagsChange}
+                    characterNames={characterNames}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        </FormatStyler>
+          </FormatStyler>
+        </div>
       </div>
       
       {/* Zoom slider control */}

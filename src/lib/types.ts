@@ -5,6 +5,7 @@ export interface ScriptElement {
   id: string;
   type: ElementType;
   text: string;
+  tags?: string[]; // Add tags array to script elements
 }
 
 export interface ScriptContent {

@@ -31,7 +31,10 @@ const Structure = () => {
   
   return (
     <div className="min-h-screen bg-gray-100">
-      <StructureHeader title="Story Structure" projectId={projectId} />
+      <StructureHeader 
+        title="Story Structure" 
+        projectId={projectId} 
+      />
       
       <StructureContent 
         structure={structure}

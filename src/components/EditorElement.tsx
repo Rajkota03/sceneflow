@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ScriptElement, ElementType } from '../lib/types';
 import { formatScriptElement } from '../lib/formatScript';
 import CharacterSuggestions from './CharacterSuggestions';
+import SceneTags from './SceneTags';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -13,6 +14,7 @@ interface EditorElementProps {
   onNavigate: (direction: 'up' | 'down', id: string) => void;
   onEnterKey: (id: string, shiftKey: boolean) => void;
   onFormatChange: (id: string, newFormat: ElementType) => void;
+  onTagsChange?: (elementId: string, tags: string[]) => void;
   characterNames?: string[];
 }
 
@@ -25,6 +27,7 @@ const EditorElement = ({
   onNavigate,
   onEnterKey,
   onFormatChange,
+  onTagsChange,
   characterNames = []
 }: EditorElementProps) => {
   const [text, setText] = useState(element.text);
@@ -262,6 +265,14 @@ const EditorElement = ({
           suggestions={filteredSuggestions}
           onSelect={handleSelectCharacter}
           isVisible={showSuggestions && isActive}
+        />
+      )}
+      
+      {/* Add scene tags component for scene headings when active */}
+      {elementType === 'scene-heading' && isActive && onTagsChange && (
+        <SceneTags 
+          element={element}
+          onTagsChange={onTagsChange}
         />
       )}
     </div>
