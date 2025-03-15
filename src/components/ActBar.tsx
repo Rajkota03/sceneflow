@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { ChevronDown, ChevronUp, Filter, Zap, ZapOff } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Switch } from './ui/switch';
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 
 interface ActBarProps {
   activeAct: ActType | null;
@@ -12,6 +14,8 @@ interface ActBarProps {
   actCounts: Record<ActType | string, number>;
   projectName?: string;
   structureName?: string;
+  beatMode?: 'on' | 'off';
+  onToggleBeatMode?: (mode: 'on' | 'off') => void;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -19,7 +23,9 @@ const ActBar: React.FC<ActBarProps> = ({
   onSelectAct,
   actCounts,
   projectName = "Untitled Project",
-  structureName = "Three Act Structure"
+  structureName = "Three Act Structure",
+  beatMode = 'on',
+  onToggleBeatMode
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   
@@ -31,8 +37,14 @@ const ActBar: React.FC<ActBarProps> = ({
     { id: 3, label: 'Act 3', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
   ];
 
+  const handleBeatModeToggle = (value: 'on' | 'off') => {
+    if (onToggleBeatMode) {
+      onToggleBeatMode(value);
+    }
+  };
+
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3">
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3 w-full">
       <div className="p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -45,8 +57,36 @@ const ActBar: React.FC<ActBarProps> = ({
             <span className="ml-2 text-sm font-medium text-slate-600">{projectName}</span>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-600">{structureName}</span>
+            
+            {onToggleBeatMode && (
+              <ToggleGroup type="single" value={beatMode} onValueChange={(value) => value && handleBeatModeToggle(value as 'on' | 'off')}>
+                <ToggleGroupItem 
+                  value="on" 
+                  className={cn(
+                    "flex items-center gap-1 text-xs relative",
+                    beatMode === 'on' && "bg-primary text-primary-foreground after:absolute after:inset-0 after:animate-pulse after:bg-primary/20 after:rounded-md after:z-[-1]"
+                  )}
+                  aria-label="Beat Mode"
+                >
+                  <Zap size={14} />
+                  <span>Beat Mode</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="off" 
+                  className={cn(
+                    "flex items-center gap-1 text-xs",
+                    beatMode === 'off' && "bg-muted text-muted-foreground"
+                  )}
+                  aria-label="Free Mode"
+                >
+                  <ZapOff size={14} />
+                  <span>Free Mode</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"

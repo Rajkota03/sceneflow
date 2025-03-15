@@ -2,16 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptContent, ActType } from '@/lib/types';
 import SceneTag from './SceneTag';
-import { Tags, Filter, X, ChevronDown, ChevronUp, Bookmark, PenTool, Check } from 'lucide-react';
+import { Tags, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ActBar from './ActBar';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -92,12 +86,6 @@ const TagManager: React.FC<TagManagerProps> = ({
     }
   };
 
-  const handleBeatModeChange = (mode: 'on' | 'off') => {
-    if (onToggleBeatMode) {
-      onToggleBeatMode(mode);
-    }
-  };
-
   if (availableTags.length === 0 && Object.values(actCounts).every(count => count === 0) && beatMode === 'off') {
     return null;
   }
@@ -112,39 +100,9 @@ const TagManager: React.FC<TagManagerProps> = ({
             actCounts={actCounts}
             projectName={projectName}
             structureName={structureName}
+            beatMode={beatMode}
+            onToggleBeatMode={onToggleBeatMode}
           />
-        )}
-        
-        {onToggleBeatMode && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="ml-auto">
-                {beatMode === 'on' ? (
-                  <>
-                    <Bookmark className="h-4 w-4 mr-2" />
-                    <span>Beat Mode</span>
-                  </>
-                ) : (
-                  <>
-                    <PenTool className="h-4 w-4 mr-2" />
-                    <span>Free Mode</span>
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleBeatModeChange('on')}>
-                <Bookmark className="h-4 w-4 mr-2" />
-                <span>Beat Mode</span>
-                {beatMode === 'on' && <Check className="h-4 w-4 ml-2" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleBeatModeChange('off')}>
-                <PenTool className="h-4 w-4 mr-2" />
-                <span>Free Mode</span>
-                {beatMode === 'off' && <Check className="h-4 w-4 ml-2" />}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         )}
       </div>
       
