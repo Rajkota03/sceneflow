@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { Note } from '@/lib/types';
+import { Note, ThreeActStructure } from '@/lib/types'; // Added ThreeActStructure import
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
