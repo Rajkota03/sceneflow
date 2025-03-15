@@ -87,7 +87,6 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
         case '3':
           e.preventDefault();
           onChangeElementType(id, 'character');
-          // Character formatting is applied via CSS in EditorElement
           break;
         case '4':
           e.preventDefault();
@@ -96,7 +95,6 @@ const EditorKeyboardHandler: React.FC<EditorKeyboardHandlerProps> = ({
         case '6':
           e.preventDefault();
           onChangeElementType(id, 'transition');
-          // Transition formatting is applied via CSS in EditorElement
           break;
       }
     }

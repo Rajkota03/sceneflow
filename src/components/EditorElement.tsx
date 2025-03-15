@@ -51,7 +51,7 @@ const EditorElement = ({
     const textarea = inputRef.current;
     if (!textarea) return;
     
-    // For arrow up/down keys, let the browser handle normal navigation within the textarea
+    // Allow normal browser behavior for arrow keys within the textarea
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const { selectionStart, value } = textarea;
       const lines = value.split('\n');
@@ -69,10 +69,12 @@ const EditorElement = ({
         charCount += lines[i].length + 1;
       }
       
-      // Only pass arrow key events to parent if we're at boundaries
-      if ((e.key === 'ArrowUp' && cursorLineIndex === 0 && selectionStart <= lines[0].length) || 
-          (e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1)) {
+      // Only pass arrow key events to parent when we've reached the boundaries
+      if ((e.key === 'ArrowUp' && cursorLineIndex === 0 && selectionStart === 0) || 
+          (e.key === 'ArrowDown' && cursorLineIndex === lines.length - 1 && 
+           selectionStart === charCount - 1)) {
         onKeyDown(e, element.id);
+        e.preventDefault(); // Prevent default browser behavior only at boundaries
       }
       // Otherwise let the browser handle normal navigation
       return;
@@ -80,6 +82,12 @@ const EditorElement = ({
     
     // For Enter key, always pass to EditorKeyboardHandler for processing
     if (e.key === 'Enter') {
+      onKeyDown(e, element.id);
+      return;
+    }
+    
+    // For Tab key, always pass to parent
+    if (e.key === 'Tab') {
       onKeyDown(e, element.id);
       return;
     }
