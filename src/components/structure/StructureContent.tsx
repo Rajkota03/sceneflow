@@ -3,6 +3,7 @@ import React from 'react';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import ThreeActStructureTimeline from './ThreeActStructureTimeline';
 import StructureToolsSidebar from './StructureToolsSidebar';
+import { Loader } from 'lucide-react';
 
 interface StructureContentProps {
   structure: ThreeActStructure | null;
@@ -25,6 +26,18 @@ const StructureContent: React.FC<StructureContentProps> = ({
   onDeleteBeat,
   onSave
 }) => {
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4 flex justify-center items-center min-h-[60vh]">
+        <div className="flex flex-col items-center">
+          <Loader className="h-8 w-8 animate-spin text-primary mb-4" />
+          <p className="text-gray-500">Loading structure...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="flex flex-col lg:flex-row gap-6">

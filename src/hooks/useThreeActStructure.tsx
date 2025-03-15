@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/App';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
@@ -60,6 +60,30 @@ export const useThreeActStructure = (projectId: string) => {
     }
   };
 
+  const initializeStructure = useCallback(async (defaultStructure: ThreeActStructure) => {
+    if (!session || !projectId) return;
+    
+    setIsSaving(true);
+    
+    try {
+      await saveStructureData(defaultStructure, projectId, session.user.id);
+      setStructure(defaultStructure);
+      toast({
+        title: 'Structure Created',
+        description: 'New story structure initialized successfully',
+      });
+    } catch (error) {
+      console.error('Error initializing structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create story structure',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  }, [projectId, session]);
+
   const updateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
     
@@ -80,7 +104,8 @@ export const useThreeActStructure = (projectId: string) => {
     isSaving,
     updateBeat,
     reorderBeats,
-    saveStructure
+    saveStructure,
+    initializeStructure
   };
 };
 

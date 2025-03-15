@@ -8,6 +8,7 @@ import StructureHeader from '@/components/structure/StructureHeader';
 import StructureContent from '@/components/structure/StructureContent';
 import { useAuth } from '@/App';
 import { toast } from '@/components/ui/use-toast';
+import { createDefaultStructure } from '@/lib/types';
 
 const Structure = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -23,6 +24,7 @@ const Structure = () => {
         variant: "destructive"
       });
       navigate('/sign-in');
+      return;
     }
   }, [session, navigate]);
   
@@ -33,8 +35,17 @@ const Structure = () => {
     isSaving,
     updateBeat,
     reorderBeats,
-    saveStructure
+    saveStructure,
+    initializeStructure
   } = useThreeActStructure(projectId || '');
+  
+  // Initialize default structure if none exists and we're not loading
+  useEffect(() => {
+    if (!isLoading && !structure && projectId && session) {
+      const defaultStructure = createDefaultStructure(projectId);
+      initializeStructure(defaultStructure);
+    }
+  }, [isLoading, structure, projectId, session, initializeStructure]);
   
   // Project title management
   const {
