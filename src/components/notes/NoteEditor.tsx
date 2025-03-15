@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { 
   Dialog, 
@@ -32,7 +31,6 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
   const [editorHeight, setEditorHeight] = useState(300);
   const nodeRef = useRef(null);
 
-  // Determine if this is a new note (no ID) or existing note edit
   const isNewNote = !note?.id;
 
   useEffect(() => {
@@ -216,8 +214,7 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
             value={noteContent}
             onChange={handleContentChange}
             placeholder="Enter note content"
-            style={{ height: `${editorHeight}px`, transition: 'height 0.3s ease' }}
-            className="resize-none overflow-auto flex-grow"
+            className="resize-none overflow-hidden flex-grow min-h-[200px]"
           />
         </div>
       </div>

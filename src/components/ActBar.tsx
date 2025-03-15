@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Filter, Zap, ZapOff, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Zap, ZapOff, Check } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { 
   Select,
@@ -129,17 +129,6 @@ const ActBar: React.FC<ActBarProps> = ({
                 </Button>
               </div>
             )}
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSelectAct(null)}
-              disabled={activeAct === null}
-              className="h-7 text-xs text-slate-600"
-            >
-              <Filter size={14} className="mr-1" />
-              Show All
-            </Button>
           </div>
         </div>
         

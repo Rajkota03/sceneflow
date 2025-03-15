@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -152,8 +151,20 @@
 }
 
 /* Remove all scrollbars from editor elements */
-.element-container textarea {
-  overflow: visible !important;
+.element-container textarea,
+textarea.resize-none {
+  overflow: hidden !important;
+  resize: none;
+  height: auto;
+  min-height: 1em;
+}
+
+/* Auto-expanding textarea styles */
+textarea.auto-resize {
+  overflow: hidden !important;
+  resize: none;
+  height: auto;
+  min-height: 1em;
 }
 
 /* PDF export specific styles */
@@ -169,7 +180,7 @@
 .script-page-content textarea {
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
-  overflow: visible !important; /* Remove scrollbars on all textareas */
+  overflow: hidden !important; /* Remove scrollbars on all textareas */
 }
 
 /* Character suggestions dropdown styles */
