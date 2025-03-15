@@ -7,7 +7,7 @@ import EmptyState from '@/components/dashboard/EmptyState';
 import LoadingState from '@/components/dashboard/LoadingState';
 import NotesGrid from '@/components/dashboard/NotesGrid';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen, Network, Bookmark } from 'lucide-react';
+import { FileText, NotebookPen, Network, Bookmark, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { Note, ThreeActStructure } from '@/lib/types';
@@ -18,6 +18,16 @@ import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Dashboard = () => {
   const { session } = useAuth();
@@ -44,6 +54,7 @@ const Dashboard = () => {
   const [structures, setStructures] = useState<{projectId: string, projectTitle: string, structure: ThreeActStructure}[]>([]);
   const [isLoadingStructures, setIsLoadingStructures] = useState(false);
   const [hasInitializedStructures, setHasInitializedStructures] = useState(false);
+  const [structureToDelete, setStructureToDelete] = useState<string | null>(null);
 
   console.log('Dashboard - available notes:', notes?.length || 0);
 
@@ -167,6 +178,79 @@ const Dashboard = () => {
     
     const firstProject = projects[0];
     window.location.href = `/structure/${firstProject.id}`;
+  };
+
+  const handleDeleteStructure = async (projectId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setStructureToDelete(projectId);
+  };
+
+  const confirmDeleteStructure = async () => {
+    if (!structureToDelete || !session) return;
+    
+    try {
+      const { data: projectData, error: fetchError } = await supabase
+        .from('projects')
+        .select('notes')
+        .eq('id', structureToDelete)
+        .eq('author_id', session.user.id)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching project:', fetchError);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete structure',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      let notes = Array.isArray(projectData?.notes) ? [...projectData.notes] : [];
+      notes = notes.filter((note: any) => 
+        !(note && 
+          typeof note === 'object' && 
+          'id' in note && 
+          typeof note.id === 'string' && 
+          note.id.startsWith('structure-'))
+      );
+      
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({
+          notes: notes,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', structureToDelete)
+        .eq('author_id', session.user.id);
+      
+      if (updateError) {
+        console.error('Error updating project:', updateError);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete structure',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      setStructures(structures.filter(item => item.projectId !== structureToDelete));
+      
+      toast({
+        title: 'Success',
+        description: 'Structure deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete structure',
+        variant: 'destructive',
+      });
+    } finally {
+      setStructureToDelete(null);
+    }
   };
 
   const StructurePlaceholder = () => (
@@ -301,8 +385,19 @@ const Dashboard = () => {
                       <div className="border rounded-lg p-4 hover:border-primary/70 transition-colors bg-white">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="font-medium text-lg">{item.projectTitle}</h3>
-                          <div className="bg-primary/10 p-1 rounded">
-                            <Network className="h-4 w-4 text-primary" />
+                          <div className="flex items-center space-x-2">
+                            <div className="bg-primary/10 p-1 rounded">
+                              <Network className="h-4 w-4 text-primary" />
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={(e) => handleDeleteStructure(item.projectId, e)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Delete structure</span>
+                            </Button>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-3">
@@ -363,6 +458,23 @@ const Dashboard = () => {
       </main>
       
       <Footer />
+      
+      <AlertDialog open={!!structureToDelete} onOpenChange={(open) => !open && setStructureToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Structure</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this structure? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteStructure} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
