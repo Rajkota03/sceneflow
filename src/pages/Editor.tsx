@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import ScriptEditor from '../components/ScriptEditor';
 import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
@@ -18,6 +17,7 @@ import { TitlePageData } from '@/components/TitlePageEditor';
 import { Json } from '@/integrations/supabase/types';
 import NotesMenu from '@/components/notes/NotesMenu';
 import NoteWindow from '@/components/notes/NoteWindow';
+import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 
 const Editor = () => {
@@ -41,10 +41,10 @@ const Editor = () => {
     contact: ''
   });
   
-  // Notes-related state
   const [notes, setNotes] = useState<Note[]>([]);
   const [openNotes, setOpenNotes] = useState<Note[]>([]);
   const [splitScreenNote, setSplitScreenNote] = useState<Note | null>(null);
+  const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -338,6 +338,15 @@ const Editor = () => {
     setShowTitlePage(!showTitlePage);
   };
   
+  const handleCreateNoteClick = () => {
+    setCreateNoteDialogOpen(true);
+  };
+  
+  const handleCreateNote = (note: Note) => {
+    setNotes([...notes, note]);
+    handleOpenNote(note);
+  };
+  
   const handleOpenNote = (note: Note) => {
     if (!openNotes.some(n => n.id === note.id)) {
       setOpenNotes([...openNotes, note]);
@@ -352,14 +361,14 @@ const Editor = () => {
     }
   };
   
-  const handleCreateNote = (note: Note) => {
-    setNotes([...notes, note]);
-    handleOpenNote(note);
-  };
-  
   const handleDeleteNote = (noteId: string) => {
     setNotes(notes.filter(note => note.id !== noteId));
     handleCloseNote(noteId);
+    
+    toast({
+      title: "Note deleted",
+      description: "The note has been deleted successfully."
+    });
   };
   
   const handleSplitScreen = (note: Note) => {
@@ -407,6 +416,9 @@ const Editor = () => {
           titlePageData={titlePageData}
           showTitlePage={showTitlePage}
           onToggleTitlePage={toggleTitlePage}
+          notes={notes}
+          onCreateNote={handleCreateNoteClick}
+          onOpenNote={handleOpenNote}
         />
         
         <div className="bg-[#F1F1F1] border-b border-[#DDDDDD] py-1 px-4 flex items-center justify-between">
@@ -533,6 +545,12 @@ const Editor = () => {
             />
           ))}
         </main>
+        
+        <CreateNoteDialog 
+          open={createNoteDialogOpen} 
+          onOpenChange={setCreateNoteDialogOpen} 
+          onCreateNote={handleCreateNote} 
+        />
       </div>
     </FormatProvider>
   );

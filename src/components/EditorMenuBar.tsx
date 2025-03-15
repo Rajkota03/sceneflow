@@ -17,8 +17,10 @@ import FormatMenu from './menus/FormatMenu';
 import ToolsMenu from './menus/ToolsMenu';
 import ProductionMenu from './menus/ProductionMenu';
 import HelpMenu from './menus/HelpMenu';
+import NotesMenu from './menus/NotesMenu';
 import { toast } from '@/components/ui/use-toast';
 import { TitlePageData } from './TitlePageEditor';
+import { Note } from '@/lib/types';
 
 interface EditorMenuBarProps {
   onSave: () => void;
@@ -28,6 +30,9 @@ interface EditorMenuBarProps {
   titlePageData?: TitlePageData;
   showTitlePage?: boolean;
   onToggleTitlePage?: () => void;
+  notes?: Note[];
+  onCreateNote?: () => void;
+  onOpenNote?: (note: Note) => void;
 }
 
 const EditorMenuBar = ({ 
@@ -37,7 +42,10 @@ const EditorMenuBar = ({
   onEditTitlePage, 
   titlePageData,
   showTitlePage = false,
-  onToggleTitlePage
+  onToggleTitlePage,
+  notes = [],
+  onCreateNote,
+  onOpenNote
 }: EditorMenuBarProps) => {
   const navigate = useNavigate();
 
@@ -82,6 +90,13 @@ const EditorMenuBar = ({
       <FormatMenu />
       <ToolsMenu />
       <ViewMenu />
+      {onCreateNote && onOpenNote && (
+        <NotesMenu 
+          notes={notes} 
+          onCreateNote={onCreateNote}
+          onOpenNote={onOpenNote}
+        />
+      )}
       <ProductionMenu />
       <HelpMenu />
     </Menubar>
