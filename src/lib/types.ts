@@ -1,4 +1,3 @@
-
 import { Json } from '@/integrations/supabase/types';
 
 export interface ScriptElement {
@@ -53,3 +52,26 @@ export const jsonToScriptContent = (json: Json | null): ScriptContent => {
   
   return { elements: [] };
 };
+
+// Note-related utilities
+export function serializeNotes(notes: Note[]): any[] {
+  if (!notes || !Array.isArray(notes)) return [];
+  
+  return notes.map(note => ({
+    ...note,
+    createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt,
+    updatedAt: note.updatedAt instanceof Date ? note.updatedAt.toISOString() : note.updatedAt
+  }));
+}
+
+export function deserializeNotes(jsonNotes: any): Note[] {
+  if (!jsonNotes || !Array.isArray(jsonNotes)) return [];
+  
+  return jsonNotes.map(note => ({
+    id: String(note.id || `note-${Date.now()}`),
+    title: String(note.title || 'Untitled Note'),
+    content: String(note.content || ''),
+    createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
+    updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
+  }));
+}

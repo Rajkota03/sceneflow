@@ -154,8 +154,26 @@ const Editor = () => {
           }
           
           if (data.notes) {
-            const notesData = data.notes as Json as unknown as Note[];
-            setNotes(notesData);
+            try {
+              const notesRawData = data.notes as Json;
+              let processedNotes: Note[] = [];
+              
+              if (Array.isArray(notesRawData)) {
+                processedNotes = notesRawData.map(note => ({
+                  id: String(note.id || `note-${Date.now()}`),
+                  title: String(note.title || 'Untitled Note'),
+                  content: String(note.content || ''),
+                  createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
+                  updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
+                }));
+              }
+              
+              console.log('Processed notes:', processedNotes.length);
+              setNotes(processedNotes);
+            } catch (noteError) {
+              console.error('Error processing notes:', noteError);
+              setNotes([]);
+            }
           } else {
             setNotes([]);
           }
@@ -210,6 +228,12 @@ const Editor = () => {
     }
     
     try {
+      const notesForStorage = notes.map(note => ({
+        ...note,
+        createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt,
+        updatedAt: note.updatedAt instanceof Date ? note.updatedAt.toISOString() : note.updatedAt
+      }));
+      
       const { error } = await supabase
         .from('projects')
         .update({
@@ -217,7 +241,7 @@ const Editor = () => {
           content: scriptContentToJson(content),
           updated_at: new Date().toISOString(),
           title_page: titlePageData as unknown as Json,
-          notes: notes as unknown as Json
+          notes: notesForStorage as unknown as Json
         })
         .eq('id', project.id);
       

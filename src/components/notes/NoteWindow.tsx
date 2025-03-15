@@ -17,6 +17,11 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating }: NoteWindowProp
   const [windowSize, setWindowSize] = useState({ width: 300, height: 400 });
   const noteRef = useRef<HTMLDivElement>(null);
   
+  useEffect(() => {
+    // Log the note when it renders to verify its data
+    console.log('NoteWindow rendering note:', note?.id, note?.title);
+  }, [note]);
+  
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -55,6 +60,11 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating }: NoteWindowProp
       document.removeEventListener('mouseup', handleResizeMouseUp);
     };
   }, []);
+
+  if (!note) {
+    console.error('Note is undefined in NoteWindow');
+    return null;
+  }
 
   const windowContent = (
     <div 

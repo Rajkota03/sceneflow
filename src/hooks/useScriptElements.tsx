@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
@@ -7,6 +8,8 @@ export function useScriptElements(
   initialContent: ScriptContent,
   onChange: (content: ScriptContent) => void
 ) {
+  console.log('useScriptElements initialized with', initialContent?.elements?.length || 0, 'elements');
+  
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
@@ -31,6 +34,12 @@ export function useScriptElements(
 
   const addNewElement = (afterId: string, explicitType?: ElementType) => {
     const afterIndex = elements.findIndex(element => element.id === afterId);
+    
+    if (afterIndex === -1) {
+      console.error('Could not find element with id', afterId);
+      return;
+    }
+    
     const currentElement = elements[afterIndex];
     
     let newType: ElementType = explicitType || 'action';
@@ -69,6 +78,7 @@ export function useScriptElements(
       ...elements.slice(afterIndex + 1)
     ];
     
+    console.log('Adding new element after', afterId, 'new element:', newElement.id, newElement.type);
     setElements(newElements);
     
     // Set focus to the new element

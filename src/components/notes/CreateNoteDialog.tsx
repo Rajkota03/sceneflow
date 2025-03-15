@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -24,6 +24,14 @@ const CreateNoteDialog = ({ open, onOpenChange, onCreateNote }: CreateNoteDialog
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
 
+  useEffect(() => {
+    // Reset form when dialog opens
+    if (open) {
+      setNoteTitle('');
+      setNoteContent('');
+    }
+  }, [open]);
+
   const handleCreateNote = () => {
     if (!noteTitle.trim()) {
       toast({
@@ -42,6 +50,7 @@ const CreateNoteDialog = ({ open, onOpenChange, onCreateNote }: CreateNoteDialog
       updatedAt: new Date()
     };
     
+    console.log('Creating new note:', newNote);
     onCreateNote(newNote);
     setNoteTitle('');
     setNoteContent('');
