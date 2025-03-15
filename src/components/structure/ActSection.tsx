@@ -9,9 +9,10 @@ interface ActSectionProps {
   title: string;
   beats: StoryBeat[];
   onUpdateBeat: (beatId: string, updates: Partial<StoryBeat>) => void;
+  onDeleteBeat?: (beatId: string) => void;
 }
 
-const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpdateBeat }) => {
+const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpdateBeat, onDeleteBeat }) => {
   const getActColor = () => {
     switch (actNumber) {
       case 1: return 'bg-purple-700';
@@ -33,7 +34,8 @@ const ActSection: React.FC<ActSectionProps> = ({ actNumber, title, beats, onUpda
           <SortableItem key={beat.id} id={beat.id}>
             <StoryBeatItem 
               beat={beat} 
-              onUpdate={onUpdateBeat} 
+              onUpdate={onUpdateBeat}
+              onDelete={onDeleteBeat ? () => onDeleteBeat(beat.id) : undefined}
             />
           </SortableItem>
         ))}

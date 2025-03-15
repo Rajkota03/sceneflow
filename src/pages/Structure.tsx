@@ -8,6 +8,7 @@ import useThreeActStructure from '@/hooks/useThreeActStructure';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/App';
 import { toast } from '@/components/ui/use-toast';
+import { StoryBeat } from '@/lib/types';
 
 const Structure = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -63,6 +64,33 @@ const Structure = () => {
       setIsUpdatingTitle(false);
     }
   };
+
+  const handleDeleteBeat = (beatId: string) => {
+    if (!structure) return;
+    
+    // Filter out the beat with the specified ID
+    const updatedBeats = structure.beats.filter(beat => beat.id !== beatId);
+    
+    // Update positions to ensure they're consecutive
+    const reorderedBeats = updatedBeats.map((beat, index) => ({
+      ...beat,
+      position: index
+    }));
+    
+    // Create updated structure
+    const updatedStructure = {
+      ...structure,
+      beats: reorderedBeats
+    };
+    
+    // Save the updated structure
+    saveStructure(updatedStructure);
+    
+    toast({
+      title: 'Beat deleted',
+      description: 'The story beat has been removed from the structure',
+    });
+  };
   
   return (
     <div className="min-h-screen bg-gray-100">
@@ -72,11 +100,11 @@ const Structure = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(`/editor/${projectId}`)}
+              onClick={() => navigate('/dashboard')}
               className="text-gray-600"
             >
               <ArrowLeft size={18} className="mr-1" />
-              Back to Editor
+              Back to Dashboard
             </Button>
             <h1 className="text-xl font-semibold text-gray-800">Story Structure</h1>
           </div>
@@ -113,6 +141,7 @@ const Structure = () => {
               onUpdateBeat={updateBeat}
               onReorderBeats={reorderBeats}
               onUpdateProjectTitle={handleUpdateProjectTitle}
+              onDeleteBeat={handleDeleteBeat}
             />
           </div>
         </div>

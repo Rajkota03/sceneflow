@@ -1,34 +1,12 @@
 
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 import ActSection from './ActSection';
 import { Button } from '@/components/ui/button';
 import { Loader, AlertTriangle, Save, Edit, Bookmark } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-
-interface SortableItemProps {
-  id: string;
-  children: React.ReactNode;
-}
-
-const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-  
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    cursor: 'grab',
-  };
-  
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
-    </div>
-  );
-};
 
 interface Props {
   structure: ThreeActStructure | null;
@@ -37,6 +15,7 @@ interface Props {
   onUpdateBeat: (beatId: string, updates: Partial<StoryBeat>) => void;
   onReorderBeats: (beats: StoryBeat[]) => void;
   onUpdateProjectTitle?: (title: string) => void;
+  onDeleteBeat?: (beatId: string) => void;
 }
 
 const ThreeActStructureTimeline: React.FC<Props> = ({
@@ -45,7 +24,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
   isSaving,
   onUpdateBeat,
   onReorderBeats,
-  onUpdateProjectTitle
+  onUpdateProjectTitle,
+  onDeleteBeat
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -85,6 +65,12 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
       onUpdateProjectTitle(projectTitle);
     }
     setIsEditingTitle(false);
+  };
+
+  const handleDeleteBeat = (beatId: string) => {
+    if (onDeleteBeat) {
+      onDeleteBeat(beatId);
+    }
   };
   
   if (isLoading) {
@@ -189,6 +175,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 title="Act 1: Setup"
                 beats={act1Beats}
                 onUpdateBeat={onUpdateBeat}
+                onDeleteBeat={handleDeleteBeat}
               />
               
               <ActSection 
@@ -196,6 +183,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 title="Act 2A: Rising Action"
                 beats={act2ABeats}
                 onUpdateBeat={onUpdateBeat}
+                onDeleteBeat={handleDeleteBeat}
               />
               
               {/* Midpoint Section - Specially highlighted */}
@@ -212,6 +200,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                   title="Midpoint: Major Turning Point"
                   beats={midpointBeat}
                   onUpdateBeat={onUpdateBeat}
+                  onDeleteBeat={handleDeleteBeat}
                 />
               </div>
               
@@ -220,6 +209,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 title="Act 2B: Complications"
                 beats={act2BBeats}
                 onUpdateBeat={onUpdateBeat}
+                onDeleteBeat={handleDeleteBeat}
               />
               
               <ActSection 
@@ -227,6 +217,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 title="Act 3: Resolution"
                 beats={act3Beats}
                 onUpdateBeat={onUpdateBeat}
+                onDeleteBeat={handleDeleteBeat}
               />
             </div>
           </SortableContext>
