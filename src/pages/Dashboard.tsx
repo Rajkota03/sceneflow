@@ -7,7 +7,7 @@ import ProjectGrid from '@/components/dashboard/ProjectGrid';
 import EmptyState from '@/components/dashboard/EmptyState';
 import LoadingState from '@/components/dashboard/LoadingState';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen, DiagramTree } from 'lucide-react';
+import { FileText, NotebookPen, Network } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -56,7 +56,7 @@ const Dashboard = () => {
                 <span>Notes</span>
               </TabsTrigger>
               <TabsTrigger value="structures" className="flex items-center gap-2">
-                <DiagramTree className="h-4 w-4" />
+                <Network className="h-4 w-4" />
                 <span>Structures</span>
               </TabsTrigger>
             </TabsList>
@@ -117,7 +117,7 @@ const Dashboard = () => {
                 createNewProject={handleCreateStructure}
                 emptyMessage="No structures yet"
                 createMessage="Create your first structure"
-                icon={<DiagramTree className="h-16 w-16 text-muted-foreground mb-4" />}
+                icon={<Network className="h-16 w-16 text-muted-foreground mb-4" />}
               />
             </TabsContent>
           </Tabs>
