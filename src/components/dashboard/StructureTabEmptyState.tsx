@@ -15,7 +15,7 @@ const StructureTabEmptyState: React.FC<StructureTabEmptyStateProps> = ({ createN
         <h3 className="text-2xl font-medium mb-2">Story Structure Tools</h3>
         <p className="text-muted-foreground mb-6">
           Break down your screenplay using classical story structures with a special emphasis on the critical midpoint, 
-          creating a four-part framework with interactive scene cards.
+          creating a four-act framework with interactive scene cards.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-sm mb-6">
           <div className="flex items-start gap-2">
@@ -23,7 +23,7 @@ const StructureTabEmptyState: React.FC<StructureTabEmptyStateProps> = ({ createN
               <Network className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <p className="font-medium">Four-Part Structure</p>
+              <p className="font-medium">Four-Act Structure</p>
               <p className="text-muted-foreground">Act 1, 2A, Midpoint, 2B, Act 3</p>
             </div>
           </div>

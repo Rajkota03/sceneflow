@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
@@ -95,10 +94,8 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
     );
   }
   
-  // Ensure structure.beats exists before filtering
   const beats = structure.beats || [];
   
-  // Group beats by act
   const act1Beats = beats.filter(beat => beat.actNumber === 1).sort((a, b) => a.position - b.position);
   const act2ABeats = beats.filter(beat => beat.actNumber === '2A').sort((a, b) => a.position - b.position);
   const midpointBeat = beats.filter(beat => beat.actNumber === 'midpoint' || beat.isMidpoint);
@@ -109,7 +106,7 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
     <div className="bg-gray-50 rounded-md p-4 md:p-6">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center space-x-3">
-          <h2 className="text-lg font-semibold text-gray-800">Four-Part Story Structure</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Four-Act Structure</h2>
           {structure.projectTitle && !isEditingTitle ? (
             <div className="flex items-center">
               <span className="text-sm text-gray-600 mr-1">|</span>
@@ -156,7 +153,6 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
       </div>
       
       <div className="relative">
-        {/* Timeline line */}
         <div className="absolute left-1/2 transform -translate-x-1/2 top-0 bottom-0 w-0.5 bg-gray-300 z-0" />
         
         <DndContext 
@@ -186,7 +182,6 @@ const ThreeActStructureTimeline: React.FC<Props> = ({
                 onDeleteBeat={handleDeleteBeat}
               />
               
-              {/* Midpoint Section - Specially highlighted */}
               <div className="relative mb-4 z-20">
                 <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-yellow-500"></div>
                 <div className="flex justify-center">
