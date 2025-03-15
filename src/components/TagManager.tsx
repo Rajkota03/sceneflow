@@ -1,43 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
-import { ScriptContent, ActType } from '@/lib/types';
-import SceneTag from './SceneTag';
-import { Tags, Filter, X, ChevronDown, ChevronUp, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { ActType } from '@/lib/types';
+import { Tags } from 'lucide-react';
 import ActBar from './ActBar';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { supabase } from '@/integrations/supabase/client';
-
-// Define BeatMode type to match ActBar
-type BeatMode = 'on' | 'off';
-
-// Fix the recursive type by creating a non-recursive interface
-// This interface explicitly lists all keys to prevent deep instantiation
-interface ActCountsRecord {
-  '1': number;
-  '2A': number;
-  'midpoint': number;
-  '2B': number;
-  '3': number;
-  // Use a separate indexer that doesn't reference the type itself
-  [key: string]: number;
-}
-
-interface TagManagerProps {
-  scriptContent: ScriptContent;
-  onFilterByTag: (tag: string | null) => void;
-  onFilterByAct?: (act: ActType | null) => void;
-  activeFilter: string | null;
-  activeActFilter?: ActType | null;
-  projectName?: string;
-  structureName?: string;
-  beatMode?: BeatMode;
-  onToggleBeatMode?: (mode: BeatMode) => void;
-  availableStructures?: { id: string; name: string }[];
-  onStructureChange?: (structureId: string) => void;
-  selectedStructureId?: string;
-  projectId?: string;
-}
+import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
+import useActCounts from './tag-manager/useActCounts';
+import useStructures from './tag-manager/useStructures';
+import TagFilter from './tag-manager/TagFilter';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
@@ -54,86 +23,8 @@ const TagManager: React.FC<TagManagerProps> = ({
   selectedStructureId,
   projectId
 }) => {
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  
-  // Initialize with a stable object structure to avoid recursive type issues
-  const [actCounts, setActCounts] = useState<ActCountsRecord>({
-    '1': 0,
-    '2A': 0,
-    'midpoint': 0,
-    '2B': 0,
-    '3': 0
-  });
-  
-  const [isTagsOpen, setIsTagsOpen] = useState(true);
-  const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
-
-  useEffect(() => {
-    // If we have a projectId but no available structures were provided, fetch them
-    if (projectId && availableStructures.length === 0) {
-      const fetchStructures = async () => {
-        try {
-          const { data, error } = await supabase
-            .from('structures')
-            .select('id, name')
-            .eq('projectId', projectId);
-            
-          if (error) {
-            console.error('Error fetching structures:', error);
-            return;
-          }
-          
-          if (data) {
-            setStructures(data);
-          }
-        } catch (error) {
-          console.error('Error fetching structures:', error);
-        }
-      };
-      
-      fetchStructures();
-    } else {
-      setStructures(availableStructures);
-    }
-  }, [projectId, availableStructures]);
-
-  useEffect(() => {
-    // Collect all unique tags from scene headings
-    const tags = new Set<string>();
-    
-    // Create a concrete object of the exact interface shape
-    const actTagCounts: ActCountsRecord = {
-      '1': 0,
-      '2A': 0,
-      'midpoint': 0,
-      '2B': 0,
-      '3': 0
-    };
-
-    scriptContent.elements.forEach(element => {
-      if (element.type === 'scene-heading' && element.tags) {
-        element.tags.forEach(tag => {
-          tags.add(tag);
-          
-          // Count scenes by act tag
-          if (tag.startsWith('Act 1:')) {
-            actTagCounts['1']++;
-          } else if (tag.startsWith('Act 2A:')) {
-            actTagCounts['2A']++;
-          } else if (tag.startsWith('Midpoint:')) {
-            actTagCounts['midpoint']++;
-          } else if (tag.startsWith('Act 2B:')) {
-            actTagCounts['2B']++;
-          } else if (tag.startsWith('Act 3:')) {
-            actTagCounts['3']++;
-          }
-        });
-      }
-    });
-    
-    setAvailableTags(Array.from(tags));
-    setActCounts(actTagCounts);
-  }, [scriptContent]);
+  const { availableTags, actCounts } = useActCounts(scriptContent);
+  const structures = useStructures(projectId, availableStructures);
 
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
@@ -172,45 +63,11 @@ const TagManager: React.FC<TagManagerProps> = ({
       </div>
       
       {beatMode === 'on' && availableTags.length > 0 && (
-        <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
-          <div className="p-3">
-            <div className="flex justify-between items-center">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2 flex items-center">
-                  <Tags size={16} className="mr-2" />
-                  <span className="text-sm font-medium text-slate-700">Scene Tags</span>
-                  {isTagsOpen ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
-                </Button>
-              </CollapsibleTrigger>
-              
-              {activeFilter && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onFilterByTag(null)}
-                  className="h-7 text-xs text-slate-600"
-                >
-                  <X size={14} className="mr-1" />
-                  Clear Filter
-                </Button>
-              )}
-            </div>
-            
-            <CollapsibleContent>
-              <div className="flex flex-wrap items-center gap-1 mt-2">
-                {availableTags.map(tag => (
-                  <SceneTag
-                    key={tag}
-                    tag={tag}
-                    selectable
-                    selected={activeFilter === tag}
-                    onClick={() => onFilterByTag(activeFilter === tag ? null : tag)}
-                  />
-                ))}
-              </div>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        <TagFilter 
+          availableTags={availableTags}
+          activeFilter={activeFilter}
+          onFilterByTag={onFilterByTag}
+        />
       )}
     </div>
   );
