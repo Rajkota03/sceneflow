@@ -86,7 +86,8 @@ const TagManager: React.FC<TagManagerProps> = ({
     }
   };
 
-  if (availableTags.length === 0 && Object.values(actCounts).every(count => count === 0) && beatMode === 'off') {
+  // Don't render anything if beatMode is off
+  if (beatMode === 'off') {
     return null;
   }
 
@@ -106,7 +107,7 @@ const TagManager: React.FC<TagManagerProps> = ({
         )}
       </div>
       
-      {availableTags.length > 0 && beatMode === 'on' && (
+      {availableTags.length > 0 && (
         <Collapsible open={isTagsOpen} onOpenChange={setIsTagsOpen} className="bg-white border border-slate-200 rounded-md">
           <div className="p-3">
             <div className="flex justify-between items-center">

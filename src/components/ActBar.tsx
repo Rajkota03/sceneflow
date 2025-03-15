@@ -41,6 +41,11 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   };
 
+  // Don't render in free mode
+  if (beatMode === 'off') {
+    return null;
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3 w-full">
       <div className="p-3">

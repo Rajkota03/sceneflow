@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -108,6 +109,7 @@
   width: 100%;
   white-space: pre-wrap;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  overflow-x: visible; /* Remove horizontal scrollbar */
 }
 
 .character {
@@ -149,6 +151,11 @@
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
+/* Remove all scrollbars from editor elements */
+.element-container textarea {
+  overflow: visible !important;
+}
+
 /* PDF export specific styles */
 .pdf-export p {
   margin: 0;
@@ -162,6 +169,7 @@
 .script-page-content textarea {
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
+  overflow: visible !important; /* Remove scrollbars on all textareas */
 }
 
 /* Character suggestions dropdown styles */
