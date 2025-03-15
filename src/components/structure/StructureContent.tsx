@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { ThreeActStructure, StoryBeat } from '@/lib/types';
+import { ThreeActStructure, StoryBeat, ActType } from '@/lib/types';
 import ThreeActStructureTimeline from './ThreeActStructureTimeline';
 import StructureToolsSidebar from './StructureToolsSidebar';
 import { Loader } from 'lucide-react';
@@ -38,7 +39,7 @@ const StructureContent: React.FC<StructureContentProps> = ({
   }
 
   // Make sure all acts are displayed in the timeline
-  const allActTypes = [1, '2A', 'midpoint', '2B', 3];
+  const allActTypes: ActType[] = [1, '2A', 'midpoint', '2B', 3];
   
   // Ensure structure has all the necessary beats for each act
   const ensureAllActsVisible = (structure: ThreeActStructure | null) => {
