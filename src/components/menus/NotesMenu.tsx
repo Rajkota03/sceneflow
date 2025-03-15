@@ -22,18 +22,21 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 3);
 
+  console.log('NotesMenu notes:', notes);
+  console.log('Sorted recent notes:', recentNotes);
+
   return (
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">Notes</MenubarTrigger>
       <MenubarContent>
-        <MenubarItem onClick={onCreateNote}>
+        <MenubarItem onClick={onCreateNote} className="cursor-pointer">
           <Plus className="mr-2 h-4 w-4" />
           Create New Note
         </MenubarItem>
         
         <MenubarSeparator />
         <div className="px-2 py-1 text-xs text-muted-foreground">Open Notes</div>
-        {notes.length > 0 ? (
+        {notes && notes.length > 0 ? (
           notes.map(note => (
             <MenubarItem key={note.id} onClick={() => onOpenNote(note)} className="cursor-pointer">
               <FileText className="mr-2 h-4 w-4" />
@@ -48,7 +51,7 @@ const NotesMenu = ({ notes, onCreateNote, onOpenNote }: NotesMenuProps) => {
         
         <MenubarSeparator />
         <div className="px-2 py-1 text-xs text-muted-foreground">Recent Notes</div>
-        {recentNotes.length > 0 ? (
+        {recentNotes && recentNotes.length > 0 ? (
           recentNotes.map(note => (
             <MenubarItem key={`recent-${note.id}`} onClick={() => onOpenNote(note)} className="cursor-pointer">
               <Clock className="mr-2 h-4 w-4" />

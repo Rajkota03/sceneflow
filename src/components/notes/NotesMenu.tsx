@@ -27,6 +27,8 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
   const [newNoteTitle, setNewNoteTitle] = useState('');
   const [newNoteContent, setNewNoteContent] = useState('');
   
+  console.log('Notes component received notes:', notes);
+  
   const handleCreateNote = () => {
     if (!newNoteTitle.trim()) {
       toast({
@@ -66,7 +68,7 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          {notes.length > 0 ? (
+          {notes && notes.length > 0 ? (
             <>
               <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
                 Open Notes
@@ -92,7 +94,7 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
             <Plus size={14} className="mr-2" />
             Create New Note
           </DropdownMenuItem>
-          {notes.length > 0 && (
+          {notes && notes.length > 0 && (
             <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
               <Trash2 size={14} className="mr-2" />
               Delete Note
@@ -147,7 +149,7 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote }: NotesMenuP
           </DialogHeader>
           <div className="py-4">
             <div className="space-y-4">
-              {notes.length > 0 ? (
+              {notes && notes.length > 0 ? (
                 notes.map(note => (
                   <div key={note.id} className="flex items-center justify-between border-b pb-2">
                     <div className="flex items-center">

@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { ScriptContent, ScriptElement } from '../lib/types';
+import { ScriptContent, ScriptElement, Note } from '../lib/types';
 import EditorElement from './EditorElement';
 import EditorKeyboardHandler from './EditorKeyboardHandler';
 import useScriptElements from '../hooks/useScriptElements';
@@ -11,9 +11,11 @@ import { useFormat } from '@/lib/formatContext';
 interface ScriptEditorProps {
   initialContent: ScriptContent;
   onChange: (content: ScriptContent) => void;
+  notes?: Note[];
+  onNoteCreate?: (note: Note) => void;
 }
 
-const ScriptEditor = ({ initialContent, onChange }: ScriptEditorProps) => {
+const ScriptEditor = ({ initialContent, onChange, notes, onNoteCreate }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const {
     elements,
