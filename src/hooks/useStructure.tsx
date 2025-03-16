@@ -25,11 +25,16 @@ export function useStructure(projectId?: string, structureId?: string) {
           // Load structure by project ID
           const loadedStructure = await getStructureByProjectId(projectId);
           setStructure(loadedStructure);
-        } else {
+        } else if (structureId === 'new') {
           // Create a new structure
           const newStructure = createDefaultStructure();
           newStructure.id = uuidv4();
           setStructure(newStructure);
+        } else {
+          // Default empty structure
+          const emptyStructure = createDefaultStructure();
+          emptyStructure.id = uuidv4();
+          setStructure(emptyStructure);
         }
       } catch (err) {
         console.error('Error loading structure:', err);

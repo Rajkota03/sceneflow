@@ -1,11 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStructure } from '@/hooks/useStructure';
-import { createDefaultStructure } from '@/lib/models/structureModel';
-import { getStructureById, saveStructure as saveStructureToDb } from '@/services/structureService';
-import { v4 as uuidv4 } from 'uuid';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import StructureEditor from '@/components/structure/StructureEditor';
@@ -14,50 +11,24 @@ import { LoadingState, NotFoundState } from '@/components/structure/StructureSta
 const StructureEditorPage: React.FC = () => {
   const { structureId } = useParams<{ structureId: string }>();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [structure, setStructure] = useState<any>(null);
-
-  useEffect(() => {
-    async function loadStructure() {
-      setIsLoading(true);
-      try {
-        if (structureId && structureId !== 'new') {
-          const loadedStructure = await getStructureById(structureId);
-          if (!loadedStructure) {
-            throw new Error('Structure not found');
-          }
-          setStructure(loadedStructure);
-        } else {
-          // Create a new default structure
-          const newStructure = createDefaultStructure();
-          newStructure.id = uuidv4();
-          setStructure(newStructure);
-        }
-      } catch (err) {
-        console.error('Error loading structure:', err);
-        setError(err instanceof Error ? err : new Error('Failed to load structure'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadStructure();
-  }, [structureId]);
-
-  const updateStructure = (updatedStructure: any) => {
-    setStructure(updatedStructure);
-  };
+  
+  const {
+    structure,
+    isLoading,
+    error,
+    saveStructure,
+    updateStructure
+  } = useStructure(undefined, structureId);
 
   const handleSave = async () => {
     if (!structure) return;
     
     try {
-      await saveStructureToDb(structure);
+      const saved = await saveStructure(structure);
       
       if (structureId === 'new') {
         // Redirect to the new structure's edit page
-        navigate(`/structure/${structure.id}`, { replace: true });
+        navigate(`/structure/${saved.id}`, { replace: true });
         toast({
           title: 'Structure created',
           description: 'Your new structure has been created successfully',
@@ -122,7 +93,7 @@ const StructureEditorPage: React.FC = () => {
       <StructureEditor 
         structure={structure} 
         onChange={updateStructure}
-        onSave={handleSave}
+        onSave={saveStructure}
       />
     </div>
   );
