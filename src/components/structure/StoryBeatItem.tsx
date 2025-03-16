@@ -31,12 +31,26 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
   }, [beat.title, beat.description]);
   
   const handleSave = () => {
-    console.log('Saving beat with updates:', { title, description }); // Add detailed logging
+    console.log('Saving beat with updates:', { id: beat.id, title, description });
+    console.log('Original beat values:', { 
+      original_title: beat.title, 
+      original_description: beat.description 
+    });
+    
+    // Check if values actually changed
+    if (title === beat.title && description === beat.description) {
+      console.log('No changes detected, canceling edit');
+      setIsEditing(false);
+      return;
+    }
+    
+    // Call the update function with the changes
     onUpdate({ title, description });
     setIsEditing(false);
   };
   
   const handleCancel = () => {
+    console.log('Canceling edit, resetting to original values');
     setTitle(beat.title);
     setDescription(beat.description);
     setIsEditing(false);

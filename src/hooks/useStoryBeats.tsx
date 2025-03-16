@@ -36,14 +36,29 @@ export const useStoryBeats = (
   };
   
   const handleUpdateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
-    if (!structure) return;
+    if (!structure) {
+      console.error('Cannot update beat: structure is null');
+      return;
+    }
     
-    console.log('Updating beat:', beatId, updates); // Add detailed logging
+    console.log('Updating beat:', beatId, updates);
+    console.log('Current structure:', structure);
+    
+    // Find the beat to update
+    const beatToUpdate = structure.beats.find(beat => beat.id === beatId);
+    if (!beatToUpdate) {
+      console.error(`Beat with id ${beatId} not found in structure`);
+      return;
+    }
+    
+    console.log('Found beat to update:', beatToUpdate);
     
     // Find and update the specified beat
     const updatedBeats = structure.beats.map(beat => 
       beat.id === beatId ? { ...beat, ...updates } : beat
     );
+    
+    console.log('Updated beats array:', updatedBeats);
     
     // Create updated structure
     const updatedStructure = {
@@ -52,7 +67,7 @@ export const useStoryBeats = (
       updatedAt: new Date()
     };
     
-    console.log('Updated structure for save:', updatedStructure); // Add logging before saving
+    console.log('Updated structure for save:', updatedStructure);
     
     // Save the updated structure
     saveStructure(updatedStructure);

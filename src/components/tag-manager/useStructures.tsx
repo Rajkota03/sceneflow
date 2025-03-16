@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define a concrete type for available structures to prevent recursive type issues
-interface StructureInfo {
+// Define a concrete type for structure info to prevent recursive type issues
+export interface StructureInfo {
   id: string;
   name: string;
 }

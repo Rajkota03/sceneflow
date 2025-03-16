@@ -2,9 +2,10 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { StructureInfo } from './useStructures';
 
 interface StructureSelectorProps {
-  structures: { id: string; name: string }[];
+  structures: StructureInfo[];
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
 }

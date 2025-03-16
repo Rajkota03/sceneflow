@@ -1,184 +1,193 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { ThreeActStructure, StoryBeat, createDefaultStructure } from '@/lib/types';
-import { Json } from '@/integrations/supabase/types';
+import { ThreeActStructure, Note, serializeNotes, deserializeNotes } from '@/lib/types';
 
-/**
- * Fetches the structure for a specific project
- */
-export const fetchStructureData = async (projectId: string, userId: string) => {
+export const fetchStructure = async (structureId: string): Promise<ThreeActStructure | null> => {
   try {
-    console.log("Fetching structure for project:", projectId);
     const { data, error } = await supabase
-      .from('projects')
-      .select('notes, title')
-      .eq('id', projectId)
-      .eq('author_id', userId)
+      .from('structures')
+      .select('*')
+      .eq('id', structureId)
       .single();
       
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error fetching structure:', error);
-      throw new Error('Failed to load story structure');
+      return null;
     }
     
-    // Check if there's a three-act structure in the notes
-    let structureData: ThreeActStructure | null = null;
+    if (data) {
+      return {
+        id: data.id,
+        projectId: data.projectId,
+        projectTitle: data.projectTitle,
+        beats: data.beats,
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      } as ThreeActStructure;
+    }
     
-    if (data?.notes && Array.isArray(data.notes)) {
-      console.log("Found notes array, looking for structure");
-      // Look for a note that contains the structure data
-      const structureNote = data.notes.find((note: Json) => 
-        isStructureNote(note)
-      );
-      
-      if (structureNote) {
-        console.log("Found structure note:", structureNote.id);
-        structureData = structureNote as unknown as ThreeActStructure;
-        // Ensure beats array exists and is properly formed
-        if (!structureData.beats || !Array.isArray(structureData.beats)) {
-          structureData.beats = [];
-        }
-        
-        // Make sure each beat has all required properties
-        structureData.beats = structureData.beats.map(beat => ({
-          id: beat.id || `beat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: beat.title || '',
+    return null;
+  } catch (error) {
+    console.error('Error fetching structure:', error);
+    return null;
+  }
+};
+
+export const serializeStructure = (
+  structure: ThreeActStructure
+): any => {
+  // Serialize beats to format appropriate for storage
+  const beats = structure.beats.map(beat => ({
+    id: beat.id,
+    title: beat.title,
+    description: beat.description,
+    position: beat.position,
+    actNumber: beat.actNumber,
+    isMidpoint: !!beat.isMidpoint
+  }));
+  
+  console.log('Serialized beats for storage:', beats);
+  console.log('Structure to be saved:', {
+    id: structure.id,
+    projectId: structure.projectId,
+    beats: beats.length
+  });
+  
+  return {
+    id: structure.id,
+    projectId: structure.projectId,
+    projectTitle: structure.projectTitle,
+    beats,
+    createdAt: structure.createdAt,
+    updatedAt: structure.updatedAt
+  };
+};
+
+export const deserializeStructure = (data: any): ThreeActStructure | null => {
+  if (!data) return null;
+  
+  try {
+    const beats = Array.isArray(data.beats)
+      ? data.beats.map(beat => ({
+          id: beat.id || `beat-${Date.now()}`,
+          title: beat.title || 'Untitled Beat',
           description: beat.description || '',
-          position: typeof beat.position === 'number' ? beat.position : 0,
-          actNumber: beat.actNumber,
+          position: beat.position || 0,
+          actNumber: beat.actNumber || 1,
           isMidpoint: !!beat.isMidpoint
-        }));
-        
-        // Ensure dates are Date objects
-        structureData.createdAt = new Date(structureData.createdAt);
-        structureData.updatedAt = new Date(structureData.updatedAt);
-        // Add project title if available
-        structureData.projectTitle = data.title;
-      }
+        }))
+      : [];
+      
+    return {
+      id: data.id,
+      projectId: data.projectId,
+      projectTitle: data.projectTitle,
+      beats: beats,
+      createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date()
+    };
+  } catch (error) {
+    console.error('Error deserializing structure:', error);
+    return null;
+  }
+};
+
+export const saveStructureToProject = async (
+  structure: ThreeActStructure
+) => {
+  try {
+    console.log("Saving structure:", structure.id);
+    console.log("Structure beats count:", structure.beats?.length || 0);
+    console.log("Full structure data:", JSON.stringify(structure, null, 2));
+    
+    // First, get the current notes array
+    const { data, error: fetchError } = await supabase
+      .from('projects')
+      .select('notes')
+      .eq('id', structure.projectId)
+      .single();
+    
+    if (fetchError) {
+      console.error("Fetch error:", fetchError);
+      throw new Error('Failed to fetch project');
     }
     
-    // If no structure found, create a default one
-    if (!structureData) {
-      console.log("No structure found, creating default");
-      structureData = createDefaultStructure(projectId, data?.title);
+    let notes = data.notes ? deserializeNotes(data.notes as any[]) : [];
+    
+    // Find if there's an existing structure for this project
+    const existingStructureIndex = notes.findIndex(
+      note => note.id === structure.id
+    );
+    
+    // Serialize the structure for storage
+    const serializedStructure = serializeStructure(structure);
+    console.log("Serialized structure:", serializedStructure);
+    
+    if (existingStructureIndex >= 0) {
+      console.log("Updating existing structure at index:", existingStructureIndex);
+      notes[existingStructureIndex] = serializedStructure;
+    } else {
+      console.log("Adding new structure to notes");
+      notes.push(serializedStructure);
     }
     
-    return structureData;
+    console.log("Updating project with structure, notes count:", notes.length);
+    
+    // Update the project with the new notes array
+    const { error: updateError } = await supabase
+      .from('projects')
+      .update({ 
+        notes: serializeNotes(notes),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', structure.projectId);
+    
+    if (updateError) {
+      console.error("Update error:", updateError);
+      throw new Error('Failed to save story structure');
+    }
+    
+    console.log('Structure saved successfully');
+    return structure;
   } catch (error) {
     console.error('Error:', error);
     throw error;
   }
 };
 
-/**
- * Checks if a note is a structure note
- */
-function isStructureNote(note: Json): note is { id: string } {
-  return (
-    note !== null &&
-    typeof note === 'object' &&
-    'id' in note &&
-    typeof note.id === 'string' &&
-    note.id.startsWith('structure-')
-  );
-}
-
-/**
- * Serializes a structure for storage in Supabase
- */
-export const serializeStructureForStorage = (structure: ThreeActStructure) => {
-  // Ensure the structure has all required properties
-  const updatedAt = new Date().toISOString();
-  const createdAt = structure.createdAt instanceof Date 
-    ? structure.createdAt.toISOString() 
-    : (typeof structure.createdAt === 'string' 
-      ? structure.createdAt 
-      : updatedAt);
-  
-  // Make sure each beat has all required properties
-  const beats = (structure.beats || []).map(beat => ({
-    id: beat.id || `beat-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    title: beat.title || '',
-    description: beat.description || '',
-    position: typeof beat.position === 'number' ? beat.position : 0,
-    actNumber: beat.actNumber,
-    isMidpoint: !!beat.isMidpoint
-  }));
-  
-  console.log('Serialized beats for storage:', beats); // Add logging for beats
-  
-  return {
-    id: structure.id,
-    projectId: structure.projectId,
-    projectTitle: structure.projectTitle,
-    createdAt: createdAt,
-    updatedAt: updatedAt,
-    beats: beats
-  };
-};
-
-/**
- * Saves the structure to the database
- */
-export const saveStructureData = async (
-  structure: ThreeActStructure, 
-  projectId: string, 
-  userId: string
-) => {
+export const deleteStructureFromProject = async (projectId: string, structureId: string) => {
   try {
-    console.log("Saving structure:", structure.id);
-    console.log("Structure beats count:", structure.beats?.length || 0);
-    
     // First, get the current notes array
     const { data, error: fetchError } = await supabase
       .from('projects')
       .select('notes')
       .eq('id', projectId)
-      .eq('author_id', userId)
       .single();
-    
+      
     if (fetchError) {
-      console.error('Error fetching notes:', fetchError);
-      throw new Error('Failed to update story structure');
+      console.error("Fetch error:", fetchError);
+      throw new Error('Failed to fetch project');
     }
     
-    // Prepare the notes array
-    let notes = Array.isArray(data?.notes) ? [...data.notes] : [];
+    let notes = data.notes ? deserializeNotes(data.notes as any[]) : [];
     
-    // Find if there's an existing structure note
-    const structureIndex = notes.findIndex((note: Json) => 
-      isStructureNote(note)
-    );
-    
-    // Serialize the structure for storage
-    const structureForStorage = serializeStructureForStorage(structure);
-    
-    // Update or add the structure note
-    if (structureIndex >= 0) {
-      notes[structureIndex] = structureForStorage;
-    } else {
-      notes.push(structureForStorage);
-    }
-    
-    console.log("Updating project with structure");
+    // Filter out the structure to be deleted
+    const updatedNotes = notes.filter(note => note.id !== structureId);
     
     // Update the project with the new notes array
     const { error: updateError } = await supabase
       .from('projects')
-      .update({
-        notes: notes,
-        updated_at: new Date().toISOString(),
+      .update({ 
+        notes: serializeNotes(updatedNotes),
+        updated_at: new Date().toISOString()
       })
-      .eq('id', projectId)
-      .eq('author_id', userId);
-    
+      .eq('id', projectId);
+      
     if (updateError) {
-      console.error('Error saving structure:', updateError);
-      throw new Error('Failed to save story structure');
+      console.error("Update error:", updateError);
+      throw new Error('Failed to delete story structure');
     }
     
-    console.log('Structure saved successfully');
-    return structure;
+    console.log('Structure deleted successfully');
   } catch (error) {
     console.error('Error:', error);
     throw error;

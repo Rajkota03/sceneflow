@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { ActType } from '@/lib/types';
-import { Tags } from 'lucide-react';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
-import useStructures from './tag-manager/useStructures';
+import useStructures, { StructureInfo } from './tag-manager/useStructures';
 import TagFilter from './tag-manager/TagFilter';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
