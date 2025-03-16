@@ -2,10 +2,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getStructures } from '@/services/structureService';
+import { getStructures, deleteStructure, saveStructure } from '@/services/structureService';
 import { Structure } from '@/lib/types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Pencil, Plus, TrashIcon } from 'lucide-react';
+import { 
+  ChevronDown, 
+  ChevronUp, 
+  Link, 
+  Pencil, 
+  Plus, 
+  Trash2, 
+  FileText,
+  Network
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardHeader from './DashboardHeader';
 import EmptyState from './EmptyState';
@@ -13,14 +21,24 @@ import LoadingState from './LoadingState';
 import { format } from 'date-fns';
 import { toast } from '../ui/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { createDefaultStructure } from '@/lib/models/structureModel';
+import { createSaveTheCatStructure } from '@/lib/models/saveTheCatModel';
+import StructureTimeline from '../structure/StructureTimeline';
+import { v4 as uuidv4 } from 'uuid';
 
-interface StructureCardProps {
+interface StructureItemProps {
   structure: Structure;
   onDelete: (id: string) => void;
+  linkedProjects?: Array<{ id: string, title: string }>;
 }
 
-const StructureCard: React.FC<StructureCardProps> = ({ structure, onDelete }) => {
+const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, linkedProjects = [] }) => {
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [structureName, setStructureName] = useState(structure.name);
   
   const handleEdit = () => {
     navigate(`/structure/${structure.id}`);
@@ -29,29 +47,119 @@ const StructureCard: React.FC<StructureCardProps> = ({ structure, onDelete }) =>
   const handleDelete = () => {
     onDelete(structure.id);
   };
+
+  const handleRename = () => {
+    if (isEditing && structureName.trim()) {
+      // Update structure name logic would go here
+      setIsEditing(false);
+    } else {
+      setIsEditing(true);
+    }
+  };
+
+  const handleInputBlur = () => {
+    if (structureName.trim()) {
+      setIsEditing(false);
+      // Here you would save the new name
+      const updatedStructure = { ...structure, name: structureName };
+      saveStructure(updatedStructure).catch(console.error);
+    }
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+    }
+  };
+
+  const hasLinkedProjects = linkedProjects.length > 0;
   
   return (
-    <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold">{structure.name}</h3>
-          <div className="flex items-center space-x-2">
+    <div className="mb-4 border rounded-lg shadow-sm overflow-hidden">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <div className="flex items-center justify-between p-4 bg-background hover:bg-accent/10 transition-colors">
+          <div className="flex items-center gap-2 flex-1">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
+                {isOpen ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            
+            <div className="flex-1">
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={structureName}
+                  onChange={(e) => setStructureName(e.target.value)}
+                  onBlur={handleInputBlur}
+                  onKeyDown={handleInputKeyDown}
+                  className="border p-1 rounded w-full"
+                  autoFocus
+                />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">{structure.name}</h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleRename}
+                    className="h-7 w-7 p-0"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Updated {format(new Date(structure.updatedAt), 'MMM dd, yyyy')}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {hasLinkedProjects && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+                onClick={() => navigate(`/editor/${linkedProjects[0].id}`)}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Go to Screenplay</span>
+              </Button>
+            )}
+
+            {!hasLinkedProjects && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-2"
+              >
+                <Link className="h-4 w-4" />
+                <span>Link to Screenplay</span>
+              </Button>
+            )}
+            
             <Button 
               variant="outline" 
-              size="icon" 
+              size="sm" 
               onClick={handleEdit}
-              className="h-8 w-8"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
             </Button>
+            
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button 
                   variant="destructive" 
-                  size="icon"
-                  className="h-8 w-8"
+                  size="sm"
                 >
-                  <TrashIcon className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -69,12 +177,20 @@ const StructureCard: React.FC<StructureCardProps> = ({ structure, onDelete }) =>
             </AlertDialog>
           </div>
         </div>
-        <p className="text-sm text-gray-500 mb-2">{structure.description}</p>
-        <p className="text-xs text-gray-400">
-          Updated {format(new Date(structure.updatedAt), 'MMM dd, yyyy')}
-        </p>
-      </CardContent>
-    </Card>
+        
+        <CollapsibleContent>
+          <div className="p-4 bg-muted/20">
+            {structure.description && (
+              <p className="text-sm text-muted-foreground mb-4">{structure.description}</p>
+            )}
+            <StructureTimeline 
+              structure={structure} 
+              onBeatClick={(actId, beatId) => navigate(`/structure/${structure.id}`)} 
+            />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 };
 
@@ -89,7 +205,6 @@ const StructuresTab: React.FC = () => {
   
   const handleDeleteStructure = async (id: string) => {
     try {
-      const { deleteStructure } = await import('@/services/structureService');
       const success = await deleteStructure(id);
       
       if (success) {
@@ -109,8 +224,33 @@ const StructuresTab: React.FC = () => {
     }
   };
   
-  const handleCreateNew = () => {
-    navigate('/structure/new');
+  const handleCreateNewStructure = async (template: 'three-act' | 'save-the-cat') => {
+    try {
+      let newStructure: Structure;
+      
+      if (template === 'three-act') {
+        newStructure = createDefaultStructure();
+      } else {
+        newStructure = createSaveTheCatStructure();
+      }
+      
+      newStructure.id = uuidv4();
+      
+      const savedStructure = await saveStructure(newStructure);
+      refetch();
+      
+      toast({
+        title: 'Structure created',
+        description: `Your new ${template === 'three-act' ? 'Three-Act Structure' : 'Save the Cat! Beat Sheet'} has been created.`,
+      });
+    } catch (error) {
+      console.error('Error creating structure:', error);
+      toast({
+        title: 'Error creating structure',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
+    }
   };
 
   const clearSearch = () => {
@@ -120,6 +260,13 @@ const StructuresTab: React.FC = () => {
   const filteredStructures = structures?.filter(structure => 
     structure.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
+  
+  // Mock linked projects data
+  const linkedProjects = {} as Record<string, Array<{ id: string, title: string }>>;
+  if (structures && structures.length > 0) {
+    // For demo purposes, link the first structure to a project
+    linkedProjects[structures[0].id] = [{ id: 'project-1', title: 'My Screenplay' }];
+  }
 
   if (isLoading) {
     return <LoadingState />;
@@ -139,29 +286,66 @@ const StructuresTab: React.FC = () => {
         searchQuery={searchQuery} 
         setSearchQuery={setSearchQuery} 
         projectType="structure"
-        onCreateNewProject={handleCreateNew}
+        onCreateNewProject={() => {}} // We'll use our custom create button instead
       />
+      
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Network className="h-5 w-5" /> 
+          Story Structures
+        </h2>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Structure
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleCreateNewStructure('three-act')}>
+              Three-Act Structure
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleCreateNewStructure('save-the-cat')}>
+              Save the Cat! Beat Sheet
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       
       {!structures || structures.length === 0 ? (
         <EmptyState 
           searchQuery={searchQuery}
           clearSearch={clearSearch}
-          createNewProject={handleCreateNew}
+          createNewProject={() => {}}
           emptyMessage="No structures found. Create your first story structure to get started!"
           createMessage="Create New Structure"
           customCreateButton={
-            <Button onClick={handleCreateNew}>
-              Create New Structure
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New Structure
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleCreateNewStructure('three-act')}>
+                  Three-Act Structure
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleCreateNewStructure('save-the-cat')}>
+                  Save the Cat! Beat Sheet
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           }
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="space-y-4">
           {filteredStructures.map(structure => (
-            <StructureCard 
+            <StructureItem 
               key={structure.id} 
               structure={structure} 
-              onDelete={handleDeleteStructure} 
+              onDelete={handleDeleteStructure}
+              linkedProjects={linkedProjects[structure.id] || []}
             />
           ))}
         </div>
