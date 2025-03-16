@@ -10,7 +10,6 @@ import Editor from './pages/Editor';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
-import Structure from './pages/Structure';
 import { supabase } from './integrations/supabase/client';
 
 interface AuthContextType {
@@ -74,7 +73,6 @@ function App() {
             <Route path="/sign-in" element={<SignIn />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/editor/:projectId" element={<Editor />} />
-            <Route path="/structure/:projectId" element={<Structure />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -5,16 +6,14 @@ import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, NotebookPen, Network } from 'lucide-react';
-import { Note, ThreeActStructure, createDefaultStructure } from '@/lib/types';
+import { Note } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/App';
-import { supabase } from '@/integrations/supabase/client';
 
 // Import the tab components
 import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
-import DeleteStructureDialog from '@/components/dashboard/DeleteStructureDialog';
 
 const Dashboard = () => {
   const { session } = useAuth();
@@ -43,10 +42,6 @@ const Dashboard = () => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Note | null>(null);
-  const [structures, setStructures] = useState<{projectId: string, projectTitle: string, structure: ThreeActStructure}[]>([]);
-  const [isLoadingStructures, setIsLoadingStructures] = useState(false);
-  const [hasInitializedStructures, setHasInitializedStructures] = useState(false);
-  const [structureToDelete, setStructureToDelete] = useState<string | null>(null);
 
   console.log('Dashboard - available notes:', notes?.length || 0);
 
@@ -57,77 +52,14 @@ const Dashboard = () => {
   }, [tabFromQuery]);
 
   useEffect(() => {
-    if (activeTab === "structures" && session && projects.length > 0 && !hasInitializedStructures) {
-      fetchStructures();
-    }
-  }, [activeTab, session, projects, hasInitializedStructures]);
-
-  useEffect(() => {
     const newUrl = `${window.location.pathname}?tab=${activeTab}`;
     window.history.replaceState({}, '', newUrl);
   }, [activeTab]);
-
-  const fetchStructures = async () => {
-    if (!session || !projects.length) return;
-    
-    setIsLoadingStructures(true);
-    try {
-      const structuresData = [];
-      
-      for (const project of projects) {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('notes')
-          .eq('id', project.id)
-          .eq('author_id', session.user.id)
-          .single();
-          
-        if (error) {
-          console.error('Error fetching structure:', error);
-          continue;
-        }
-        
-        if (data?.notes && Array.isArray(data.notes)) {
-          const structureNote = data.notes.find((note: any) => 
-            note && 
-            typeof note === 'object' && 
-            'id' in note && 
-            typeof note.id === 'string' && 
-            note.id.startsWith('structure-')
-          );
-          
-          if (structureNote) {
-            structuresData.push({
-              projectId: project.id,
-              projectTitle: project.title,
-              structure: structureNote as unknown as ThreeActStructure
-            });
-          }
-        }
-      }
-      
-      setStructures(structuresData);
-      setHasInitializedStructures(true);
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load structures',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoadingStructures(false);
-    }
-  };
 
   const filteredNotes = notes?.filter(note => 
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
   ) || [];
-
-  const filteredStructures = structures.filter(item => 
-    item.projectTitle.toLowerCase().includes(structuresSearchQuery.toLowerCase())
-  );
 
   const handleCreateNoteFromPopover = (noteData: Partial<Note>) => {
     const newNote: Note = {
@@ -167,181 +99,6 @@ const Dashboard = () => {
   const handleCreateNewNote = () => {
     setCurrentNote(null);
     setIsNoteEditorOpen(true);
-  };
-
-  const createNewStructure = async () => {
-    if (!session) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to create a structure.",
-        variant: "destructive"
-      });
-      navigate('/sign-in');
-      return;
-    }
-    
-    if (projects.length === 0) {
-      toast({
-        title: "No projects found",
-        description: "You need to create a project first before adding a structure.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    const firstProject = projects[0];
-    
-    try {
-      const newStructure = createDefaultStructure(firstProject.id, firstProject.title);
-      
-      const { data, error: fetchError } = await supabase
-        .from('projects')
-        .select('notes')
-        .eq('id', firstProject.id)
-        .eq('author_id', session.user.id)
-        .single();
-      
-      if (fetchError) {
-        console.error('Error fetching project:', fetchError);
-        toast({
-          title: 'Error',
-          description: 'Failed to create structure',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      const structureForStorage = {
-        id: newStructure.id,
-        projectId: newStructure.projectId,
-        projectTitle: newStructure.projectTitle,
-        createdAt: newStructure.createdAt instanceof Date 
-          ? newStructure.createdAt.toISOString() 
-          : newStructure.createdAt,
-        updatedAt: newStructure.updatedAt instanceof Date 
-          ? newStructure.updatedAt.toISOString() 
-          : newStructure.updatedAt,
-        beats: newStructure.beats.map(beat => ({
-          id: beat.id,
-          title: beat.title,
-          description: beat.description,
-          position: beat.position,
-          actNumber: beat.actNumber,
-          isMidpoint: beat.isMidpoint
-        }))
-      };
-      
-      let notes = Array.isArray(data?.notes) ? [...data.notes] : [];
-      notes.push(structureForStorage);
-      
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({
-          notes: notes,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', firstProject.id)
-        .eq('author_id', session.user.id);
-      
-      if (updateError) {
-        console.error('Error updating project:', updateError);
-        toast({
-          title: 'Error',
-          description: 'Failed to create structure',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      toast({
-        title: 'Success',
-        description: 'Structure created successfully',
-      });
-      
-      await fetchStructures();
-      
-      navigate(`/structure/${firstProject.id}`);
-    } catch (error) {
-      console.error('Error creating structure:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create structure',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleDeleteStructure = async (projectId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setStructureToDelete(projectId);
-  };
-
-  const confirmDeleteStructure = async () => {
-    if (!structureToDelete || !session) return;
-    
-    try {
-      const { data: projectData, error: fetchError } = await supabase
-        .from('projects')
-        .select('notes')
-        .eq('id', structureToDelete)
-        .eq('author_id', session.user.id)
-        .single();
-      
-      if (fetchError) {
-        console.error('Error fetching project:', fetchError);
-        toast({
-          title: 'Error',
-          description: 'Failed to delete structure',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      let notes = Array.isArray(projectData?.notes) ? [...projectData.notes] : [];
-      notes = notes.filter((note: any) => 
-        !(note && 
-          typeof note === 'object' && 
-          'id' in note && 
-          typeof note.id === 'string' && 
-          note.id.startsWith('structure-'))
-      );
-      
-      const { error: updateError } = await supabase
-        .from('projects')
-        .update({
-          notes: notes,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', structureToDelete)
-        .eq('author_id', session.user.id);
-      
-      if (updateError) {
-        console.error('Error updating project:', updateError);
-        toast({
-          title: 'Error',
-          description: 'Failed to delete structure',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setStructures(structures.filter(item => item.projectId !== structureToDelete));
-      
-      toast({
-        title: 'Success',
-        description: 'Structure deleted successfully',
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete structure',
-        variant: 'destructive',
-      });
-    } finally {
-      setStructureToDelete(null);
-    }
   };
 
   return (
@@ -398,12 +155,8 @@ const Dashboard = () => {
             
             <TabsContent value="structures" className="mt-6">
               <StructuresTab
-                structures={filteredStructures}
                 searchQuery={structuresSearchQuery}
                 setSearchQuery={setStructuresSearchQuery}
-                isLoading={isLoadingStructures}
-                createNewStructure={createNewStructure}
-                handleDeleteStructure={handleDeleteStructure}
               />
             </TabsContent>
           </Tabs>
@@ -411,12 +164,6 @@ const Dashboard = () => {
       </main>
       
       <Footer />
-      
-      <DeleteStructureDialog
-        open={!!structureToDelete}
-        onOpenChange={(open) => !open && setStructureToDelete(null)}
-        onConfirm={confirmDeleteStructure}
-      />
     </div>
   );
 };
