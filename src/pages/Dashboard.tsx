@@ -155,8 +155,8 @@ const Dashboard = () => {
             
             <TabsContent value="structures" className="mt-6">
               <StructuresTab
-                searchQuery={structuresSearchQuery}
-                setSearchQuery={setStructuresSearchQuery}
+                structureSearchQuery={structuresSearchQuery}
+                setStructureSearchQuery={setStructuresSearchQuery}
               />
             </TabsContent>
           </Tabs>

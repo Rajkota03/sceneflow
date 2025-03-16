@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
@@ -14,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from './ui/use-toast';
+import { ActCountsRecord } from '@/types/scriptTypes';
 
 // Define the BeatMode type to ensure consistent usage
 type BeatMode = 'on' | 'off';
@@ -21,7 +21,7 @@ type BeatMode = 'on' | 'off';
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
-  actCounts: Record<ActType | string, number>;
+  actCounts: ActCountsRecord;
   projectName?: string;
   structureName?: string;
   beatMode?: BeatMode;
@@ -48,7 +48,6 @@ const ActBar: React.FC<ActBarProps> = ({
   const [isLoadingStructures, setIsLoadingStructures] = useState(false);
   
   useEffect(() => {
-    // If no structures were provided, fetch them
     if (availableStructures.length === 0) {
       const fetchStructures = async () => {
         setIsLoadingStructures(true);
@@ -78,7 +77,6 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   }, [availableStructures]);
   
-  // Map number/string values to ActType enum values
   const acts = [
     { id: ActType.ACT_1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
     { id: ActType.ACT_2A, label: 'Act 2A', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
@@ -97,7 +95,6 @@ const ActBar: React.FC<ActBarProps> = ({
     if (onStructureChange) {
       onStructureChange(value);
     } else {
-      // If no handler was provided, show a toast asking to navigate to structure page
       toast({
         title: "Structure Selection",
         description: "Please go to the Structure page to edit this structure",
@@ -105,7 +102,6 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   };
 
-  // Always render the component, but conditionally render its contents based on beatMode
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="bg-slate-50 rounded-md shadow-sm mb-3 w-full">
       <div className="p-3">

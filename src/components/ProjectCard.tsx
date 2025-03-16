@@ -11,7 +11,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project, onDelete }: ProjectCardProps) => {
-  const timeAgo = formatDistanceToNow(new Date(project.updatedAt), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(project.updated_at), { addSuffix: true });
   
   return (
     <div className="glass-card rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg group border border-slate-200 bg-white">

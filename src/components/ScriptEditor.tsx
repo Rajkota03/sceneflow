@@ -86,11 +86,11 @@ const ScriptEditor = ({
         if (element.type === 'scene-heading') {
           // Check if any tag in this scene matches the selected act
           const matchesAct = element.tags?.some(tag => {
-            if (activeActFilter === 1) return tag.startsWith('Act 1:');
-            if (activeActFilter === '2A') return tag.startsWith('Act 2A:');
-            if (activeActFilter === 'midpoint') return tag.startsWith('Midpoint:');
-            if (activeActFilter === '2B') return tag.startsWith('Act 2B:');
-            if (activeActFilter === 3) return tag.startsWith('Act 3:');
+            if (activeActFilter === ActType.ACT_1) return tag.startsWith('Act 1:');
+            if (activeActFilter === ActType.ACT_2A) return tag.startsWith('Act 2A:');
+            if (activeActFilter === ActType.MIDPOINT) return tag.startsWith('Midpoint:');
+            if (activeActFilter === ActType.ACT_2B) return tag.startsWith('Act 2B:');
+            if (activeActFilter === ActType.ACT_3) return tag.startsWith('Act 3:');
             return false;
           });
           

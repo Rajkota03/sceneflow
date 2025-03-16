@@ -1,18 +1,18 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent } from '@/lib/types';
+import { ScriptContent, ActType } from '@/lib/types';
 import { ActCountsRecord } from '@/types/scriptTypes';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Initialize with a stable object structure to avoid recursive type issues
+  // Initialize with the correct ActType enum values
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
-    '1': 0,
-    '2A': 0,
-    'midpoint': 0,
-    '2B': 0,
-    '3': 0
+    [ActType.ACT_1]: 0,
+    [ActType.ACT_2A]: 0,
+    [ActType.MIDPOINT]: 0,
+    [ActType.ACT_2B]: 0,
+    [ActType.ACT_3]: 0
   });
 
   useEffect(() => {
@@ -21,11 +21,11 @@ const useActCounts = (scriptContent: ScriptContent) => {
     
     // Create a concrete object of the exact interface shape
     const actTagCounts: ActCountsRecord = {
-      '1': 0,
-      '2A': 0,
-      'midpoint': 0,
-      '2B': 0,
-      '3': 0
+      [ActType.ACT_1]: 0,
+      [ActType.ACT_2A]: 0,
+      [ActType.MIDPOINT]: 0,
+      [ActType.ACT_2B]: 0,
+      [ActType.ACT_3]: 0
     };
 
     scriptContent.elements.forEach(element => {
@@ -35,15 +35,15 @@ const useActCounts = (scriptContent: ScriptContent) => {
           
           // Count scenes by act tag
           if (tag.startsWith('Act 1:')) {
-            actTagCounts['1']++;
+            actTagCounts[ActType.ACT_1]++;
           } else if (tag.startsWith('Act 2A:')) {
-            actTagCounts['2A']++;
+            actTagCounts[ActType.ACT_2A]++;
           } else if (tag.startsWith('Midpoint:')) {
-            actTagCounts['midpoint']++;
+            actTagCounts[ActType.MIDPOINT]++;
           } else if (tag.startsWith('Act 2B:')) {
-            actTagCounts['2B']++;
+            actTagCounts[ActType.ACT_2B]++;
           } else if (tag.startsWith('Act 3:')) {
-            actTagCounts['3']++;
+            actTagCounts[ActType.ACT_3]++;
           }
         });
       }

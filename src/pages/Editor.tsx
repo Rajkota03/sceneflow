@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ScriptEditor from '../components/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, deserializeNotes, serializeNotes } from '../lib/types';
+import ScriptEditor from '../components/script-editor/ScriptEditor';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit, Pencil } from 'lucide-react';
@@ -86,10 +86,10 @@ const Editor = () => {
             const newProject: Project = {
               ...emptyProject,
               id: projectId,
-              authorId: session.user.id,
+              author_id: session.user.id,
               title: 'Untitled Screenplay',
-              createdAt: new Date(),
-              updatedAt: new Date(),
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
               content: defaultContent
             };
             
@@ -134,9 +134,9 @@ const Editor = () => {
           const formattedProject: Project = {
             id: data.id,
             title: data.title,
-            authorId: data.author_id,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at),
+            author_id: data.author_id,
+            created_at: data.created_at,
+            updated_at: data.updated_at,
             content: jsonToScriptContent(data.content),
           };
           
@@ -162,7 +162,13 @@ const Editor = () => {
               let processedNotes: Note[] = [];
               
               if (Array.isArray(notesRawData)) {
-                processedNotes = deserializeNotes(notesRawData);
+                processedNotes = notesRawData.map(note => ({
+                  id: note.id || '',
+                  title: note.title || '',
+                  content: note.content || '',
+                  createdAt: new Date(note.createdAt || note.created_at || Date.now()),
+                  updatedAt: new Date(note.updatedAt || note.updated_at || Date.now())
+                }));
               }
               
               console.log('Processed notes:', processedNotes.length);

@@ -1,3 +1,4 @@
+
 import { ScriptContent, Project } from './types';
 
 export const mockScript: ScriptContent = {
@@ -80,13 +81,12 @@ export const mockScript: ScriptContent = {
   ]
 };
 
-// Other mock data...
-
-export const mockProject: Project = {
-  id: '1',
+// Default empty project for new projects
+export const emptyProject: Project = {
+  id: '',
   title: 'Untitled Project',
-  content: mockScript,
-  author_id: 'user1',
+  content: { elements: [] },
+  author_id: '',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 };

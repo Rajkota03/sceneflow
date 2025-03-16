@@ -43,13 +43,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           <ActBar 
             activeAct={activeActFilter || null} 
             onSelectAct={handleActFilter} 
-            actCounts={{
-              1: actCounts['1'],
-              '2A': actCounts['2A'], 
-              'midpoint': actCounts['midpoint'], 
-              '2B': actCounts['2B'], 
-              3: actCounts['3']
-            }}
+            actCounts={actCounts}
             projectName={projectName}
             structureName={structureName}
             beatMode={beatMode}

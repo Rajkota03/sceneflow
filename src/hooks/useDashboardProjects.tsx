@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
 import { emptyProject } from '@/lib/mockData';
 import { useAuth } from '@/App';
-import { supabase, generateUniqueNoteId, checkNoteExists } from '@/integrations/supabase/client';
+import { supabase, generateUniqueNoteId } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { TitlePageData } from '@/components/TitlePageEditor';
 
@@ -44,28 +43,15 @@ export const useDashboardProjects = () => {
         });
         setProjects([]);
       } else if (data) {
-        const formattedProjects = data.map(project => {
-          let projectNotes: Note[] = [];
-          if (project.notes && Array.isArray(project.notes)) {
-            projectNotes = (project.notes as any[]).map(note => ({
-              id: note.id || '',
-              title: note.title || '',
-              content: note.content || '',
-              createdAt: new Date(note.createdAt || note.created_at || Date.now()),
-              updatedAt: new Date(note.updatedAt || note.updated_at || Date.now())
-            }));
-          }
-          
-          return {
-            id: project.id,
-            title: project.title,
-            authorId: project.author_id,
-            createdAt: new Date(project.created_at),
-            updatedAt: new Date(project.updated_at),
-            content: jsonToScriptContent(project.content),
-            notes: projectNotes
-          };
-        });
+        const formattedProjects = data.map(project => ({
+          id: project.id,
+          title: project.title,
+          author_id: project.author_id,
+          created_at: project.created_at,
+          updated_at: project.updated_at,
+          content: jsonToScriptContent(project.content)
+        })) as Project[];
+        
         setProjects(formattedProjects);
         console.log('Loaded projects:', formattedProjects.length);
       }
@@ -100,8 +86,8 @@ export const useDashboardProjects = () => {
           id: note.id,
           title: note.title,
           content: note.content,
-          createdAt: new Date(note.created_at),
-          updatedAt: new Date(note.updated_at)
+          created_at: new Date(note.created_at),
+          updated_at: new Date(note.updated_at)
         }));
         setNotes(formattedNotes);
         console.log('Loaded standalone notes:', formattedNotes.length);
@@ -125,11 +111,10 @@ export const useDashboardProjects = () => {
     const newProject: Project = {
       ...emptyProject,
       id: `project-${Date.now()}`,
-      authorId: session.user.id,
+      author_id: session.user.id,
       title: `Untitled Screenplay ${projects.length + 1}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      notes: []
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
     
     const defaultTitlePageData: TitlePageData = {
@@ -145,7 +130,7 @@ export const useDashboardProjects = () => {
         .insert({
           id: newProject.id,
           title: newProject.title,
-          author_id: newProject.authorId,
+          author_id: newProject.author_id,
           content: scriptContentToJson(newProject.content),
           title_page: defaultTitlePageData,
           notes: []
