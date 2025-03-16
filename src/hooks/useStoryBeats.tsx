@@ -1,3 +1,4 @@
+
 import { toast } from '@/components/ui/use-toast';
 import { ThreeActStructure, StoryBeat } from '@/lib/types';
 
@@ -37,7 +38,7 @@ export const useStoryBeats = (
   const handleUpdateBeat = (beatId: string, updates: Partial<StoryBeat>) => {
     if (!structure) return;
     
-    console.log('Updating beat:', beatId, updates); // Added for debugging
+    console.log('Updating beat:', beatId, updates); // Add detailed logging
     
     // Find and update the specified beat
     const updatedBeats = structure.beats.map(beat => 
@@ -50,6 +51,8 @@ export const useStoryBeats = (
       beats: updatedBeats,
       updatedAt: new Date()
     };
+    
+    console.log('Updated structure for save:', updatedStructure); // Add logging before saving
     
     // Save the updated structure
     saveStructure(updatedStructure);

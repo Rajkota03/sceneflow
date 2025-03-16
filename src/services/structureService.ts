@@ -105,6 +105,8 @@ export const serializeStructureForStorage = (structure: ThreeActStructure) => {
     isMidpoint: !!beat.isMidpoint
   }));
   
+  console.log('Serialized beats for storage:', beats); // Add logging for beats
+  
   return {
     id: structure.id,
     projectId: structure.projectId,
@@ -125,6 +127,8 @@ export const saveStructureData = async (
 ) => {
   try {
     console.log("Saving structure:", structure.id);
+    console.log("Structure beats count:", structure.beats?.length || 0);
+    
     // First, get the current notes array
     const { data, error: fetchError } = await supabase
       .from('projects')
@@ -157,6 +161,7 @@ export const saveStructureData = async (
     }
     
     console.log("Updating project with structure");
+    
     // Update the project with the new notes array
     const { error: updateError } = await supabase
       .from('projects')
@@ -172,6 +177,7 @@ export const saveStructureData = async (
       throw new Error('Failed to save story structure');
     }
     
+    console.log('Structure saved successfully');
     return structure;
   } catch (error) {
     console.error('Error:', error);

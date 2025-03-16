@@ -31,6 +31,7 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
   }, [beat.title, beat.description]);
   
   const handleSave = () => {
+    console.log('Saving beat with updates:', { title, description }); // Add detailed logging
     onUpdate({ title, description });
     setIsEditing(false);
   };
@@ -118,8 +119,6 @@ const StoryBeatItem: React.FC<StoryBeatItemProps> = ({
                 >
                   <Edit size={12} />
                 </Button>
-                
-                {/* Delete button has been removed as requested */}
               </div>
             )}
           </div>
