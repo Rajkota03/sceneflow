@@ -1,100 +1,69 @@
-
-import { Json } from '@/integrations/supabase/types';
-
-export interface ScriptElement {
-  id: string;
-  type: ElementType;
-  text: string;
-  tags?: string[]; // Add tags array to script elements
-}
-
-export interface ScriptContent {
-  elements: ScriptElement[];
-}
-
-export interface Project {
-  id: string;
-  title: string;
-  authorId?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  content: ScriptContent;
-  notes?: Note[];
-}
-
-export type Note = {
+export interface Note {
   id: string;
   title: string;
   content: string;
   createdAt: Date;
   updatedAt: Date;
-};
+}
 
-export type ElementType = 
-  | 'scene-heading' 
-  | 'action' 
-  | 'character' 
-  | 'dialogue' 
-  | 'parenthetical' 
-  | 'transition' 
-  | 'note';
+export interface Project {
+  id: string;
+  title: string;
+  content: any;
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
-// Add ActType definition
-export type ActType = 1 | '2A' | 'midpoint' | '2B' | 3;
+// Act Type
+export enum ActType {
+  ACT_1 = 'ACT_1',
+  ACT_2A = 'ACT_2A',
+  MIDPOINT = 'MIDPOINT',
+  ACT_2B = 'ACT_2B',
+  ACT_3 = 'ACT_3',
+}
 
-// Add StoryBeat definition
-export type StoryBeat = string;
+// Story Beat Type
+export interface StoryBeat {
+  id: string;
+  name: string;
+  position: number; // percentage position in the story (0-100)
+  actType: ActType;
+  description?: string;
+}
 
-// Add ThreeActStructure definition for the project title hook
+// Three Act Structure Type
 export interface ThreeActStructure {
   id: string;
-  projectTitle: string;
-  acts: {
-    [key: string]: {
-      title: string;
-      beats: Array<{
-        id: string;
-        title: string;
-        description: string;
-      }>;
-    };
-  };
+  name: string;
+  beats: StoryBeat[];
 }
 
-export const scriptContentToJson = (content: ScriptContent): Json => {
-  return content as unknown as Json;
-};
-
-export const jsonToScriptContent = (json: Json | null): ScriptContent => {
-  if (!json) {
-    return { elements: [] };
-  }
-  
-  if (typeof json === 'object' && json !== null && 'elements' in json) {
-    return json as unknown as ScriptContent;
-  }
-  
-  return { elements: [] };
-};
-
-export function serializeNotes(notes: Note[]): any[] {
-  if (!notes || !Array.isArray(notes)) return [];
-  
-  return notes.map(note => ({
-    ...note,
-    createdAt: note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt,
-    updatedAt: note.updatedAt instanceof Date ? note.updatedAt.toISOString() : note.updatedAt
-  }));
+// Structure Types (for the new feature)
+export interface Beat {
+  id: string;
+  title: string;
+  description: string;
+  timePosition: number; // percentage (0-100)
 }
 
-export function deserializeNotes(jsonNotes: any[]): Note[] {
-  if (!jsonNotes || !Array.isArray(jsonNotes)) return [];
-  
-  return jsonNotes.map(note => ({
-    id: String(note.id || `note-${Date.now()}`),
-    title: String(note.title || 'Untitled Note'),
-    content: String(note.content || ''),
-    createdAt: note.createdAt ? new Date(note.createdAt) : new Date(),
-    updatedAt: note.updatedAt ? new Date(note.updatedAt) : new Date()
-  }));
+export interface Act {
+  id: string;
+  title: string;
+  colorHex: string;
+  startPosition: number; // percentage (0-100)
+  endPosition: number; // percentage (0-100)
+  beats: Beat[];
+}
+
+export interface Structure {
+  id: string;
+  name: string;
+  description?: string;
+  projectId?: string;
+  projectTitle?: string;
+  acts: Act[];
+  createdAt: Date;
+  updatedAt: Date;
 }

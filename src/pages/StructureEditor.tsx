@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStructure } from '@/hooks/useStructure';
-import StructureEditor from '@/components/structure/StructureEditor';
 import { createDefaultStructure } from '@/lib/models/structureModel';
 import { v4 as uuidv4 } from 'uuid';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
+import StructureEditor from '@/components/structure/StructureEditor';
 
 const StructureEditorPage: React.FC = () => {
   const { structureId } = useParams<{ structureId: string }>();
@@ -42,6 +42,11 @@ const StructureEditorPage: React.FC = () => {
         toast({
           title: 'Structure created',
           description: 'Your new structure has been created successfully',
+        });
+      } else {
+        toast({
+          title: 'Structure saved',
+          description: 'Your structure has been saved successfully',
         });
       }
     } catch (error) {
