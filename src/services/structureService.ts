@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, Note, serializeNotes, deserializeNotes, StoryBeat } from '@/lib/types';
 import { Json } from '@/integrations/supabase/types';
@@ -69,15 +70,21 @@ export const fetchStructureData = async (projectId: string, userId: string): Pro
       
       if (structureNote) {
         // If we found a structure in the notes, construct a proper ThreeActStructure from it
+        // Fix: Add null checks for structureNote.content
+        const structureContent = structureNote.content;
+        let beats: StoryBeat[] = [];
+        
+        if (Array.isArray(structureContent)) {
+          beats = structureContent;
+        } else if (typeof structureContent === 'object' && structureContent !== null) {
+          beats = 'beats' in structureContent ? structureContent.beats : [];
+        }
+        
         return {
           id: structureNote.id,
           projectId: projectId,
           projectTitle: structureNote.title || 'Untitled Structure',
-          beats: Array.isArray(structureNote.content) 
-            ? structureNote.content
-            : typeof structureNote.content === 'object' && structureNote.content !== null && 'beats' in structureNote.content
-              ? structureNote.content.beats 
-              : [],
+          beats: beats,
           createdAt: structureNote.createdAt,
           updatedAt: structureNote.updatedAt
         } as ThreeActStructure;
