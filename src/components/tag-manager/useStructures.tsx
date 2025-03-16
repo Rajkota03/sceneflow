@@ -2,15 +2,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define a concrete type for structure info to prevent recursive type issues
+// Define a concrete type for structure info without any recursion
 export interface StructureInfo {
   id: string;
   name: string;
-  // Remove any potentially recursive properties
 }
 
 const useStructures = (projectId?: string, availableStructures: StructureInfo[] = []) => {
-  const [structures, setStructures] = useState<StructureInfo[]>(availableStructures);
+  const [structures, setStructures] = useState<StructureInfo[]>([]);
 
   useEffect(() => {
     // If we have a projectId but no available structures were provided, fetch them

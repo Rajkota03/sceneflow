@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, Note, serializeNotes, deserializeNotes, StoryBeat } from '@/lib/types';
 import { Json } from '@/integrations/supabase/types';
@@ -47,40 +46,34 @@ export const fetchStructure = async (structureId: string): Promise<ThreeActStruc
 export const fetchStructureData = async (projectId: string, userId: string): Promise<ThreeActStructure | null> => {
   try {
     console.log(`Fetching structure data for project: ${projectId}`);
-    const { data, error } = await supabase
-      .from('structures')
-      .select('*')
-      .eq('projectId', projectId)
+    
+    // Instead of querying by projectId which doesn't exist in the structures table,
+    // we'll look for a structure associated with this project in the projects table
+    const { data: projectData, error: projectError } = await supabase
+      .from('projects')
+      .select('notes')
+      .eq('id', projectId)
       .single();
       
-    if (error) {
-      if (error.code === 'PGRST116') {
-        console.log('No structure found for this project, will create one');
-        return null;
-      }
-      console.error('Error fetching structure data:', error);
+    if (projectError) {
+      console.error('Error fetching project data:', projectError);
       return null;
     }
     
-    if (data) {
-      // Convert database model to application model
-      return {
-        id: data.id,
-        projectId: projectId, // Use the provided projectId since it doesn't exist in the database
-        projectTitle: data.name,
-        beats: Array.isArray(data.beats) ? data.beats.map((beat: any) => ({
-          id: beat.id || `beat-${Date.now()}`,
-          title: beat.title || 'Untitled Beat',
-          description: beat.description || '',
-          position: beat.position || 0,
-          actNumber: beat.actNumber || 1,
-          isMidpoint: !!beat.isMidpoint
-        })) : [],
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      } as ThreeActStructure;
+    // Look for a structure in the project's notes
+    if (projectData && projectData.notes) {
+      const notes = deserializeNotes(projectData.notes as any[]);
+      const structureNote = notes.find(note => 
+        note.id.startsWith('structure-')
+      );
+      
+      if (structureNote) {
+        // If we found a structure in the notes, fetch its complete data
+        return await fetchStructure(structureNote.id);
+      }
     }
     
+    // If no structure was found in the project's notes, return null
     return null;
   } catch (error) {
     console.error('Error fetching structure data:', error);
@@ -92,83 +85,9 @@ export const saveStructureData = async (structure: ThreeActStructure, projectId:
   try {
     console.log(`Saving structure data for project: ${projectId}`);
     
-    // Prepare the structure data for the database
-    const dbStructure = {
-      id: structure.id,
-      projectId: projectId,
-      name: structure.projectTitle || 'Untitled Structure',
-      description: 'Three-act structure for screenplay',
-      beats: structure.beats.map(beat => ({
-        id: beat.id,
-        title: beat.title,
-        description: beat.description,
-        position: beat.position,
-        actNumber: beat.actNumber,
-        isMidpoint: !!beat.isMidpoint
-      })),
-      updated_at: new Date().toISOString()
-    };
-    
-    // Check if the structure already exists
-    const { data: existingData, error: checkError } = await supabase
-      .from('structures')
-      .select('id')
-      .eq('id', structure.id)
-      .single();
-      
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking for existing structure:', checkError);
-    }
-    
-    let result;
-    
-    if (existingData) {
-      // Update existing structure
-      const { data, error } = await supabase
-        .from('structures')
-        .update(dbStructure)
-        .eq('id', structure.id)
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Error updating structure:', error);
-        throw new Error('Failed to update structure');
-      }
-      
-      result = data;
-    } else {
-      // Insert new structure
-      const { data, error } = await supabase
-        .from('structures')
-        .insert({ ...dbStructure, created_at: new Date().toISOString() })
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Error inserting structure:', error);
-        throw new Error('Failed to create structure');
-      }
-      
-      result = data;
-    }
-    
-    // Convert the result back to the application model
-    return {
-      id: result.id,
-      projectId: dbStructure.projectId, // Use the projectId from dbStructure
-      projectTitle: result.name,
-      beats: Array.isArray(result.beats) ? result.beats.map((beat: any) => ({
-        id: beat.id,
-        title: beat.title,
-        description: beat.description,
-        position: beat.position,
-        actNumber: beat.actNumber,
-        isMidpoint: !!beat.isMidpoint
-      })) : [],
-      createdAt: result.created_at,
-      updatedAt: result.updated_at
-    } as ThreeActStructure;
+    // We won't save to the structures table directly because it doesn't have a projectId.
+    // Instead, we'll save the structure as a note in the project's notes.
+    return await saveStructureToProject(structure);
   } catch (error) {
     console.error('Error saving structure data:', error);
     throw error;
@@ -240,8 +159,32 @@ export const saveStructureToProject = async (
   try {
     console.log("Saving structure:", structure.id);
     console.log("Structure beats count:", structure.beats?.length || 0);
-    console.log("Full structure data:", JSON.stringify(structure, null, 2));
     
+    // First, we'll update the structures table (if it exists)
+    const { data: structureData, error: structureError } = await supabase
+      .from('structures')
+      .upsert({
+        id: structure.id,
+        name: structure.projectTitle || 'Untitled Structure',
+        description: 'Three-act structure for screenplay',
+        beats: structure.beats.map(beat => ({
+          id: beat.id,
+          title: beat.title,
+          description: beat.description,
+          position: beat.position,
+          actNumber: beat.actNumber,
+          isMidpoint: beat.isMidpoint
+        })),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+      
+    if (structureError) {
+      console.error("Error updating structure:", structureError);
+    }
+    
+    // Next, store the structure in the project's notes
     // First, get the current notes array
     const { data, error: fetchError } = await supabase
       .from('projects')
@@ -263,7 +206,6 @@ export const saveStructureToProject = async (
     
     // Serialize the structure for storage
     const serializedStructure = serializeStructure(structure);
-    console.log("Serialized structure:", serializedStructure);
     
     if (existingStructureIndex >= 0) {
       console.log("Updating existing structure at index:", existingStructureIndex);
@@ -272,8 +214,6 @@ export const saveStructureToProject = async (
       console.log("Adding new structure to notes");
       notes.push(serializedStructure);
     }
-    
-    console.log("Updating project with structure, notes count:", notes.length);
     
     // Update the project with the new notes array
     const { error: updateError } = await supabase
