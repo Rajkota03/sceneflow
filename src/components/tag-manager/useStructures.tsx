@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface StructureInfo {
   id: string;
   name: string;
+  // Remove any potentially recursive properties
 }
 
 const useStructures = (projectId?: string, availableStructures: StructureInfo[] = []) => {
