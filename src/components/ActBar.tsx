@@ -85,7 +85,7 @@ const ActBar: React.FC<ActBarProps> = ({
           </div>
           
           <div className="flex items-center gap-3">
-            {structures.length > 0 && (
+            {availableStructures.length > 0 && (
               <Select 
                 value={selectedStructureId} 
                 onValueChange={handleStructureChange}
