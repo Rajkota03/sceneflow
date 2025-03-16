@@ -31,19 +31,19 @@ export function createSaveTheCatStructure(projectId?: string, projectTitle?: str
           {
             id: uuidv4(),
             title: 'Theme Stated',
-            description: 'Someone tells the main character what the story is about, but they don't understand yet.',
+            description: 'Someone tells the main character what the story is about, but they don\'t understand yet.',
             timePosition: 5,
           },
           {
             id: uuidv4(),
             title: 'Setup',
-            description: 'Introduction to the character's world before the adventure starts.',
+            description: 'Introduction to the character\'s world before the adventure starts.',
             timePosition: 10,
           },
           {
             id: uuidv4(),
             title: 'Catalyst',
-            description: 'Something happens that changes the main character's life and starts them on their journey.',
+            description: 'Something happens that changes the main character\'s life and starts them on their journey.',
             timePosition: 12,
           },
           {
