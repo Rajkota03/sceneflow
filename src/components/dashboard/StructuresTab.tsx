@@ -1,88 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid';
-import { getStructures, deleteStructure } from '@/services/structureService';
+import { useQuery } from '@tanstack/react-query';
+import { getStructures } from '@/services/structureService';
+import { Structure } from '@/lib/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Pencil, Plus, TrashIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import DashboardHeader from './DashboardHeader';
 import EmptyState from './EmptyState';
 import LoadingState from './LoadingState';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Network, Pencil, Trash2 } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
-import { Structure } from '@/lib/models/structureModel';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { format } from 'date-fns';
+import { toast } from '../ui/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 
-interface StructuresTabProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
+interface StructureCardProps {
+  structure: Structure;
+  onDelete: (id: string) => void;
 }
 
-const StructuresTab: React.FC<StructuresTabProps> = ({ searchQuery, setSearchQuery }) => {
+const StructureCard: React.FC<StructureCardProps> = ({ structure, onDelete }) => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
-  const [structures, setStructures] = useState<Structure[]>([]);
-  const [filteredStructures, setFilteredStructures] = useState<Structure[]>([]);
-  const [structureToDelete, setStructureToDelete] = useState<Structure | null>(null);
-
-  useEffect(() => {
-    async function loadStructures() {
-      setIsLoading(true);
-      try {
-        const data = await getStructures();
-        setStructures(data);
-      } catch (error) {
-        console.error('Error loading structures:', error);
-        toast({
-          title: 'Error loading structures',
-          description: 'Please try again later.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadStructures();
-  }, []);
-
-  useEffect(() => {
-    const filtered = structures.filter(structure =>
-      structure.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      structure.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredStructures(filtered);
-  }, [searchQuery, structures]);
-
-  const handleCreateNewStructure = () => {
-    // Create a new structure and navigate to the structure editor
-    const structureId = 'new';
-    navigate(`/structure/${structureId}`);
+  
+  const handleEdit = () => {
+    navigate(`/structure/${structure.id}`);
   };
-
-  const handleEditStructure = (structureId: string) => {
-    navigate(`/structure/${structureId}`);
+  
+  const handleDelete = () => {
+    onDelete(structure.id);
   };
+  
+  return (
+    <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">{structure.name}</h3>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleEdit}
+              className="h-8 w-8"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  size="icon"
+                  className="h-8 w-8"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the structure.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mb-2">{structure.description}</p>
+        <p className="text-xs text-gray-400">
+          Updated {format(new Date(structure.updatedAt), 'MMM dd, yyyy')}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
 
-  const handleDeleteStructure = async (structure: Structure) => {
-    setStructureToDelete(structure);
-  };
-
-  const confirmDelete = async () => {
-    if (!structureToDelete) return;
-    
+const StructuresTab: React.FC = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: structures, isLoading, error, refetch } = useQuery({
+    queryKey: ['structures'],
+    queryFn: getStructures
+  });
+  
+  const handleDeleteStructure = async (id: string) => {
     try {
-      const success = await deleteStructure(structureToDelete.id);
+      const { deleteStructure } = await import('@/services/structureService');
+      const success = await deleteStructure(id);
+      
       if (success) {
-        setStructures(structures.filter(s => s.id !== structureToDelete.id));
+        refetch();
         toast({
           title: 'Structure deleted',
           description: 'The structure has been deleted successfully',
@@ -95,118 +105,55 @@ const StructuresTab: React.FC<StructuresTabProps> = ({ searchQuery, setSearchQue
         description: 'Please try again later',
         variant: 'destructive',
       });
-    } finally {
-      setStructureToDelete(null);
     }
   };
+  
+  const handleCreateNew = () => {
+    navigate('/structure/new');
+  };
+  
+  const filteredStructures = structures?.filter(structure => 
+    structure.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
 
+  if (isLoading) {
+    return <LoadingState />;
+  }
+  
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">Error loading structures</p>
+      </div>
+    );
+  }
+  
   return (
-    <div>
-      <DashboardHeader
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+    <div className="space-y-4">
+      <DashboardHeader 
+        searchQuery={searchQuery} 
+        setSearchQuery={setSearchQuery} 
         projectType="structure"
-        onCreateNewProject={handleCreateNewStructure}
+        onCreateNewProject={handleCreateNew}
       />
-
-      {isLoading ? (
-        <LoadingState message="Loading structures..." />
-      ) : structures.length === 0 ? (
-        <EmptyState
-          icon={<Network className="h-12 w-12 text-primary/50" />}
-          title="No structures yet"
-          description="Create your first story structure to organize your screenplay."
-          actionText="Create Structure"
-          onAction={handleCreateNewStructure}
+      
+      {!structures || structures.length === 0 ? (
+        <EmptyState 
+          message="No structures found. Create your first story structure to get started!"
+          actionText="Create New Structure"
+          onAction={handleCreateNew}
         />
-      ) : filteredStructures.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-700">No matching structures found</h3>
-          <p className="text-muted-foreground mt-2">Try a different search query</p>
-        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-          {filteredStructures.map((structure) => (
-            <Card key={structure.id} className="flex flex-col">
-              <CardContent className="flex-grow p-6">
-                <h3 className="text-lg font-semibold mb-2">{structure.name}</h3>
-                {structure.description && (
-                  <p className="text-muted-foreground text-sm line-clamp-2 mb-4">
-                    {structure.description}
-                  </p>
-                )}
-                <div className="mt-4">
-                  <div className="flex flex-wrap gap-2">
-                    {structure.acts.slice(0, 3).map((act) => (
-                      <div 
-                        key={act.id} 
-                        className="px-2 py-1 rounded text-xs"
-                        style={{ backgroundColor: `${act.colorHex}20`, color: act.colorHex }}
-                      >
-                        {act.title}
-                      </div>
-                    ))}
-                    {structure.acts.length > 3 && (
-                      <div className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-600">
-                        +{structure.acts.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="border-t p-4 flex justify-between">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-destructive"
-                  onClick={() => handleDeleteStructure(structure)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleEditStructure(structure.id)}
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              </CardFooter>
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredStructures.map(structure => (
+            <StructureCard 
+              key={structure.id} 
+              structure={structure} 
+              onDelete={handleDeleteStructure} 
+            />
           ))}
-          
-          {/* Add Structure Card */}
-          <Card 
-            className="flex flex-col items-center justify-center p-6 border-dashed cursor-pointer hover:bg-gray-50 transition-colors"
-            onClick={handleCreateNewStructure}
-          >
-            <Network className="h-12 w-12 text-primary/40 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Create New Structure</h3>
-            <p className="text-muted-foreground text-sm text-center">
-              Add a new story structure template
-            </p>
-          </Card>
         </div>
       )}
-
-      <AlertDialog open={!!structureToDelete} onOpenChange={(open) => !open && setStructureToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the structure "{structureToDelete?.name}".
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };

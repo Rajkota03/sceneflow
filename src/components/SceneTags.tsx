@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScriptElement, ActType, StoryBeat } from '@/lib/types';
+import { ScriptElement, ActType } from '@/lib/types';
 import TagInput from './TagInput';
 import { Tags } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,11 +21,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
     // Determine which act is selected based on tags
     let act: ActType | null = null;
     (element.tags || []).forEach(tag => {
-      if (tag.startsWith('Act 1:')) act = 1;
-      else if (tag.startsWith('Act 2A:')) act = '2A';
-      else if (tag.startsWith('Midpoint:')) act = 'midpoint';
-      else if (tag.startsWith('Act 2B:')) act = '2B';
-      else if (tag.startsWith('Act 3:')) act = 3;
+      if (tag.startsWith('Act 1:')) act = ActType.ACT_1;
+      else if (tag.startsWith('Act 2A:')) act = ActType.ACT_2A;
+      else if (tag.startsWith('Midpoint:')) act = ActType.MIDPOINT;
+      else if (tag.startsWith('Act 2B:')) act = ActType.ACT_2B;
+      else if (tag.startsWith('Act 3:')) act = ActType.ACT_3;
     });
     setSelectedAct(act);
   }, [element.tags]);
@@ -64,11 +64,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
     // Add the new act tag
     let prefix = '';
     switch(act) {
-      case 1: prefix = 'Act 1: '; break;
-      case '2A': prefix = 'Act 2A: '; break;
-      case 'midpoint': prefix = 'Midpoint: '; break;
-      case '2B': prefix = 'Act 2B: '; break;
-      case 3: prefix = 'Act 3: '; break;
+      case ActType.ACT_1: prefix = 'Act 1: '; break;
+      case ActType.ACT_2A: prefix = 'Act 2A: '; break;
+      case ActType.MIDPOINT: prefix = 'Midpoint: '; break;
+      case ActType.ACT_2B: prefix = 'Act 2B: '; break;
+      case ActType.ACT_3: prefix = 'Act 3: '; break;
     }
     
     const newTag = `${prefix}${beatName}`;
@@ -85,37 +85,37 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
 
   const getActColor = (act: ActType): string => {
     switch (act) {
-      case 1: return 'bg-[#D3E4FD] border-[#4A90E2] text-[#2171D2]';
-      case '2A': return 'bg-[#FEF7CD] border-[#F5A623] text-[#D28A21]';
-      case 'midpoint': return 'bg-[#FFCCCB] border-[#FF9E9D] text-[#D24E4D]';
-      case '2B': return 'bg-[#FDE1D3] border-[#F57C00] text-[#D26600]';
-      case 3: return 'bg-[#F2FCE2] border-[#009688] text-[#007F73]';
+      case ActType.ACT_1: return 'bg-[#D3E4FD] border-[#4A90E2] text-[#2171D2]';
+      case ActType.ACT_2A: return 'bg-[#FEF7CD] border-[#F5A623] text-[#D28A21]';
+      case ActType.MIDPOINT: return 'bg-[#FFCCCB] border-[#FF9E9D] text-[#D24E4D]';
+      case ActType.ACT_2B: return 'bg-[#FDE1D3] border-[#F57C00] text-[#D26600]';
+      case ActType.ACT_3: return 'bg-[#F2FCE2] border-[#009688] text-[#007F73]';
       default: return 'bg-gray-100 text-gray-600';
     }
   };
 
   const getActLabel = (act: ActType): string => {
     switch (act) {
-      case 1: return 'Act 1';
-      case '2A': return 'Act 2A';
-      case 'midpoint': return 'Midpoint';
-      case '2B': return 'Act 2B';
-      case 3: return 'Act 3';
+      case ActType.ACT_1: return 'Act 1';
+      case ActType.ACT_2A: return 'Act 2A';
+      case ActType.MIDPOINT: return 'Midpoint';
+      case ActType.ACT_2B: return 'Act 2B';
+      case ActType.ACT_3: return 'Act 3';
       default: return '';
     }
   };
 
   const getActBeats = (act: ActType): string[] => {
     switch (act) {
-      case 1:
+      case ActType.ACT_1:
         return ['Hook', 'Setup', 'Inciting Incident', 'First Plot Point'];
-      case '2A':
+      case ActType.ACT_2A:
         return ['First Pinch Point', 'Rising Action'];
-      case 'midpoint':
+      case ActType.MIDPOINT:
         return ['Revelation', 'Shift', 'Game Changer'];
-      case '2B':
+      case ActType.ACT_2B:
         return ['Second Pinch Point', 'Rising Complications'];
-      case 3:
+      case ActType.ACT_3:
         return ['Crisis', 'Climax', 'Resolution'];
       default:
         return [];
@@ -132,7 +132,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
       <div className="mb-2">
         <div className="text-xs font-medium mb-1 text-gray-500">Story Beat</div>
         <div className="grid grid-cols-5 gap-1 mb-2">
-          {([1, '2A', 'midpoint', '2B', 3] as ActType[]).map((act) => (
+          {([ActType.ACT_1, ActType.ACT_2A, ActType.MIDPOINT, ActType.ACT_2B, ActType.ACT_3]).map((act) => (
             <button
               key={act}
               onClick={() => setSelectedAct(selectedAct === act ? null : act)}

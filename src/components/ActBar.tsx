@@ -78,12 +78,13 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   }, [availableStructures]);
   
-  const acts: { id: ActType; label: string; color: string }[] = [
-    { id: 1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
-    { id: '2A', label: 'Act 2A', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
-    { id: 'midpoint', label: 'Midpoint', color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]' },
-    { id: '2B', label: 'Act 2B', color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]' },
-    { id: 3, label: 'Act 3', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
+  // Map number/string values to ActType enum values
+  const acts = [
+    { id: ActType.ACT_1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
+    { id: ActType.ACT_2A, label: 'Act 2A', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
+    { id: ActType.MIDPOINT, label: 'Midpoint', color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]' },
+    { id: ActType.ACT_2B, label: 'Act 2B', color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]' },
+    { id: ActType.ACT_3, label: 'Act 3', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
   ];
 
   const handleBeatModeToggle = (value: BeatMode) => {

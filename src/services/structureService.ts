@@ -16,7 +16,7 @@ export async function getStructures(): Promise<Structure[]> {
       id: item.id,
       name: item.name,
       description: item.description || '',
-      acts: Array.isArray(item.beats) ? item.beats as Act[] : [],
+      acts: Array.isArray(item.beats) ? item.beats as unknown as Act[] : [],
       projectTitle: '', // Set default value
       createdAt: new Date(item.created_at),
       updatedAt: new Date(item.updated_at),
@@ -48,7 +48,7 @@ export async function getStructureById(id: string): Promise<Structure | null> {
       id: data.id,
       name: data.name,
       description: data.description || '',
-      acts: Array.isArray(data.beats) ? data.beats as Act[] : [],
+      acts: Array.isArray(data.beats) ? data.beats as unknown as Act[] : [],
       projectTitle: '', // Set default value
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
@@ -117,14 +117,14 @@ export async function getStructureByProjectId(projectId: string): Promise<Struct
 
 export async function saveStructure(structure: Structure): Promise<Structure> {
   try {
-    // Convert acts to JSON string for storage
+    // Convert acts to JSON-compatible object for storage
     const { data, error } = await supabase
       .from('structures')
       .upsert({
         id: structure.id,
         name: structure.name,
         description: structure.description || '',
-        beats: structure.acts, // Store acts in the beats column
+        beats: structure.acts as any, // Cast to any to avoid type errors
         created_at: structure.createdAt.toISOString(),
         updated_at: new Date().toISOString(),
       })
@@ -139,7 +139,7 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
       description: data.description || '',
       projectTitle: structure.projectTitle || '',
       projectId: structure.projectId,
-      acts: Array.isArray(data.beats) ? data.beats as Act[] : [],
+      acts: Array.isArray(data.beats) ? data.beats as unknown as Act[] : [],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),
     };

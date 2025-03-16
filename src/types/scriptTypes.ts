@@ -3,11 +3,11 @@ import { ActType } from '@/lib/types';
 
 // Define a concrete interface with explicit keys to prevent recursive type issues
 export interface ActCountsRecord {
-  '1': number;
-  '2A': number;
-  'midpoint': number;
-  '2B': number;
-  '3': number;
+  [ActType.ACT_1]: number;
+  [ActType.ACT_2A]: number;
+  [ActType.MIDPOINT]: number;
+  [ActType.ACT_2B]: number;
+  [ActType.ACT_3]: number;
   [key: string]: number;
 }
 
