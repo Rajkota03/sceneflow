@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, FileText, Plus, Trash2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Structure } from '@/lib/models/structureModel';
 import { useToast } from '@/components/ui/use-toast';
 import { getStructures, deleteStructure } from '@/services/structureService';
