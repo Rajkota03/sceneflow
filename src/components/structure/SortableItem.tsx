@@ -33,12 +33,13 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
     <div 
       ref={setNodeRef} 
       style={style} 
-      {...attributes} 
-      {...listeners}
+      {...attributes}
       className="transition-shadow mb-2 rounded-lg"
       data-is-dragging={isDragging ? 'true' : undefined}
     >
-      {children}
+      <div {...listeners}>
+        {children}
+      </div>
     </div>
   );
 };

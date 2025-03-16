@@ -50,6 +50,10 @@ const StructureEditorPage: React.FC = () => {
     }
   };
 
+  const handleNavigateBack = () => {
+    navigate('/dashboard');
+  };
+
   if (isLoading) {
     return <LoadingState />;
   }
@@ -63,7 +67,7 @@ const StructureEditorPage: React.FC = () => {
             There was an error loading the structure. Please try again later.
           </p>
           <Button 
-            onClick={() => navigate('/dashboard')} 
+            onClick={handleNavigateBack} 
             className="mt-4"
           >
             Return to Dashboard
@@ -74,7 +78,7 @@ const StructureEditorPage: React.FC = () => {
   }
 
   if (!structure) {
-    return <NotFoundState onNavigateBack={() => navigate('/dashboard')} />;
+    return <NotFoundState onNavigateBack={handleNavigateBack} />;
   }
 
   return (
@@ -84,7 +88,7 @@ const StructureEditorPage: React.FC = () => {
           variant="ghost" 
           size="sm" 
           className="mb-4" 
-          onClick={() => navigate('/dashboard')}
+          onClick={handleNavigateBack}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Dashboard

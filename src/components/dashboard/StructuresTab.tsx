@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getStructures, deleteStructure, saveStructure } from '@/services/structureService';
+import { getStructures, deleteStructure, saveStructure, linkStructureToProject } from '@/services/structureService';
 import { Structure } from '@/lib/types';
 import { 
   ChevronDown, 
@@ -27,18 +27,30 @@ import { createDefaultStructure } from '@/lib/models/structureModel';
 import { createSaveTheCatStructure } from '@/lib/models/saveTheCatModel';
 import StructureTimeline from '../structure/StructureTimeline';
 import { v4 as uuidv4 } from 'uuid';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 
 interface StructureItemProps {
   structure: Structure;
   onDelete: (id: string) => void;
+  onSaveStructure: (structure: Structure) => Promise<void>;
   linkedProjects?: Array<{ id: string, title: string }>;
+  availableProjects: Array<{ id: string, title: string }>;
 }
 
-const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, linkedProjects = [] }) => {
+const StructureItem: React.FC<StructureItemProps> = ({ 
+  structure, 
+  onDelete, 
+  onSaveStructure, 
+  linkedProjects = [], 
+  availableProjects = []
+}) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [structureName, setStructureName] = useState(structure.name);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   
   const handleEdit = () => {
     navigate(`/structure/${structure.id}`);
@@ -50,7 +62,8 @@ const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, link
 
   const handleRename = () => {
     if (isEditing && structureName.trim()) {
-      // Update structure name logic would go here
+      const updatedStructure = { ...structure, name: structureName };
+      onSaveStructure(updatedStructure);
       setIsEditing(false);
     } else {
       setIsEditing(true);
@@ -59,10 +72,9 @@ const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, link
 
   const handleInputBlur = () => {
     if (structureName.trim()) {
-      setIsEditing(false);
-      // Here you would save the new name
       const updatedStructure = { ...structure, name: structureName };
-      saveStructure(updatedStructure).catch(console.error);
+      onSaveStructure(updatedStructure);
+      setIsEditing(false);
     }
   };
 
@@ -72,7 +84,37 @@ const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, link
     }
   };
 
+  const handleLinkToProject = async () => {
+    if (!selectedProjectId) {
+      toast({
+        title: "No project selected",
+        description: "Please select a project to link this structure to.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const success = await linkStructureToProject(structure.id, selectedProjectId);
+      if (success) {
+        toast({
+          title: "Structure linked",
+          description: "Structure has been linked to the selected project.",
+        });
+        setIsLinkDialogOpen(false);
+      }
+    } catch (error) {
+      console.error("Error linking structure:", error);
+      toast({
+        title: "Error linking structure",
+        description: "Failed to link structure to project.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const hasLinkedProjects = linkedProjects.length > 0;
+  const hasAvailableProjects = availableProjects.length > 0;
   
   return (
     <div className="mb-4 border rounded-lg shadow-sm overflow-hidden">
@@ -137,6 +179,7 @@ const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, link
                 variant="outline" 
                 size="sm" 
                 className="flex items-center gap-2"
+                onClick={() => setIsLinkDialogOpen(true)}
               >
                 <Link className="h-4 w-4" />
                 <span>Link to Screenplay</span>
@@ -190,6 +233,55 @@ const StructureItem: React.FC<StructureItemProps> = ({ structure, onDelete, link
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Link Structure to Screenplay</DialogTitle>
+            <DialogDescription>
+              Select a screenplay to link this structure to.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {hasAvailableProjects ? (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="project-select" className="text-sm font-medium">
+                    Select Screenplay
+                  </label>
+                  <select
+                    id="project-select"
+                    value={selectedProjectId}
+                    onChange={(e) => setSelectedProjectId(e.target.value)}
+                    className="w-full p-2 mt-1 border rounded-md"
+                  >
+                    <option value="">-- Select a screenplay --</option>
+                    {availableProjects.map(project => (
+                      <option key={project.id} value={project.id}>
+                        {project.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No screenplays available. Create a screenplay first to link this structure.
+              </p>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsLinkDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleLinkToProject} disabled={!selectedProjectId || !hasAvailableProjects}>
+              Link Structure
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -201,6 +293,24 @@ const StructuresTab: React.FC = () => {
   const { data: structures, isLoading, error, refetch } = useQuery({
     queryKey: ['structures'],
     queryFn: getStructures
+  });
+
+  // Query for available projects
+  const { data: projects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, title');
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        return [];
+      }
+    }
   });
   
   const handleDeleteStructure = async (id: string) => {
@@ -218,6 +328,24 @@ const StructuresTab: React.FC = () => {
       console.error('Error deleting structure:', error);
       toast({
         title: 'Error deleting structure',
+        description: 'Please try again later',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleSaveStructure = async (structure: Structure) => {
+    try {
+      await saveStructure(structure);
+      refetch();
+      toast({
+        title: 'Structure saved',
+        description: 'Structure details have been updated successfully',
+      });
+    } catch (error) {
+      console.error('Error saving structure:', error);
+      toast({
+        title: 'Error saving structure',
         description: 'Please try again later',
         variant: 'destructive',
       });
@@ -243,6 +371,9 @@ const StructuresTab: React.FC = () => {
         title: 'Structure created',
         description: `Your new ${template === 'three-act' ? 'Three-Act Structure' : 'Save the Cat! Beat Sheet'} has been created.`,
       });
+
+      // Navigate to the structure editor
+      navigate(`/structure/${savedStructure.id}`);
     } catch (error) {
       console.error('Error creating structure:', error);
       toast({
@@ -261,11 +392,13 @@ const StructuresTab: React.FC = () => {
     structure.name.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
   
-  // Mock linked projects data
+  // Mock linked projects data (replace with real data in production)
   const linkedProjects = {} as Record<string, Array<{ id: string, title: string }>>;
-  if (structures && structures.length > 0) {
-    // For demo purposes, link the first structure to a project
-    linkedProjects[structures[0].id] = [{ id: 'project-1', title: 'My Screenplay' }];
+  if (structures && structures.length > 0 && projects) {
+    // For demo purposes, link the first structure to a project if available
+    if (projects.length > 0) {
+      linkedProjects[structures[0].id] = [{ id: projects[0].id, title: projects[0].title }];
+    }
   }
 
   if (isLoading) {
@@ -345,7 +478,9 @@ const StructuresTab: React.FC = () => {
               key={structure.id} 
               structure={structure} 
               onDelete={handleDeleteStructure}
+              onSaveStructure={handleSaveStructure}
               linkedProjects={linkedProjects[structure.id] || []}
+              availableProjects={projects || []}
             />
           ))}
         </div>
