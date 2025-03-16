@@ -21,7 +21,7 @@ export const fetchStructure = async (structureId: string): Promise<ThreeActStruc
       // Convert database model to application model
       return {
         id: data.id,
-        projectId: data.projectId || '', // Handle missing projectId
+        projectId: data.projectId || '', // Default to empty string if projectId is missing
         projectTitle: data.name, // Use name as projectTitle
         beats: Array.isArray(data.beats) ? data.beats.map((beat: any) => ({
           id: beat.id || `beat-${Date.now()}`,
@@ -66,7 +66,7 @@ export const fetchStructureData = async (projectId: string, userId: string): Pro
       // Convert database model to application model
       return {
         id: data.id,
-        projectId: data.projectId || projectId,
+        projectId: data.projectId || projectId, // Default to provided projectId if missing
         projectTitle: data.name,
         beats: Array.isArray(data.beats) ? data.beats.map((beat: any) => ({
           id: beat.id || `beat-${Date.now()}`,
@@ -156,7 +156,7 @@ export const saveStructureData = async (structure: ThreeActStructure, projectId:
     // Convert the result back to the application model
     return {
       id: result.id,
-      projectId: result.projectId || projectId,
+      projectId: dbStructure.projectId, // Use the projectId from dbStructure
       projectTitle: result.name,
       beats: Array.isArray(result.beats) ? result.beats.map((beat: any) => ({
         id: beat.id,
