@@ -39,7 +39,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'default' }) => {
         <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mr-0.5">
           Scene
         </span>
-        <div className="w-5 h-5 mx-0.5 relative">
+        <motion.div className="w-5 h-5 mx-0.5 relative">
           <motion.span 
             className="absolute bottom-1.5 left-0.5 w-1.5 h-1.5 bg-primary rounded-full"
             variants={dotVariants}
@@ -54,8 +54,8 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'default' }) => {
             animate="animate"
             custom={1}
           />
-        </div>
-        <span className={`font-serif ${variantClass}`}>Flow</span>
+        </motion.div>
+        <span className={variantClass}>Flow</span>
       </div>
     </div>
   );

@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react';
 import { 
   getStructureByProjectId, 
+  getStructureById,
   saveStructure as saveStructureToDb
 } from '@/services/structureService';
 import { Structure, createDefaultStructure } from '@/lib/models/structureModel';
+import { v4 as uuidv4 } from 'uuid';
 
-export function useStructure(projectId?: string) {
+export function useStructure(projectId?: string, structureId?: string) {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -15,11 +17,19 @@ export function useStructure(projectId?: string) {
     async function loadStructure() {
       setIsLoading(true);
       try {
-        if (projectId) {
+        if (structureId && structureId !== 'new') {
+          // Load structure by ID
+          const loadedStructure = await getStructureById(structureId);
+          setStructure(loadedStructure);
+        } else if (projectId) {
+          // Load structure by project ID
           const loadedStructure = await getStructureByProjectId(projectId);
           setStructure(loadedStructure);
         } else {
-          setStructure(createDefaultStructure());
+          // Create a new structure
+          const newStructure = createDefaultStructure();
+          newStructure.id = uuidv4();
+          setStructure(newStructure);
         }
       } catch (err) {
         console.error('Error loading structure:', err);
@@ -30,7 +40,7 @@ export function useStructure(projectId?: string) {
     }
 
     loadStructure();
-  }, [projectId]);
+  }, [projectId, structureId]);
 
   const saveStructure = async (updatedStructure: Structure) => {
     try {
@@ -46,7 +56,6 @@ export function useStructure(projectId?: string) {
 
   const updateStructure = (updatedStructure: Structure) => {
     setStructure(updatedStructure);
-    saveStructure(updatedStructure).catch(console.error);
   };
 
   return {
