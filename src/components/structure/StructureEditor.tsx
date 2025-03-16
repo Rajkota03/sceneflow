@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
-import { Edit, Plus, Trash2, Save, MoveVertical, ChevronDown, ChevronUp, Grip } from 'lucide-react';
+import { Edit, Plus, Trash2, Save, ChevronDown, ChevronUp, Grip } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface StructureEditorProps {
@@ -46,7 +46,11 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
   const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // Require the pointer to move by 5px before activating
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -186,25 +190,36 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
     if (!over) return;
     
     if (active.id !== over.id) {
-      const actId = active.id.toString().split('-')[0];
-      const act = structure.acts.find(a => a.id === actId);
+      const activeId = active.id.toString();
+      const overId = over.id.toString();
       
-      if (!act) return;
+      // Extract actId and beatId from the combined id (actId-beatId)
+      const activeActId = activeId.split('-')[0];
+      const activeBeatId = activeId.split('-')[1];
+      const overActId = overId.split('-')[0];
+      const overBeatId = overId.split('-')[1];
       
-      const oldIndex = act.beats.findIndex(beat => beat.id === active.id.toString().split('-')[1]);
-      const newIndex = act.beats.findIndex(beat => beat.id === over.id.toString().split('-')[1]);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const newBeats = arrayMove(act.beats, oldIndex, newIndex);
+      // Only allow sorting within the same act
+      if (activeActId === overActId) {
+        const act = structure.acts.find(a => a.id === activeActId);
         
-        onChange({
-          ...structure,
-          acts: structure.acts.map(a => 
-            a.id === actId 
-              ? { ...a, beats: newBeats }
-              : a
-          ),
-        });
+        if (!act) return;
+        
+        const oldIndex = act.beats.findIndex(beat => beat.id === activeBeatId);
+        const newIndex = act.beats.findIndex(beat => beat.id === overBeatId);
+        
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newBeats = arrayMove(act.beats, oldIndex, newIndex);
+          
+          onChange({
+            ...structure,
+            acts: structure.acts.map(a => 
+              a.id === activeActId 
+                ? { ...a, beats: newBeats }
+                : a
+            ),
+          });
+        }
       }
     }
   };
@@ -423,16 +438,16 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <DndContext 
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <SortableContext
-                      items={act.beats.map(beat => `${act.id}-${beat.id}`)}
-                      strategy={verticalListSortingStrategy}
+                  <div className="space-y-2 mt-4">
+                    <DndContext 
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
                     >
-                      <div className="space-y-2 mt-4">
+                      <SortableContext
+                        items={act.beats.map(beat => `${act.id}-${beat.id}`)}
+                        strategy={verticalListSortingStrategy}
+                      >
                         {act.beats.map((beat) => (
                           <SortableItem key={`${act.id}-${beat.id}`} id={`${act.id}-${beat.id}`}>
                             <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors">
@@ -496,27 +511,30 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                                   </div>
                                 </div>
                               ) : (
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center">
-                                    <Grip className="h-4 w-4 text-slate-400 mr-3 cursor-grab" />
-                                    <div>
-                                      <div className="flex items-center">
+                                <div className="flex items-center justify-between group">
+                                  <div className="flex items-center flex-1">
+                                    <Grip className="h-4 w-4 text-slate-400 mr-3 cursor-move opacity-50 group-hover:opacity-100" />
+                                    <div className="flex-1">
+                                      <div className="flex items-center mb-1">
                                         <h4 className="font-medium text-slate-800">{beat.title}</h4>
                                         <span className="ml-2 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">
                                           {beat.timePosition}%
                                         </span>
                                       </div>
                                       {beat.description && (
-                                        <p className="text-sm text-slate-600 mt-1">{beat.description}</p>
+                                        <p className="text-sm text-slate-600">{beat.description}</p>
                                       )}
                                     </div>
                                   </div>
-                                  <div className="flex space-x-1">
+                                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <Button 
                                       variant="ghost" 
                                       size="sm" 
                                       className="h-8 w-8 p-0 rounded-full hover:bg-slate-100"
-                                      onClick={() => handleEditBeat(act, beat)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleEditBeat(act, beat);
+                                      }}
                                     >
                                       <Edit className="h-4 w-4 text-slate-600" />
                                     </Button>
@@ -524,7 +542,10 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                                       variant="ghost" 
                                       size="sm" 
                                       className="h-8 w-8 p-0 rounded-full hover:bg-red-50"
-                                      onClick={() => handleDeleteBeat(act.id, beat.id)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteBeat(act.id, beat.id);
+                                      }}
                                     >
                                       <Trash2 className="h-4 w-4 text-red-500" />
                                     </Button>
@@ -534,9 +555,9 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                             </div>
                           </SortableItem>
                         ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
+                      </SortableContext>
+                    </DndContext>
+                  </div>
                 )}
                 
                 {(!editingAct || editingAct.id !== act.id) && (

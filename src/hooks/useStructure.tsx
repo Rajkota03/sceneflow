@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   getStructureByProjectId, 
   getStructureById,
@@ -14,6 +14,7 @@ export function useStructure(projectId?: string, structureId?: string) {
   const [error, setError] = useState<Error | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     async function loadStructure() {
@@ -49,9 +50,44 @@ export function useStructure(projectId?: string, structureId?: string) {
     loadStructure();
   }, [projectId, structureId]);
 
+  // Cleanup function for any pending save timeouts
+  useEffect(() => {
+    return () => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+      }
+    };
+  }, [saveTimeout]);
+
+  const debouncedSave = useCallback((updatedStructure: Structure) => {
+    // Clear any pending timeout
+    if (saveTimeout) {
+      clearTimeout(saveTimeout);
+    }
+
+    // Set a new timeout
+    const timeout = setTimeout(async () => {
+      if (isSaving) return;
+      
+      setIsSaving(true);
+      try {
+        const saved = await saveStructureToDb(updatedStructure);
+        setStructure(saved);
+        setLastSaved(new Date());
+      } catch (err) {
+        console.error('Error saving structure:', err);
+        setError(err instanceof Error ? err : new Error('Failed to save structure'));
+      } finally {
+        setIsSaving(false);
+      }
+    }, 3000); // 3 second debounce
+
+    setSaveTimeout(timeout);
+  }, [isSaving, saveTimeout]);
+
   const saveStructure = async (updatedStructure: Structure) => {
-    // Don't save if already saving or less than 3 seconds since last save
-    if (isSaving || (lastSaved && new Date().getTime() - lastSaved.getTime() < 3000)) {
+    // Immediate save for explicit save actions (like button clicks)
+    if (isSaving) {
       return updatedStructure;
     }
     
@@ -72,6 +108,7 @@ export function useStructure(projectId?: string, structureId?: string) {
 
   const updateStructure = (updatedStructure: Structure) => {
     setStructure(updatedStructure);
+    debouncedSave(updatedStructure);
   };
 
   return {

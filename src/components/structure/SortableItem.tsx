@@ -9,14 +9,24 @@ interface SortableItemProps {
 }
 
 export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef, 
+    transform, 
+    transition, 
+    isDragging 
+  } = useSortable({ 
+    id,
+    animateLayoutChanges: () => false // Disable animation for smoother dragging
+  });
   
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: 'grab',
-    opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+    position: isDragging ? 'relative' : 'static',
   };
   
   return (
@@ -25,7 +35,8 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
       style={style} 
       {...attributes} 
       {...listeners}
-      className="transition-shadow hover:shadow-md"
+      className="transition-shadow mb-2 rounded-lg"
+      data-is-dragging={isDragging ? 'true' : undefined}
     >
       {children}
     </div>
