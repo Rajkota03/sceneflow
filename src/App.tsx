@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { createClient } from '@supabase/supabase-js';
 import { Session } from '@supabase/supabase-js';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import Index from './pages/Index';
 import SignIn from './pages/SignIn';
@@ -17,6 +17,9 @@ import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
 import StructureEditorPage from './pages/StructureEditor';
 import { supabase } from './integrations/supabase/client';
+
+// Create a new query client
+const queryClient = new QueryClient();
 
 interface AuthContextProps {
   session: Session | null;
@@ -74,53 +77,55 @@ function App() {
   }
 
   return (
-    <AuthContext.Provider value={{ session, setSession }}>
-      <FormatProvider>
-        <Router>
-          <PublicNavbar />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/sign-in/*" element={<SignIn />} />
-            <Route path="/sign-up/*" element={<SignUp />} />
-            <Route 
-              path="/dashboard/*" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/editor/:projectId" 
-              element={
-                <ProtectedRoute>
-                  <Editor />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/structure/:structureId" 
-              element={
-                <ProtectedRoute>
-                  <StructureEditorPage />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Footer />
-        </Router>
-        <Toaster />
-      </FormatProvider>
-    </AuthContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider value={{ session, setSession }}>
+        <FormatProvider>
+          <Router>
+            <PublicNavbar />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/sign-in/*" element={<SignIn />} />
+              <Route path="/sign-up/*" element={<SignUp />} />
+              <Route 
+                path="/dashboard/*" 
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/editor/:projectId" 
+                element={
+                  <ProtectedRoute>
+                    <Editor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/structure/:structureId" 
+                element={
+                  <ProtectedRoute>
+                    <StructureEditorPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Footer />
+          </Router>
+          <Toaster />
+        </FormatProvider>
+      </AuthContext.Provider>
+    </QueryClientProvider>
   );
 }
 
