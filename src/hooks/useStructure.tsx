@@ -12,6 +12,8 @@ export function useStructure(projectId?: string, structureId?: string) {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   useEffect(() => {
     async function loadStructure() {
@@ -48,14 +50,23 @@ export function useStructure(projectId?: string, structureId?: string) {
   }, [projectId, structureId]);
 
   const saveStructure = async (updatedStructure: Structure) => {
+    // Don't save if already saving or less than 3 seconds since last save
+    if (isSaving || (lastSaved && new Date().getTime() - lastSaved.getTime() < 3000)) {
+      return updatedStructure;
+    }
+    
+    setIsSaving(true);
     try {
       const saved = await saveStructureToDb(updatedStructure);
       setStructure(saved);
+      setLastSaved(new Date());
       return saved;
     } catch (err) {
       console.error('Error saving structure:', err);
       setError(err instanceof Error ? err : new Error('Failed to save structure'));
       throw err;
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -67,6 +78,7 @@ export function useStructure(projectId?: string, structureId?: string) {
     structure,
     isLoading,
     error,
+    isSaving,
     saveStructure,
     updateStructure
   };

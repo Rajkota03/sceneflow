@@ -17,32 +17,33 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import { SortableItem } from '@/components/structure/SortableItem';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { v4 as uuidv4 } from 'uuid';
-import { Edit, Plus, Trash2, Save, MoveVertical } from 'lucide-react';
+import { Edit, Plus, Trash2, Save, MoveVertical, ChevronDown, ChevronUp, Grip } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface StructureEditorProps {
   structure: Structure;
   onChange: (updatedStructure: Structure) => void;
   onSave: (structure: Structure) => Promise<void>;
+  isSaving?: boolean;
 }
 
-export const StructureEditor: React.FC<StructureEditorProps> = ({ 
+const StructureEditor: React.FC<StructureEditorProps> = ({ 
   structure, 
   onChange, 
-  onSave 
+  onSave,
+  isSaving = false
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingAct, setEditingAct] = useState<Act | null>(null);
   const [editingBeat, setEditingBeat] = useState<{ act: Act, beat: Beat } | null>(null);
   const [newName, setNewName] = useState(structure.name);
   const [newDescription, setNewDescription] = useState(structure.description || '');
-  const [isSaving, setIsSaving] = useState(false);
+  const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -51,16 +52,23 @@ export const StructureEditor: React.FC<StructureEditorProps> = ({
     })
   );
 
-  // Auto-save when structure changes (debounced)
+  // Initialize expanded acts on first load
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isEditing && !editingAct && !editingBeat) {
-        handleSave();
-      }
-    }, 1000);
+    if (structure?.acts && Object.keys(expandedActs).length === 0) {
+      const initialExpanded: Record<string, boolean> = {};
+      structure.acts.forEach(act => {
+        initialExpanded[act.id] = true;
+      });
+      setExpandedActs(initialExpanded);
+    }
+  }, [structure?.acts]);
 
-    return () => clearTimeout(timer);
-  }, [structure]);
+  const toggleActExpansion = (actId: string) => {
+    setExpandedActs(prev => ({
+      ...prev,
+      [actId]: !prev[actId]
+    }));
+  };
 
   const handleMetadataChange = () => {
     onChange({
@@ -85,6 +93,12 @@ export const StructureEditor: React.FC<StructureEditorProps> = ({
       ...structure,
       acts: [...structure.acts, newAct],
     });
+
+    // Auto-expand new act
+    setExpandedActs(prev => ({
+      ...prev,
+      [newAct.id]: true
+    }));
   };
 
   const handleEditAct = (act: Act) => {
@@ -196,41 +210,30 @@ export const StructureEditor: React.FC<StructureEditorProps> = ({
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
       await onSave(structure);
-      toast({
-        title: 'Structure saved',
-        description: 'Your structure has been saved successfully',
-      });
     } catch (error) {
       console.error('Error saving structure:', error);
-      toast({
-        title: 'Error saving structure',
-        description: 'Please try again later',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-slate-100 to-slate-50 p-6 rounded-xl shadow-sm border border-slate-100">
         {isEditing ? (
           <div className="w-full space-y-4">
             <Input 
               value={newName} 
               onChange={(e) => setNewName(e.target.value)} 
               placeholder="Structure name"
-              className="text-xl font-bold"
+              className="text-xl font-bold border-slate-200 focus:border-primary/50 transition-all"
             />
             <Textarea 
               value={newDescription} 
               onChange={(e) => setNewDescription(e.target.value)} 
               placeholder="Structure description"
               rows={3}
+              className="border-slate-200 focus:border-primary/50 transition-all"
             />
             <div className="flex justify-end space-x-2">
               <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
@@ -239,258 +242,316 @@ export const StructureEditor: React.FC<StructureEditorProps> = ({
           </div>
         ) : (
           <>
-            <div>
-              <h1 className="text-2xl font-bold">{structure.name}</h1>
-              {structure.description && (
-                <p className="text-muted-foreground mt-1">{structure.description}</p>
-              )}
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-800 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                  {structure.name}
+                </h1>
+                {structure.description && (
+                  <p className="text-slate-600 mt-2 max-w-2xl">{structure.description}</p>
+                )}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-600 hover:text-primary hover:bg-slate-100 transition-all" 
+                onClick={() => {
+                  setNewName(structure.name);
+                  setNewDescription(structure.description || '');
+                  setIsEditing(true);
+                }}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Details
+              </Button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => {
-              setNewName(structure.name);
-              setNewDescription(structure.description || '');
-              setIsEditing(true);
-            }}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Details
-            </Button>
           </>
         )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Acts & Beats</h2>
+      <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-4">
+        <h2 className="text-xl font-semibold text-slate-800">Acts & Beats</h2>
         <div className="flex space-x-2">
-          <Button onClick={handleAddAct} size="sm">
+          <Button 
+            onClick={handleAddAct} 
+            variant="outline" 
+            className="bg-white border-slate-200 hover:bg-slate-50 text-slate-800"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Act
           </Button>
-          <Button onClick={handleSave} size="sm" disabled={isSaving}>
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
             <Save className="h-4 w-4 mr-2" />
-            Save Structure
+            {isSaving ? 'Saving...' : 'Save Structure'}
           </Button>
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {structure.acts.map((act) => (
-          <Card key={act.id} className="border-l-4" style={{ borderLeftColor: act.colorHex }}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>{act.title}</CardTitle>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleEditAct(act)}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-destructive"
-                    onClick={() => handleDeleteAct(act.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+          <Card 
+            key={act.id} 
+            className="border-l-4 overflow-hidden transition-all duration-200 hover:shadow-md"
+            style={{ borderLeftColor: act.colorHex }}
+          >
+            <div 
+              className="flex items-center justify-between p-4 cursor-pointer"
+              onClick={() => toggleActExpansion(act.id)}
+            >
+              <div className="flex items-center">
+                {expandedActs[act.id] ? 
+                  <ChevronUp className="h-5 w-5 mr-3 text-slate-400" /> : 
+                  <ChevronDown className="h-5 w-5 mr-3 text-slate-400" />
+                }
+                <div>
+                  <CardTitle className="text-lg font-medium text-slate-800">{act.title}</CardTitle>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {act.startPosition}% - {act.endPosition}%
+                  </p>
                 </div>
               </div>
-              <CardDescription>
-                {act.startPosition}% - {act.endPosition}%
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {editingAct && editingAct.id === act.id ? (
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="act-title" className="block text-sm font-medium mb-1">
-                      Act Title
-                    </label>
-                    <Input 
-                      id="act-title"
-                      value={editingAct.title} 
-                      onChange={(e) => setEditingAct({ ...editingAct, title: e.target.value })} 
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="act-start" className="block text-sm font-medium mb-1">
-                        Start Position (%)
-                      </label>
-                      <Input 
-                        id="act-start"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={editingAct.startPosition} 
-                        onChange={(e) => setEditingAct({ 
-                          ...editingAct, 
-                          startPosition: Number(e.target.value) 
-                        })} 
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="act-end" className="block text-sm font-medium mb-1">
-                        End Position (%)
-                      </label>
-                      <Input 
-                        id="act-end"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={editingAct.endPosition} 
-                        onChange={(e) => setEditingAct({ 
-                          ...editingAct, 
-                          endPosition: Number(e.target.value) 
-                        })} 
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="act-color" className="block text-sm font-medium mb-1">
-                      Color
-                    </label>
-                    <div className="flex space-x-2">
-                      <Input 
-                        id="act-color"
-                        type="color"
-                        value={editingAct.colorHex} 
-                        onChange={(e) => setEditingAct({ ...editingAct, colorHex: e.target.value })} 
-                        className="w-16 h-10 p-1"
-                      />
-                      <Input 
-                        value={editingAct.colorHex} 
-                        onChange={(e) => setEditingAct({ ...editingAct, colorHex: e.target.value })} 
-                        maxLength={7}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setEditingAct(null)}>Cancel</Button>
-                    <Button onClick={handleSaveAct}>Save</Button>
-                  </div>
-                </div>
-              ) : (
-                <DndContext 
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
+              <div className="flex space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="hover:bg-slate-100 text-slate-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditAct(act);
+                  }}
                 >
-                  <SortableContext
-                    items={act.beats.map(beat => `${act.id}-${beat.id}`)}
-                    strategy={verticalListSortingStrategy}
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteAct(act.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {expandedActs[act.id] && (
+              <CardContent className="pt-0 pb-4">
+                {editingAct && editingAct.id === act.id ? (
+                  <div className="space-y-4 bg-slate-50 p-4 rounded-lg mt-4 border border-slate-100">
+                    <div>
+                      <label htmlFor="act-title" className="block text-sm font-medium text-slate-700 mb-1">
+                        Act Title
+                      </label>
+                      <Input 
+                        id="act-title"
+                        value={editingAct.title} 
+                        onChange={(e) => setEditingAct({ ...editingAct, title: e.target.value })} 
+                        className="border-slate-200"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="act-start" className="block text-sm font-medium text-slate-700 mb-1">
+                          Start Position (%)
+                        </label>
+                        <Input 
+                          id="act-start"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editingAct.startPosition} 
+                          onChange={(e) => setEditingAct({ 
+                            ...editingAct, 
+                            startPosition: Number(e.target.value) 
+                          })} 
+                          className="border-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="act-end" className="block text-sm font-medium text-slate-700 mb-1">
+                          End Position (%)
+                        </label>
+                        <Input 
+                          id="act-end"
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={editingAct.endPosition} 
+                          onChange={(e) => setEditingAct({ 
+                            ...editingAct, 
+                            endPosition: Number(e.target.value) 
+                          })} 
+                          className="border-slate-200"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="act-color" className="block text-sm font-medium text-slate-700 mb-1">
+                        Color
+                      </label>
+                      <div className="flex space-x-2">
+                        <Input 
+                          id="act-color"
+                          type="color"
+                          value={editingAct.colorHex} 
+                          onChange={(e) => setEditingAct({ ...editingAct, colorHex: e.target.value })} 
+                          className="w-16 h-10 p-1 border-slate-200"
+                        />
+                        <Input 
+                          value={editingAct.colorHex} 
+                          onChange={(e) => setEditingAct({ ...editingAct, colorHex: e.target.value })} 
+                          maxLength={7}
+                          className="border-slate-200"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setEditingAct(null)}
+                        className="border-slate-200"
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSaveAct}>Save</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <DndContext 
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
                   >
-                    <div className="space-y-2">
-                      {act.beats.map((beat) => (
-                        <SortableItem key={`${act.id}-${beat.id}`} id={`${act.id}-${beat.id}`}>
-                          <div className="border rounded-md p-3 bg-white hover:bg-gray-50 transition-colors">
-                            {editingBeat && editingBeat.act.id === act.id && editingBeat.beat.id === beat.id ? (
-                              <div className="space-y-4">
-                                <div>
-                                  <label htmlFor="beat-title" className="block text-sm font-medium mb-1">
-                                    Beat Title
-                                  </label>
-                                  <Input 
-                                    id="beat-title"
-                                    value={editingBeat.beat.title} 
-                                    onChange={(e) => setEditingBeat({
-                                      ...editingBeat,
-                                      beat: { ...editingBeat.beat, title: e.target.value }
-                                    })} 
-                                  />
-                                </div>
-                                <div>
-                                  <label htmlFor="beat-description" className="block text-sm font-medium mb-1">
-                                    Description
-                                  </label>
-                                  <Textarea 
-                                    id="beat-description"
-                                    value={editingBeat.beat.description} 
-                                    onChange={(e) => setEditingBeat({
-                                      ...editingBeat,
-                                      beat: { ...editingBeat.beat, description: e.target.value }
-                                    })} 
-                                    rows={3}
-                                  />
-                                </div>
-                                <div>
-                                  <label htmlFor="beat-position" className="block text-sm font-medium mb-1">
-                                    Time Position (%)
-                                  </label>
-                                  <Input 
-                                    id="beat-position"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={editingBeat.beat.timePosition} 
-                                    onChange={(e) => setEditingBeat({
-                                      ...editingBeat,
-                                      beat: { ...editingBeat.beat, timePosition: Number(e.target.value) }
-                                    })} 
-                                  />
-                                </div>
-                                <div className="flex justify-end space-x-2">
-                                  <Button variant="outline" onClick={() => setEditingBeat(null)}>Cancel</Button>
-                                  <Button onClick={handleSaveBeat}>Save</Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <MoveVertical className="h-4 w-4 text-muted-foreground mr-2" />
+                    <SortableContext
+                      items={act.beats.map(beat => `${act.id}-${beat.id}`)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2 mt-4">
+                        {act.beats.map((beat) => (
+                          <SortableItem key={`${act.id}-${beat.id}`} id={`${act.id}-${beat.id}`}>
+                            <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors">
+                              {editingBeat && editingBeat.act.id === act.id && editingBeat.beat.id === beat.id ? (
+                                <div className="space-y-4">
                                   <div>
-                                    <h4 className="font-medium">{beat.title}</h4>
-                                    <div className="flex items-center space-x-2">
-                                      <p className="text-sm text-muted-foreground">{beat.timePosition}%</p>
+                                    <label htmlFor="beat-title" className="block text-sm font-medium text-slate-700 mb-1">
+                                      Beat Title
+                                    </label>
+                                    <Input 
+                                      id="beat-title"
+                                      value={editingBeat.beat.title} 
+                                      onChange={(e) => setEditingBeat({
+                                        ...editingBeat,
+                                        beat: { ...editingBeat.beat, title: e.target.value }
+                                      })} 
+                                      className="border-slate-200"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label htmlFor="beat-description" className="block text-sm font-medium text-slate-700 mb-1">
+                                      Description
+                                    </label>
+                                    <Textarea 
+                                      id="beat-description"
+                                      value={editingBeat.beat.description} 
+                                      onChange={(e) => setEditingBeat({
+                                        ...editingBeat,
+                                        beat: { ...editingBeat.beat, description: e.target.value }
+                                      })} 
+                                      rows={3}
+                                      className="border-slate-200 min-h-[80px]"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label htmlFor="beat-position" className="block text-sm font-medium text-slate-700 mb-1">
+                                      Time Position (%)
+                                    </label>
+                                    <Input 
+                                      id="beat-position"
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={editingBeat.beat.timePosition} 
+                                      onChange={(e) => setEditingBeat({
+                                        ...editingBeat,
+                                        beat: { ...editingBeat.beat, timePosition: Number(e.target.value) }
+                                      })} 
+                                      className="border-slate-200"
+                                    />
+                                  </div>
+                                  <div className="flex justify-end space-x-2">
+                                    <Button 
+                                      variant="outline" 
+                                      onClick={() => setEditingBeat(null)}
+                                      className="border-slate-200"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button onClick={handleSaveBeat}>Save</Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <Grip className="h-4 w-4 text-slate-400 mr-3 cursor-grab" />
+                                    <div>
+                                      <div className="flex items-center">
+                                        <h4 className="font-medium text-slate-800">{beat.title}</h4>
+                                        <span className="ml-2 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">
+                                          {beat.timePosition}%
+                                        </span>
+                                      </div>
                                       {beat.description && (
-                                        <>
-                                          <span className="text-muted-foreground">•</span>
-                                          <p className="text-sm text-muted-foreground line-clamp-1">{beat.description}</p>
-                                        </>
+                                        <p className="text-sm text-slate-600 mt-1">{beat.description}</p>
                                       )}
                                     </div>
                                   </div>
+                                  <div className="flex space-x-1">
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-8 w-8 p-0 rounded-full hover:bg-slate-100"
+                                      onClick={() => handleEditBeat(act, beat)}
+                                    >
+                                      <Edit className="h-4 w-4 text-slate-600" />
+                                    </Button>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="h-8 w-8 p-0 rounded-full hover:bg-red-50"
+                                      onClick={() => handleDeleteBeat(act.id, beat.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    onClick={() => handleEditBeat(act, beat)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="text-destructive"
-                                    onClick={() => handleDeleteBeat(act.id, beat.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </SortableItem>
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
-              )}
-              
-              {(!editingAct || editingAct.id !== act.id) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="mt-4"
-                  onClick={() => handleAddBeat(act)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Beat
-                </Button>
-              )}
-            </CardContent>
+                              )}
+                            </div>
+                          </SortableItem>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+                
+                {(!editingAct || editingAct.id !== act.id) && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-4 bg-white border-dashed border-slate-300 text-slate-600 hover:bg-slate-50 hover:border-slate-400"
+                    onClick={() => handleAddBeat(act)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Beat
+                  </Button>
+                )}
+              </CardContent>
+            )}
           </Card>
         ))}
       </div>

@@ -16,6 +16,7 @@ const StructureEditorPage: React.FC = () => {
     structure,
     isLoading,
     error,
+    isSaving,
     saveStructure,
     updateStructure
   } = useStructure(undefined, structureId);
@@ -77,7 +78,7 @@ const StructureEditorPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
         <Button 
           variant="ghost" 
@@ -93,7 +94,8 @@ const StructureEditorPage: React.FC = () => {
       <StructureEditor 
         structure={structure} 
         onChange={updateStructure}
-        onSave={saveStructure}
+        onSave={handleSave}
+        isSaving={isSaving}
       />
     </div>
   );
