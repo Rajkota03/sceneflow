@@ -16,15 +16,7 @@ import Footer from './components/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
 import StructureEditorPage from './pages/StructureEditor';
-
-// Safely get environment variables with fallbacks
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-// Only create the client if we have the required configuration
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+import { supabase } from './integrations/supabase/client';
 
 interface AuthContextProps {
   session: Session | null;
@@ -50,23 +42,19 @@ function App() {
   useEffect(() => {
     async function initializeAuth() {
       try {
-        if (supabase) {
-          const { data } = await supabase.auth.getSession();
-          setSession(data.session);
-          
-          // Set up auth state change listener
-          const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-              setSession(session);
-            }
-          );
-          
-          return () => {
-            subscription.unsubscribe();
-          };
-        } else {
-          console.warn('Supabase client not initialized. Missing environment variables.');
-        }
+        const { data } = await supabase.auth.getSession();
+        setSession(data.session);
+        
+        // Set up auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          (_event, session) => {
+            setSession(session);
+          }
+        );
+        
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
         console.error('Error initializing auth:', error);
       } finally {
@@ -81,22 +69,6 @@ function App() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-lg">Loading application...</p>
-      </div>
-    );
-  }
-
-  // If supabase is not initialized, show a helpful message
-  if (!supabase) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold mb-4">Configuration Error</h1>
-        <p className="text-lg mb-4">
-          Missing Supabase configuration. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY 
-          environment variables are set.
-        </p>
-        <p className="text-md">
-          Check your .env file or environment configuration.
-        </p>
       </div>
     );
   }
