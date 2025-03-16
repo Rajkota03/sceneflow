@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, Note, serializeNotes, deserializeNotes, StoryBeat } from '@/lib/types';
 import { Json } from '@/integrations/supabase/types';
@@ -76,7 +75,7 @@ export const fetchStructureData = async (projectId: string, userId: string): Pro
           projectTitle: structureNote.title || 'Untitled Structure',
           beats: Array.isArray(structureNote.content) 
             ? structureNote.content
-            : typeof structureNote.content === 'object' && structureNote.content.beats 
+            : typeof structureNote.content === 'object' && structureNote.content !== null && 'beats' in structureNote.content
               ? structureNote.content.beats 
               : [],
           createdAt: structureNote.createdAt,
