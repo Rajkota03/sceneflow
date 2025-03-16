@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
@@ -106,8 +105,12 @@ export const useDashboardProjects = () => {
 
   const handleCreateNewProject = async () => {
     if (!session) {
-      navigate('/sign-in');
-      return;
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to create a new screenplay',
+        variant: 'destructive',
+      });
+      return null;
     }
     
     const newProject: Project = {
@@ -146,13 +149,14 @@ export const useDashboardProjects = () => {
           description: error.message,
           variant: 'destructive',
         });
-        return;
+        return null;
       }
       
       setProjects([newProject, ...projects]);
-      navigate(`/editor/${newProject.id}`);
+      return newProject;
     } catch (error) {
       console.error('Error creating project:', error);
+      return null;
     }
   };
 

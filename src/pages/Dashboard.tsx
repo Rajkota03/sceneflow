@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -21,6 +20,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const tabFromQuery = queryParams.get('tab');
+  
+  useEffect(() => {
+    if (!session) {
+      navigate('/sign-in', { state: { returnTo: location.pathname + location.search } });
+    }
+  }, [session, navigate, location]);
   
   const {
     projects,
@@ -60,6 +65,23 @@ const Dashboard = () => {
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
   ) || [];
+
+  const handleCreateNewScreenplay = async () => {
+    if (!session) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to create a new screenplay',
+        variant: 'destructive',
+      });
+      navigate('/sign-in', { state: { returnTo: location.pathname + location.search } });
+      return;
+    }
+    
+    const newProject = await handleCreateNewProject();
+    if (newProject) {
+      navigate(`/editor/${newProject.id}`);
+    }
+  };
 
   const handleCreateNoteFromPopover = (noteData: Partial<Note>) => {
     const newNote: Note = {
@@ -101,6 +123,10 @@ const Dashboard = () => {
     setIsNoteEditorOpen(true);
   };
 
+  if (!session) {
+    return null; // Don't render anything until the redirect happens
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -131,7 +157,7 @@ const Dashboard = () => {
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
                 isLoading={isLoading}
-                handleCreateNewProject={handleCreateNewProject}
+                handleCreateNewProject={handleCreateNewScreenplay}
                 handleDeleteProject={handleDeleteProject}
               />
             </TabsContent>

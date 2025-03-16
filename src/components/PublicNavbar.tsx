@@ -1,12 +1,20 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/App';
 import Logo from './Logo';
 import { Button } from './ui/button';
 
 const PublicNavbar: React.FC = () => {
   const { session } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    if (!session) {
+      e.preventDefault();
+      navigate('/sign-in', { state: { returnTo: '/dashboard' } });
+    }
+  };
   
   return (
     <nav className="fixed w-full bg-white z-10 border-b">
@@ -27,6 +35,9 @@ const PublicNavbar: React.FC = () => {
               </Link>
               <Link to="/sign-up">
                 <Button>Get Started</Button>
+              </Link>
+              <Link to="/dashboard" onClick={handleDashboardClick}>
+                <Button variant="outline">Dashboard</Button>
               </Link>
             </>
           )}
