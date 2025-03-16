@@ -1,25 +1,16 @@
+import { ScriptContent, ActType } from "@/lib/types";
 
-import { ActType } from '@/lib/types';
-
-// Define a concrete interface with explicit keys to prevent recursive type issues
-export interface ActCountsRecord {
-  [ActType.ACT_1]: number;
-  [ActType.ACT_2A]: number;
-  [ActType.MIDPOINT]: number;
-  [ActType.ACT_2B]: number;
-  [ActType.ACT_3]: number;
-  [key: string]: number;
-}
+export type ActCountsRecord = {
+  [key in ActType]: number;
+};
 
 export type BeatMode = 'on' | 'off';
 
 export interface TagManagerProps {
-  scriptContent: {
-    elements: any[];
-  };
-  onFilterByTag: (tag: string | null) => void;
+  scriptContent: ScriptContent;
+  onFilterByTag?: (tag: string | null) => void;
   onFilterByAct?: (act: ActType | null) => void;
-  activeFilter: string | null;
+  activeFilter?: string | null;
   activeActFilter?: ActType | null;
   projectName?: string;
   structureName?: string;
@@ -29,4 +20,24 @@ export interface TagManagerProps {
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
   projectId?: string;
+}
+
+export interface ScriptElementProps {
+  element: {
+    id: string;
+    type: string;
+    text: string;
+    tags?: string[];
+  };
+  previousElementType?: string;
+  onChange: (id: string, text: string, type: string) => void;
+  onFocus: () => void;
+  isActive: boolean;
+  onNavigate: (direction: 'up' | 'down', id: string) => void;
+  onEnterKey: (id: string, shiftKey: boolean) => void;
+  onFormatChange: (id: string, newType: string) => void;
+  onTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  projectId?: string;
+  beatMode?: BeatMode;
 }

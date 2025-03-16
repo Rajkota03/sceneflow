@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
@@ -10,8 +11,6 @@ import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import { supabase } from '@/integrations/supabase/client';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 
 type BeatMode = 'on' | 'off';
 
@@ -29,6 +28,8 @@ interface ScriptEditorProps {
   projectName?: string;
   structureName?: string;
   projectId?: string;
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string;
 }
 
 const ScriptEditor = ({ 
@@ -39,7 +40,9 @@ const ScriptEditor = ({
   className,
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
-  projectId
+  projectId,
+  onStructureChange,
+  selectedStructureId
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,7 +50,6 @@ const ScriptEditor = ({
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
   const [availableStructures, setAvailableStructures] = useState<Structure[]>([]);
-  const [selectedStructureId, setSelectedStructureId] = useState<string>('');
 
   const {
     elements,
@@ -97,9 +99,6 @@ const ScriptEditor = ({
         
         if (data) {
           setAvailableStructures(data as Structure[]);
-          if (data.length > 0 && !selectedStructureId) {
-            setSelectedStructureId(data[0].id);
-          }
         }
       } catch (error) {
         console.error('Error fetching structures:', error);
@@ -107,7 +106,7 @@ const ScriptEditor = ({
     };
     
     fetchStructures();
-  }, [selectedStructureId]);
+  }, []);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -234,32 +233,13 @@ const ScriptEditor = ({
   };
 
   const handleStructureChange = (structureId: string) => {
-    setSelectedStructureId(structureId);
-    console.log(`Selected structure: ${structureId}`);
+    if (onStructureChange) {
+      onStructureChange(structureId);
+    }
   };
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <div className="bg-white border-b p-2 flex items-center">
-        <div className="flex items-center space-x-2 mr-4">
-          <Label htmlFor="structure-select" className="text-sm font-medium">
-            Structure:
-          </Label>
-          <Select value={selectedStructureId} onValueChange={handleStructureChange}>
-            <SelectTrigger id="structure-select" className="w-[180px]">
-              <SelectValue placeholder="Select a structure" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableStructures.map((structure) => (
-                <SelectItem key={structure.id} value={structure.id}>
-                  {structure.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      
       <TagManager 
         scriptContent={{ elements }} 
         onFilterByTag={handleFilterByTag}
@@ -273,6 +253,7 @@ const ScriptEditor = ({
         availableStructures={availableStructures}
         onStructureChange={handleStructureChange}
         selectedStructureId={selectedStructureId}
+        projectId={projectId}
       />
       
       <ScriptContentComponent

@@ -48,6 +48,7 @@ const Editor = () => {
   const [createNoteDialogOpen, setCreateNoteDialogOpen] = useState(false);
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
   const [currentEditNote, setCurrentEditNote] = useState<Note | null>(null);
+  const [selectedStructureId, setSelectedStructureId] = useState<string | null>(null);
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -441,6 +442,46 @@ const Editor = () => {
     }
   };
 
+  const handleStructureChange = (structureId: string) => {
+    setSelectedStructureId(structureId);
+    
+    if (projectId) {
+      const linkStructure = async () => {
+        try {
+          await supabase
+            .from('project_structures')
+            .delete()
+            .eq('project_id', projectId);
+          
+          const { error } = await supabase
+            .from('project_structures')
+            .insert({
+              project_id: projectId,
+              structure_id: structureId
+            });
+          
+          if (error) {
+            console.error('Error linking structure:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to link the structure to the screenplay.',
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: 'Structure linked',
+              description: 'The structure has been linked to the screenplay.',
+            });
+          }
+        } catch (error) {
+          console.error('Error linking structure:', error);
+        }
+      };
+      
+      linkStructure();
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -563,6 +604,8 @@ const Editor = () => {
                       projectName={title}
                       structureName="Three Act Structure"
                       projectId={projectId}
+                      onStructureChange={handleStructureChange}
+                      selectedStructureId={selectedStructureId || undefined}
                     />
                   )}
                 </div>
@@ -621,6 +664,8 @@ const Editor = () => {
                   projectName={title}
                   structureName="Three Act Structure" 
                   projectId={projectId}
+                  onStructureChange={handleStructureChange}
+                  selectedStructureId={selectedStructureId || undefined}
                 />
               )}
             </>

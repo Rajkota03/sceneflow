@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
@@ -11,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from './ui/use-toast';
 import { ActCountsRecord } from '@/types/scriptTypes';
 
@@ -44,38 +44,6 @@ const ActBar: React.FC<ActBarProps> = ({
   selectedStructureId
 }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const [structures, setStructures] = useState<{ id: string; name: string }[]>(availableStructures);
-  const [isLoadingStructures, setIsLoadingStructures] = useState(false);
-  
-  useEffect(() => {
-    if (availableStructures.length === 0) {
-      const fetchStructures = async () => {
-        setIsLoadingStructures(true);
-        try {
-          const { data, error } = await supabase
-            .from('structures')
-            .select('id, name');
-            
-          if (error) {
-            console.error('Error fetching structures:', error);
-            return;
-          }
-          
-          if (data) {
-            setStructures(data);
-          }
-        } catch (error) {
-          console.error('Error fetching structures:', error);
-        } finally {
-          setIsLoadingStructures(false);
-        }
-      };
-      
-      fetchStructures();
-    } else {
-      setStructures(availableStructures);
-    }
-  }, [availableStructures]);
   
   const acts = [
     { id: ActType.ACT_1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
@@ -121,13 +89,12 @@ const ActBar: React.FC<ActBarProps> = ({
               <Select 
                 value={selectedStructureId} 
                 onValueChange={handleStructureChange}
-                disabled={isLoadingStructures}
               >
                 <SelectTrigger className="w-[180px] h-8 text-xs">
-                  <SelectValue placeholder={isLoadingStructures ? "Loading..." : "Select structure"} />
+                  <SelectValue placeholder="Select structure" />
                 </SelectTrigger>
                 <SelectContent>
-                  {structures.map((structure) => (
+                  {availableStructures.map((structure) => (
                     <SelectItem key={structure.id} value={structure.id} className="text-xs">
                       {structure.name}
                     </SelectItem>
