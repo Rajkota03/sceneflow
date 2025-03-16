@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ThreeActStructure, Note, serializeNotes, deserializeNotes, StoryBeat } from '@/lib/types';
 import { Json } from '@/integrations/supabase/types';
@@ -68,8 +69,19 @@ export const fetchStructureData = async (projectId: string, userId: string): Pro
       );
       
       if (structureNote) {
-        // If we found a structure in the notes, fetch its complete data
-        return await fetchStructure(structureNote.id);
+        // If we found a structure in the notes, construct a proper ThreeActStructure from it
+        return {
+          id: structureNote.id,
+          projectId: projectId,
+          projectTitle: structureNote.title || 'Untitled Structure',
+          beats: Array.isArray(structureNote.content) 
+            ? structureNote.content
+            : typeof structureNote.content === 'object' && structureNote.content.beats 
+              ? structureNote.content.beats 
+              : [],
+          createdAt: structureNote.createdAt,
+          updatedAt: structureNote.updatedAt
+        } as ThreeActStructure;
       }
     }
     
@@ -116,9 +128,10 @@ export const serializeStructure = (
   
   return {
     id: structure.id,
-    projectId: structure.projectId,
-    projectTitle: structure.projectTitle,
-    beats,
+    title: structure.projectTitle || 'Untitled Structure',
+    content: { 
+      beats: beats
+    },
     createdAt: structure.createdAt,
     updatedAt: structure.updatedAt
   };
@@ -182,6 +195,7 @@ export const saveStructureToProject = async (
       
     if (structureError) {
       console.error("Error updating structure:", structureError);
+      // Continue anyway - we'll save to project notes as fallback
     }
     
     // Next, store the structure in the project's notes

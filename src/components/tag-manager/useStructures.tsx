@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Define a concrete type for structure info without any recursion
+// Define a simpler type for structure info without any recursive types
 export interface StructureInfo {
   id: string;
   name: string;
