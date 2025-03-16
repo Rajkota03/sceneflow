@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -111,6 +112,10 @@ const StructuresTab: React.FC = () => {
   const handleCreateNew = () => {
     navigate('/structure/new');
   };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
   
   const filteredStructures = structures?.filter(structure => 
     structure.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -139,9 +144,16 @@ const StructuresTab: React.FC = () => {
       
       {!structures || structures.length === 0 ? (
         <EmptyState 
-          message="No structures found. Create your first story structure to get started!"
-          actionText="Create New Structure"
-          onAction={handleCreateNew}
+          searchQuery={searchQuery}
+          clearSearch={clearSearch}
+          createNewProject={handleCreateNew}
+          emptyMessage="No structures found. Create your first story structure to get started!"
+          createMessage="Create New Structure"
+          customCreateButton={
+            <Button onClick={handleCreateNew}>
+              Create New Structure
+            </Button>
+          }
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

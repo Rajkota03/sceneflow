@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Project, Note, jsonToScriptContent, scriptContentToJson } from '@/lib/types';
@@ -86,9 +87,10 @@ export const useDashboardProjects = () => {
           id: note.id,
           title: note.title,
           content: note.content,
-          created_at: new Date(note.created_at),
-          updated_at: new Date(note.updated_at)
-        }));
+          createdAt: new Date(note.created_at || Date.now()),
+          updatedAt: new Date(note.updated_at || Date.now())
+        })) as Note[];
+        
         setNotes(formattedNotes);
         console.log('Loaded standalone notes:', formattedNotes.length);
       }

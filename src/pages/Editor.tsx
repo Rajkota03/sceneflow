@@ -98,7 +98,7 @@ const Editor = () => {
               .insert({
                 id: newProject.id,
                 title: newProject.title,
-                author_id: newProject.authorId,
+                author_id: newProject.author_id,
                 content: scriptContentToJson(newProject.content),
               });
             
@@ -162,7 +162,7 @@ const Editor = () => {
               let processedNotes: Note[] = [];
               
               if (Array.isArray(notesRawData)) {
-                processedNotes = notesRawData.map(note => ({
+                processedNotes = notesRawData.map((note: any) => ({
                   id: note.id || '',
                   title: note.title || '',
                   content: note.content || '',
