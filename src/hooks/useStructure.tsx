@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   getStructureByProjectId, 
   getStructureById,
@@ -14,7 +14,8 @@ export function useStructure(projectId?: string, structureId?: string) {
   const [error, setError] = useState<Error | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveTimeout, setSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingSaveRef = useRef<Structure | null>(null);
 
   useEffect(() => {
     async function loadStructure() {
@@ -53,25 +54,31 @@ export function useStructure(projectId?: string, structureId?: string) {
   // Cleanup function for any pending save timeouts
   useEffect(() => {
     return () => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [saveTimeout]);
+  }, []);
 
   const debouncedSave = useCallback((updatedStructure: Structure) => {
+    // Store the latest version we want to save
+    pendingSaveRef.current = updatedStructure;
+    
     // Clear any pending timeout
-    if (saveTimeout) {
-      clearTimeout(saveTimeout);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
 
     // Set a new timeout
-    const timeout = setTimeout(async () => {
-      if (isSaving) return;
+    saveTimeoutRef.current = setTimeout(async () => {
+      if (isSaving || !pendingSaveRef.current) return;
       
-      setIsSaving(true);
       try {
-        const saved = await saveStructureToDb(updatedStructure);
+        setIsSaving(true);
+        const structureToSave = pendingSaveRef.current;
+        pendingSaveRef.current = null; // Clear pending save
+        
+        const saved = await saveStructureToDb(structureToSave);
         setStructure(saved);
         setLastSaved(new Date());
       } catch (err) {
@@ -81,15 +88,20 @@ export function useStructure(projectId?: string, structureId?: string) {
         setIsSaving(false);
       }
     }, 3000); // 3 second debounce
-
-    setSaveTimeout(timeout);
-  }, [isSaving, saveTimeout]);
+  }, [isSaving]);
 
   const saveStructure = async (updatedStructure: Structure) => {
     // Immediate save for explicit save actions (like button clicks)
     if (isSaving) {
       return updatedStructure;
     }
+    
+    // Clear any pending debounced save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    pendingSaveRef.current = null;
     
     setIsSaving(true);
     try {
@@ -116,6 +128,7 @@ export function useStructure(projectId?: string, structureId?: string) {
     isLoading,
     error,
     isSaving,
+    lastSaved,
     saveStructure,
     updateStructure
   };

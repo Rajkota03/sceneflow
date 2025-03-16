@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { v4 as uuidv4 } from 'uuid';
-import { Edit, Plus, Trash2, Save, ChevronDown, ChevronUp, Grip } from 'lucide-react';
+import { Edit, Plus, Trash2, Save, ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 interface StructureEditorProps {
@@ -190,14 +190,12 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
     if (!over) return;
     
     if (active.id !== over.id) {
-      const activeId = active.id.toString();
-      const overId = over.id.toString();
+      const activeId = String(active.id);
+      const overId = String(over.id);
       
-      // Extract actId and beatId from the combined id (actId-beatId)
-      const activeActId = activeId.split('-')[0];
-      const activeBeatId = activeId.split('-')[1];
-      const overActId = overId.split('-')[0];
-      const overBeatId = overId.split('-')[1];
+      // Extract actId and beatId from the combined id (actId|beatId)
+      const [activeActId, activeBeatId] = activeId.split('|');
+      const [overActId, overBeatId] = overId.split('|');
       
       // Only allow sorting within the same act
       if (activeActId === overActId) {
@@ -325,7 +323,7 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                 <div>
                   <CardTitle className="text-lg font-medium text-slate-800">{act.title}</CardTitle>
                   <p className="text-sm text-slate-500 mt-1">
-                    {act.startPosition}% - {act.endPosition}%
+                    Pages: <span className="font-medium">TBD</span>
                   </p>
                 </div>
               </div>
@@ -370,42 +368,6 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                         className="border-slate-200"
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="act-start" className="block text-sm font-medium text-slate-700 mb-1">
-                          Start Position (%)
-                        </label>
-                        <Input 
-                          id="act-start"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={editingAct.startPosition} 
-                          onChange={(e) => setEditingAct({ 
-                            ...editingAct, 
-                            startPosition: Number(e.target.value) 
-                          })} 
-                          className="border-slate-200"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="act-end" className="block text-sm font-medium text-slate-700 mb-1">
-                          End Position (%)
-                        </label>
-                        <Input 
-                          id="act-end"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={editingAct.endPosition} 
-                          onChange={(e) => setEditingAct({ 
-                            ...editingAct, 
-                            endPosition: Number(e.target.value) 
-                          })} 
-                          className="border-slate-200"
-                        />
-                      </div>
-                    </div>
                     <div>
                       <label htmlFor="act-color" className="block text-sm font-medium text-slate-700 mb-1">
                         Color
@@ -445,12 +407,12 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                       onDragEnd={handleDragEnd}
                     >
                       <SortableContext
-                        items={act.beats.map(beat => `${act.id}-${beat.id}`)}
+                        items={act.beats.map(beat => `${act.id}|${beat.id}`)}
                         strategy={verticalListSortingStrategy}
                       >
                         {act.beats.map((beat) => (
-                          <SortableItem key={`${act.id}-${beat.id}`} id={`${act.id}-${beat.id}`}>
-                            <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors">
+                          <SortableItem key={`${act.id}|${beat.id}`} id={`${act.id}|${beat.id}`}>
+                            <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors group">
                               {editingBeat && editingBeat.act.id === act.id && editingBeat.beat.id === beat.id ? (
                                 <div className="space-y-4">
                                   <div>
@@ -482,23 +444,6 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                                       className="border-slate-200 min-h-[80px]"
                                     />
                                   </div>
-                                  <div>
-                                    <label htmlFor="beat-position" className="block text-sm font-medium text-slate-700 mb-1">
-                                      Time Position (%)
-                                    </label>
-                                    <Input 
-                                      id="beat-position"
-                                      type="number"
-                                      min="0"
-                                      max="100"
-                                      value={editingBeat.beat.timePosition} 
-                                      onChange={(e) => setEditingBeat({
-                                        ...editingBeat,
-                                        beat: { ...editingBeat.beat, timePosition: Number(e.target.value) }
-                                      })} 
-                                      className="border-slate-200"
-                                    />
-                                  </div>
                                   <div className="flex justify-end space-x-2">
                                     <Button 
                                       variant="outline" 
@@ -513,12 +458,12 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
                               ) : (
                                 <div className="flex items-center justify-between group">
                                   <div className="flex items-center flex-1">
-                                    <Grip className="h-4 w-4 text-slate-400 mr-3 cursor-move opacity-50 group-hover:opacity-100" />
+                                    <GripVertical className="h-5 w-5 text-slate-400 mr-3 cursor-move opacity-50 group-hover:opacity-100" />
                                     <div className="flex-1">
                                       <div className="flex items-center mb-1">
                                         <h4 className="font-medium text-slate-800">{beat.title}</h4>
                                         <span className="ml-2 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">
-                                          {beat.timePosition}%
+                                          Page TBD
                                         </span>
                                       </div>
                                       {beat.description && (

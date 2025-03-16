@@ -26,7 +26,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
     transition,
     zIndex: isDragging ? 10 : 1,
     opacity: isDragging ? 0.8 : 1,
-    position: isDragging ? 'relative' : 'static',
+    position: isDragging ? 'relative' as const : 'static' as const,
   };
   
   return (
