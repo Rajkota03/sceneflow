@@ -39,6 +39,28 @@ export type ElementType =
   | 'transition' 
   | 'note';
 
+// Add ActType definition
+export type ActType = 1 | '2A' | 'midpoint' | '2B' | 3;
+
+// Add StoryBeat definition
+export type StoryBeat = string;
+
+// Add ThreeActStructure definition for the project title hook
+export interface ThreeActStructure {
+  id: string;
+  projectTitle: string;
+  acts: {
+    [key: string]: {
+      title: string;
+      beats: Array<{
+        id: string;
+        title: string;
+        description: string;
+      }>;
+    };
+  };
+}
+
 export const scriptContentToJson = (content: ScriptContent): Json => {
   return content as unknown as Json;
 };

@@ -12,12 +12,19 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  // Dummy function for onCreateNewProject
+  const handleCreateNewStructure = () => {
+    // This is a placeholder function that will be implemented later
+    console.log('Create new structure clicked');
+  };
+
   return (
     <>
       <DashboardHeader 
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         projectType="structure"
+        onCreateNewProject={handleCreateNewStructure}
       />
       
       <div className="border border-border rounded-lg p-8 mt-4 bg-card">
