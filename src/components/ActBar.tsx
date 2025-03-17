@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { ActType, Structure } from '@/lib/types';
+import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Zap, ZapOff, Check, Film, BookOpen } from 'lucide-react';
@@ -29,7 +30,6 @@ interface ActBarProps {
   availableStructures?: { id: string; name: string }[];
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
-  selectedStructure?: Structure | null;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -42,61 +42,17 @@ const ActBar: React.FC<ActBarProps> = ({
   onToggleBeatMode,
   availableStructures = [],
   onStructureChange,
-  selectedStructureId,
-  selectedStructure
+  selectedStructureId
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   
-  // Default Three Act Structure
-  const defaultActs = [
+  const acts = [
     { id: ActType.ACT_1, label: 'Act 1', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
     { id: ActType.ACT_2A, label: 'Act 2A', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
     { id: ActType.MIDPOINT, label: 'Midpoint', color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]' },
     { id: ActType.ACT_2B, label: 'Act 2B', color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]' },
     { id: ActType.ACT_3, label: 'Act 3', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
   ];
-  
-  // Get structure-specific acts if a structure is selected
-  const getStructureSpecificActs = () => {
-    if (!selectedStructure) return defaultActs;
-    
-    // For "Save the Cat" structure, use a simplified view
-    if (selectedStructure.structure_type === 'save_the_cat') {
-      return [
-        { id: ActType.ACT_1, label: 'Setup', color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]' },
-        { id: ActType.ACT_2A, label: 'Confrontation I', color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]' },
-        { id: ActType.MIDPOINT, label: 'Midpoint', color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]' },
-        { id: ActType.ACT_2B, label: 'Confrontation II', color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]' },
-        { id: ActType.ACT_3, label: 'Resolution', color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]' },
-      ];
-    }
-    
-    // For Hero's Journey structure
-    if (selectedStructure.structure_type === 'hero_journey') {
-      return [
-        { id: ActType.ACT_1, label: 'Departure', color: 'bg-[#10b981] hover:bg-[#0d9669] border-[#064e36] text-white' },
-        { id: ActType.ACT_2A, label: 'Initiation I', color: 'bg-[#f59e0b] hover:bg-[#d48806] border-[#8c5a04] text-white' },
-        { id: ActType.MIDPOINT, label: 'Supreme Ordeal', color: 'bg-[#ef4444] hover:bg-[#b91c1c] border-[#7f1d1d] text-white' },
-        { id: ActType.ACT_2B, label: 'Initiation II', color: 'bg-[#f59e0b] hover:bg-[#d48806] border-[#8c5a04] text-white' },
-        { id: ActType.ACT_3, label: 'Return', color: 'bg-[#ef4444] hover:bg-[#b91c1c] border-[#7f1d1d] text-white' },
-      ];
-    }
-    
-    // For Story Circle structure
-    if (selectedStructure.structure_type === 'story_circle') {
-      return [
-        { id: ActType.ACT_1, label: 'Need', color: 'bg-[#ec4899] hover:bg-[#db2777] border-[#9d174d] text-white' },
-        { id: ActType.ACT_2A, label: 'Go', color: 'bg-[#a855f7] hover:bg-[#9333ea] border-[#6b21a8] text-white' },
-        { id: ActType.MIDPOINT, label: 'Find', color: 'bg-[#3b82f6] hover:bg-[#2563eb] border-[#1d4ed8] text-white' },
-        { id: ActType.ACT_2B, label: 'Take', color: 'bg-[#a855f7] hover:bg-[#9333ea] border-[#6b21a8] text-white' },
-        { id: ActType.ACT_3, label: 'Return', color: 'bg-[#ec4899] hover:bg-[#db2777] border-[#9d174d] text-white' },
-      ];
-    }
-    
-    return defaultActs;
-  };
-  
-  const acts = getStructureSpecificActs();
 
   const handleBeatModeToggle = (value: BeatMode) => {
     if (onToggleBeatMode) {

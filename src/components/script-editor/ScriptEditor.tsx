@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
@@ -44,6 +45,7 @@ const ScriptEditor = ({
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
 
+  // Fetch structures for this project
   const { 
     structures, 
     selectedStructureId, 
@@ -221,14 +223,17 @@ const ScriptEditor = ({
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
+    // Update the element with the beat tag
     setElements(prevElements =>
       prevElements.map(element =>
         element.id === elementId ? { ...element, beat: beatId } : element
       )
     );
     
+    // Update the beat's completion status in the structure
     const updatedStructure = updateBeatCompletion(beatId, actId, true);
     if (updatedStructure) {
+      // Save the updated structure to the database
       const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
       if (success) {
         toast({
@@ -254,13 +259,12 @@ const ScriptEditor = ({
         activeFilter={activeTagFilter}
         activeActFilter={activeActFilter}
         projectName={projectName}
-        structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
+        structureName={structureName}
         beatMode={beatMode}
         onToggleBeatMode={handleToggleBeatMode}
         structures={structures}
         selectedStructureId={selectedStructureId || undefined}
         onStructureChange={handleStructureChange}
-        selectedStructure={selectedStructure}
       />
       
       <ScriptContentComponent
