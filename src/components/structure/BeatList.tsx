@@ -11,6 +11,8 @@ interface BeatListProps {
   handleEditBeat: (act: Act, beat: Beat) => void;
   handleDeleteBeat: (actId: string, beatId: string) => void;
   sensors: any;
+  handleSaveBeat?: (updatedBeat: Beat) => void;  // Add optional prop for saving beats
+  handleCancelEditBeat?: () => void;             // Add optional prop for canceling edit
 }
 
 export const BeatList: React.FC<BeatListProps> = ({
@@ -18,7 +20,9 @@ export const BeatList: React.FC<BeatListProps> = ({
   editingBeat,
   handleEditBeat,
   handleDeleteBeat,
-  sensors
+  sensors,
+  handleSaveBeat,
+  handleCancelEditBeat
 }) => {
   return (
     <SortableContext
@@ -36,6 +40,8 @@ export const BeatList: React.FC<BeatListProps> = ({
             }
             onEdit={() => handleEditBeat(act, beat)}
             onDelete={() => handleDeleteBeat(act.id, beat.id)}
+            onSave={(updatedBeat) => handleSaveBeat && handleSaveBeat(updatedBeat)}
+            onCancel={() => handleCancelEditBeat && handleCancelEditBeat()}
           />
         </SortableItem>
       ))}

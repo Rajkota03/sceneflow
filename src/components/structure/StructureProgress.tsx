@@ -4,6 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { Structure } from '@/lib/models/structureModel';
 import { FileText, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ScriptContent } from '@/lib/types';
 
 interface StructureProgressProps {
   structure: Structure;
@@ -55,13 +56,22 @@ export const StructureProgress: React.FC<StructureProgressProps> = ({ structure 
           return;
         }
         
+        // Safely parse the content JSON and check for elements
         const content = projectData.content;
         
         // Count scene elements that have tags
         let taggedScenes = 0;
-        if (content.elements && Array.isArray(content.elements)) {
-          taggedScenes = content.elements.filter(element => 
-            element.type === 'scene-heading' && element.tags && element.tags.length > 0
+        
+        // Safely check if content has elements and if elements is an array
+        if (content && typeof content === 'object' && 'elements' in content && 
+            Array.isArray(content.elements)) {
+          
+          // Now it's safe to access elements as an array
+          taggedScenes = content.elements.filter((element: any) => 
+            element.type === 'scene-heading' && 
+            element.tags && 
+            Array.isArray(element.tags) && 
+            element.tags.length > 0
           ).length;
         }
         
