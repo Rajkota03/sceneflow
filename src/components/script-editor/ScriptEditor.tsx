@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
+import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure, BeatMode } from '@/types/scriptTypes';
 import { useFormat } from '@/lib/formatContext';
 import TagManager from '../TagManager';
 import ZoomControls from './ZoomControls';
@@ -13,8 +13,6 @@ import { useScriptEditing } from '@/hooks/useScriptEditing';
 import { useBeatTagging } from '@/hooks/useBeatTagging';
 import { useTagFiltering } from '@/hooks/useTagFiltering';
 import EditorInitializer from './EditorInitializer';
-
-type BeatMode = 'on' | 'off';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -39,6 +37,7 @@ const ScriptEditor = ({
   structureName = "Three Act Structure",
   projectId,
   onStructureChange,
+  selectedStructureId,
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,7 +45,7 @@ const ScriptEditor = ({
   // Get structures data
   const { 
     structures, 
-    selectedStructureId, 
+    selectedStructureId: projectSelectedStructureId, 
     selectedStructure,
     handleStructureChange: changeSelectedStructure,
     updateBeatCompletion,
@@ -94,7 +93,7 @@ const ScriptEditor = ({
     elements,
     setElements,
     selectedStructure,
-    selectedStructureId,
+    projectSelectedStructureId || selectedStructureId,
     updateBeatCompletion,
     saveBeatCompletion
   );
@@ -137,7 +136,7 @@ const ScriptEditor = ({
           beatMode={beatMode}
           onToggleBeatMode={handleToggleBeatMode}
           structures={structures}
-          selectedStructureId={selectedStructureId || undefined}
+          selectedStructureId={selectedStructureId || projectSelectedStructureId || undefined}
           onStructureChange={handleStructureChange}
           selectedStructure={selectedStructure}
         />

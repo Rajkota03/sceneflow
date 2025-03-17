@@ -108,8 +108,6 @@ export function scriptContentToJson(scriptContent: ScriptContent): any {
 
 export type BeatMode = 'on' | 'off';
 
-// Add the missing types that are causing errors
-
 // Record to track counts of scenes by act type
 export interface ActCountsRecord {
   [ActType.ACT_1]: number;

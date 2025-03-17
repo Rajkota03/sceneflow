@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent, ActType } from '@/lib/types';
+import { ScriptContent, ActType } from '@/types/scriptTypes';
 import { ActCountsRecord } from '@/types/scriptTypes';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Initialize with the correct ActType enum values
+  // Initialize with the correct ActType enum values from types/scriptTypes.ts
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
     [ActType.ACT_1]: 0,
     [ActType.ACT_2A]: 0,
