@@ -1,23 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Structure, Act, Beat } from '@/lib/models/structureModel';
-import { 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
-  useSensors,
-  DragEndEvent
-} from '@dnd-kit/core';
-import { 
-  arrayMove, 
-  sortableKeyboardCoordinates
-} from '@dnd-kit/sortable';
-import { Button } from '@/components/ui/button';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { StructureMetadata } from './StructureMetadata';
-import { ActItem } from './ActItem';
+import { ActList } from './ActList';
 import { BeatEditor } from './BeatEditor';
+import { useDragEndHandler } from './hooks/useDragEndHandler';
+import { useSensors } from './hooks/useSensors';
 
 interface StructureEditorProps {
   structure: Structure;
@@ -35,20 +26,12 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
   const [editingAct, setEditingAct] = useState<Act | null>(null);
   const [editingBeat, setEditingBeat] = useState<{ act: Act, beat: Beat } | null>(null);
   const [expandedActs, setExpandedActs] = useState<Record<string, boolean>>({});
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5, // Require the pointer to move by 5px before activating
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  
+  const sensors = useSensors();
+  const handleDragEnd = useDragEndHandler(structure, onChange);
 
   // Initialize expanded acts on first load
-  useEffect(() => {
+  React.useEffect(() => {
     if (structure?.acts && Object.keys(expandedActs).length === 0) {
       const initialExpanded: Record<string, boolean> = {};
       structure.acts.forEach(act => {
@@ -56,7 +39,7 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
       });
       setExpandedActs(initialExpanded);
     }
-  }, [structure?.acts]);
+  }, [structure?.acts, expandedActs]);
 
   const toggleActExpansion = (actId: string) => {
     setExpandedActs(prev => ({
@@ -166,44 +149,6 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
     });
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) return;
-    
-    if (active.id !== over.id) {
-      const activeId = String(active.id);
-      const overId = String(over.id);
-      
-      // Extract actId and beatId from the combined id (actId|beatId)
-      const [activeActId, activeBeatId] = activeId.split('|');
-      const [overActId, overBeatId] = overId.split('|');
-      
-      // Only allow sorting within the same act
-      if (activeActId === overActId) {
-        const act = structure.acts.find(a => a.id === activeActId);
-        
-        if (!act) return;
-        
-        const oldIndex = act.beats.findIndex(beat => beat.id === activeBeatId);
-        const newIndex = act.beats.findIndex(beat => beat.id === overBeatId);
-        
-        if (oldIndex !== -1 && newIndex !== -1) {
-          const newBeats = arrayMove(act.beats, oldIndex, newIndex);
-          
-          onChange({
-            ...structure,
-            acts: structure.acts.map(a => 
-              a.id === activeActId 
-                ? { ...a, beats: newBeats }
-                : a
-            ),
-          });
-        }
-      }
-    }
-  };
-
   const handleSave = async () => {
     try {
       await onSave(structure);
@@ -238,26 +183,22 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
         </div>
       </div>
 
-      <div className="space-y-4">
-        {structure.acts.map((act) => (
-          <ActItem
-            key={act.id}
-            act={act}
-            expandedActs={expandedActs}
-            toggleActExpansion={toggleActExpansion}
-            handleEditAct={handleEditAct}
-            handleDeleteAct={handleDeleteAct}
-            handleAddBeat={handleAddBeat}
-            handleEditBeat={handleEditBeat}
-            handleDeleteBeat={handleDeleteBeat}
-            editingAct={editingAct}
-            setEditingAct={setEditingAct}
-            handleSaveAct={handleSaveAct}
-            editingBeat={editingBeat}
-            sensors={sensors}
-          />
-        ))}
-      </div>
+      <ActList
+        acts={structure.acts}
+        expandedActs={expandedActs}
+        toggleActExpansion={toggleActExpansion}
+        handleEditAct={handleEditAct}
+        handleDeleteAct={handleDeleteAct}
+        handleAddBeat={handleAddBeat}
+        handleEditBeat={handleEditBeat}
+        handleDeleteBeat={handleDeleteBeat}
+        editingAct={editingAct}
+        setEditingAct={setEditingAct}
+        handleSaveAct={handleSaveAct}
+        editingBeat={editingBeat}
+        sensors={sensors}
+        handleDragEnd={handleDragEnd}
+      />
     </div>
   );
 };
