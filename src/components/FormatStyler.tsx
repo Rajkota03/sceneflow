@@ -37,9 +37,11 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     minHeight: forPrint || forExport ? 'auto' : '11in',
     margin: '0 auto',
     transition: 'all 0.2s ease',
-    boxSizing: 'border-box' as 'border-box',
+    boxSizing: 'border-box',
     overflow: 'visible',
     position: 'relative',
+    direction: 'ltr',
+    unicodeBidi: 'plaintext',
   };
 
   return (
@@ -47,6 +49,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       style={style} 
       className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
       data-font="courier-final-draft"
+      dir="ltr"
     >
       {children}
     </div>

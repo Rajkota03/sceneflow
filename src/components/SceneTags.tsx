@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ScriptElement, Structure, ActType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Plus, X } from 'lucide-react';
+import { Tag, X } from 'lucide-react';
 import SceneTag from './SceneTag';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -85,12 +85,16 @@ const SceneTags: React.FC<SceneTagsProps> = ({
             className="px-2 py-0.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
             placeholder="Add tag..."
             autoFocus
+            dir="ltr"
           />
           <button 
             onClick={handleAddTag}
             className="ml-1 text-green-600 hover:text-green-800"
           >
-            <Plus size={14} />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
           </button>
           <button 
             onClick={() => setIsAddingTag(false)}
@@ -106,21 +110,24 @@ const SceneTags: React.FC<SceneTagsProps> = ({
           className="h-6 px-2 py-0 text-xs"
           onClick={() => setIsAddingTag(true)}
         >
-          <Plus size={14} className="mr-1" />
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
           Add Tag
         </Button>
       )}
       
-      {onBeatTag && selectedStructure && (
+      {onBeatTag && (
         <Popover open={beatMenuOpen} onOpenChange={setBeatMenuOpen}>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="h-6 px-2 py-0 text-xs ml-1"
+              className="h-6 w-6 p-0 rounded-full ml-1"
+              title="Add Story Beat"
             >
-              <span>Beats</span>
-              <ChevronDown size={14} className="ml-1" />
+              <Tag size={14} />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-60 p-2 max-h-80 overflow-auto">
@@ -130,7 +137,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
               </div>
             )}
             
-            {hasBeats && selectedStructure.acts.map((act) => (
+            {hasBeats && selectedStructure?.acts.map((act) => (
               <div key={act.id} className="mb-2">
                 <div 
                   className="text-xs font-semibold pb-1 mb-1 border-b"
@@ -139,7 +146,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
                   {act.title}
                 </div>
                 <div className="space-y-1">
-                  {act.beats.map((beat) => {
+                  {act.beats && act.beats.map((beat) => {
                     const actType = getActTypeFromTitle(act.title);
                     const isSelected = element.beat === beat.id;
                     return (

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -83,6 +82,7 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: visible;
   position: relative;
+  border: 1px solid #ddd;
 }
 
 .script-page-content {
@@ -91,6 +91,8 @@
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
+  direction: ltr;
+  unicode-bidi: plaintext;
 }
 
 /* Element-specific formatting */
@@ -213,6 +215,23 @@ textarea.auto-resize {
   color: inherit;
 }
 
+/* Active element highlighting */
+.element-text.active {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  border-radius: 2px;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Final Draft specific page numbering */
+.page-number {
+  position: absolute;
+  top: 0.5in;
+  right: 1in;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
+  font-size: 12pt;
+  color: #666;
+}
+
 /* Print-specific styles */
 @media print {
   .script-page {
@@ -221,6 +240,7 @@ textarea.auto-resize {
     height: 11in;
     margin: 0;
     padding: 0;
+    border: none;
   }
   
   .script-page-content {
@@ -233,4 +253,10 @@ textarea.auto-resize {
     font-size: 12pt !important;
     line-height: 1 !important;
   }
+}
+
+/* Fix for reversed text input */
+[contenteditable="true"] {
+  direction: ltr;
+  unicode-bidi: plaintext;
 }

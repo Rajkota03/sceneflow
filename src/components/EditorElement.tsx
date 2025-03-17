@@ -140,10 +140,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          direction: 'ltr', // Ensure text direction is left-to-right
-          unicodeBidi: 'bidi-override' // Additional property for text direction
+          direction: 'ltr',
+          unicodeBidi: 'plaintext',
+          fontFamily: '"Courier Final Draft", "Courier Prime", monospace'
         }}
-        dir="ltr" // HTML attribute for text direction
+        dir="ltr"
       >
         {text}
       </div>
