@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent, ActType, ActCountsRecord } from '@/types/scriptTypes';
+import { ScriptContent, ActType, ActCountsRecord, ElementType } from '@/types/scriptTypes';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);

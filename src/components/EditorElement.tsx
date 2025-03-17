@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure, ActType } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
-import { BeatMode } from '@/types/scriptTypes';
 import SceneTagButton from './SceneTagButton';
 
 interface EditorElementProps {
@@ -18,8 +18,8 @@ interface EditorElementProps {
   onTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode?: BeatMode;
-  selectedStructure?: Structure | null;
+  beatMode?: 'on' | 'off';
+  selectedStructure?: any;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
@@ -177,7 +177,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       {isSceneHeading && isHovered && !isActive && beatMode === 'on' && (
         <div className="absolute right-2 top-0">
           <SceneTagButton 
-            onTagSelect={(tagType, actType, beatId) => {
+            onTagSelect={(tagType, actType) => {
               onFocus();
               
               if (tagType === 'act' && actType) {
@@ -196,35 +196,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
                 );
                 
                 onTagsChange(element.id, [...filteredTags, actTag]);
-              }
-              else if (tagType === 'beat' && beatId && actType && selectedStructure) {
-                let beatName = '';
-                selectedStructure.acts?.forEach(act => {
-                  if (act.act_type === actType) {
-                    act.beats?.forEach(beat => {
-                      if (beat.id === beatId) {
-                        beatName = beat.title;
-                      }
-                    });
-                  }
-                });
-                
-                if (beatName && onBeatTag) {
-                  const actId = selectedStructure.acts?.find(act => act.act_type === actType)?.id || '';
-                  onBeatTag(element.id, beatId, actId);
-                  
-                  const actPrefix = actType === ActType.ACT_1 ? 'Act 1: ' :
-                                  actType === ActType.ACT_2A ? 'Act 2A: ' :
-                                  actType === ActType.MIDPOINT ? 'Midpoint: ' :
-                                  actType === ActType.ACT_2B ? 'Act 2B: ' :
-                                  'Act 3: ';
-                                  
-                  const newTag = `${actPrefix}${beatName}`;
-                  const existingTags = element.tags || [];
-                  if (!existingTags.includes(newTag)) {
-                    onTagsChange(element.id, [...existingTags, newTag]);
-                  }
-                }
               }
             }}
             selectedStructure={selectedStructure}

@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { ScriptElement, ElementType } from '@/types/scriptTypes';
+import { ScriptElement, ElementType } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
 
 interface EditorInitializerProps {
@@ -20,12 +20,12 @@ const EditorInitializer: React.FC<EditorInitializerProps> = ({
       const defaultElements: ScriptElement[] = [
         {
           id: generateUniqueId(),
-          type: ElementType.SCENE_HEADING,
+          type: 'scene-heading',
           text: 'INT. SOMEWHERE - DAY'
         },
         {
           id: generateUniqueId(),
-          type: ElementType.ACTION,
+          type: 'action',
           text: 'Type your action here...'
         }
       ];
