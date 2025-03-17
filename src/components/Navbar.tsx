@@ -1,6 +1,7 @@
+
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/App';
@@ -44,7 +45,7 @@ const Navbar = () => {
   const userEmail = session?.user?.email || '';
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isEditor ? 'opacity-0 hover:opacity-100' : ''}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${isEditor ? 'opacity-0 hover:opacity-100' : ''}`}>
       <div className="container mx-auto px-4 py-3">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">

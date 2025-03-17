@@ -9,6 +9,7 @@ import StructuresTab from '@/components/dashboard/StructuresTab';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { useDashboardStructures } from '@/hooks/useDashboardStructures';
 import { Note } from '@/lib/types';
+import Navbar from '@/components/Navbar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -86,7 +87,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+      <Navbar />
+      <div className="mx-auto max-w-7xl pt-20 pb-6 px-4 sm:px-6 lg:px-8">
         <Tabs 
           defaultValue="screenplays" 
           value={activeTab}

@@ -9,7 +9,7 @@ export interface EmptyStateProps {
   actionIcon?: React.ReactNode;
   onAction?: () => void;
   children?: React.ReactNode;
-  // Add support for search query functionality
+  // Search query functionality
   searchQuery?: string;
   clearSearch?: () => void;
   createNewProject?: () => void;
