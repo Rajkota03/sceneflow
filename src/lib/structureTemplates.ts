@@ -1,4 +1,5 @@
-import { Structure, Act, Beat } from '@/lib/types';
+
+import { Structure, Act, Beat, ActType } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Helper function to create a Beat
@@ -26,6 +27,7 @@ export const createThreeActStructure = (id: string): Structure => {
     colorHex: "#3b82f6", // blue
     startPosition: 0,
     endPosition: 25,
+    act_type: ActType.ACT_1,
     beats: [
       createBeat(
         "🔹 Hook (Page X-Y)",
@@ -71,6 +73,7 @@ export const createThreeActStructure = (id: string): Structure => {
     colorHex: "#f59e0b", // amber
     startPosition: 25,
     endPosition: 75,
+    act_type: ActType.ACT_2A,
     beats: [
       createBeat(
         "🔹 1st Pinch Point (Page X-Y)",
@@ -102,6 +105,7 @@ export const createThreeActStructure = (id: string): Structure => {
     colorHex: "#ef4444", // red
     startPosition: 75,
     endPosition: 100,
+    act_type: ActType.ACT_3,
     beats: [
       createBeat(
         "🔹 Renewed Push (Page X-Y)",
@@ -153,6 +157,7 @@ export const createSaveTheCatStructure = (id: string): Structure => {
     colorHex: "#8b5cf6", // purple
     startPosition: 0,
     endPosition: 100,
+    act_type: ActType.ACT_1, // Using ACT_1 as a generic type since Save the Cat doesn't fit neatly into the ActType enum
     beats: [
       createBeat(
         "🔹 Opening Image (Page 1)",
@@ -281,6 +286,7 @@ export const createHeroJourneyStructure = (id: string): Structure => {
     colorHex: "#10b981", // emerald
     startPosition: 0,
     endPosition: 33,
+    act_type: ActType.ACT_1,
     beats: [
       createBeat(
         "🔹 Ordinary World",
@@ -326,6 +332,7 @@ export const createHeroJourneyStructure = (id: string): Structure => {
     colorHex: "#f59e0b", // amber
     startPosition: 33,
     endPosition: 66,
+    act_type: ActType.ACT_2A,
     beats: [
       createBeat(
         "🔹 Tests, Allies, and Enemies",
@@ -364,6 +371,7 @@ export const createHeroJourneyStructure = (id: string): Structure => {
     colorHex: "#ef4444", // red
     startPosition: 66,
     endPosition: 100,
+    act_type: ActType.ACT_3,
     beats: [
       createBeat(
         "🔹 The Road Back",
@@ -408,6 +416,7 @@ export const createStoryCircleStructure = (id: string): Structure => {
     colorHex: "#ec4899", // pink
     startPosition: 0,
     endPosition: 100,
+    act_type: ActType.ACT_1, // Using ACT_1 as a generic type since Story Circle doesn't fit neatly into the ActType enum
     beats: [
       createBeat(
         "🔹 1. You",
