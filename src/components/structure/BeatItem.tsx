@@ -66,12 +66,16 @@ export const BeatItem: React.FC<BeatItemProps> = ({
             <Textarea 
               id="beat-description"
               value={editedBeat.description} 
-              onChange={(e) => setEditedBeat({
-                ...editedBeat,
-                description: e.target.value
-              })} 
+              onChange={(e) => {
+                // Update the beat description, ensuring spaces are preserved
+                setEditedBeat({
+                  ...editedBeat,
+                  description: e.target.value
+                });
+              }}
               rows={3}
               className="border-slate-200 min-h-[80px]"
+              placeholder="Enter beat description..."
             />
           </div>
           <div className="flex justify-end space-x-2">
