@@ -340,10 +340,66 @@ export const useDashboardStructures = () => {
   };
 
   const handleEditStructure = (id: string) => {
+    const structure = structures.find(s => s.id === id);
+    if (!structure) {
+      toast({
+        title: "Structure not found",
+        description: "Cannot find the requested structure.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Find the structure in the list and show the editor dialog
     toast({
-      title: "Feature in development",
-      description: "The structure editor is coming soon."
+      title: "Structure editor",
+      description: "Use the edit button to modify structure beats."
     });
+  };
+
+  const handleUpdateStructure = async (updatedStructure: Structure) => {
+    if (!session) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to update this structure',
+        variant: 'destructive',
+      });
+      throw new Error('Authentication required');
+    }
+    
+    try {
+      // Format the structure data for the database
+      const beatsData = {
+        acts: updatedStructure.acts
+      };
+      
+      // Update the structure in the database
+      const { error } = await supabase
+        .from('structures')
+        .update({
+          name: updatedStructure.name,
+          description: updatedStructure.description,
+          beats: beatsData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updatedStructure.id);
+      
+      if (error) throw error;
+      
+      // Update the structure in the local state
+      setStructures(prev => 
+        prev.map(structure => 
+          structure.id === updatedStructure.id 
+            ? { ...updatedStructure, updatedAt: new Date() } 
+            : structure
+        )
+      );
+      
+      return;
+    } catch (error) {
+      console.error('Error updating structure:', error);
+      throw error; // Re-throw to be handled by the component
+    }
   };
 
   const handleDeleteStructure = async (id: string) => {
@@ -393,7 +449,8 @@ export const useDashboardStructures = () => {
     isLoading,
     handleCreateStructure,
     handleEditStructure,
-    handleDeleteStructure
+    handleDeleteStructure,
+    handleUpdateStructure
   };
 };
 
