@@ -9,6 +9,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
+import StructureEditor from './pages/StructureEditor';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
@@ -102,7 +103,7 @@ function App() {
                 path="/structure/:structureId" 
                 element={
                   <ProtectedRoute>
-                    <Editor />
+                    <StructureEditor />
                   </ProtectedRoute>
                 } 
               />
