@@ -1,9 +1,11 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
 import { BeatMode } from '@/types/scriptTypes';
+import SceneTagButton from './SceneTagButton';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -43,6 +45,28 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
+// Helper function to get background highlight for tagged scenes
+const getSceneHighlight = (element: ScriptElement): string => {
+  if (element.type !== 'scene-heading' || !element.tags || element.tags.length === 0) {
+    return '';
+  }
+  
+  // Check for act tags and apply appropriate color
+  if (element.tags.some(tag => tag.startsWith('Act 1:'))) {
+    return 'bg-[#D3E4FD] bg-opacity-20';
+  } else if (element.tags.some(tag => tag.startsWith('Act 2A:'))) {
+    return 'bg-[#FEF7CD] bg-opacity-20';
+  } else if (element.tags.some(tag => tag.startsWith('Midpoint:'))) {
+    return 'bg-[#FFCCCB] bg-opacity-20';
+  } else if (element.tags.some(tag => tag.startsWith('Act 2B:'))) {
+    return 'bg-[#FDE1D3] bg-opacity-20';
+  } else if (element.tags.some(tag => tag.startsWith('Act 3:'))) {
+    return 'bg-[#F2FCE2] bg-opacity-20';
+  }
+  
+  return '';
+};
+
 const EditorElement: React.FC<EditorElementProps> = ({ 
   element, 
   previousElementType, 
@@ -63,6 +87,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -120,14 +145,23 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
+  // Determine if this element is a scene heading and should have the tag button
+  const isSceneHeading = element.type === 'scene-heading';
+  const sceneHighlight = getSceneHighlight(element);
+
   return (
-    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''}`}>
+    <div 
+      className={`editor-element ${element.type} ${isActive ? 'active' : ''} relative ${sceneHighlight} rounded`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div
         ref={editorRef}
         className={`
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active' : ''}
+          ${isSceneHeading ? 'pr-28' : ''}
         `}
         contentEditable={isActive}
         suppressContentEditableWarning={true}
@@ -143,6 +177,73 @@ const EditorElement: React.FC<EditorElementProps> = ({
       >
         {text}
       </div>
+      
+      {/* Floating Tag Scene button on hover for scene headings */}
+      {isSceneHeading && isHovered && !isActive && beatMode === 'on' && (
+        <div className="absolute right-2 top-0">
+          <SceneTagButton 
+            onTagSelect={(tagType, actType, beatId) => {
+              // Focus this element first
+              onFocus();
+              
+              // Handle tag selection
+              if (tagType === 'act' && actType) {
+                const actTag = actType === ActType.ACT_1 ? 'Act 1: Setup' :
+                              actType === ActType.ACT_2A ? 'Act 2A: Reaction' :
+                              actType === ActType.MIDPOINT ? 'Midpoint: Turning Point' :
+                              actType === ActType.ACT_2B ? 'Act 2B: Approach' :
+                              'Act 3: Resolution';
+                              
+                // Remove existing act tags
+                const filteredTags = (element.tags || []).filter(tag => 
+                  !tag.startsWith('Act 1:') && 
+                  !tag.startsWith('Act 2A:') && 
+                  !tag.startsWith('Midpoint:') && 
+                  !tag.startsWith('Act 2B:') && 
+                  !tag.startsWith('Act 3:')
+                );
+                
+                onTagsChange(element.id, [...filteredTags, actTag]);
+              }
+              else if (tagType === 'beat' && beatId && actType && selectedStructure) {
+                // Find the beat in the selected structure
+                let beatName = '';
+                selectedStructure.acts?.forEach(act => {
+                  if (act.act_type === actType) {
+                    act.beats?.forEach(beat => {
+                      if (beat.id === beatId) {
+                        beatName = beat.name;
+                      }
+                    });
+                  }
+                });
+                
+                if (beatName && onBeatTag) {
+                  // Get the act ID based on act type
+                  const actId = selectedStructure.acts?.find(act => act.act_type === actType)?.id || '';
+                  onBeatTag(element.id, beatId, actId);
+                  
+                  // Add a tag for this beat
+                  const actPrefix = actType === ActType.ACT_1 ? 'Act 1: ' :
+                                  actType === ActType.ACT_2A ? 'Act 2A: ' :
+                                  actType === ActType.MIDPOINT ? 'Midpoint: ' :
+                                  actType === ActType.ACT_2B ? 'Act 2B: ' :
+                                  'Act 3: ';
+                                  
+                  const newTag = `${actPrefix}${beatName}`;
+                  const existingTags = element.tags || [];
+                  if (!existingTags.includes(newTag)) {
+                    onTagsChange(element.id, [...existingTags, newTag]);
+                  }
+                }
+              }
+              // Custom tags are handled in the SceneTags component
+            }}
+            selectedStructure={selectedStructure}
+            className="opacity-70 hover:opacity-100"
+          />
+        </div>
+      )}
       
       {isActive && beatMode === 'on' && (
         <>
