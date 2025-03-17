@@ -28,7 +28,8 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
     if (structure.projectId) {
       if (typeof structure.projectId === 'object' && 
           structure.projectId !== null) {
-        // Now it's safe to check for _type property
+        // Now it's safe to check for _type property because we've verified
+        // it's a non-null object
         if ('_type' in structure.projectId && 
             structure.projectId._type === 'undefined') {
           // Handle the case where projectId is an object with undefined value
