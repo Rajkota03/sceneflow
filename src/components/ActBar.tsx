@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Zap, ZapOff, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, Zap, ZapOff, Check, Film, BookOpen } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { 
   Select,
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from './ui/use-toast';
 import { ActCountsRecord } from '@/types/scriptTypes';
+import { Badge } from './ui/badge';
 
 // Define the BeatMode type to ensure consistent usage
 type BeatMode = 'on' | 'off';
@@ -77,11 +78,14 @@ const ActBar: React.FC<ActBarProps> = ({
           <div className="flex items-center">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
+                <Film size={16} className="mr-2 text-slate-600" />
                 <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
                 {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </Button>
             </CollapsibleTrigger>
-            <span className="ml-2 text-sm font-medium text-slate-600">{projectName}</span>
+            <Badge variant="outline" className="ml-2 bg-white">
+              <span className="text-xs font-medium text-slate-600">{projectName}</span>
+            </Badge>
           </div>
           
           <div className="flex items-center gap-3">
@@ -90,7 +94,8 @@ const ActBar: React.FC<ActBarProps> = ({
                 value={selectedStructureId} 
                 onValueChange={handleStructureChange}
               >
-                <SelectTrigger className="w-[180px] h-8 text-xs">
+                <SelectTrigger className="w-[200px] h-8 text-xs">
+                  <BookOpen size={14} className="mr-2 text-slate-500" />
                   <SelectValue placeholder="Select structure" />
                 </SelectTrigger>
                 <SelectContent>

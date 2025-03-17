@@ -1,4 +1,3 @@
-
 export interface Note {
   id: string;
   title: string;
@@ -81,13 +80,15 @@ export enum ActType {
   ACT_3 = "ACT_3"
 }
 
-// Story Beat Type
+// Story Beat Type - enhanced with more detailed information
 export interface StoryBeat {
   id: string;
   name: string;
   position: number; // percentage position in the story (0-100)
+  pageRange?: string; // e.g., "1-10" to show page ranges dynamically
   actType: ActType;
   description?: string;
+  complete?: boolean; // tracks if this beat has been addressed in the screenplay
 }
 
 // Three Act Structure Type
@@ -103,6 +104,9 @@ export interface Beat {
   title: string;
   description: string;
   timePosition: number; // percentage (0-100)
+  pageRange?: string; // "X-Y" format for page ranges
+  complete?: boolean; // tracks completion status
+  notes?: string; // writer's notes about this beat
 }
 
 export interface Act {
@@ -123,4 +127,5 @@ export interface Structure {
   acts: Act[];
   createdAt: Date;
   updatedAt: Date;
+  progress?: number; // overall progress percentage
 }

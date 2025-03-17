@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, FileText } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import EmptyState from './EmptyState';
 import LoadingState from './LoadingState';
 import { Structure } from '@/lib/types';
+import ThreeActStructurePanel from '@/components/structure/ThreeActStructurePanel';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle, Dialog } from '@/components/ui/dialog';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -26,6 +28,9 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
   handleEditStructure,
   handleDeleteStructure
 }) => {
+  const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  
   // If loading, show loading state
   if (isLoading) {
     return <LoadingState message="Loading your structures..." />;
@@ -45,6 +50,11 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
       />
     );
   }
+  
+  const handlePreview = (structure: Structure) => {
+    setSelectedStructure(structure);
+    setPreviewOpen(true);
+  };
   
   // Show structures grid
   return (
@@ -70,6 +80,9 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               <div className="text-sm text-gray-500">
                 {structure.acts.length} {structure.acts.length === 1 ? 'Act' : 'Acts'}
               </div>
+              <div className="text-sm text-gray-500 mt-1">
+                {structure.acts.reduce((total, act) => total + act.beats.length, 0)} Beats
+              </div>
               <div className="mt-2 text-sm text-gray-500">
                 Created: {structure.createdAt.toLocaleDateString()}
               </div>
@@ -78,23 +91,47 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleEditStructure(structure.id)}
+                onClick={() => handlePreview(structure)}
               >
-                <Edit size={16} className="mr-2" />
-                Edit
+                <Eye size={16} className="mr-2" />
+                Preview
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => handleDeleteStructure(structure.id)}
-              >
-                <Trash2 size={16} className="mr-2" />
-                Delete
-              </Button>
+              <div className="space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleEditStructure(structure.id)}
+                >
+                  <Edit size={16} className="mr-2" />
+                  Edit
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDeleteStructure(structure.id)}
+                >
+                  <Trash2 size={16} className="mr-2" />
+                  Delete
+                </Button>
+              </div>
             </CardFooter>
           </Card>
         ))}
       </div>
+      
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Structure Preview</DialogTitle>
+            <DialogDescription>
+              View the detailed structure and beats
+            </DialogDescription>
+          </DialogHeader>
+          {selectedStructure && (
+            <ThreeActStructurePanel structure={selectedStructure} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
