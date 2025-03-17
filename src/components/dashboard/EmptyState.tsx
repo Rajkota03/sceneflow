@@ -3,8 +3,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 export interface EmptyStateProps {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   actionLabel?: string;
   actionIcon?: React.ReactNode;
   onAction?: () => void;
@@ -63,6 +63,10 @@ const EmptyState = ({
   }
 
   // Original empty state for when there are no items (not search related)
+  const displayTitle = emptyMessage || title || "No items found";
+  const displayDescription = description || "Get started by creating your first item";
+  const displayActionLabel = actionLabel || createMessage || "Create new";
+
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
       <div className="bg-gray-100 rounded-full p-3 mb-4">
@@ -81,13 +85,13 @@ const EmptyState = ({
           <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         </svg>
       </div>
-      <h3 className="text-lg font-medium">{emptyMessage || title}</h3>
-      <p className="text-sm text-gray-500 max-w-sm">{description}</p>
+      <h3 className="text-lg font-medium">{displayTitle}</h3>
+      <p className="text-sm text-gray-500 max-w-sm">{displayDescription}</p>
       
-      {((actionLabel && onAction) || createNewProject) && (
+      {((displayActionLabel && onAction) || createNewProject) && (
         <Button onClick={onAction || createNewProject} className="mt-4">
           {actionIcon && <span className="mr-2">{actionIcon}</span>}
-          {actionLabel || createMessage}
+          {displayActionLabel}
         </Button>
       )}
       
