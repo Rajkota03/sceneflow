@@ -1,3 +1,4 @@
+
 export interface ScriptContent {
   elements: ScriptElement[];
 }
@@ -54,6 +55,7 @@ export interface Structure {
   created_at: string;
   updated_at: string;
   acts?: Act[];
+  structure_type?: string;
 }
 
 export interface Act {
@@ -105,3 +107,31 @@ export function scriptContentToJson(scriptContent: ScriptContent): any {
 }
 
 export type BeatMode = 'on' | 'off';
+
+// Add the missing types that are causing errors
+
+// Record to track counts of scenes by act type
+export interface ActCountsRecord {
+  [ActType.ACT_1]: number;
+  [ActType.ACT_2A]: number;
+  [ActType.MIDPOINT]: number;
+  [ActType.ACT_2B]: number;
+  [ActType.ACT_3]: number;
+}
+
+// Props for the TagManager component
+export interface TagManagerProps {
+  scriptContent: ScriptContent;
+  onFilterByTag?: (tag: string | null) => void;
+  onFilterByAct?: (act: ActType | null) => void;
+  activeFilter?: string | null;
+  activeActFilter?: ActType | null;
+  projectName?: string;
+  structureName?: string;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
+  structures?: Structure[];
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  selectedStructure?: Structure | null;
+}
