@@ -44,14 +44,21 @@ export function convertScriptTypesToLib(scriptScript: ScriptContent): LibScriptC
 
   const elements: LibScriptElement[] = scriptScript.elements.map(element => ({
     id: element.id,
-    type: element.type as LibElementType,
+    type: convertScriptTypeToLibElementType(element.type),
     text: element.text,
     tags: element.tags || [],
     beat: element.beatId || undefined,
-    act: element.actId ? element.actId.toString() : undefined
+    act: element.actId || undefined
   }));
 
   return { elements };
+}
+
+export function convertScriptTypeToLibElementType(
+  scriptType: ElementType
+): LibElementType {
+  // Simple pass-through since the string values are the same
+  return scriptType as unknown as LibElementType;
 }
 
 export function convertStructures(libStructures: LibStructure[]): ScriptTypeStructure[] {
@@ -66,9 +73,9 @@ export function convertStructures(libStructures: LibStructure[]): ScriptTypeStru
         description: structure.description || '',
         structure_type: structure.structure_type || 'three_act',
         projectTitle: structure.projectTitle || '',
-        author_id: '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        author_id: structure.author_id || '',
+        created_at: structure.createdAt || new Date().toISOString(),
+        updated_at: structure.updatedAt || new Date().toISOString(),
         acts: []
       };
     }
@@ -80,27 +87,41 @@ export function convertStructures(libStructures: LibStructure[]): ScriptTypeStru
       structure_type: structure.structure_type || 'three_act',
       projectTitle: structure.projectTitle || '',
       author_id: structure.author_id || '',
-      created_at: structure.created_at || new Date().toISOString(),
-      updated_at: structure.updated_at || new Date().toISOString(),
+      created_at: structure.createdAt || new Date().toISOString(),
+      updated_at: structure.updatedAt || new Date().toISOString(),
       acts: structure.acts.map(act => ({
         id: act.id,
         structure_id: structure.id,
-        act_type: act.act_type || ActType.ACT_1,
+        act_type: convertToActType(act.act_type),
         title: act.title || '',
-        order: act.order || 0,
+        order: 0, // Default order
         colorHex: act.colorHex || '#000000',
         beats: Array.isArray(act.beats) ? act.beats.map(beat => ({
           id: beat.id,
           act_id: act.id,
           title: beat.title || '',
           description: beat.description || '',
-          order: beat.order || 0,
+          order: 0, // Default order
           is_complete: beat.complete || false,
           notes: beat.notes || ''
         })) : []
       }))
     };
   });
+}
+
+function convertToActType(actType: any): ActType {
+  if (typeof actType === 'string') {
+    switch(actType) {
+      case 'act1': return ActType.ACT_1;
+      case 'act2a': return ActType.ACT_2A;
+      case 'midpoint': return ActType.MIDPOINT;
+      case 'act2b': return ActType.ACT_2B;
+      case 'act3': return ActType.ACT_3;
+      default: return ActType.ACT_1;
+    }
+  }
+  return ActType.ACT_1;
 }
 
 export function convertLibSceneHeadingToScriptType(
@@ -112,7 +133,7 @@ export function convertLibSceneHeadingToScriptType(
     text: libSceneHeading.text,
     tags: libSceneHeading.tags || [],
     beatId: libSceneHeading.beat || undefined,
-    actId: libSceneHeading.act ? libSceneHeading.act.toString() : undefined
+    actId: libSceneHeading.act || undefined
   };
 }
 
@@ -153,7 +174,7 @@ export function convertLibScriptElementsToScriptType(
     text: element.text,
     tags: element.tags || [],
     beatId: element.beat || undefined,
-    actId: element.act ? element.act.toString() : undefined
+    actId: element.act || undefined
   }));
 }
 
@@ -167,13 +188,7 @@ export function convertScriptElementsToLibType(
   
   return elements.map(element => ({
     id: element.id,
-    type: element.type === ElementType.SCENE_HEADING ? 'scene-heading' :
-          element.type === ElementType.ACTION ? 'action' :
-          element.type === ElementType.CHARACTER ? 'character' :
-          element.type === ElementType.DIALOGUE ? 'dialogue' :
-          element.type === ElementType.PARENTHETICAL ? 'parenthetical' :
-          element.type === ElementType.TRANSITION ? 'transition' :
-          element.type === ElementType.NOTE ? 'note' : 'action',
+    type: convertScriptTypeToLibElementType(element.type),
     text: element.text,
     tags: element.tags || [],
     beat: element.beatId,

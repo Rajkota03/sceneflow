@@ -4,6 +4,7 @@ import { ScriptElement, ElementType, Structure } from '@/types/scriptTypes';
 import { useFormat } from '@/lib/formatContext';
 import EditorElement from './EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
+import { ScrollArea } from './ui/scroll-area';
 
 interface ScriptContentProps {
   filteredElements: ScriptElement[];
@@ -43,51 +44,58 @@ const ScriptContentComponent: React.FC<ScriptContentProps> = ({
   const { formatState } = useFormat();
 
   return (
-    <div className="flex justify-center w-full h-full overflow-visible">
+    <div className="flex justify-center w-full h-full">
       <div className="w-full max-w-4xl mx-auto">
-        <div 
-          className="script-page" 
-          style={{ 
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out',
-            fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-          }}
-        >
-          <div className="script-page-content" style={{
-            fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-            fontSize: '12pt',
-            position: 'relative'
-          }}>
-            {/* Page number positioned inside the page */}
-            <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-              fontFamily: "Courier Final Draft, Courier Prime, monospace",
-              fontSize: "12pt",
+        <ScrollArea className="h-full w-full" hideScrollbar={true}>
+          <div 
+            className="script-page" 
+            style={{ 
+              transform: `scale(${formatState.zoomLevel})`,
+              transformOrigin: 'top center',
+              transition: 'transform 0.2s ease-out',
+              fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+            }}
+          >
+            <div className="script-page-content" style={{
+              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+              fontSize: '12pt',
+              position: 'relative'
             }}>
-              {currentPage}
+              {/* Page number positioned inside the page */}
+              <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
+                fontFamily: "Courier Final Draft, Courier Prime, monospace",
+                fontSize: "12pt",
+              }}>
+                {currentPage}
+              </div>
+              
+              {filteredElements.map((element, index) => (
+                <EditorElement
+                  key={element.id}
+                  element={{
+                    ...element,
+                    type: element.type as any,
+                    beat: element.beatId,
+                    act: element.actId
+                  }}
+                  previousElementType={getPreviousElementType(index - 1) as any}
+                  onChange={handleElementChange}
+                  onFocus={() => handleFocus(element.id)}
+                  isActive={activeElementId === element.id}
+                  onNavigate={handleNavigate}
+                  onEnterKey={handleEnterKey}
+                  onFormatChange={handleFormatChange}
+                  onTagsChange={handleTagsChange}
+                  characterNames={characterNames}
+                  projectId={projectId}
+                  beatMode={beatMode}
+                  selectedStructure={selectedStructure}
+                  onBeatTag={onBeatTag}
+                />
+              ))}
             </div>
-            
-            {filteredElements.map((element, index) => (
-              <EditorElement
-                key={element.id}
-                element={element}
-                previousElementType={getPreviousElementType(index - 1)}
-                onChange={handleElementChange}
-                onFocus={() => handleFocus(element.id)}
-                isActive={activeElementId === element.id}
-                onNavigate={handleNavigate}
-                onEnterKey={handleEnterKey}
-                onFormatChange={handleFormatChange}
-                onTagsChange={handleTagsChange}
-                characterNames={characterNames}
-                projectId={projectId}
-                beatMode={beatMode}
-                selectedStructure={selectedStructure}
-                onBeatTag={onBeatTag}
-              />
-            ))}
           </div>
-        </div>
+        </ScrollArea>
       </div>
     </div>
   );

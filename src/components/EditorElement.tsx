@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure, ActType } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -128,8 +129,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
       }
       onEnterKey(element.id, e.shiftKey);
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
       onNavigate('up', element.id);
     } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
       onNavigate('down', element.id);
     } else if (suggestionsVisible && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault();
@@ -193,7 +196,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word'
+          wordBreak: 'break-word',
+          direction: 'ltr'  // Ensure text direction is left-to-right
         }}
       >
         {text}
@@ -207,7 +211,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
                 selectedStructure={selectedStructure}
                 elementId={element.id}
                 onBeatTag={handleBeatTagged}
-                selectedBeatId={element.beat || undefined}
+                selectedBeatId={element.beat || element.beatId}
               />
             </div>
           )}

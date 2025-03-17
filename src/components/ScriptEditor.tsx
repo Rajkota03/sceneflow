@@ -114,9 +114,9 @@ const ScriptEditor = ({
   const { handleBeatTag } = useBeatTagging(
     scriptTypeElements,
     (updatedElements) => {
-      // Use direct assignment instead of function to fix type error
       const libElements = convertScriptElementsToLibType(updatedElements);
-      setElements(libElements);
+      // Direct assignment to avoid TypeScript error
+      setElements(libElements as any);
     },
     selectedStructure,
     projectSelectedStructureId || selectedStructureId,
@@ -182,9 +182,9 @@ const ScriptEditor = ({
       <EditorInitializer 
         elements={scriptTypeElements}
         setElements={(newElements) => {
-          // Use direct assignment instead of function to fix type error
           const libElements = convertScriptElementsToLibType(newElements);
-          setElements(libElements);
+          // Direct assignment to avoid TypeScript error
+          setElements(libElements as any);
         }}
         setActiveElementId={setActiveElementId}
       />
@@ -198,7 +198,8 @@ const ScriptEditor = ({
         getPreviousElementType={(index) => {
           const type = getPreviousElementType(index);
           return typeof type === 'string' ? 
-            convertLibElementTypeToScriptType(type as any) : type;
+            convertLibElementTypeToScriptType(type as any) : 
+            type ? convertLibElementTypeToScriptType(type) : undefined;
         }}
         handleElementChange={handleElementChange}
         handleFocus={handleFocus}
