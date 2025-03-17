@@ -12,7 +12,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     // Merge the provided ref with our internal one
     React.useImperativeHandle(ref, () => textareaRef.current!);
 
-    // Auto-resize function
+    // Auto-resize function - simplified to avoid interfering with input
     const autoResize = React.useCallback(() => {
       if (textareaRef.current) {
         // Save the current scroll position
@@ -34,14 +34,21 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         autoResize();
         
         // Add event listeners for content changes
-        textarea.addEventListener('input', autoResize);
+        const handleInput = () => {
+          // Use requestAnimationFrame to ensure DOM has updated
+          requestAnimationFrame(autoResize);
+        };
+        
+        textarea.addEventListener('input', handleInput);
         
         // Create a ResizeObserver to handle container size changes
-        const resizeObserver = new ResizeObserver(autoResize);
+        const resizeObserver = new ResizeObserver(() => {
+          requestAnimationFrame(autoResize);
+        });
         resizeObserver.observe(textarea);
         
         return () => {
-          textarea.removeEventListener('input', autoResize);
+          textarea.removeEventListener('input', handleInput);
           resizeObserver.disconnect();
         };
       }
@@ -49,13 +56,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     // Handle initial content and prop changes
     React.useEffect(() => {
-      autoResize();
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(autoResize);
     }, [props.value, autoResize]);
 
     return (
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 select-text",
+          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 select-text whitespace-pre-wrap",
           className
         )}
         ref={textareaRef}

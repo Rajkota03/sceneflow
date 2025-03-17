@@ -16,6 +16,20 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
   setEditingBeat,
   handleSaveBeat
 }) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditingBeat({
+      ...editingBeat,
+      beat: { ...editingBeat.beat, title: e.target.value }
+    });
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditingBeat({
+      ...editingBeat,
+      beat: { ...editingBeat.beat, description: e.target.value }
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -25,10 +39,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
         <Input 
           id="beat-title"
           value={editingBeat.beat.title} 
-          onChange={(e) => setEditingBeat({
-            ...editingBeat,
-            beat: { ...editingBeat.beat, title: e.target.value }
-          })} 
+          onChange={handleTitleChange}
           className="border-slate-200"
           placeholder="Enter beat title..."
         />
@@ -40,11 +51,8 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
         <Textarea 
           id="beat-description"
           value={editingBeat.beat.description} 
-          onChange={(e) => setEditingBeat({
-            ...editingBeat,
-            beat: { ...editingBeat.beat, description: e.target.value }
-          })} 
-          className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
+          onChange={handleDescriptionChange}
+          className="border-slate-200 min-h-[80px]"
           placeholder="Enter beat description... (Press Enter for new lines)"
         />
       </div>

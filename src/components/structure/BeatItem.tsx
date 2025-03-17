@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Act, Beat } from '@/lib/models/structureModel';
 import { Button } from '@/components/ui/button';
@@ -41,6 +40,20 @@ export const BeatItem: React.FC<BeatItemProps> = ({
     return Math.round((percentage / 100) * 120);
   };
   
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedBeat({
+      ...editedBeat,
+      title: e.target.value
+    });
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEditedBeat({
+      ...editedBeat,
+      description: e.target.value
+    });
+  };
+  
   if (isEditing) {
     return (
       <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors group">
@@ -52,10 +65,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
             <Input 
               id="beat-title"
               value={editedBeat.title} 
-              onChange={(e) => setEditedBeat({
-                ...editedBeat,
-                title: e.target.value
-              })} 
+              onChange={handleTitleChange}
               className="border-slate-200"
               placeholder="Enter beat title..."
             />
@@ -67,13 +77,8 @@ export const BeatItem: React.FC<BeatItemProps> = ({
             <Textarea 
               id="beat-description"
               value={editedBeat.description} 
-              onChange={(e) => {
-                setEditedBeat({
-                  ...editedBeat,
-                  description: e.target.value
-                });
-              }}
-              className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
+              onChange={handleDescriptionChange}
+              className="border-slate-200 min-h-[80px]"
               placeholder="Enter beat description... (Press Enter for new lines)"
             />
           </div>
