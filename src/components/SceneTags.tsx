@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptElement, ActType, Structure } from '@/lib/types';
 import TagInput from './TagInput';
-import { Tags } from 'lucide-react';
-import BeatTagging from './BeatTagging';
+import { Tags, Target } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -40,9 +40,9 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     onTagsChange(element.id, newTags);
   };
 
-  const handleBeatTagging = (elementId: string, beatId: string, actId: string) => {
+  const handleBeatTagging = (beatId: string, actId: string, actType: ActType) => {
     if (onBeatTag) {
-      onBeatTag(elementId, beatId, actId);
+      onBeatTag(element.id, beatId, actId);
       
       // Find the beat title and act name for the tag
       if (selectedStructure) {
@@ -52,7 +52,6 @@ const SceneTags: React.FC<SceneTagsProps> = ({
           if (beat) {
             // Create a tag in format "Act X: Beat Name"
             let tagPrefix = '';
-            const actType = getActTypeFromTitle(act.title);
             switch(actType) {
               case ActType.ACT_1: tagPrefix = 'Act 1: '; break;
               case ActType.ACT_2A: tagPrefix = 'Act 2A: '; break;
@@ -81,6 +80,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     }
   };
   
+  // Get the ActType based on act title
   const getActTypeFromTitle = (title: string): ActType => {
     if (title.includes('Act 1')) return ActType.ACT_1;
     if (title.includes('Act 2A')) return ActType.ACT_2A;
@@ -97,25 +97,65 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   return (
     <div className="my-1 ml-1">
       <div className="flex items-center text-gray-500 mb-1">
-        <Tags size={14} className="mr-1" />
-        <span className="text-xs font-medium">Scene Tags</span>
+        <Target size={14} className="mr-1" />
+        <span className="text-xs font-medium">Story Beat</span>
       </div>
       
-      {/* Simple beat tagging (moved to the top) */}
+      {/* Display beats directly without dropdown */}
       {selectedStructure && onBeatTag && (
-        <BeatTagging
-          selectedStructure={selectedStructure}
-          elementId={element.id}
-          onBeatTag={handleBeatTagging}
-          selectedBeatId={element.beat}
-        />
+        <div className="border rounded-md bg-white shadow-sm p-2 mb-3">
+          <ScrollArea className="max-h-48" hideScrollbar={false}>
+            {selectedStructure.acts.map((act) => (
+              <div key={act.id} className="mb-2">
+                <div 
+                  className="text-xs font-semibold pb-1 mb-1 border-b"
+                  style={{ color: act.colorHex }}
+                >
+                  {act.title}
+                </div>
+                <div className="space-y-1">
+                  {act.beats.map((beat) => {
+                    const actType = getActTypeFromTitle(act.title);
+                    const isSelected = element.beat === beat.id;
+                    return (
+                      <div
+                        key={beat.id}
+                        className={`text-xs py-1 px-2 rounded cursor-pointer flex items-center ${
+                          isSelected 
+                            ? 'bg-blue-100 text-blue-700' 
+                            : 'hover:bg-gray-100'
+                        }`}
+                        onClick={() => handleBeatTagging(beat.id, act.id, actType)}
+                      >
+                        <span>{beat.title}</span>
+                        {isSelected && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+                               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                               className="ml-auto">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </ScrollArea>
+        </div>
       )}
       
-      <TagInput
-        tags={tags}
-        onAddTag={handleAddTag}
-        onRemoveTag={handleRemoveTag}
-      />
+      <div className="mt-3">
+        <div className="flex items-center text-gray-500 mb-1">
+          <Tags size={14} className="mr-1" />
+          <span className="text-xs font-medium">Scene Tags</span>
+        </div>
+        <TagInput
+          tags={tags}
+          onAddTag={handleAddTag}
+          onRemoveTag={handleRemoveTag}
+        />
+      </div>
     </div>
   );
 };

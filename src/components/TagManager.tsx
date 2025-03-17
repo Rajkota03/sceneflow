@@ -5,15 +5,6 @@ import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
-import { FileTextIcon } from 'lucide-react';
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 

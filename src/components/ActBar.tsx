@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
@@ -86,9 +87,22 @@ const ActBar: React.FC<ActBarProps> = ({
                 {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
               </Button>
             </CollapsibleTrigger>
-            <Badge variant="outline" className="ml-2 bg-white">
-              
-            </Badge>
+            
+            {/* Structure selector placed directly in the header */}
+            {availableStructures.length > 0 && onStructureChange && (
+              <Select value={selectedStructureId || ''} onValueChange={handleStructureChange}>
+                <SelectTrigger className="h-7 w-[180px] text-xs ml-2 bg-white">
+                  <SelectValue placeholder="Select a structure" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableStructures.map(structure => (
+                    <SelectItem key={structure.id} value={structure.id} className="text-xs">
+                      {structure.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           
           <div className="flex items-center gap-3">
@@ -109,27 +123,6 @@ const ActBar: React.FC<ActBarProps> = ({
         </div>
         
         <CollapsibleContent>
-          {/* Structure selector - moved from TagManager to ActBar */}
-          {availableStructures.length > 0 && onStructureChange && <div className="mb-3 mt-2">
-              <div className="flex items-center space-x-2 px-[177px] py-0 mx-[3px] my-[5px]">
-                <div className="text-xs text-gray-500 font-medium flex items-center">
-                  <BookOpen size={14} className="mr-1" />
-                  <span className="py-0">Story Structure:</span>
-                </div>
-                
-                <Select value={selectedStructureId || ''} onValueChange={handleStructureChange}>
-                  <SelectTrigger className="h-8 w-[180px] text-xs">
-                    <SelectValue placeholder="Select a structure" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableStructures.map(structure => <SelectItem key={structure.id} value={structure.id} className="text-xs">
-                        {structure.name}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>}
-
           {beatMode === 'on' && <div className="grid grid-cols-5 gap-1">
               {acts.map(act => <button key={act.id} onClick={() => onSelectAct(activeAct === act.id ? null : act.id)} className={cn(act.color, 'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm', activeAct === act.id ? 'border-2' : 'border opacity-95', activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100')}>
                   {act.label}
