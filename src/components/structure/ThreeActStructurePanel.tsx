@@ -1,9 +1,7 @@
 
 import React from 'react';
 import { Structure } from '@/lib/types';
-import { useStructureState } from './useStructureState';
-import StructureHeader from './StructureHeader';
-import ActSection from './ActSection';
+import StructurePanel from './StructurePanel';
 
 interface ThreeActStructurePanelProps {
   structure: Structure;
@@ -13,63 +11,9 @@ interface ThreeActStructurePanelProps {
   linkedToProject?: boolean;
 }
 
-const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
-  structure,
-  onBeatDragDrop,
-  onStructureUpdate,
-  linkedToProject = false
-}) => {
-  const {
-    expandedActs,
-    isEditing,
-    localStructure,
-    isSaving,
-    hasChanges,
-    progressPercentage,
-    toggleAct,
-    handleBeatsReorder,
-    handleBeatUpdate,
-    handleBeatToggleComplete,
-    handleSaveStructure,
-    resetToDefaultStructure,
-    setIsEditing,
-    cancelEditing
-  } = useStructureState({ structure, onStructureUpdate });
-
-  return (
-    <div className="w-full">
-      <StructureHeader
-        name="Three Act Structure"  // Changed from "Save the Cat Beats" to "Three Act Structure"
-        description={localStructure.description}
-        projectTitle={localStructure.projectTitle}
-        progressPercentage={progressPercentage}
-        isEditing={isEditing}
-        isSaving={isSaving}
-        hasChanges={hasChanges}
-        linkedToProject={linkedToProject}
-        onEdit={() => setIsEditing(true)}
-        onSave={handleSaveStructure}
-        onCancel={cancelEditing}
-        onReset={isEditing ? resetToDefaultStructure : undefined}
-        canEdit={!!onStructureUpdate}
-      />
-      
-      <div className="space-y-3">
-        {localStructure.acts.map((act) => (
-          <ActSection
-            key={act.id}
-            act={act} // Remove the title override to use the original act titles
-            isExpanded={expandedActs[act.id]}
-            toggleAct={toggleAct}
-            onBeatToggleComplete={handleBeatToggleComplete}
-            onBeatsReorder={handleBeatsReorder}
-            onBeatUpdate={handleBeatUpdate}
-            isEditing={isEditing}
-          />
-        ))}
-      </div>
-    </div>
-  );
+const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = (props) => {
+  // This is now a wrapper around the generic StructurePanel
+  return <StructurePanel {...props} />;
 };
 
 export default ThreeActStructurePanel;

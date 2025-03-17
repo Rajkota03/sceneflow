@@ -1,112 +1,54 @@
-export interface Note {
+
+import { ScriptContent, ActType } from "@/lib/types";
+
+export type ActCountsRecord = {
+  [key in ActType]: number;
+};
+
+export type BeatMode = 'on' | 'off';
+
+export interface TagManagerProps {
+  scriptContent: ScriptContent;
+  onFilterByTag?: (tag: string | null) => void;
+  onFilterByAct?: (act: ActType | null) => void;
+  activeFilter?: string | null;
+  activeActFilter?: ActType | null;
+  projectName?: string;
+  structureName?: string;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
+}
+
+export interface ScriptElementProps {
+  element: {
+    id: string;
+    type: string;
+    text: string;
+    tags?: string[];
+  };
+  previousElementType?: string;
+  onChange: (id: string, text: string, type: string) => void;
+  onFocus: () => void;
+  isActive: boolean;
+  onNavigate: (direction: 'up' | 'down', id: string) => void;
+  onEnterKey: (id: string, shiftKey: boolean) => void;
+  onFormatChange: (id: string, newType: string) => void;
+  onTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  projectId?: string;
+  beatMode?: BeatMode;
+}
+
+// Updated Structure-related types
+export interface Structure {
   id: string;
-  title: string;
-  content: string;
+  name: string;
+  description?: string;
+  acts: Act[];
   createdAt: Date;
   updatedAt: Date;
-}
-
-export interface Project {
-  id: string;
-  title: string;
-  content: any;
-  author_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Script element types
-export type ElementType = 'scene-heading' | 'action' | 'character' | 'dialogue' | 'parenthetical' | 'transition' | 'note';
-
-export interface ScriptElement {
-  id: string;
-  type: ElementType;
-  text: string;
-  tags?: string[];
-}
-
-export interface ScriptContent {
-  elements: ScriptElement[];
-}
-
-// Helper functions for serialization
-export const jsonToScriptContent = (json: any): ScriptContent => {
-  if (!json) return { elements: [] };
-  
-  // Handle if it's already a script content object
-  if (json.elements && Array.isArray(json.elements)) {
-    return json;
-  }
-  
-  // Handle if it's a string
-  if (typeof json === 'string') {
-    try {
-      const parsed = JSON.parse(json);
-      return parsed;
-    } catch (e) {
-      console.error('Failed to parse script content', e);
-      return { elements: [] };
-    }
-  }
-  
-  // Default return
-  return { elements: [] };
-};
-
-export const scriptContentToJson = (content: ScriptContent): string => {
-  return JSON.stringify(content);
-};
-
-export const serializeNotes = (notes: Note[]): string => {
-  return JSON.stringify(notes);
-};
-
-export const deserializeNotes = (notesJson: string | null): Note[] => {
-  if (!notesJson) return [];
-  try {
-    return JSON.parse(notesJson);
-  } catch (e) {
-    console.error('Failed to parse notes', e);
-    return [];
-  }
-};
-
-// Act Type as a string enum to fix the type errors
-export enum ActType {
-  ACT_1 = "ACT_1",
-  ACT_2A = "ACT_2A",
-  MIDPOINT = "MIDPOINT",
-  ACT_2B = "ACT_2B",
-  ACT_3 = "ACT_3"
-}
-
-// Story Beat Type - enhanced with more detailed information
-export interface StoryBeat {
-  id: string;
-  name: string;
-  position: number; // percentage position in the story (0-100)
-  pageRange?: string; // e.g., "1-10" to show page ranges dynamically
-  actType: ActType;
-  description?: string;
-  complete?: boolean; // tracks if this beat has been addressed in the screenplay
-}
-
-// Three Act Structure Type
-export interface ThreeActStructure {
-  id: string;
-  name: string;
-  beats: StoryBeat[];
-}
-
-// Structure Types (for the new feature)
-export interface Beat {
-  id: string;
-  title: string;
-  description: string;
-  timePosition: number; // percentage (0-100)
-  pageRange?: string; // "X-Y" format for page ranges
-  complete?: boolean; // tracks completion status
-  notes?: string; // writer's notes about this beat
+  structure_type?: string;
+  projectTitle?: string;
 }
 
 export interface Act {
@@ -118,14 +60,12 @@ export interface Act {
   beats: Beat[];
 }
 
-export interface Structure {
+export interface Beat {
   id: string;
-  name: string;
-  description?: string;
-  projectId?: string;
-  projectTitle?: string;
-  acts: Act[];
-  createdAt: Date;
-  updatedAt: Date;
-  progress?: number; // overall progress percentage
+  title: string;
+  description: string;
+  timePosition: number; // percentage (0-100)
+  pageRange?: string;
+  complete?: boolean;
+  notes?: string;
 }

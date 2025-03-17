@@ -1,79 +1,182 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Structure } from '@/lib/types';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuItem 
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { FileText, Edit, Trash2, Calendar } from 'lucide-react';
+import { 
+  MoreHorizontal, 
+  Pencil, 
+  Trash2,
+  FileText,
+  Layers,
+  Map,
+  CircleDot,
+  Infinity
+} from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from 'date-fns';
-import { Progress } from '@/components/ui/progress';
+import StructureProgressBar from './StructureProgressBar';
 
 interface StructureCardProps {
   structure: Structure;
   onEdit: (structure: Structure) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void>;
 }
 
-const StructureCard = ({ structure, onEdit, onDelete }: StructureCardProps) => {
-  const timeAgo = formatDistanceToNow(new Date(structure.updatedAt), { addSuffix: true });
+const StructureCard: React.FC<StructureCardProps> = ({ structure, onEdit, onDelete }) => {
+  const [isDeleting, setIsDeleting] = useState(false);
   
-  // Calculate progress percentage
-  const totalBeats = structure.acts.reduce((total, act) => total + act.beats.length, 0);
-  const completedBeats = structure.acts.reduce((total, act) => 
-    total + act.beats.filter(beat => beat.complete).length, 0);
-  const progressPercentage = totalBeats > 0 ? (completedBeats / totalBeats) * 100 : 0;
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(structure.id);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const calculateProgress = () => {
+    const totalBeats = structure.acts.reduce((sum, act) => sum + act.beats.length, 0);
+    const completeBeats = structure.acts.reduce((sum, act) => 
+      sum + act.beats.filter(beat => beat.complete).length, 0);
+    return totalBeats > 0 ? (completeBeats / totalBeats) * 100 : 0;
+  };
+
+  const progressPercentage = calculateProgress();
   
+  const getStructureIcon = () => {
+    switch (structure.structure_type) {
+      case 'save_the_cat':
+        return <FileText className="h-5 w-5 text-purple-500" />;
+      case 'hero_journey':
+        return <Map className="h-5 w-5 text-emerald-500" />;
+      case 'story_circle':
+        return <CircleDot className="h-5 w-5 text-pink-500" />;
+      case 'three_act':
+      default:
+        return <Layers className="h-5 w-5 text-blue-500" />;
+    }
+  };
+
+  const getStructureTypeLabel = () => {
+    switch (structure.structure_type) {
+      case 'save_the_cat':
+        return "Save the Cat";
+      case 'hero_journey':
+        return "Hero's Journey";
+      case 'story_circle':
+        return "Story Circle";
+      case 'three_act':
+      default:
+        return "Three Act";
+    }
+  };
+
   return (
-    <Card className="rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg group border border-slate-200 bg-white">
-      <CardHeader className="pb-3">
+    <div className="bg-white shadow-sm border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+      <div className="p-5">
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="bg-primary/10 rounded-md p-2 text-primary">
-              <FileText size={20} />
+          <div className="flex items-start space-x-3">
+            {getStructureIcon()}
+            <div>
+              <h3 className="font-medium text-gray-900">{structure.name}</h3>
+              <p className="text-xs text-gray-500">{getStructureTypeLabel()}</p>
             </div>
-            <CardTitle className="font-serif font-semibold text-xl text-slate-900">{structure.name}</CardTitle>
           </div>
-          <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => onEdit(structure)}
-            >
-              <Edit size={16} />
-              <span className="sr-only">Edit</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:text-destructive hover:bg-destructive/10"
-              onClick={() => onDelete(structure.id)}
-            >
-              <Trash2 size={16} />
-              <span className="sr-only">Delete</span>
-            </Button>
-          </div>
-        </div>
-        <CardDescription className="mt-2 flex items-center text-sm text-slate-500">
-          <Calendar size={14} className="mr-1" />
-          <span>Updated {timeAgo}</span>
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="flex items-center gap-2 mb-3">
-          <Progress value={progressPercentage} className="h-2 flex-grow" />
-          <span className="text-xs font-medium text-slate-600">
-            {Math.round(progressPercentage)}%
-          </span>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(structure)}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem className="text-red-600 focus:text-red-600" onSelect={(e) => e.preventDefault()}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete "{structure.name}" and all of its beats. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      className="bg-red-600 text-white hover:bg-red-700"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
-        <div className="text-sm bg-slate-50 rounded-md p-3">
-          <p className="line-clamp-2 text-slate-600">
-            {structure.description || `A ${structure.acts.length}-act structure for your screenplay.`}
+        {structure.description && (
+          <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+            {structure.description}
           </p>
+        )}
+        
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+            <span>Progress</span>
+            <span>{Math.round(progressPercentage)}%</span>
+          </div>
+          <StructureProgressBar 
+            progress={progressPercentage} 
+            acts={structure.acts}
+          />
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+          <span>
+            {structure.acts.reduce((sum, act) => sum + act.beats.length, 0)} beats
+          </span>
+          <span>
+            Updated {formatDistanceToNow(structure.updatedAt, { addSuffix: true })}
+          </span>
+        </div>
+      </div>
+      
+      <div 
+        className="p-3 bg-gray-50 border-t border-gray-100 rounded-b-lg cursor-pointer hover:bg-gray-100 transition-colors"
+        onClick={() => onEdit(structure)}
+      >
+        <div className="flex items-center justify-center text-indigo-600 text-sm">
+          <Pencil className="h-3.5 w-3.5 mr-2" />
+          Open Structure
+        </div>
+      </div>
+    </div>
   );
 };
 

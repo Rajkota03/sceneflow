@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import ThreeActStructurePanel from '@/components/structure/ThreeActStructurePanel';
+import StructurePanel from '@/components/structure/StructurePanel';
 import { Structure, Act } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +14,7 @@ const StructureEditor = () => {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [structureName, setStructureName] = useState('Three Act Structure');
+  const [structureName, setStructureName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -60,11 +60,12 @@ const StructureEditor = () => {
         
         const formattedStructure: Structure = {
           id: data.id,
-          name: data.name || 'Three Act Structure',
+          name: data.name,
           description: data.description || undefined,
           acts: actsData,
           createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at)
+          updatedAt: new Date(data.updated_at),
+          structure_type: data.structure_type || 'three_act'
         };
         
         setStructure(formattedStructure);
@@ -121,7 +122,7 @@ const StructureEditor = () => {
 
   const handleUpdateStructure = async (updatedStructure: Structure) => {
     try {
-      updatedStructure.name = 'Three Act Structure';
+      updatedStructure.structure_type = structure?.structure_type || 'three_act';
       
       const beatsData = JSON.stringify({ acts: updatedStructure.acts });
       
@@ -215,7 +216,7 @@ const StructureEditor = () => {
           <LoadingState />
         ) : structure ? (
           <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
-            <ThreeActStructurePanel 
+            <StructurePanel 
               structure={structure} 
               onStructureUpdate={handleUpdateStructure}
             />
