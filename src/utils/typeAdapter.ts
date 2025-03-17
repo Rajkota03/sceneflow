@@ -1,143 +1,182 @@
 
-import * as LibTypes from '@/lib/types';
-import * as ScriptTypes from '@/types/scriptTypes';
+import { 
+  ScriptContent as LibScriptContent,
+  ScriptElement as LibScriptElement,
+  Structure as LibStructure,
+  ElementType as LibElementType,
+  ActType as LibActType,
+  Act as LibAct,
+  Beat as LibBeat,
+  TitlePageData as LibTitlePageData
+} from '@/lib/types';
 
-// Convert from lib/types to scriptTypes
-export function convertLibToScriptTypes(content: LibTypes.ScriptContent): ScriptTypes.ScriptContent {
+import {
+  ScriptContent as ScriptTypeScriptContent,
+  ScriptElement as ScriptTypeScriptElement,
+  Structure as ScriptTypeStructure,
+  ElementType as ScriptTypeElementType,
+  ActType as ScriptTypeActType,
+  Act as ScriptTypeAct,
+  Beat as ScriptTypeBeat,
+  TitlePageData as ScriptTypeTitlePageData
+} from '@/types/scriptTypes';
+
+// Convert lib types to script types
+export function convertLibToScriptTypes(content: LibScriptContent): ScriptTypeScriptContent {
+  if (!content || !content.elements) {
+    return { elements: [] };
+  }
+  
   return {
-    elements: content.elements.map(element => ({
-      id: element.id,
-      type: convertElementType(element.type),
-      text: element.text,
+    elements: content.elements.map((element) => ({
+      ...element,
+      type: convertLibElementTypeToScriptType(element.type),
       tags: element.tags || [],
-      beatId: element.beat,
-      actId: element.act ? String(element.act) : undefined
+      beatId: element.beatId || undefined
     }))
   };
 }
 
-// Convert from scriptTypes to lib/types
-export function convertScriptToLibTypes(content: ScriptTypes.ScriptContent): LibTypes.ScriptContent {
-  return {
-    elements: content.elements.map(element => ({
-      id: element.id,
-      type: element.type as LibTypes.ElementType,
-      text: element.text,
-      tags: element.tags,
-      beat: element.beatId,
-      act: element.actId ? element.actId as unknown as LibTypes.ActType : undefined
-    }))
-  };
-}
-
-// Convert element types between the two systems
-function convertElementType(type: string): ScriptTypes.ElementType {
+export function convertLibElementTypeToScriptType(type: LibElementType): ScriptTypeElementType {
+  // Map the string literal types to enum values
   switch (type) {
     case 'scene-heading':
-      return ScriptTypes.ElementType.SCENE_HEADING;
+      return ScriptTypeElementType.SCENE_HEADING;
     case 'action':
-      return ScriptTypes.ElementType.ACTION;
+      return ScriptTypeElementType.ACTION;
     case 'character':
-      return ScriptTypes.ElementType.CHARACTER;
+      return ScriptTypeElementType.CHARACTER;
     case 'dialogue':
-      return ScriptTypes.ElementType.DIALOGUE;
+      return ScriptTypeElementType.DIALOGUE;
     case 'parenthetical':
-      return ScriptTypes.ElementType.PARENTHETICAL;
+      return ScriptTypeElementType.PARENTHETICAL;
     case 'transition':
-      return ScriptTypes.ElementType.TRANSITION;
+      return ScriptTypeElementType.TRANSITION;
     case 'note':
-      return ScriptTypes.ElementType.NOTE;
+      return ScriptTypeElementType.NOTE;
     default:
-      return ScriptTypes.ElementType.ACTION;
+      return ScriptTypeElementType.ACTION;
   }
 }
 
-// Convert ActType between the two systems
-export function convertActType(act: LibTypes.ActType): ScriptTypes.ActType {
-  switch (act) {
-    case LibTypes.ActType.ACT_1:
-      return ScriptTypes.ActType.ACT_1;
-    case LibTypes.ActType.ACT_2A:
-      return ScriptTypes.ActType.ACT_2A;
-    case LibTypes.ActType.MIDPOINT:
-      return ScriptTypes.ActType.MIDPOINT;
-    case LibTypes.ActType.ACT_2B:
-      return ScriptTypes.ActType.ACT_2B;
-    case LibTypes.ActType.ACT_3:
-      return ScriptTypes.ActType.ACT_3;
+// Convert script types to lib types
+export function convertScriptTypesToLib(content: ScriptTypeScriptContent): LibScriptContent {
+  return {
+    elements: content.elements.map((element) => ({
+      ...element,
+      type: convertScriptTypeToLibElementType(element.type),
+      tags: element.tags || [],
+      beatId: element.beatId || undefined
+    }))
+  };
+}
+
+export function convertScriptTypeToLibElementType(type: ScriptTypeElementType): LibElementType {
+  // Map enum values to string literal types
+  switch (type) {
+    case ScriptTypeElementType.SCENE_HEADING:
+      return 'scene-heading';
+    case ScriptTypeElementType.ACTION:
+      return 'action';
+    case ScriptTypeElementType.CHARACTER:
+      return 'character';
+    case ScriptTypeElementType.DIALOGUE:
+      return 'dialogue';
+    case ScriptTypeElementType.PARENTHETICAL:
+      return 'parenthetical';
+    case ScriptTypeElementType.TRANSITION:
+      return 'transition';
+    case ScriptTypeElementType.NOTE:
+      return 'note';
     default:
-      return ScriptTypes.ActType.ACT_1;
+      return 'action';
   }
 }
 
-// Convert Structure between the two systems
-export function convertStructure(structure: LibTypes.Structure): ScriptTypes.Structure {
-  if (!structure) {
-    console.warn('Attempting to convert undefined structure');
-    return {
-      id: '',
-      name: '',
-      description: '',
-      author_id: '',
-      created_at: '',
-      updated_at: '',
-      acts: []
-    };
-  }
-
-  try {
-    return {
-      id: structure.id,
-      name: structure.name,
-      description: structure.description || '',
-      author_id: structure.projectTitle || '',
-      created_at: structure.createdAt,
-      updated_at: structure.updatedAt,
-      createdAt: structure.createdAt,
-      updatedAt: structure.updatedAt,
-      structure_type: structure.structure_type,
-      acts: Array.isArray(structure.acts) ? structure.acts.map(act => ({
-        id: act.id,
-        structure_id: structure.id,
-        act_type: convertActType(act.act_type),
-        title: act.title,
-        order: 0, // Default value for required property
-        colorHex: act.colorHex || '#000000', // Default value for required property
-        startPosition: act.startPosition,
-        endPosition: act.endPosition,
-        beats: Array.isArray(act.beats) ? act.beats.map(beat => ({
-          id: beat.id,
-          act_id: act.id,
-          title: beat.title,
-          description: beat.description,
-          order: 0, // Default value for required property
-          is_complete: beat.complete,
-          timePosition: beat.timePosition,
-          pageRange: beat.pageRange,
-          complete: beat.complete,
-          notes: beat.notes
-        })) : []
-      })) : []
-    };
-  } catch (error) {
-    console.error('Error converting structure:', error);
-    return {
-      id: structure.id || '',
-      name: structure.name || '',
-      description: structure.description || '',
-      author_id: '',
-      created_at: '',
-      updated_at: '',
-      acts: []
-    };
+// Convert LibActType to ScriptTypeActType
+export function convertLibActTypeToScriptType(actType: LibActType): ScriptTypeActType {
+  switch (actType) {
+    case 'act1':
+      return ScriptTypeActType.ACT_1;
+    case 'act2a':
+      return ScriptTypeActType.ACT_2A;
+    case 'midpoint':
+      return ScriptTypeActType.MIDPOINT;
+    case 'act2b':
+      return ScriptTypeActType.ACT_2B;
+    case 'act3':
+      return ScriptTypeActType.ACT_3;
+    default:
+      return ScriptTypeActType.ACT_1;
   }
 }
 
-// Convert Structure[] between the two systems
-export function convertStructures(structures: LibTypes.Structure[]): ScriptTypes.Structure[] {
-  if (!structures || !Array.isArray(structures)) {
-    console.warn('Invalid structures array passed to convertStructures');
-    return [];
+// Convert ScriptTypeActType to LibActType
+export function convertScriptTypeToLibActType(actType: ScriptTypeActType): LibActType {
+  switch (actType) {
+    case ScriptTypeActType.ACT_1:
+      return 'act1';
+    case ScriptTypeActType.ACT_2A:
+      return 'act2a';
+    case ScriptTypeActType.MIDPOINT:
+      return 'midpoint';
+    case ScriptTypeActType.ACT_2B:
+      return 'act2b';
+    case ScriptTypeActType.ACT_3:
+      return 'act3';
+    default:
+      return 'act1';
   }
-  return structures.map(convertStructure);
+}
+
+// Convert lib Structure to script Structure
+export function convertStructures(structures: LibStructure[]): ScriptTypeStructure[] {
+  return structures.map(structure => ({
+    id: structure.id,
+    name: structure.name,
+    description: structure.description || '',
+    structure_type: structure.structure_type || 'three_act',
+    projectId: structure.projectId || '',
+    projectTitle: structure.projectTitle || '',
+    author_id: '',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    acts: structure.acts.map(act => ({
+      id: act.id,
+      title: act.title,
+      description: act.description || '',
+      act_type: convertLibActTypeToScriptType(act.act_type),
+      colorHex: act.colorHex,
+      startPosition: 0,
+      endPosition: 100,
+      beats: act.beats.map(beat => ({
+        id: beat.id,
+        title: beat.title,
+        description: beat.description || '',
+        timePosition: beat.timePosition || 0,
+        pageRange: beat.pageRange || '',
+        notes: beat.notes || '',
+        complete: beat.complete || false
+      }))
+    }))
+  }));
+}
+
+// Convert title page data
+export function convertTitlePageData(titlePage: LibTitlePageData): ScriptTypeTitlePageData {
+  return {
+    title: titlePage.title || '',
+    author: titlePage.author || '',
+    contact: titlePage.contact || '',
+    notes: titlePage.notes || ''
+  };
+}
+
+export function convertScriptTypeTitlePageToLib(titlePage: ScriptTypeTitlePageData): LibTitlePageData {
+  return {
+    title: titlePage.title || '',
+    author: titlePage.author || '',
+    contact: titlePage.contact || '',
+    notes: titlePage.notes || ''
+  };
 }

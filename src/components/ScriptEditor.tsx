@@ -89,7 +89,16 @@ const ScriptEditor = ({
   } = useTagFiltering();
 
   // Get filtered elements based on tag/act filters
-  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
+  const filteredElements = useFilteredElements(
+    elements.map(el => ({ 
+      ...el, 
+      type: typeof el.type === 'string' ? 
+        el.type as unknown as ElementType : 
+        el.type 
+    })), 
+    activeTagFilter, 
+    activeActFilter
+  );
 
   // Script editing operations
   const {
@@ -139,13 +148,13 @@ const ScriptEditor = ({
         <TagManager 
           scriptContent={{ elements }} 
           onFilterByTag={handleFilterByTag}
-          onFilterByAct={handleFilterByAct}
+          onFilterByAct={(act) => handleFilterByAct(act)}
           activeFilter={activeTagFilter}
           activeActFilter={activeActFilter}
           projectName={projectName}
           structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
           beatMode={beatMode}
-          onToggleBeatMode={handleToggleBeatMode}
+          onToggleBeatMode={() => handleToggleBeatMode(beatMode === 'on' ? 'off' : 'on')}
           structures={structures}
           selectedStructureId={selectedStructureId || projectSelectedStructureId || undefined}
           onStructureChange={handleStructureChange}

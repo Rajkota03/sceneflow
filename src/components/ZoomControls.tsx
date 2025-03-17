@@ -1,46 +1,75 @@
 
 import React from 'react';
-import { ZoomIn, ZoomOut } from 'lucide-react';
 import { Slider } from '@/components/ui/slider';
-import { useFormat } from '@/lib/formatContext';
+import { Button } from '@/components/ui/button';
+import { Minus, Plus, Maximize2 } from 'lucide-react';
 
 interface ZoomControlsProps {
   zoomPercentage: number;
   onZoomChange: (value: number[]) => void;
 }
 
-const ZoomControls: React.FC<ZoomControlsProps> = ({ 
-  zoomPercentage, 
-  onZoomChange 
+const ZoomControls: React.FC<ZoomControlsProps> = ({
+  zoomPercentage,
+  onZoomChange
 }) => {
-  const { zoomIn, zoomOut } = useFormat();
+  const handleZoomOut = () => {
+    onZoomChange([Math.max(zoomPercentage - 10, 50)]);
+  };
+
+  const handleZoomIn = () => {
+    onZoomChange([Math.min(zoomPercentage + 10, 150)]);
+  };
+
+  const handleReset = () => {
+    onZoomChange([100]);
+  };
 
   return (
-    <div className="zoom-control flex items-center justify-center space-x-4 py-2 px-4 bg-gray-100 border-t border-gray-200 absolute bottom-0 left-0 right-0">
-      <ZoomOut 
-        size={18} 
-        className="text-gray-600 cursor-pointer" 
-        onClick={zoomOut}
-      />
-      <div className="w-64">
+    <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-md shadow-md p-2 flex items-center space-x-2 z-10">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        onClick={handleZoomOut}
+        disabled={zoomPercentage <= 50}
+      >
+        <Minus size={16} />
+      </Button>
+      
+      <div className="w-40">
         <Slider
-          defaultValue={[zoomPercentage]}
+          value={[zoomPercentage]}
           min={50}
           max={150}
           step={5}
-          value={[zoomPercentage]}
           onValueChange={onZoomChange}
-          className="w-full"
         />
       </div>
-      <ZoomIn 
-        size={18} 
-        className="text-gray-600 cursor-pointer" 
-        onClick={zoomIn}
-      />
-      <span className="text-xs text-gray-600 min-w-[40px] text-center">
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        onClick={handleZoomIn}
+        disabled={zoomPercentage >= 150}
+      >
+        <Plus size={16} />
+      </Button>
+      
+      <div className="text-sm font-medium w-14 text-center">
         {zoomPercentage}%
-      </span>
+      </div>
+      
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0"
+        onClick={handleReset}
+        title="Reset to 100%"
+      >
+        <Maximize2 size={16} />
+      </Button>
     </div>
   );
 };

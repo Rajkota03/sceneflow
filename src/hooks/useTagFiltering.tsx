@@ -18,8 +18,12 @@ export function useTagFiltering() {
     setActiveActFilter(act);
   };
 
-  const handleToggleBeatMode = (mode: BeatMode) => {
-    setBeatMode(mode);
+  const handleToggleBeatMode = (mode?: BeatMode) => {
+    if (mode) {
+      setBeatMode(mode);
+    } else {
+      setBeatMode(prev => prev === 'on' ? 'off' : 'on');
+    }
   };
 
   return {
