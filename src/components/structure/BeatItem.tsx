@@ -12,7 +12,8 @@ interface BeatItemProps {
   isEditing: boolean;
   onEdit: () => void;
   onDelete: () => void;
-  onSave?: (updatedBeat: Beat) => void;
+  onSave: (updatedBeat: Beat) => void;
+  onCancel: () => void;
 }
 
 export const BeatItem: React.FC<BeatItemProps> = ({
@@ -21,15 +22,14 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   isEditing,
   onEdit,
   onDelete,
-  onSave
+  onSave,
+  onCancel
 }) => {
   const [editedBeat, setEditedBeat] = useState<Beat>({ ...beat });
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   
   const handleSave = () => {
-    if (onSave) {
-      onSave(editedBeat);
-    }
+    onSave(editedBeat);
   };
   
   const toggleNotes = () => {
@@ -77,7 +77,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
           <div className="flex justify-end space-x-2">
             <Button 
               variant="outline" 
-              onClick={onEdit}
+              onClick={onCancel}
               className="border-slate-200"
             >
               Cancel

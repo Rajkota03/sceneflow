@@ -47,6 +47,7 @@ export const saveStructureWithUpdatedTimestamps = async (
     }
     
     // Safely handle projectId - fix for TypeScript error
+    let projectId = null;
     if (updatedStructure.projectId) {
       // Check if projectId is an object and not null before accessing properties
       if (typeof updatedStructure.projectId === 'object' && 
@@ -55,9 +56,16 @@ export const saveStructureWithUpdatedTimestamps = async (
         if ('_type' in updatedStructure.projectId && 
             updatedStructure.projectId._type === 'undefined') {
           updatedStructure.projectId = undefined;
+        } else {
+          projectId = updatedStructure.projectId;
         }
+      } else {
+        projectId = updatedStructure.projectId;
       }
     }
+    
+    // Update projectId with the safely handled value
+    updatedStructure.projectId = projectId;
     
     console.log(isManualSave ? 'Manually saving structure:' : 'Auto-saving structure:', updatedStructure.id);
     const saved = await saveStructureToDb(updatedStructure);
