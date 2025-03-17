@@ -122,6 +122,36 @@ const ScriptEditor = ({
     setActiveElementId(id);
   };
 
+  // Error handling: Wrap TagManager with error boundary to prevent entire app from crashing
+  const renderTagManager = () => {
+    try {
+      return (
+        <TagManager 
+          scriptContent={{ elements }} 
+          onFilterByTag={handleFilterByTag}
+          onFilterByAct={handleFilterByAct}
+          activeFilter={activeTagFilter}
+          activeActFilter={activeActFilter}
+          projectName={projectName}
+          structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
+          beatMode={beatMode}
+          onToggleBeatMode={handleToggleBeatMode}
+          structures={structures}
+          selectedStructureId={selectedStructureId || undefined}
+          onStructureChange={handleStructureChange}
+          selectedStructure={selectedStructure}
+        />
+      );
+    } catch (error) {
+      console.error("Error rendering TagManager:", error);
+      return (
+        <div className="p-2 bg-red-50 text-red-600 text-sm">
+          Error loading tag manager. Please refresh the page.
+        </div>
+      );
+    }
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <EditorInitializer 
@@ -130,21 +160,7 @@ const ScriptEditor = ({
         setActiveElementId={setActiveElementId}
       />
       
-      <TagManager 
-        scriptContent={{ elements }} 
-        onFilterByTag={handleFilterByTag}
-        onFilterByAct={handleFilterByAct}
-        activeFilter={activeTagFilter}
-        activeActFilter={activeActFilter}
-        projectName={projectName}
-        structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
-        beatMode={beatMode}
-        onToggleBeatMode={handleToggleBeatMode}
-        structures={structures}
-        selectedStructureId={selectedStructureId || undefined}
-        onStructureChange={handleStructureChange}
-        selectedStructure={selectedStructure}
-      />
+      {renderTagManager()}
       
       <ScriptContentComponent
         filteredElements={filteredElements}
