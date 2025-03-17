@@ -24,6 +24,12 @@ const TagManager: React.FC<TagManagerProps> = ({
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
   
+  // Check if the selected structure is valid
+  const isValidStructure = selectedStructure && 
+                           selectedStructure.acts && 
+                           Array.isArray(selectedStructure.acts) && 
+                           selectedStructure.acts.length > 0;
+  
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
       onFilterByAct(act);
@@ -48,7 +54,7 @@ const TagManager: React.FC<TagManagerProps> = ({
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
             selectedStructureId={selectedStructureId}
             onStructureChange={onStructureChange}
-            selectedStructure={selectedStructure}
+            selectedStructure={isValidStructure ? selectedStructure : null}
           />
         )}
       </div>

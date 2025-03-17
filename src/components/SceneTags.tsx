@@ -72,6 +72,12 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     return null;
   }
 
+  // Check if selectedStructure is valid and has acts property as an array
+  const isValidStructure = selectedStructure && 
+                           selectedStructure.acts && 
+                           Array.isArray(selectedStructure.acts) && 
+                           selectedStructure.acts.length > 0;
+
   return (
     <div className="my-1 ml-1">
       <div className="flex items-center text-gray-500 mb-1">
@@ -79,8 +85,8 @@ const SceneTags: React.FC<SceneTagsProps> = ({
         <span className="text-xs font-medium">Scene Tags</span>
       </div>
       
-      {/* Use new BeatSelector component when a structure is selected */}
-      {selectedStructure && onBeatTag && (
+      {/* Use BeatSelector component only when structure is valid */}
+      {isValidStructure && onBeatTag && (
         <BeatSelector
           selectedStructure={selectedStructure}
           elementId={element.id}
