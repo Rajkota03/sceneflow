@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Structure, Act, Beat } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
@@ -112,15 +113,14 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   };
   
   const resetToDefaultStructure = () => {
-    // Create a new single act structure with all beats flat (Save the Cat Beats)
-    const singleAct: Act = {
+    // Create a true Save the Cat structure with a single "flat" act containing all beats
+    const saveCatBeats: Act = {
       id: uuidv4(),
       title: "📌 Save the Cat Beats",
       colorHex: "#3b82f6", // blue
       startPosition: 0,
       endPosition: 100,
       beats: [
-        // Act 1 beats
         {
           id: uuidv4(),
           title: "🔹 Hook (Page X-Y)",
@@ -143,7 +143,7 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           id: uuidv4(),
           title: "🔹 Inciting Incident (Page X-Y)",
           description: "🚀 The \"Call to Adventure\"—an event that disrupts the protagonist's world.",
-          timePosition: 12,
+          timePosition: 12, 
           pageRange: "X-Y",
           complete: false,
           notes: "Shakes up the normal world.\nIntroduces the main conflict."
@@ -166,7 +166,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           complete: false,
           notes: "The point of no return."
         },
-        // Act 2A beats
         {
           id: uuidv4(),
           title: "🔹 1st Pinch Point (Page X-Y)",
@@ -185,7 +184,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           complete: false,
           notes: "Biggest shift in the protagonist's goal/motivation.\nFalse victory or devastating loss."
         },
-        // Act 2B beats
         {
           id: uuidv4(),
           title: "🔹 2nd Pinch Point (Page X-Y)",
@@ -204,7 +202,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           complete: false,
           notes: "Shifts from reaction to action."
         },
-        // Act 3 beats
         {
           id: uuidv4(),
           title: "🔹 3rd Plot Point (Page X-Y)",
@@ -235,11 +232,11 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
       ]
     };
 
-    // Update with default structure - now with a single act containing all beats
+    // Update with default structure - with a single act containing all beats
     const updatedStructure = {
       ...localStructure,
       name: "Save the Cat Beats",
-      acts: [singleAct]
+      acts: [saveCatBeats]
     };
     
     setLocalStructure(updatedStructure);
@@ -247,7 +244,7 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
     
     // Open the act
     const allOpen: Record<string, boolean> = {};
-    allOpen[singleAct.id] = true;
+    allOpen[saveCatBeats.id] = true;
     setExpandedActs(allOpen);
   };
   

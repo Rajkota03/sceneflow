@@ -15,7 +15,7 @@ const StructureEditor = () => {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [structureName, setStructureName] = useState('Save the Cat Beats'); // Changed default name
+  const [structureName, setStructureName] = useState('Save the Cat Beats');
   const [isSaving, setIsSaving] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ const StructureEditor = () => {
         
         const formattedStructure: Structure = {
           id: data.id,
-          name: data.name,
+          name: data.name || 'Save the Cat Beats', // Default to Save the Cat Beats if name is missing
           description: data.description || undefined,
           acts: actsData,
           createdAt: new Date(data.created_at),
@@ -122,6 +122,9 @@ const StructureEditor = () => {
 
   const handleUpdateStructure = async (updatedStructure: Structure) => {
     try {
+      // Ensure the structure name is properly set
+      updatedStructure.name = 'Save the Cat Beats';
+      
       const beatsData = JSON.stringify({ acts: updatedStructure.acts });
       
       const { error } = await supabase
@@ -237,3 +240,4 @@ const StructureEditor = () => {
 };
 
 export default StructureEditor;
+

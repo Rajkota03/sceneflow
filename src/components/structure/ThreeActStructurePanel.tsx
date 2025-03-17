@@ -39,7 +39,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
   return (
     <div className="w-full">
       <StructureHeader
-        name={localStructure.name}
+        name="Save the Cat Beats"  // Force the name to be "Save the Cat Beats"
         description={localStructure.description}
         projectTitle={localStructure.projectTitle}
         progressPercentage={progressPercentage}
@@ -58,7 +58,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
         {localStructure.acts.map((act) => (
           <ActSection
             key={act.id}
-            act={act}
+            act={{...act, title: "📌 Save the Cat Beats"}}  // Force the title to be "Save the Cat Beats"
             isExpanded={expandedActs[act.id]}
             toggleAct={toggleAct}
             onBeatToggleComplete={handleBeatToggleComplete}
