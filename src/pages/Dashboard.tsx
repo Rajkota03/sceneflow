@@ -1,105 +1,216 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { useDashboardProjects } from '@/hooks/useDashboardProjects';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen } from 'lucide-react';
-import { Note } from '@/lib/types';
-import { toast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/App';
-
-// Import the tab components
+import { supabase } from '@/integrations/supabase/client';
+import { Project, Note } from '@/lib/types';
+import { toast } from '@/components/ui/use-toast';
+import { Structure } from '@/types/scriptTypes';
 import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
+import StructuresTab from '@/components/dashboard/StructuresTab';
+import { v4 as uuidv4 } from 'uuid';
 
 const Dashboard = () => {
-  const { session } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const tabFromQuery = queryParams.get('tab');
+  const { session } = useAuth();
+  const [activeTab, setActiveTab] = useState("screenplays");
   
-  useEffect(() => {
-    if (!session) {
-      navigate('/sign-in', { state: { returnTo: location.pathname + location.search } });
-    }
-  }, [session, navigate, location]);
+  // Screenplay state
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(true);
+  const [projectsSearchQuery, setProjectsSearchQuery] = useState("");
   
-  const {
-    projects,
-    notes,
-    searchQuery,
-    setSearchQuery,
-    isLoading,
-    handleCreateNewProject,
-    handleDeleteProject,
-    handleCreateNote,
-    handleDeleteNote,
-    handleUpdateNote
-  } = useDashboardProjects();
-  
-  const [activeTab, setActiveTab] = useState(tabFromQuery || "screenplays");
+  // Notes state
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isNotesLoading, setIsNotesLoading] = useState(true);
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
-  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
-  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState<Note | null>(null);
-
-  console.log('Dashboard - available notes:', notes?.length || 0);
-
-  useEffect(() => {
-    if (tabFromQuery && ['screenplays', 'notes'].includes(tabFromQuery)) {
-      setActiveTab(tabFromQuery);
-    }
-  }, [tabFromQuery]);
+  
+  // Structures state
+  const [structures, setStructures] = useState<Structure[]>([]);
+  const [isStructuresLoading, setIsStructuresLoading] = useState(true);
+  const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
 
   useEffect(() => {
-    const newUrl = `${window.location.pathname}?tab=${activeTab}`;
-    window.history.replaceState({}, '', newUrl);
-  }, [activeTab]);
+    if (!session) return;
+    
+    const fetchProjects = async () => {
+      setIsProjectsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('author_id', session.user.id)
+          .order('updated_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (data) {
+          setProjects(data);
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your projects. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsProjectsLoading(false);
+      }
+    };
+    
+    const fetchNotes = async () => {
+      setIsNotesLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('standalone_notes')
+          .select('*')
+          .eq('author_id', session.user.id)
+          .order('updated_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (data) {
+          const formattedNotes: Note[] = data.map(note => ({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            createdAt: new Date(note.created_at),
+            updatedAt: new Date(note.updated_at)
+          }));
+          
+          setNotes(formattedNotes);
+        }
+      } catch (error) {
+        console.error('Error fetching notes:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load your notes. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsNotesLoading(false);
+      }
+    };
+    
+    const fetchStructures = async () => {
+      setIsStructuresLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('structures')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        if (data) {
+          const formattedStructures: Structure[] = data.map(structure => ({
+            id: structure.id,
+            name: structure.name,
+            description: structure.description || undefined,
+            acts: structure.beats?.acts || [],
+            createdAt: new Date(structure.created_at),
+            updatedAt: new Date(structure.updated_at)
+          }));
+          
+          setStructures(formattedStructures);
+        }
+      } catch (error) {
+        console.error('Error fetching structures:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load structures. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsStructuresLoading(false);
+      }
+    };
+    
+    fetchProjects();
+    fetchNotes();
+    fetchStructures();
+  }, [session]);
 
-  const filteredNotes = notes?.filter(note => 
-    note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
-    note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
-  ) || [];
+  if (!session) {
+    navigate('/signin');
+    return null;
+  }
 
-  const handleCreateNewScreenplay = async () => {
+  const handleCreateNewProject = async () => {
     if (!session) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to create a new screenplay',
-        variant: 'destructive',
-      });
-      navigate('/sign-in', { state: { returnTo: location.pathname + location.search } });
+      navigate('/signin');
       return;
     }
     
-    const newProject = await handleCreateNewProject();
-    if (newProject) {
-      navigate(`/editor/${newProject.id}`);
+    try {
+      const newId = `project-${Date.now()}`;
+      
+      const { error } = await supabase
+        .from('projects')
+        .insert({
+          id: newId,
+          title: 'Untitled Screenplay',
+          author_id: session.user.id,
+          content: JSON.stringify({ elements: [] }),
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Project created",
+        description: "Your new screenplay has been created successfully."
+      });
+      
+      navigate(`/editor/${newId}`);
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create a new project. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleCreateNoteFromPopover = (noteData: Partial<Note>) => {
-    const newNote: Note = {
-      id: '', // Empty ID for new notes, will be generated by the handler
-      title: noteData.title || 'Untitled Note',
-      content: noteData.content || '',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    handleCreateNote(newNote);
+  const handleDeleteProject = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setProjects(prevProjects => prevProjects.filter(project => project.id !== id));
+      
+      toast({
+        title: "Project deleted",
+        description: "Your screenplay has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the project. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  const handleCreateNote = () => {
+    setCurrentNote(null);
+    setIsNoteEditorOpen(true);
   };
 
   const handleViewNote = (note: Note) => {
-    setSelectedNote(note);
-    toast({
-      title: "Note details",
-      description: note.content.substring(0, 150) + (note.content.length > 150 ? '...' : '')
-    });
+    setCurrentNote(note);
+    setIsNoteEditorOpen(true);
   };
 
   const handleEditNote = (note: Note) => {
@@ -107,77 +218,331 @@ const Dashboard = () => {
     setIsNoteEditorOpen(true);
   };
 
-  const handleSaveNote = (updatedNote: Note) => {
-    if (updatedNote.id) {
-      handleUpdateNote(updatedNote);
-    } else {
-      handleCreateNote(updatedNote);
+  const handleSaveNote = async (note: Note) => {
+    if (!session) return;
+    
+    try {
+      const isNewNote = !notes.some(n => n.id === note.id);
+      
+      if (isNewNote) {
+        // Create new note
+        const { error } = await supabase
+          .from('standalone_notes')
+          .insert({
+            id: note.id,
+            title: note.title,
+            content: note.content,
+            author_id: session.user.id,
+          });
+        
+        if (error) throw error;
+        
+        setNotes(prevNotes => [note, ...prevNotes]);
+        
+        toast({
+          title: "Note created",
+          description: "Your note has been created successfully."
+        });
+      } else {
+        // Update existing note
+        const { error } = await supabase
+          .from('standalone_notes')
+          .update({
+            title: note.title,
+            content: note.content,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', note.id);
+        
+        if (error) throw error;
+        
+        setNotes(prevNotes => prevNotes.map(n => n.id === note.id ? note : n));
+        
+        toast({
+          title: "Note updated",
+          description: "Your note has been updated successfully."
+        });
+      }
+    } catch (error) {
+      console.error('Error saving note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save the note. Please try again.',
+        variant: 'destructive',
+      });
     }
-    setIsNoteEditorOpen(false);
-    setCurrentNote(null);
   };
 
-  const handleCreateNewNote = () => {
-    setCurrentNote(null);
-    setIsNoteEditorOpen(true);
+  const handleDeleteNote = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('standalone_notes')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setNotes(prevNotes => prevNotes.filter(note => note.id !== id));
+      
+      toast({
+        title: "Note deleted",
+        description: "Your note has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the note. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
   };
 
-  if (!session) {
-    return null; // Don't render anything until the redirect happens
-  }
+  const handleCreateStructure = async () => {
+    if (!session) {
+      navigate('/signin');
+      return;
+    }
+    
+    try {
+      const defaultStructure = {
+        id: `structure-${Date.now()}`,
+        name: 'Three Act Structure',
+        description: 'The classic three-act structure for screenplays.',
+        beats: {
+          acts: [
+            {
+              id: uuidv4(),
+              title: 'Act 1: Setup',
+              colorHex: '#4f46e5',
+              startPosition: 0,
+              endPosition: 25,
+              beats: [
+                {
+                  id: uuidv4(),
+                  title: 'Opening Image',
+                  description: 'Sets the tone and mood of the story.',
+                  timePosition: 0
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Inciting Incident',
+                  description: 'The event that sets the story in motion.',
+                  timePosition: 10
+                },
+                {
+                  id: uuidv4(),
+                  title: 'First Plot Point',
+                  description: 'The protagonist commits to the journey.',
+                  timePosition: 25
+                }
+              ]
+            },
+            {
+              id: uuidv4(),
+              title: 'Act 2: Confrontation',
+              colorHex: '#10b981',
+              startPosition: 25,
+              endPosition: 75,
+              beats: [
+                {
+                  id: uuidv4(),
+                  title: 'First Pinch Point',
+                  description: 'A reminder of the antagonistic force.',
+                  timePosition: 37.5
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Midpoint',
+                  description: 'The protagonist makes a critical choice.',
+                  timePosition: 50
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Second Pinch Point',
+                  description: 'The antagonistic force applies pressure.',
+                  timePosition: 62.5
+                }
+              ]
+            },
+            {
+              id: uuidv4(),
+              title: 'Act 3: Resolution',
+              colorHex: '#ef4444',
+              startPosition: 75,
+              endPosition: 100,
+              beats: [
+                {
+                  id: uuidv4(),
+                  title: 'Crisis',
+                  description: 'The darkest moment for the protagonist.',
+                  timePosition: 75
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Climax',
+                  description: 'The final confrontation.',
+                  timePosition: 90
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Resolution',
+                  description: 'The new status quo is established.',
+                  timePosition: 100
+                }
+              ]
+            }
+          ]
+        }
+      };
+      
+      const { error } = await supabase
+        .from('structures')
+        .insert({
+          id: defaultStructure.id,
+          name: defaultStructure.name,
+          description: defaultStructure.description,
+          beats: defaultStructure.beats
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Structure created",
+        description: "Your new structure has been created successfully."
+      });
+      
+      // Since we don't have a structure editor page yet, we'll just update the local state
+      const newStructure: Structure = {
+        id: defaultStructure.id,
+        name: defaultStructure.name,
+        description: defaultStructure.description,
+        acts: defaultStructure.beats.acts,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      setStructures(prev => [newStructure, ...prev]);
+    } catch (error) {
+      console.error('Error creating structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create a new structure. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleEditStructure = (id: string) => {
+    toast({
+      title: "Feature in development",
+      description: "The structure editor is coming soon."
+    });
+  };
+
+  const handleDeleteStructure = async (id: string) => {
+    try {
+      // First delete any project_structures references
+      const { error: linkError } = await supabase
+        .from('project_structures')
+        .delete()
+        .eq('structure_id', id);
+      
+      if (linkError) throw linkError;
+      
+      // Then delete the structure itself
+      const { error } = await supabase
+        .from('structures')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setStructures(prev => prev.filter(structure => structure.id !== id));
+      
+      toast({
+        title: "Structure deleted",
+        description: "The structure has been deleted successfully."
+      });
+    } catch (error) {
+      console.error('Error deleting structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the structure. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  // Filter projects based on search query
+  const filteredProjects = projects.filter(project => 
+    project.title.toLowerCase().includes(projectsSearchQuery.toLowerCase())
+  );
+
+  // Filter notes based on search query
+  const filteredNotes = notes.filter(note => 
+    note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
+    note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow pt-24 pb-16">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-8 text-left font-serif">My Projects</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+        <Tabs 
+          defaultValue="screenplays" 
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="screenplays">Screenplays</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="structures">Structures</TabsTrigger>
+          </TabsList>
           
-          <Tabs defaultValue="screenplays" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="grid grid-cols-2 mb-8 w-full max-w-md mx-auto">
-              <TabsTrigger value="screenplays" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                <span>Screenplays</span>
-              </TabsTrigger>
-              <TabsTrigger value="notes" className="flex items-center gap-2">
-                <NotebookPen className="h-4 w-4" />
-                <span>Notes</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="screenplays" className="mt-6">
-              <ScreenplaysTab
-                projects={projects}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                isLoading={isLoading}
-                handleCreateNewProject={handleCreateNewScreenplay}
-                handleDeleteProject={handleDeleteProject}
-              />
-            </TabsContent>
-            
-            <TabsContent value="notes" className="mt-6">
-              <NotesTab
-                notes={filteredNotes}
-                searchQuery={notesSearchQuery}
-                setSearchQuery={setNotesSearchQuery}
-                isLoading={isLoadingNotes}
-                handleCreateNote={handleCreateNewNote}
-                handleDeleteNote={handleDeleteNote}
-                handleViewNote={handleViewNote}
-                handleEditNote={handleEditNote}
-                isNoteEditorOpen={isNoteEditorOpen}
-                setIsNoteEditorOpen={setIsNoteEditorOpen}
-                currentNote={currentNote}
-                handleSaveNote={handleSaveNote}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-      
-      <Footer />
+          <TabsContent value="screenplays">
+            <ScreenplaysTab 
+              projects={filteredProjects}
+              searchQuery={projectsSearchQuery}
+              setSearchQuery={setProjectsSearchQuery}
+              isLoading={isProjectsLoading}
+              handleCreateNewProject={handleCreateNewProject}
+              handleDeleteProject={handleDeleteProject}
+            />
+          </TabsContent>
+          
+          <TabsContent value="notes">
+            <NotesTab 
+              notes={filteredNotes}
+              searchQuery={notesSearchQuery}
+              setSearchQuery={setNotesSearchQuery}
+              isLoading={isNotesLoading}
+              handleCreateNote={handleCreateNote}
+              handleDeleteNote={handleDeleteNote}
+              handleViewNote={handleViewNote}
+              handleEditNote={handleEditNote}
+              isNoteEditorOpen={isNoteEditorOpen}
+              setIsNoteEditorOpen={setIsNoteEditorOpen}
+              currentNote={currentNote}
+              handleSaveNote={handleSaveNote}
+            />
+          </TabsContent>
+          
+          <TabsContent value="structures">
+            <StructuresTab 
+              structures={structures}
+              searchQuery={structuresSearchQuery}
+              setSearchQuery={setStructuresSearchQuery}
+              isLoading={isStructuresLoading}
+              handleCreateStructure={handleCreateStructure}
+              handleEditStructure={handleEditStructure}
+              handleDeleteStructure={handleDeleteStructure}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

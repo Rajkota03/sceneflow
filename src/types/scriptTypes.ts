@@ -14,7 +14,6 @@ export interface TagManagerProps {
   activeFilter?: string | null;
   activeActFilter?: ActType | null;
   projectName?: string;
-  structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
 }
@@ -37,4 +36,30 @@ export interface ScriptElementProps {
   characterNames: string[];
   projectId?: string;
   beatMode?: BeatMode;
+}
+
+// New Structure-related types
+export interface Structure {
+  id: string;
+  name: string;
+  description?: string;
+  acts: Act[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Act {
+  id: string;
+  title: string;
+  colorHex: string;
+  startPosition: number; // percentage (0-100)
+  endPosition: number; // percentage (0-100)
+  beats: Beat[];
+}
+
+export interface Beat {
+  id: string;
+  title: string;
+  description: string;
+  timePosition: number; // percentage (0-100)
 }

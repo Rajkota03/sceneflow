@@ -13,7 +13,6 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeFilter,
   activeActFilter,
   projectName,
-  structureName,
   beatMode = 'on',
   onToggleBeatMode,
 }) => {
@@ -39,7 +38,6 @@ const TagManager: React.FC<TagManagerProps> = ({
             onSelectAct={handleActFilter} 
             actCounts={actCounts}
             projectName={projectName}
-            structureName={structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
           />
