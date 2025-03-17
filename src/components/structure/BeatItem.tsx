@@ -76,7 +76,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
               }}
               rows={3}
               className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
-              placeholder="Enter beat description..."
+              placeholder="Enter beat description... (Press Enter for new lines)"
               spellCheck={true}
             />
           </div>
