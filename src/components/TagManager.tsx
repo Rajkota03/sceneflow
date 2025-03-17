@@ -5,8 +5,15 @@ import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
-import StructureSelector from './tag-manager/StructureSelector';
-import useStructures from './tag-manager/useStructures';
+import { FileTextIcon } from 'lucide-react';
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
@@ -45,18 +52,12 @@ const TagManager: React.FC<TagManagerProps> = ({
             projectName={projectName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
+            availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
+            onStructureChange={onStructureChange}
+            selectedStructureId={selectedStructureId}
           />
         )}
       </div>
-      
-      {/* Structure selector */}
-      {structures.length > 0 && onStructureChange && (
-        <StructureSelector
-          structures={structures}
-          selectedStructureId={selectedStructureId}
-          onStructureChange={onStructureChange}
-        />
-      )}
       
       {beatMode === 'on' && availableTags.length > 0 && (
         <TagFilter 

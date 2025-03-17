@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/select';
 import { FileTextIcon } from 'lucide-react';
 
+// This component is no longer used as the functionality has been moved to ActBar.tsx
+// It's kept as a reference or for potential future use
 interface StructureSelectorProps {
   structures: Structure[];
   selectedStructureId?: string;

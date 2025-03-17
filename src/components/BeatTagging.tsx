@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Structure, Beat, Act } from '@/lib/types';
+import React, { useState, useEffect } from 'react';
+import { Structure, Beat, Act, ActType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronDown, ChevronUp, Target } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,16 +25,17 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
     return null;
   }
   
-  const handleBeatSelect = (beatId: string, actId: string) => {
+  const handleBeatSelect = (beatId: string, actId: string, actType: ActType) => {
     onBeatTag(elementId, beatId, actId);
     setExpanded(false);
+    
     toast({
       title: "Beat tagged",
       description: "This scene has been tagged with the selected beat.",
     });
   };
   
-  // Find the currently selected beat
+  // Find the currently selected beat and its act
   let selectedBeatTitle = "";
   let selectedActTitle = "";
   
@@ -48,6 +49,16 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
       }
     }
   }
+
+  // Get the ActType based on act title
+  const getActType = (actTitle: string): ActType => {
+    if (actTitle.includes('Act 1')) return ActType.ACT_1;
+    if (actTitle.includes('Act 2A')) return ActType.ACT_2A;
+    if (actTitle.includes('Midpoint')) return ActType.MIDPOINT;
+    if (actTitle.includes('Act 2B')) return ActType.ACT_2B;
+    if (actTitle.includes('Act 3')) return ActType.ACT_3;
+    return ActType.ACT_1; // Default
+  };
 
   return (
     <div className="mt-2 mb-3">
@@ -75,7 +86,7 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
       
       {expanded && (
         <div className="border rounded-md mt-1 bg-white shadow-sm">
-          <ScrollArea className="max-h-48">
+          <ScrollArea className="max-h-48" hideScrollbar={true}>
             {selectedStructure.acts.map((act) => (
               <div key={act.id} className="p-2">
                 <div 
@@ -85,22 +96,25 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
                   {act.title}
                 </div>
                 <div className="space-y-1">
-                  {act.beats.map((beat) => (
-                    <Button
-                      key={beat.id}
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-xs h-7"
-                      onClick={() => handleBeatSelect(beat.id, act.id)}
-                    >
-                      <div className="flex items-center w-full">
-                        <span>{beat.title}</span>
-                        {selectedBeatId === beat.id && (
-                          <Check size={12} className="ml-auto text-green-500" />
-                        )}
-                      </div>
-                    </Button>
-                  ))}
+                  {act.beats.map((beat) => {
+                    const actType = getActType(act.title);
+                    return (
+                      <Button
+                        key={beat.id}
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start text-xs h-7"
+                        onClick={() => handleBeatSelect(beat.id, act.id, actType)}
+                      >
+                        <div className="flex items-center w-full">
+                          <span>{beat.title}</span>
+                          {selectedBeatId === beat.id && (
+                            <Check size={12} className="ml-auto text-green-500" />
+                          )}
+                        </div>
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             ))}

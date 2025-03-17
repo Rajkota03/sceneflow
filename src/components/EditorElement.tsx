@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -138,8 +139,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word'
+          wordBreak: 'break-word',
+          direction: 'ltr' // Ensure text direction is left-to-right
         }}
+        dir="ltr" // HTML attribute for text direction
       >
         {text}
       </div>

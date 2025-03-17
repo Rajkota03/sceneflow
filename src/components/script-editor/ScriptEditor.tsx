@@ -38,6 +38,7 @@ const ScriptEditor = ({
   structureName = "Three Act Structure",
   projectId,
   onStructureChange,
+  selectedStructureId: externalSelectedStructureId,
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,6 +55,13 @@ const ScriptEditor = ({
     updateBeatCompletion,
     saveBeatCompletion
   } = useProjectStructures(projectId);
+
+  // Sync the external selectedStructureId with our local state if provided
+  useEffect(() => {
+    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
+      changeSelectedStructure(externalSelectedStructureId);
+    }
+  }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
 
   const {
     elements,
@@ -84,7 +92,9 @@ const ScriptEditor = ({
           text: 'Type your action here...'
         }
       ];
-      setElements(defaultElements);
+      // Direct assignment instead of using a function to avoid type errors
+      const newElements: ScriptElement[] = defaultElements;
+      setElements(newElements);
       setActiveElementId(defaultElements[0].id);
     }
   }, [elements, setElements, setActiveElementId]);
@@ -110,7 +120,8 @@ const ScriptEditor = ({
     const currentElement = elements[currentIndex];
     
     if (shiftKey && currentElement.type === 'dialogue') {
-      const updatedElements = [...elements];
+      // Direct assignment instead of using a function to avoid type errors
+      const updatedElements: ScriptElement[] = [...elements];
       updatedElements[currentIndex] = {
         ...currentElement,
         text: currentElement.text + '\n'
@@ -165,7 +176,8 @@ const ScriptEditor = ({
       }
     }
     
-    const updatedElements = [
+    // Direct assignment instead of using a function to avoid type errors
+    const updatedElements: ScriptElement[] = [
       ...elements.slice(0, currentIndex + 1),
       newElement,
       ...elements.slice(currentIndex + 1)
@@ -191,11 +203,11 @@ const ScriptEditor = ({
   };
 
   const handleTagsChange = (elementId: string, tags: string[]) => {
-    setElements(prevElements =>
-      prevElements.map(element =>
-        element.id === elementId ? { ...element, tags } : element
-      )
+    // Direct assignment instead of using a function to avoid type errors
+    const newElements: ScriptElement[] = elements.map(element =>
+      element.id === elementId ? { ...element, tags } : element
     );
+    setElements(newElements);
   };
 
   const handleFilterByTag = (tag: string | null) => {
@@ -224,11 +236,11 @@ const ScriptEditor = ({
     if (!selectedStructure || !selectedStructureId) return;
     
     // Update the element with the beat tag
-    setElements(prevElements =>
-      prevElements.map(element =>
-        element.id === elementId ? { ...element, beat: beatId } : element
-      )
+    // Direct assignment instead of using a function to avoid type errors
+    const newElements: ScriptElement[] = elements.map(element =>
+      element.id === elementId ? { ...element, beat: beatId } : element
     );
+    setElements(newElements);
     
     // Update the beat's completion status in the structure
     const updatedStructure = updateBeatCompletion(beatId, actId, true);

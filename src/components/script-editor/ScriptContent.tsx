@@ -1,14 +1,15 @@
 
 import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
-import ScriptPage from './ScriptPage';
+import { useFormat } from '@/lib/formatContext';
+import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
 
-export interface ScriptContentComponentProps {
+interface ScriptContentProps {
   filteredElements: ScriptElement[];
-  activeElementId: string;
+  activeElementId: string | null;
   currentPage: number;
-  getPreviousElementType: (index: number) => ElementType;
+  getPreviousElementType: (index: number) => ElementType | undefined;
   handleElementChange: (id: string, text: string, type: ElementType) => void;
   handleFocus: (id: string) => void;
   handleNavigate: (direction: 'up' | 'down', id: string) => void;
@@ -18,11 +19,11 @@ export interface ScriptContentComponentProps {
   characterNames: string[];
   projectId?: string;
   beatMode?: BeatMode;
-  selectedStructure?: Structure | null; // Add selectedStructure prop
+  selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
+const ScriptContent: React.FC<ScriptContentProps> = ({
   filteredElements,
   activeElementId,
   currentPage,
@@ -39,26 +40,67 @@ const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
   selectedStructure,
   onBeatTag
 }) => {
+  const { formatState } = useFormat();
+
   return (
-    <div className="flex-1 overflow-y-auto relative">
-      <ScriptPage
-        elements={filteredElements}
-        activeElementId={activeElementId}
-        handleElementChange={handleElementChange}
-        handleFocus={handleFocus}
-        handleNavigate={handleNavigate}
-        handleEnterKey={handleEnterKey}
-        handleFormatChange={handleFormatChange}
-        handleTagsChange={handleTagsChange}
-        getPreviousElementType={getPreviousElementType}
-        characterNames={characterNames}
-        projectId={projectId}
-        beatMode={beatMode}
-        selectedStructure={selectedStructure}
-        onBeatTag={onBeatTag}
-      />
+    <div className="flex justify-center w-full h-full overflow-visible">
+      <div className="w-full max-w-4xl mx-auto">
+        <div
+          className="script-page"
+          style={{
+            transform: `scale(${formatState.zoomLevel})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease-out',
+            fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+            overflowX: 'visible',
+            overflowY: 'visible'
+          }}
+        >
+          <div
+            className="script-page-content"
+            style={{
+              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+              fontSize: '12pt',
+              position: 'relative',
+              overflowX: 'visible',
+              overflowY: 'visible'
+            }}
+          >
+            {/* Page number positioned inside the page */}
+            <div
+              className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10"
+              style={{
+                fontFamily: "Courier Final Draft, Courier Prime, monospace",
+                fontSize: "12pt",
+              }}
+            >
+              {currentPage}
+            </div>
+
+            {filteredElements.map((element, index) => (
+              <EditorElement
+                key={element.id}
+                element={element}
+                previousElementType={getPreviousElementType(index)}
+                onChange={handleElementChange}
+                onFocus={() => handleFocus(element.id)}
+                isActive={activeElementId === element.id}
+                onNavigate={handleNavigate}
+                onEnterKey={handleEnterKey}
+                onFormatChange={handleFormatChange}
+                onTagsChange={handleTagsChange}
+                characterNames={characterNames}
+                projectId={projectId}
+                beatMode={beatMode}
+                selectedStructure={selectedStructure}
+                onBeatTag={onBeatTag}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default ScriptContentComponent;
+export default ScriptContent;
