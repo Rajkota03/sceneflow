@@ -84,11 +84,11 @@ export const useDashboardStructures = () => {
     }
     
     try {
-      // Create a comprehensive Three-Act Structure with detailed beats
+      // Create an enhanced Three-Act Structure with detailed beats
       const defaultStructure = {
         id: `structure-${Date.now()}`,
         name: 'Enhanced Three-Act Structure',
-        description: 'A comprehensive structure with Acts 1, 2A, 2B, and 3 including detailed beats.',
+        description: 'A comprehensive structure with Acts 1, 2A, 2B, and 3 including detailed beats for modern screenwriting.',
         beats: {
           acts: [
             {
@@ -100,93 +100,93 @@ export const useDashboardStructures = () => {
               beats: [
                 {
                   id: uuidv4(),
-                  title: 'Hook',
-                  description: 'The opening moment that sets the tone and grabs attention.',
+                  title: 'Opening Image',
+                  description: 'Sets the tone and mood of the story with a powerful visual.',
                   timePosition: 0,
-                  pageRange: "1-3",
+                  pageRange: "1-2",
                   complete: false,
-                  notes: "Introduce protagonist, world, and theme with a powerful visual or character moment."
+                  notes: "Create a visual that captures the theme and essence of your entire story."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Set-Up',
-                  description: "Establish protagonist's ordinary world and key relationships.",
-                  timePosition: 5,
-                  pageRange: "4-9",
+                  title: 'Ordinary World',
+                  description: "Shows the protagonist's normal life before the journey begins.",
+                  timePosition: 3,
+                  pageRange: "3-7",
                   complete: false,
-                  notes: "Show character flaws and internal struggles that will need to be overcome."
+                  notes: "Establish what's missing in the protagonist's life and what needs to change."
                 },
                 {
                   id: uuidv4(),
                   title: 'Inciting Incident',
-                  description: 'The "Call to Adventure" that disrupts the protagonist\'s world.',
+                  description: 'The event that disrupts the ordinary world and starts the story.',
                   timePosition: 10,
-                  pageRange: "10-15",
+                  pageRange: "10-12",
                   complete: false,
-                  notes: "This event introduces the main conflict and forces a crucial decision."
+                  notes: "This should be a significant event that forces the protagonist to react."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Build-Up',
-                  description: 'Rising action leads to the First Plot Point.',
-                  timePosition: 20,
-                  pageRange: "16-24",
+                  title: 'Debate/Refusal',
+                  description: 'Protagonist resists the call to adventure.',
+                  timePosition: 15,
+                  pageRange: "15-20",
                   complete: false,
-                  notes: "Protagonist hesitates but is pushed forward by events as antagonistic forces strengthen."
+                  notes: "Show inner conflict and reasons why the protagonist hesitates to act."
                 },
                 {
                   id: uuidv4(),
-                  title: '1st Plot Point',
-                  description: 'The point of no return. Protagonist commits to the journey.',
+                  title: 'Break Into Act 2',
+                  description: 'Protagonist makes a decision that propels them into a new world.',
                   timePosition: 25,
                   pageRange: "25-30",
                   complete: false,
-                  notes: "Marks the transition from Act 1 to Act 2. The protagonist actively decides to pursue the goal."
+                  notes: "This is the point of no return. The protagonist commits to the journey."
                 }
               ]
             },
             {
               id: uuidv4(),
-              title: 'Act 2A: Reaction',
+              title: 'Act 2A: Obstacles & Complications',
               colorHex: '#f59e0b',
               startPosition: 25,
               endPosition: 50,
               beats: [
                 {
                   id: uuidv4(),
-                  title: 'Subplot Introduction',
-                  description: 'Introduce B-story or supporting characters that enrich the main story.',
+                  title: 'B Story Introduction',
+                  description: 'Introduction of a secondary plot, often a relationship.',
                   timePosition: 30,
-                  pageRange: "31-37",
+                  pageRange: "30-35",
                   complete: false,
-                  notes: "Often introduces a relationship or theme that will help protagonist's growth."
+                  notes: "Usually introduces a love interest or mentor who helps with the protagonist's transformation."
                 },
                 {
                   id: uuidv4(),
-                  title: '1st Pinch Point',
-                  description: 'A reminder of the antagonist\'s strength or new information that raises stakes.',
-                  timePosition: 37.5,
-                  pageRange: "38-45",
+                  title: 'Fun & Games',
+                  description: 'The promise of the premise is explored.',
+                  timePosition: 35,
+                  pageRange: "35-45",
                   complete: false,
-                  notes: "The protagonist struggles to react while developing subplots move forward."
+                  notes: "This is where the trailer moments come from - showing the concept in action."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Rising Obstacles',
-                  description: 'Challenges intensify as protagonist attempts to adapt.',
+                  title: 'First Pinch Point',
+                  description: 'First encounter with the antagonistic force.',
+                  timePosition: 40,
+                  pageRange: "40-45",
+                  complete: false,
+                  notes: "A reminder of what's at stake and a glimpse of the antagonist's power."
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Midpoint Approach',
+                  description: 'Events build toward a significant turning point.',
                   timePosition: 45,
-                  pageRange: "46-49",
+                  pageRange: "45-50",
                   complete: false,
-                  notes: "Character flaws create complications. Protagonist struggles but gains skills."
-                },
-                {
-                  id: uuidv4(),
-                  title: 'Midpoint Preparation',
-                  description: 'Events align for a major shift in perspective or approach.',
-                  timePosition: 49,
-                  pageRange: "50-59",
-                  complete: false,
-                  notes: "The stage is set for the crucial Midpoint turning point."
+                  notes: "Tension increases as the story approaches its midpoint turning point."
                 }
               ]
             },
@@ -199,57 +199,57 @@ export const useDashboardStructures = () => {
               beats: [
                 {
                   id: uuidv4(),
-                  title: 'Midpoint',
-                  description: 'A game-changing revelation shifts the protagonist\'s perspective.',
+                  title: 'Midpoint Twist',
+                  description: 'A significant revelation or reversal that changes everything.',
                   timePosition: 50,
-                  pageRange: "60",
+                  pageRange: "50-55",
                   complete: false,
-                  notes: "The biggest shift in the protagonist's goal/motivation. Could be a false victory or devastating loss."
+                  notes: "Often a false victory or false defeat. Raises stakes and changes the protagonist's goal."
                 }
               ]
             },
             {
               id: uuidv4(),
-              title: 'Act 2B: Action',
+              title: 'Act 2B: Escalation',
               colorHex: '#f97316',
               startPosition: 50,
               endPosition: 75,
               beats: [
                 {
                   id: uuidv4(),
-                  title: 'Raised Stakes',
-                  description: 'The situation intensifies following the Midpoint revelation.',
+                  title: 'Bad Guys Close In',
+                  description: 'External and internal pressures intensify.',
                   timePosition: 55,
-                  pageRange: "61-65",
+                  pageRange: "55-60",
                   complete: false,
-                  notes: "Protagonist takes more decisive action with a clearer purpose."
+                  notes: "Antagonists gain strength while the protagonist faces mounting internal conflicts."
                 },
                 {
                   id: uuidv4(),
-                  title: '2nd Pinch Point',
-                  description: 'A foreshadowing event that reinforces what\'s at stake.',
-                  timePosition: 62.5,
-                  pageRange: "66-73",
+                  title: 'Second Pinch Point',
+                  description: 'Another encounter with the antagonistic force.',
+                  timePosition: 62,
+                  pageRange: "62-65",
                   complete: false,
-                  notes: "Antagonist strengthens or executes a major move, protagonist must respond."
+                  notes: "Stronger reminder of what's at stake, often with a character death or major setback."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Renewed Push',
-                  description: 'The protagonist starts taking charge and moving toward the final confrontation.',
+                  title: 'All Hope Is Lost',
+                  description: 'Protagonist reaches their lowest point.',
                   timePosition: 70,
-                  pageRange: "74-85",
+                  pageRange: "70-75",
                   complete: false,
-                  notes: "Character shifts from reaction to action. Stakes reach their highest before Act 3."
+                  notes: "The darkest moment when it seems impossible to succeed. Often involves a death (literal or symbolic)."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Act 2 Climax',
-                  description: 'Final moments before Act 3 - a major setback or complication.',
+                  title: 'Break Into Act 3',
+                  description: 'A new determination or revelation that propels into the final act.',
                   timePosition: 75,
-                  pageRange: "86-90",
+                  pageRange: "75-80",
                   complete: false,
-                  notes: "Often involves a betrayal, reversal, or major failure that tests the protagonist."
+                  notes: "The protagonist finds a new resolve, often connected to the B story or a revelation."
                 }
               ]
             },
@@ -262,39 +262,39 @@ export const useDashboardStructures = () => {
               beats: [
                 {
                   id: uuidv4(),
-                  title: '3rd Plot Point',
-                  description: 'A dark moment where the protagonist faces a major loss or setback.',
+                  title: 'Renewed Push',
+                  description: 'Armed with new resolve, protagonist prepares for the final battle.',
                   timePosition: 80,
-                  pageRange: "91-99",
+                  pageRange: "80-85",
                   complete: false,
-                  notes: "The antagonist gains the upper hand and the protagonist questions everything."
-                },
-                {
-                  id: uuidv4(),
-                  title: 'Preparation for Climax',
-                  description: 'Protagonist rallies resources and determination for final battle.',
-                  timePosition: 85,
-                  pageRange: "100-105",
-                  complete: false,
-                  notes: "Character arc nears completion as protagonist overcomes internal obstacles."
+                  notes: "Show how the protagonist has changed and is now ready to face the challenge."
                 },
                 {
                   id: uuidv4(),
                   title: 'Climax',
-                  description: 'The final confrontation between protagonist and antagonist.',
-                  timePosition: 90,
-                  pageRange: "106-115",
+                  description: 'The final confrontation with the main antagonistic force.',
+                  timePosition: 85,
+                  pageRange: "85-95",
                   complete: false,
-                  notes: "The most intense moment of the story. Protagonist fully transforms and takes decisive action."
+                  notes: "The protagonist must use everything they've learned to overcome the antagonist."
                 },
                 {
                   id: uuidv4(),
-                  title: 'Resolution',
-                  description: 'Tying up loose ends and showing the new world after the climax.',
+                  title: 'Denouement',
+                  description: 'Loose ends are tied up and we see the new normal.',
                   timePosition: 95,
-                  pageRange: "116-120",
+                  pageRange: "95-110",
                   complete: false,
-                  notes: "Shows the protagonist's changed world and ends with a satisfying final image."
+                  notes: "Show how the world and characters have changed as a result of the journey."
+                },
+                {
+                  id: uuidv4(),
+                  title: 'Final Image',
+                  description: 'A closing image that contrasts with the opening image.',
+                  timePosition: 99,
+                  pageRange: "110-120",
+                  complete: false,
+                  notes: "Bookend the story with an image that shows transformation and theme resolution."
                 }
               ]
             }
@@ -318,7 +318,7 @@ export const useDashboardStructures = () => {
       
       toast({
         title: "Structure created",
-        description: "Your new structure has been created successfully."
+        description: "Your enhanced three-act structure has been created successfully."
       });
       
       // Add the new structure to the local state
