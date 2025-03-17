@@ -157,8 +157,9 @@ export function convertStructures(structures: LibStructure[]): ScriptTypeStructu
       name: structure.name,
       description: structure.description || '',
       structure_type: structure.structure_type || 'three_act',
-      projectId: structure.projectId || '',
-      projectTitle: structure.projectTitle || '',
+      // Only use projectId if it exists on the structure
+      ...(structure.projectId ? { projectId: structure.projectId } : {}),
+      ...(structure.projectTitle ? { projectTitle: structure.projectTitle } : {}),
       author_id: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -205,4 +206,22 @@ export function convertScriptTypeTitlePageToLib(titlePage: ScriptTypeTitlePageDa
     contact: titlePage.contact || '',
     basedOn: titlePage.basedOn || ''
   };
+}
+
+// Helper function to convert lib script elements to script type elements
+export function convertLibScriptElementsToScriptType(
+  elements: LibScriptElement[]
+): ScriptTypeScriptElement[] {
+  if (!elements || !Array.isArray(elements)) {
+    return [];
+  }
+  
+  return elements.map(element => ({
+    id: element.id,
+    type: convertLibElementTypeToScriptType(element.type),
+    text: element.text,
+    tags: element.tags || [],
+    beatId: element.beat || undefined,
+    actId: undefined
+  }));
 }

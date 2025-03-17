@@ -13,7 +13,12 @@ import { useScriptEditing } from '@/hooks/useScriptEditing';
 import { useBeatTagging } from '@/hooks/useBeatTagging';
 import { useTagFiltering } from '@/hooks/useTagFiltering';
 import EditorInitializer from './EditorInitializer';
-import { convertLibToScriptTypes, convertStructures, convertLibElementTypeToScriptType } from '@/utils/typeAdapter';
+import { 
+  convertLibToScriptTypes, 
+  convertStructures, 
+  convertLibElementTypeToScriptType,
+  convertLibScriptElementsToScriptType 
+} from '@/utils/typeAdapter';
 
 interface ScriptEditorProps {
   initialContent: any; // Accept any content and convert it appropriately
@@ -89,16 +94,9 @@ const ScriptEditor = ({
   } = useTagFiltering();
 
   // Get filtered elements based on tag/act filters
+  const scriptTypeElements = convertLibScriptElementsToScriptType(elements);
   const filteredElements = useFilteredElements(
-    elements.map(el => ({
-      id: el.id,
-      type: typeof el.type === 'string' ? 
-        convertLibElementTypeToScriptType(el.type as any) : el.type,
-      text: el.text,
-      tags: el.tags || [],
-      beatId: (el as any).beatId || (el as any).beat,
-      actId: (el as any).actId
-    })), 
+    scriptTypeElements,
     activeTagFilter, 
     activeActFilter
   );
@@ -113,7 +111,7 @@ const ScriptEditor = ({
 
   // Beat tagging functionality
   const { handleBeatTag } = useBeatTagging(
-    elements,
+    scriptTypeElements,
     setElements,
     selectedStructure,
     projectSelectedStructureId || selectedStructureId,
