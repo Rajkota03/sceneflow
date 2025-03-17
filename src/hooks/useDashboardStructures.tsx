@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -32,14 +31,12 @@ export const useDashboardStructures = () => {
       
       if (data) {
         const formattedStructures: Structure[] = data.map(structure => {
-          // Safely parse the beats data
           let actsData: Act[] = [];
           try {
             if (typeof structure.beats === 'string') {
               const parsed = JSON.parse(structure.beats);
               actsData = parsed.acts || [];
             } else if (structure.beats && typeof structure.beats === 'object') {
-              // If it's already an object, try to access acts
               const beatsObj = structure.beats as any;
               actsData = beatsObj.acts || [];
             }
@@ -84,7 +81,6 @@ export const useDashboardStructures = () => {
     }
     
     try {
-      // Create an enhanced Three-Act Structure with detailed beats
       const defaultStructure = {
         id: `structure-${Date.now()}`,
         name: 'Enhanced Three-Act Structure',
@@ -302,7 +298,6 @@ export const useDashboardStructures = () => {
         }
       };
       
-      // Convert the structure data to a format compatible with Supabase JSON column
       const beatsData = JSON.stringify(defaultStructure.beats);
       
       const { error } = await supabase
@@ -321,7 +316,6 @@ export const useDashboardStructures = () => {
         description: "Your enhanced three-act structure has been created successfully."
       });
       
-      // Add the new structure to the local state
       const newStructure: Structure = {
         id: defaultStructure.id,
         name: defaultStructure.name,
@@ -353,10 +347,8 @@ export const useDashboardStructures = () => {
     }
     
     try {
-      // Format the structure data for the database - convert to JSON string
       const beatsData = JSON.stringify({ acts: updatedStructure.acts });
       
-      // Update the structure in the database
       const { error } = await supabase
         .from('structures')
         .update({
@@ -369,7 +361,6 @@ export const useDashboardStructures = () => {
       
       if (error) throw error;
       
-      // Update the structure in the local state
       setStructures(prev => 
         prev.map(structure => 
           structure.id === updatedStructure.id 
@@ -381,22 +372,11 @@ export const useDashboardStructures = () => {
       return;
     } catch (error) {
       console.error('Error updating structure:', error);
-      throw error; // Re-throw to be handled by the component
+      throw error;
     }
   };
 
-  const handleEditStructure = (id: string) => {
-    const structure = structures.find(s => s.id === id);
-    if (!structure) {
-      toast({
-        title: "Structure not found",
-        description: "Cannot find the requested structure.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Find the structure in the list and show the editor dialog
+  const handleEditStructure = (structure: Structure) => {
     toast({
       title: "Structure editor",
       description: "Use the edit button to modify structure beats."
@@ -405,7 +385,6 @@ export const useDashboardStructures = () => {
 
   const handleDeleteStructure = async (id: string) => {
     try {
-      // First delete any project_structures references
       const { error: linkError } = await supabase
         .from('project_structures')
         .delete()
@@ -413,7 +392,6 @@ export const useDashboardStructures = () => {
       
       if (linkError) throw linkError;
       
-      // Then delete the structure itself
       const { error } = await supabase
         .from('structures')
         .delete()
@@ -437,7 +415,6 @@ export const useDashboardStructures = () => {
     }
   };
 
-  // Filter structures based on search query
   const filteredStructures = structures.filter(structure =>
     structure.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (structure.description && structure.description.toLowerCase().includes(searchQuery.toLowerCase()))

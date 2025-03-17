@@ -15,7 +15,7 @@ interface StructureCardProps {
 }
 
 const StructureCard = ({ structure, onEdit, onDelete }: StructureCardProps) => {
-  const timeAgo = formatDistanceToNow(new Date(structure.updated_at), { addSuffix: true });
+  const timeAgo = formatDistanceToNow(new Date(structure.updatedAt), { addSuffix: true });
   
   // Calculate progress percentage
   const totalBeats = structure.acts.reduce((total, act) => total + act.beats.length, 0);

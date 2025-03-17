@@ -8,7 +8,7 @@ import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { useDashboardStructures } from '@/hooks/useDashboardStructures';
-import { Note } from '@/lib/types';
+import { Note, Structure } from '@/lib/types';
 import Navbar from '@/components/Navbar';
 
 const Dashboard = () => {
