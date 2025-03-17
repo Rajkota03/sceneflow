@@ -15,8 +15,14 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     // Auto-resize function
     const autoResize = React.useCallback(() => {
       if (textareaRef.current) {
+        // Save the current scroll position
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
         textareaRef.current.style.height = 'auto';
         textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        
+        // Restore the scroll position to prevent page jumping
+        window.scrollTo(0, scrollTop);
       }
     }, []);
 
@@ -49,7 +55,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <textarea
         className={cn(
-          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 whitespace-pre-wrap select-text",
+          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 select-text",
           className
         )}
         ref={textareaRef}
