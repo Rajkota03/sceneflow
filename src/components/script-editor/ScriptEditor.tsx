@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
@@ -10,14 +10,8 @@ import ScriptContentComponent from './ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
-import { supabase } from '@/integrations/supabase/client';
 
 type BeatMode = 'on' | 'off';
-
-interface Structure {
-  id: string;
-  name: string;
-}
 
 interface ScriptEditorProps {
   initialContent: ScriptContentType;
@@ -41,15 +35,12 @@ const ScriptEditor = ({
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
   projectId,
-  onStructureChange,
-  selectedStructureId
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
-  const [availableStructures, setAvailableStructures] = useState<Structure[]>([]);
 
   const {
     elements,
@@ -84,29 +75,6 @@ const ScriptEditor = ({
       setActiveElementId(defaultElements[0].id);
     }
   }, [elements, setElements, setActiveElementId]);
-
-  useEffect(() => {
-    const fetchStructures = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('structures')
-          .select('id, name');
-          
-        if (error) {
-          console.error('Error fetching structures:', error);
-          return;
-        }
-        
-        if (data) {
-          setAvailableStructures(data as Structure[]);
-        }
-      } catch (error) {
-        console.error('Error fetching structures:', error);
-      }
-    };
-    
-    fetchStructures();
-  }, []);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -232,12 +200,6 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
-  const handleStructureChange = (structureId: string) => {
-    if (onStructureChange) {
-      onStructureChange(structureId);
-    }
-  };
-
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <TagManager 
@@ -250,10 +212,6 @@ const ScriptEditor = ({
         structureName={structureName}
         beatMode={beatMode}
         onToggleBeatMode={handleToggleBeatMode}
-        availableStructures={availableStructures}
-        onStructureChange={handleStructureChange}
-        selectedStructureId={selectedStructureId}
-        projectId={projectId}
       />
       
       <ScriptContentComponent

@@ -13,7 +13,6 @@ import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
-import StructureEditorPage from './pages/StructureEditor';
 import { supabase } from './integrations/supabase/client';
 
 // Create a new query client
@@ -104,14 +103,6 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/structure/:structureId" 
-                element={
-                  <ProtectedRoute>
-                    <StructureEditorPage />
                   </ProtectedRoute>
                 } 
               />

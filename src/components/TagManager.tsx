@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ActType } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';

@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileText, NotebookPen, Network } from 'lucide-react';
+import { FileText, NotebookPen } from 'lucide-react';
 import { Note } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/App';
@@ -12,7 +13,6 @@ import { useAuth } from '@/App';
 // Import the tab components
 import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
-import StructuresTab from '@/components/dashboard/StructuresTab';
 
 const Dashboard = () => {
   const { session } = useAuth();
@@ -42,7 +42,6 @@ const Dashboard = () => {
   
   const [activeTab, setActiveTab] = useState(tabFromQuery || "screenplays");
   const [notesSearchQuery, setNotesSearchQuery] = useState("");
-  const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);
@@ -51,7 +50,7 @@ const Dashboard = () => {
   console.log('Dashboard - available notes:', notes?.length || 0);
 
   useEffect(() => {
-    if (tabFromQuery && ['screenplays', 'notes', 'structures'].includes(tabFromQuery)) {
+    if (tabFromQuery && ['screenplays', 'notes'].includes(tabFromQuery)) {
       setActiveTab(tabFromQuery);
     }
   }, [tabFromQuery]);
@@ -136,7 +135,7 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold mb-8 text-left font-serif">My Projects</h1>
           
           <Tabs defaultValue="screenplays" value={activeTab} onValueChange={setActiveTab} className="mb-8">
-            <TabsList className="grid grid-cols-3 mb-8 w-full max-w-md mx-auto">
+            <TabsList className="grid grid-cols-2 mb-8 w-full max-w-md mx-auto">
               <TabsTrigger value="screenplays" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 <span>Screenplays</span>
@@ -144,10 +143,6 @@ const Dashboard = () => {
               <TabsTrigger value="notes" className="flex items-center gap-2">
                 <NotebookPen className="h-4 w-4" />
                 <span>Notes</span>
-              </TabsTrigger>
-              <TabsTrigger value="structures" className="flex items-center gap-2">
-                <Network className="h-4 w-4" />
-                <span>Structures</span>
               </TabsTrigger>
             </TabsList>
             
@@ -177,10 +172,6 @@ const Dashboard = () => {
                 currentNote={currentNote}
                 handleSaveNote={handleSaveNote}
               />
-            </TabsContent>
-            
-            <TabsContent value="structures" className="mt-6">
-              <StructuresTab />
             </TabsContent>
           </Tabs>
         </div>

@@ -65,18 +65,6 @@ const ToolsMenu = () => {
       description: "Select a .fountain or .fdx file to import into Scene Flow.",
     });
   };
-  
-  const openStructure = () => {
-    if (projectId) {
-      window.location.href = `/structure/${projectId}`;
-    } else {
-      toast({
-        title: "Error",
-        description: "Cannot access structure tool: No project is currently open.",
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <MenubarMenu>
@@ -96,9 +84,6 @@ const ToolsMenu = () => {
           Scene Report
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={openStructure}>
-          Story Structure
-        </MenubarItem>
         <MenubarItem onClick={runSpellCheck}>
           Grammar & Spell Check
         </MenubarItem>

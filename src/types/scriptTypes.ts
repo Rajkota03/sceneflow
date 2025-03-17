@@ -1,3 +1,4 @@
+
 import { ScriptContent, ActType } from "@/lib/types";
 
 export type ActCountsRecord = {
@@ -16,10 +17,6 @@ export interface TagManagerProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
-  availableStructures?: { id: string; name: string }[];
-  onStructureChange?: (structureId: string) => void;
-  selectedStructureId?: string;
-  projectId?: string;
 }
 
 export interface ScriptElementProps {
