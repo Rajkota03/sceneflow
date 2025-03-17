@@ -46,6 +46,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     <div 
       style={style} 
       className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
+      data-font="courier-final-draft"
     >
       {children}
     </div>

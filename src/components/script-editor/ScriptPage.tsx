@@ -44,16 +44,16 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
       transform: `scale(${formatState.zoomLevel})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+      fontFamily: '"Courier Final Draft", "Courier Prime", monospace'
     }}>
       <div className="script-page-content" style={{
-        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
         fontSize: '12pt',
         position: 'relative'
       }}>
         {/* Page number positioned inside the page */}
         <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: "Courier Final Draft, Courier Prime, monospace",
+          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           fontSize: "12pt",
         }}>
           {currentPage}
