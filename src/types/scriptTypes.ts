@@ -14,6 +14,7 @@ export interface TagManagerProps {
   activeFilter?: string | null;
   activeActFilter?: ActType | null;
   projectName?: string;
+  structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
 }

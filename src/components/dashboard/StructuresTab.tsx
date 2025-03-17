@@ -1,161 +1,289 @@
 
-import React, { useState } from 'react';
-import { Structure } from '@/types/scriptTypes';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import LoadingState from '@/components/dashboard/LoadingState';
-import EmptyState from '@/components/dashboard/EmptyState';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, GitFork, BookOpen, GitBranch } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import EmptyState from './EmptyState';
+import LoadingState from './LoadingState';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/App';
+import { toast } from '@/components/ui/use-toast';
+import { v4 as uuidv4 } from 'uuid';
+import { Structure } from '@/lib/types';
+import { Json } from '@/integrations/supabase/types';
 
-interface StructuresTabProps {
-  structures: Structure[];
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  isLoading: boolean;
-  handleCreateStructure: () => void;
-  handleEditStructure: (id: string) => void;
-  handleDeleteStructure: (id: string) => Promise<void>;
-}
+const StructuresTab = () => {
+  const { session } = useAuth();
+  const [structures, setStructures] = useState<Structure[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [newStructureName, setNewStructureName] = useState('');
+  const [newStructureDescription, setNewStructureDescription] = useState('');
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-const StructuresTab: React.FC<StructuresTabProps> = ({
-  structures,
-  searchQuery,
-  setSearchQuery,
-  isLoading,
-  handleCreateStructure,
-  handleEditStructure,
-  handleDeleteStructure
-}) => {
-  const { toast } = useToast();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  // Filter structures based on search query
-  const filteredStructures = structures.filter(structure => 
-    structure.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const confirmDelete = async (id: string) => {
-    setDeletingId(id);
+  useEffect(() => {
+    if (!session) return;
+    
+    const fetchStructures = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data, error } = await supabase
+          .from('structures')
+          .select('*')
+          .eq('author_id', session.user.id);
+          
+        if (error) throw error;
+        
+        if (data) {
+          const structuresData: Structure[] = data.map(item => {
+            // Safely parse the acts JSON data
+            let parsedActs = [];
+            try {
+              if (typeof item.acts === 'string') {
+                parsedActs = JSON.parse(item.acts);
+              } else if (item.acts && typeof item.acts === 'object') {
+                parsedActs = item.acts as any[];
+              }
+            } catch (e) {
+              console.error('Error parsing acts data:', e);
+              parsedActs = [];
+            }
+            
+            return {
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              acts: parsedActs,
+              createdAt: new Date(item.created_at),
+              updatedAt: new Date(item.updated_at)
+            };
+          });
+          
+          setStructures(structuresData);
+        }
+      } catch (err) {
+        console.error('Error fetching structures:', err);
+        toast({
+          title: 'Error loading structures',
+          description: 'Failed to load your structures. Please try again.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchStructures();
+  }, [session]);
+  
+  const handleCreateStructure = async () => {
+    if (!session || !newStructureName.trim()) return;
+    
     try {
-      await handleDeleteStructure(id);
+      const newStructureId = `structure-${uuidv4()}`;
+      
+      const { error } = await supabase
+        .from('structures')
+        .insert({
+          id: newStructureId,
+          name: newStructureName.trim(),
+          description: newStructureDescription.trim(),
+          author_id: session.user.id,
+          acts: JSON.stringify([]) as unknown as Json,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      
+      if (error) throw error;
+      
+      // Add to local state
+      setStructures([
+        ...structures,
+        {
+          id: newStructureId,
+          name: newStructureName.trim(),
+          description: newStructureDescription.trim(),
+          acts: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ]);
+      
+      // Reset form
+      setNewStructureName('');
+      setNewStructureDescription('');
+      setCreateDialogOpen(false);
+      
       toast({
-        title: "Structure deleted",
-        description: "The structure has been successfully deleted.",
+        title: 'Structure created',
+        description: 'Your new structure has been created successfully.',
       });
-    } catch (error) {
-      console.error("Error deleting structure:", error);
+    } catch (err) {
+      console.error('Error creating structure:', err);
       toast({
-        title: "Error",
-        description: "Failed to delete the structure. Please try again.",
-        variant: "destructive",
+        title: 'Error creating structure',
+        description: 'Failed to create the structure. Please try again.',
+        variant: 'destructive',
       });
-    } finally {
-      setDeletingId(null);
     }
   };
-
-  return (
-    <>
-      <DashboardHeader 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onCreateNewProject={handleCreateStructure}
-        projectType="structure"
-        customCreateButton={
-          <Button onClick={handleCreateStructure}>Create New Structure</Button>
-        }
-      />
+  
+  const handleDeleteStructure = async (id: string) => {
+    if (!session) return;
+    
+    try {
+      const { error } = await supabase
+        .from('structures')
+        .delete()
+        .eq('id', id);
       
-      {isLoading ? (
-        <LoadingState />
-      ) : filteredStructures.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-          {filteredStructures.map((structure) => (
-            <Card key={structure.id} className="flex flex-col">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg font-semibold line-clamp-1">{structure.name}</CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground mt-1">
-                      {structure.acts?.length || 0} acts, {structure.acts?.reduce((sum, act) => sum + act.beats.length, 0) || 0} beats
-                    </CardDescription>
-                  </div>
-                  <GitBranch className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {structure.description || "No description provided."}
-                </p>
-              </CardContent>
-              
-              <CardFooter className="pt-2 flex justify-between items-center border-t">
-                <div className="text-xs text-muted-foreground">
-                  Updated {formatDistanceToNow(new Date(structure.updatedAt), { addSuffix: true })}
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleEditStructure(structure.id)}
-                  >
-                    <Pencil className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Structure</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{structure.name}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={() => confirmDelete(structure.id)}
-                          className="bg-destructive text-destructive-foreground"
-                        >
-                          {deletingId === structure.id ? (
-                            <span className="flex items-center">
-                              <span className="animate-spin h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full"></span>
-                              Deleting...
-                            </span>
-                          ) : (
-                            "Delete"
-                          )}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <EmptyState 
-          searchQuery={searchQuery}
-          clearSearch={() => setSearchQuery('')}
-          createNewProject={handleCreateStructure}
-          emptyMessage="No structures yet"
-          createMessage="Create your first structure"
-        />
-      )}
-    </>
+      if (error) throw error;
+      
+      // Remove from local state
+      setStructures(structures.filter(structure => structure.id !== id));
+      
+      toast({
+        title: 'Structure deleted',
+        description: 'The structure has been deleted successfully.',
+      });
+    } catch (err) {
+      console.error('Error deleting structure:', err);
+      toast({
+        title: 'Error deleting structure',
+        description: 'Failed to delete the structure. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  if (isLoading) {
+    return <LoadingState message="Loading your structures..." />;
+  }
+  
+  if (structures.length === 0) {
+    return (
+      <EmptyState
+        title="No structures yet"
+        description="Create a story structure to organize your screenplay beats."
+        actionLabel="Create Structure"
+        actionIcon={<Plus size={16} />}
+        onAction={() => setCreateDialogOpen(true)}
+      >
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Structure</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={newStructureName}
+                  onChange={(e) => setNewStructureName(e.target.value)}
+                  placeholder="Three Act Structure"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newStructureDescription}
+                  onChange={(e) => setNewStructureDescription(e.target.value)}
+                  placeholder="A traditional structure with three acts: Setup, Confrontation, and Resolution."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleCreateStructure}>Create Structure</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </EmptyState>
+    );
+  }
+  
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Your Structures</h2>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus size={16} className="mr-2" />
+              New Structure
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Structure</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={newStructureName}
+                  onChange={(e) => setNewStructureName(e.target.value)}
+                  placeholder="Three Act Structure"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newStructureDescription}
+                  onChange={(e) => setNewStructureDescription(e.target.value)}
+                  placeholder="A traditional structure with three acts: Setup, Confrontation, and Resolution."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={handleCreateStructure}>Create Structure</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {structures.map((structure) => (
+          <Card key={structure.id} className="flex flex-col">
+            <CardHeader>
+              <CardTitle>{structure.name}</CardTitle>
+              {structure.description && (
+                <CardDescription>{structure.description}</CardDescription>
+              )}
+            </CardHeader>
+            <CardContent className="flex-grow">
+              <div className="text-sm text-gray-500">
+                {structure.acts.length} {structure.acts.length === 1 ? 'Act' : 'Acts'}
+              </div>
+              <div className="mt-2 text-sm text-gray-500">
+                Created: {structure.createdAt.toLocaleDateString()}
+              </div>
+            </CardContent>
+            <CardFooter className="border-t pt-4 flex justify-between">
+              <Button variant="outline" size="sm">
+                <Edit size={16} className="mr-2" />
+                Edit
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleDeleteStructure(structure.id)}
+              >
+                <Trash2 size={16} className="mr-2" />
+                Delete
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };
 

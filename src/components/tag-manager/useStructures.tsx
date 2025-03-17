@@ -7,6 +7,7 @@ export interface StructureInfo {
   id: string;
   name: string;
   description?: string;
+  isLinked?: boolean;
 }
 
 const useStructures = (projectId?: string) => {

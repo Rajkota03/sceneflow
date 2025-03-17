@@ -13,6 +13,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeFilter,
   activeActFilter,
   projectName,
+  structureName,
   beatMode = 'on',
   onToggleBeatMode,
 }) => {
