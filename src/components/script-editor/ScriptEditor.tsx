@@ -13,9 +13,10 @@ import { useScriptEditing } from '@/hooks/useScriptEditing';
 import { useBeatTagging } from '@/hooks/useBeatTagging';
 import { useTagFiltering } from '@/hooks/useTagFiltering';
 import EditorInitializer from './EditorInitializer';
+import { convertLibToScriptTypes, convertStructures } from '@/utils/typeAdapter';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContent;
+  initialContent: any; // Accept any content and convert it appropriately
   onChange: (content: ScriptContent) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
@@ -39,18 +40,28 @@ const ScriptEditor = ({
   onStructureChange,
   selectedStructureId,
 }: ScriptEditorProps) => {
+  // Convert initialContent to ScriptContent if needed
+  const scriptContent = 'elements' in initialContent ? 
+    initialContent as ScriptContent : 
+    convertLibToScriptTypes(initialContent);
+  
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
 
   // Get structures data
   const { 
-    structures, 
+    structures: libStructures, 
     selectedStructureId: projectSelectedStructureId, 
-    selectedStructure,
+    selectedStructure: libSelectedStructure,
     handleStructureChange: changeSelectedStructure,
     updateBeatCompletion,
     saveBeatCompletion
   } = useProjectStructures(projectId);
+
+  // Convert lib structures to script structures
+  const structures = libStructures ? convertStructures(libStructures) : [];
+  const selectedStructure = libSelectedStructure ? 
+    convertStructures([libSelectedStructure])[0] : null;
 
   // Get script elements
   const {
@@ -62,7 +73,7 @@ const ScriptEditor = ({
     getPreviousElementType,
     addNewElement,
     changeElementType
-  } = useScriptElements(initialContent, onChange);
+  } = useScriptElements(scriptContent, onChange);
 
   // Get character names from the script
   const characterNames = useCharacterNames(elements);

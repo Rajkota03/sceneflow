@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ScriptEditor from '../components/script-editor/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '@/types/scriptTypes';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit, Pencil } from 'lucide-react';
@@ -13,13 +13,14 @@ import { FormatProvider } from '@/lib/formatContext';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import TitlePageView from '@/components/TitlePageView';
-import { TitlePageData } from '@/components/TitlePageEditor';
+import { TitlePageData } from '@/types/scriptTypes';
 import { Json } from '@/integrations/supabase/types';
 import NotesMenu from '@/components/notes/NotesMenu';
 import NoteWindow from '@/components/notes/NoteWindow';
 import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
 import NoteEditor from '@/components/notes/NoteEditor';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { convertLibToScriptTypes, convertScriptToLibTypes } from '@/utils/typeAdapter';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();

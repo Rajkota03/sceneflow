@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent, ActType } from '@/types/scriptTypes';
-import { ActCountsRecord } from '@/types/scriptTypes';
+import { ScriptContent, ActType, ActCountsRecord } from '@/types/scriptTypes';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -29,7 +28,7 @@ const useActCounts = (scriptContent: ScriptContent) => {
     };
 
     scriptContent.elements.forEach(element => {
-      if (element.type === 'scene-heading' && element.tags) {
+      if (element.type === ElementType.SCENE_HEADING && element.tags) {
         element.tags.forEach(tag => {
           tags.add(tag);
           

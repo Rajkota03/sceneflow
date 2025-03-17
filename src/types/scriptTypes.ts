@@ -23,11 +23,11 @@ export enum ElementType {
 }
 
 export enum ActType {
-  ACT_1 = 'act-1',
-  ACT_2A = 'act-2a',
+  ACT_1 = 'act1',
+  ACT_2A = 'act2a',
   MIDPOINT = 'midpoint',
-  ACT_2B = 'act-2b',
-  ACT_3 = 'act-3'
+  ACT_2B = 'act2b',
+  ACT_3 = 'act3'
 }
 
 export interface Project {
@@ -56,6 +56,8 @@ export interface Structure {
   updated_at: string;
   acts?: Act[];
   structure_type?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Act {
@@ -65,6 +67,9 @@ export interface Act {
   title: string;
   order: number;
   beats?: Beat[];
+  colorHex?: string;
+  startPosition?: number;
+  endPosition?: number;
 }
 
 export interface Beat {
@@ -74,6 +79,10 @@ export interface Beat {
   description: string;
   order: number;
   is_complete?: boolean;
+  timePosition?: number;
+  pageRange?: string;
+  complete?: boolean;
+  notes?: string;
 }
 
 export function jsonToScriptContent(json: any): ScriptContent {
@@ -132,4 +141,66 @@ export interface TagManagerProps {
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
   selectedStructure?: Structure | null;
+}
+
+// Add ThreeActStructure type from lib/types.ts
+export interface ThreeActStructure {
+  id: string;
+  name: string;
+  acts: {
+    setup: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+    confrontation: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+    resolution: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+  };
+}
+
+// Add TitlePageData for consistency
+export interface TitlePageData {
+  title: string;
+  author: string;
+  contact: string;
+  basedOn?: string;
+}
+
+// Add ScriptElementProps for EditorElement component
+export interface ScriptElementProps {
+  element: ScriptElement;
+  previousElementType?: ElementType;
+  onChange: (id: string, text: string, type: ElementType) => void;
+  onFocus: () => void;
+  isActive: boolean;
+  onNavigate: (direction: 'up' | 'down', id: string) => void;
+  onEnterKey: (id: string, shiftKey: boolean) => void;
+  onFormatChange: (id: string, newType: ElementType) => void;
+  onTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  projectId?: string;
+  beatMode?: BeatMode;
+  structures?: Structure[];
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }

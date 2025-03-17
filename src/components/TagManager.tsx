@@ -1,7 +1,7 @@
+
 import React, { useState } from 'react';
-import { ActType, Structure } from '@/types/scriptTypes';
+import { ActType, Structure, ScriptContent, BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import ActBar from './ActBar';
-import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
 import StructureSelector from './tag-manager/StructureSelector';
@@ -238,7 +238,7 @@ const TagManager: React.FC<TagManagerProps> = ({
                 
                 {onFilterByAct && (
                   <ActBar 
-                    activeAct={activeActFilter || null} 
+                    activeAct={activeActFilter} 
                     onSelectAct={handleActFilter} 
                     actCounts={actCounts}
                     projectName={projectName}

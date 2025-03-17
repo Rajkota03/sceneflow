@@ -12,7 +12,7 @@ import {
   DropdownMenuGroup
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { Structure, ActType } from '@/lib/types';
+import { Structure, ActType } from '@/types/scriptTypes';
 
 interface SceneTagButtonProps {
   onTagSelect: (tagType: string, actType?: ActType, beatId?: string) => void;
