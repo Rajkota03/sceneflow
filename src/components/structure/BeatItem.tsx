@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Act, Beat } from '@/lib/models/structureModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,11 +25,25 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   onSave,
   onCancel
 }) => {
-  const [editedBeat, setEditedBeat] = useState<Beat>({ ...beat });
+  // Local state for editing
+  const [title, setTitle] = useState(beat.title);
+  const [description, setDescription] = useState(beat.description);
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   
+  // Reset local state when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      setTitle(beat.title);
+      setDescription(beat.description);
+    }
+  }, [isEditing, beat]);
+  
   const handleSave = () => {
-    onSave(editedBeat);
+    onSave({
+      ...beat,
+      title,
+      description
+    });
   };
   
   const toggleNotes = () => {
@@ -41,17 +56,11 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   };
   
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditedBeat({
-      ...editedBeat,
-      title: e.target.value
-    });
+    setTitle(e.target.value);
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedBeat({
-      ...editedBeat,
-      description: e.target.value
-    });
+    setDescription(e.target.value);
   };
   
   if (isEditing) {
@@ -64,7 +73,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
             </label>
             <Input 
               id="beat-title"
-              value={editedBeat.title} 
+              value={title} 
               onChange={handleTitleChange}
               className="border-slate-200"
               placeholder="Enter beat title..."
@@ -76,9 +85,9 @@ export const BeatItem: React.FC<BeatItemProps> = ({
             </label>
             <Textarea 
               id="beat-description"
-              value={editedBeat.description} 
+              value={description} 
               onChange={handleDescriptionChange}
-              className="border-slate-200 min-h-[80px]"
+              className="border-slate-200 min-h-[120px]"
               placeholder="Enter beat description... (Press Enter for new lines)"
             />
           </div>

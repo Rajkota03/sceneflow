@@ -16,18 +16,34 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
   setEditingBeat,
   handleSaveBeat
 }) => {
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Use local state for better input handling
+  const [title, setTitle] = React.useState(editingBeat.beat.title);
+  const [description, setDescription] = React.useState(editingBeat.beat.description);
+
+  // Update local state when editingBeat changes
+  React.useEffect(() => {
+    setTitle(editingBeat.beat.title);
+    setDescription(editingBeat.beat.description);
+  }, [editingBeat.beat.id]);
+
+  // Update parent state when inputs change
+  React.useEffect(() => {
     setEditingBeat({
       ...editingBeat,
-      beat: { ...editingBeat.beat, title: e.target.value }
+      beat: { 
+        ...editingBeat.beat, 
+        title, 
+        description 
+      }
     });
+  }, [title, description]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditingBeat({
-      ...editingBeat,
-      beat: { ...editingBeat.beat, description: e.target.value }
-    });
+    setDescription(e.target.value);
   };
 
   return (
@@ -38,7 +54,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
         </label>
         <Input 
           id="beat-title"
-          value={editingBeat.beat.title} 
+          value={title} 
           onChange={handleTitleChange}
           className="border-slate-200"
           placeholder="Enter beat title..."
@@ -50,9 +66,9 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
         </label>
         <Textarea 
           id="beat-description"
-          value={editingBeat.beat.description} 
+          value={description} 
           onChange={handleDescriptionChange}
-          className="border-slate-200 min-h-[80px]"
+          className="border-slate-200 min-h-[120px]"
           placeholder="Enter beat description... (Press Enter for new lines)"
         />
       </div>
