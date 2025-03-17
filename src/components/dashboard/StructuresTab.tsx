@@ -1,20 +1,11 @@
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import EmptyState from './EmptyState';
 import LoadingState from './LoadingState';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/App';
-import { toast } from '@/components/ui/use-toast';
-import { v4 as uuidv4 } from 'uuid';
-import { Structure, Act } from '@/lib/types';
-import { Json } from '@/integrations/supabase/types';
+import { Structure } from '@/lib/types';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -26,7 +17,7 @@ interface StructuresTabProps {
   handleDeleteStructure: (id: string) => Promise<void>;
 }
 
-const StructuresTab = ({
+const StructuresTab: React.FC<StructuresTabProps> = ({
   structures,
   searchQuery,
   setSearchQuery,
@@ -34,11 +25,13 @@ const StructuresTab = ({
   handleCreateStructure,
   handleEditStructure,
   handleDeleteStructure
-}: StructuresTabProps) => {
+}) => {
+  // If loading, show loading state
   if (isLoading) {
     return <LoadingState message="Loading your structures..." />;
   }
   
+  // If no structures or filtered results, show empty state
   if (structures.length === 0) {
     return (
       <EmptyState
@@ -47,10 +40,13 @@ const StructuresTab = ({
         actionLabel="Create Structure"
         actionIcon={<Plus size={16} />}
         onAction={handleCreateStructure}
+        searchQuery={searchQuery}
+        clearSearch={() => setSearchQuery('')}
       />
     );
   }
   
+  // Show structures grid
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
