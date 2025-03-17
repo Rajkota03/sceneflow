@@ -33,7 +33,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     }
   };
 
-  if (!selectedStructure || !selectedStructure.acts || selectedStructure.acts.length === 0) {
+  if (!selectedStructure || !selectedStructure.acts || !Array.isArray(selectedStructure.acts) || selectedStructure.acts.length === 0) {
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
@@ -63,15 +63,15 @@ const SceneTags: React.FC<SceneTagsProps> = ({
           <div className="space-y-2">
             {selectedStructure.acts.map((act) => (
               <div key={act.id} className="space-y-1">
-                <h4 className="text-xs font-medium text-gray-600">{act.name}</h4>
+                <h4 className="text-xs font-medium text-gray-600">{act.title || act.id}</h4>
                 <div className="grid grid-cols-1 gap-1">
-                  {act.beats.map((beat) => (
+                  {Array.isArray(act.beats) && act.beats.map((beat) => (
                     <button
                       key={beat.id}
                       onClick={() => handleTagClick(beat.id, act.id)}
                       className="text-xs py-1 px-2 text-left hover:bg-gray-100 rounded transition-colors w-full truncate"
                     >
-                      {beat.name}
+                      {beat.title || beat.id}
                     </button>
                   ))}
                 </div>
