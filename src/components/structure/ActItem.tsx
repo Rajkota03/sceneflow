@@ -38,14 +38,17 @@ export const ActItem: React.FC<ActItemProps> = ({
   editingBeat,
   sensors
 }) => {
+  // Count beats in this act for the badge display
+  const beatCount = act.beats.length;
+  
   return (
     <Card 
       key={act.id} 
-      className="border-l-4 overflow-hidden transition-all duration-200 hover:shadow-md"
+      className="border-l-4 overflow-hidden transition-all duration-200 hover:shadow-md mb-4"
       style={{ borderLeftColor: act.colorHex }}
     >
       <div 
-        className="flex items-center justify-between p-4 cursor-pointer"
+        className="flex items-center justify-between p-4 cursor-pointer bg-slate-50"
         onClick={() => toggleActExpansion(act.id)}
       >
         <div className="flex items-center">
@@ -54,10 +57,17 @@ export const ActItem: React.FC<ActItemProps> = ({
             <ChevronDown className="h-5 w-5 mr-3 text-slate-400" />
           }
           <div>
-            <CardTitle className="text-lg font-medium text-slate-800">{act.title}</CardTitle>
-            <p className="text-sm text-slate-500 mt-1">
-              Pages: <span className="font-medium">TBD</span>
-            </p>
+            <CardTitle className="text-lg font-semibold text-slate-800">{act.title}</CardTitle>
+            <div className="flex items-center mt-1">
+              <span className="text-sm text-slate-500 mr-2">
+                {act.startPosition}% - {act.endPosition}%
+              </span>
+              {beatCount > 0 && (
+                <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full">
+                  {beatCount} Beat{beatCount !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -87,7 +97,7 @@ export const ActItem: React.FC<ActItemProps> = ({
       </div>
 
       {expandedActs[act.id] && (
-        <CardContent className="pt-0 pb-4">
+        <CardContent className="pt-4 pb-4 bg-white">
           {editingAct && editingAct.id === act.id ? (
             <ActEditForm 
               editingAct={editingAct} 
@@ -95,7 +105,7 @@ export const ActItem: React.FC<ActItemProps> = ({
               handleSaveAct={handleSaveAct} 
             />
           ) : (
-            <div className="space-y-2 mt-4">
+            <div className="space-y-2">
               <BeatList 
                 act={act}
                 editingBeat={editingBeat}

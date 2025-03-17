@@ -9,6 +9,7 @@ import { ActList } from './ActList';
 import { BeatEditor } from './BeatEditor';
 import { useDragEndHandler } from './hooks/useDragEndHandler';
 import { useSensors } from './hooks/useSensors';
+import { StructureProgress } from './StructureProgress';
 
 interface StructureEditorProps {
   structure: Structure;
@@ -160,6 +161,9 @@ const StructureEditor: React.FC<StructureEditorProps> = ({
   return (
     <div className="space-y-6">
       <StructureMetadata structure={structure} onChange={onChange} />
+      
+      {/* Add the new progress bar component */}
+      <StructureProgress structure={structure} />
 
       <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-4">
         <h2 className="text-xl font-semibold text-slate-800">Acts & Beats</h2>

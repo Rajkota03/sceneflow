@@ -20,6 +20,11 @@ export async function deleteStructure(id: string): Promise<boolean> {
     
     if (error) throw error;
     
+    toast({
+      title: 'Structure deleted',
+      description: 'The structure has been permanently removed.',
+    });
+    
     return true;
   } catch (error) {
     console.error('Error deleting structure:', error);

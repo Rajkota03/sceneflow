@@ -4,7 +4,7 @@ import { Act, Beat } from '@/lib/models/structureModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Trash2, GripVertical } from 'lucide-react';
+import { Edit, Trash2, GripVertical, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface BeatItemProps {
   act: Act;
@@ -24,11 +24,16 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   onSave
 }) => {
   const [editedBeat, setEditedBeat] = useState<Beat>({ ...beat });
+  const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   
   const handleSave = () => {
     if (onSave) {
       onSave(editedBeat);
     }
+  };
+  
+  const toggleNotes = () => {
+    setIsNotesExpanded(!isNotesExpanded);
   };
   
   if (isEditing) {
@@ -79,47 +84,84 @@ export const BeatItem: React.FC<BeatItemProps> = ({
     );
   }
   
+  // Calculate a specific background color based on the act color for a softer look
+  const getBeatBackground = () => {
+    // Add some transparency to the act color for a more subtle effect
+    const hexColor = act.colorHex;
+    return `${hexColor}15`; // 15 is hex for ~8% opacity
+  };
+  
+  const hasNotes = beat.description && beat.description.trim() !== '';
+  
   return (
-    <div className="border rounded-lg p-4 bg-white hover:bg-slate-50 transition-colors group">
-      <div className="flex items-center justify-between group">
-        <div className="flex items-center flex-1">
-          <GripVertical className="h-5 w-5 text-slate-400 mr-3 cursor-move opacity-50 group-hover:opacity-100" />
-          <div className="flex-1">
-            <div className="flex items-center mb-1">
-              <h4 className="font-medium text-slate-800">{beat.title}</h4>
-              <span className="ml-2 text-xs px-2 py-1 bg-slate-100 text-slate-600 rounded-full">
-                Page TBD
-              </span>
+    <div 
+      className="border rounded-lg mb-2 bg-white hover:bg-slate-50 transition-colors group overflow-hidden"
+      style={{ borderLeft: `3px solid ${act.colorHex}` }}
+    >
+      <div className="p-4">
+        <div className="flex items-center justify-between group">
+          <div className="flex items-center flex-1">
+            <GripVertical className="h-5 w-5 text-slate-400 mr-3 cursor-move opacity-50 group-hover:opacity-100" />
+            <div className="flex-1">
+              <div className="flex items-center mb-1">
+                <h4 className="font-medium text-slate-800">{beat.title}</h4>
+                <span 
+                  className="ml-2 text-xs px-2 py-1 rounded-full text-slate-700"
+                  style={{ backgroundColor: getBeatBackground() }}
+                >
+                  {Math.round(beat.timePosition)}%
+                </span>
+              </div>
             </div>
-            {beat.description && (
-              <p className="text-sm text-slate-600">{beat.description}</p>
+          </div>
+          <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {hasNotes && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 rounded-full hover:bg-slate-100"
+                onClick={toggleNotes}
+              >
+                {isNotesExpanded ? 
+                  <ChevronUp className="h-4 w-4 text-slate-600" /> : 
+                  <ChevronDown className="h-4 w-4 text-slate-600" />
+                }
+              </Button>
             )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 rounded-full hover:bg-slate-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+            >
+              <Edit className="h-4 w-4 text-slate-600" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 rounded-full hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
           </div>
         </div>
-        <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 rounded-full hover:bg-slate-100"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-          >
-            <Edit className="h-4 w-4 text-slate-600" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 rounded-full hover:bg-red-50"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-          >
-            <Trash2 className="h-4 w-4 text-red-500" />
-          </Button>
-        </div>
+        
+        {/* Collapsible notes section */}
+        {hasNotes && isNotesExpanded && (
+          <div className="mt-3 pt-3 border-t border-dashed border-slate-200">
+            <div className="flex items-start">
+              <MessageSquare className="h-4 w-4 text-slate-400 mt-0.5 mr-2" />
+              <p className="text-sm text-slate-600">{beat.description}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
