@@ -30,6 +30,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
             beat: { ...editingBeat.beat, title: e.target.value }
           })} 
           className="border-slate-200"
+          placeholder="Enter beat title..."
         />
       </div>
       <div>
@@ -45,6 +46,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
           })} 
           rows={3}
           className="border-slate-200 min-h-[80px]"
+          placeholder="Enter beat description..."
         />
       </div>
       <div className="flex justify-end space-x-2">
