@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Edit, Save, Check } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import LoadingState from '@/components/dashboard/LoadingState';
+import Logo from '@/components/Logo';
 
 const StructureEditor = () => {
   const { structureId } = useParams<{ structureId: string }>();
@@ -149,73 +151,72 @@ const StructureEditor = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md">
-        <div className="container mx-auto py-6 px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/dashboard')}
-                className="text-white hover:bg-blue-700/30"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </div>
-            <div className="flex-1 mx-4 flex items-center justify-center">
-              {isEditingName ? (
-                <div className="flex items-center gap-2 max-w-md w-full">
-                  <Input 
-                    ref={nameInputRef}
-                    value={structureName}
-                    onChange={(e) => setStructureName(e.target.value)}
-                    className="bg-blue-700/30 border-blue-500 text-white placeholder-blue-300 focus-visible:ring-blue-500"
-                    placeholder="Structure name"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSaveStructureName();
-                      } else if (e.key === 'Escape') {
-                        setIsEditingName(false);
-                        setStructureName(structure?.name || '');
-                      }
-                    }}
-                  />
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleSaveStructureName}
-                    disabled={isSaving}
-                    className="text-white hover:bg-blue-700/30"
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div 
-                  className="group flex items-center cursor-pointer" 
-                  onClick={() => setIsEditingName(true)}
+    <div className="min-h-screen bg-gray-50">
+      {/* Modern minimalist header */}
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigate('/dashboard')}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div className="h-5 w-px bg-gray-200"></div>
+            <Logo size="sm" />
+          </div>
+
+          <div className="flex-1 max-w-md mx-4">
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input 
+                  ref={nameInputRef}
+                  value={structureName}
+                  onChange={(e) => setStructureName(e.target.value)}
+                  className="border-gray-300 focus-visible:ring-indigo-500"
+                  placeholder="Structure name"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSaveStructureName();
+                    } else if (e.key === 'Escape') {
+                      setIsEditingName(false);
+                      setStructureName(structure?.name || '');
+                    }
+                  }}
+                />
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleSaveStructureName}
+                  disabled={isSaving}
+                  className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
                 >
-                  <h1 className="text-2xl font-bold tracking-tight">
-                    {structure?.name || 'Loading...'}
-                  </h1>
-                  <Edit className="h-4 w-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              )}
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-24"></div>
-            </div>
+                  <Check className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div 
+                className="group flex items-center cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100" 
+                onClick={() => setIsEditingName(true)}
+              >
+                <h1 className="text-lg font-medium text-gray-800">
+                  {structure?.name || 'Loading...'}
+                </h1>
+                <Edit className="h-3.5 w-3.5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500" />
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto py-8 px-4">
+      <main className="container mx-auto py-8 px-4">
         {loading ? (
           <LoadingState />
         ) : structure ? (
-          <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <StructurePanel 
               structure={structure} 
               onStructureUpdate={handleUpdateStructure}
@@ -232,7 +233,7 @@ const StructureEditor = () => {
             </Button>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

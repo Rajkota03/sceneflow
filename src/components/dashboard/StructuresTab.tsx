@@ -47,7 +47,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
           <DropdownMenuTrigger asChild>
             <Button className="bg-indigo-600 hover:bg-indigo-700">
               <PlusCircle className="h-4 w-4 mr-2" />
-              Create New
+              Create Structure
               <ChevronDown className="h-4 w-4 ml-2" />
             </Button>
           </DropdownMenuTrigger>

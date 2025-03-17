@@ -114,9 +114,10 @@ export interface Project {
   id: string;
   title: string;
   content: ScriptContent;
-  updated_at: Date;
-  created_at: Date;
+  updated_at: string; // Changed from Date to string to match what's coming from the DB
+  created_at: string; // Changed from Date to string to match what's coming from the DB
   user_id?: string;
+  author_id?: string; // Added this field that appears in the database
 }
 
 export interface TitlePageData {
