@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Act, Beat } from '@/lib/models/structureModel';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
-import { ActItem } from './ActItem';
+import { ActItem } from './act/ActItem';
 
 interface ActListProps {
   acts: Act[];
