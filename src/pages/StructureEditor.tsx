@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,7 @@ const StructureEditor = () => {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [structureName, setStructureName] = useState('Save the Cat Beats');
+  const [structureName, setStructureName] = useState('Three Act Structure');
   const [isSaving, setIsSaving] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -61,7 +60,7 @@ const StructureEditor = () => {
         
         const formattedStructure: Structure = {
           id: data.id,
-          name: data.name || 'Save the Cat Beats', // Default to Save the Cat Beats if name is missing
+          name: data.name || 'Three Act Structure',
           description: data.description || undefined,
           acts: actsData,
           createdAt: new Date(data.created_at),
@@ -122,8 +121,7 @@ const StructureEditor = () => {
 
   const handleUpdateStructure = async (updatedStructure: Structure) => {
     try {
-      // Ensure the structure name is properly set
-      updatedStructure.name = 'Save the Cat Beats';
+      updatedStructure.name = 'Three Act Structure';
       
       const beatsData = JSON.stringify({ acts: updatedStructure.acts });
       
@@ -206,7 +204,6 @@ const StructureEditor = () => {
               )}
             </div>
             <div className="flex-shrink-0">
-              {/* Right side placeholder for balance */}
               <div className="w-24"></div>
             </div>
           </div>
@@ -240,4 +237,3 @@ const StructureEditor = () => {
 };
 
 export default StructureEditor;
-

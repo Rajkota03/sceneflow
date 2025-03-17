@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Structure, Act, Beat } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
@@ -17,7 +16,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   const [hasChanges, setHasChanges] = useState(false);
   
   useEffect(() => {
-    // Initialize with all acts expanded
     const initialExpandedState: Record<string, boolean> = {};
     structure.acts.forEach(act => {
       initialExpandedState[act.id] = true;
@@ -26,7 +24,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   }, [structure.acts]);
 
   useEffect(() => {
-    // Reset local structure when the prop changes
     setLocalStructure(structure);
     setHasChanges(false);
   }, [structure]);
@@ -38,7 +35,6 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
     }));
   };
   
-  // Calculate overall progress
   const calculateProgress = () => {
     const totalBeats = localStructure.acts.reduce((sum, act) => sum + act.beats.length, 0);
     const completeBeats = localStructure.acts.reduce((sum, act) => 
@@ -113,13 +109,12 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   };
   
   const resetToDefaultStructure = () => {
-    // Create a true Save the Cat structure with a single "flat" act containing all beats
-    const saveCatBeats: Act = {
+    const act1: Act = {
       id: uuidv4(),
-      title: "📌 Save the Cat Beats",
+      title: "Act 1: Setup",
       colorHex: "#3b82f6", // blue
       startPosition: 0,
-      endPosition: 100,
+      endPosition: 25,
       beats: [
         {
           id: uuidv4(),
@@ -160,12 +155,22 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
         {
           id: uuidv4(),
           title: "🔹 1st Plot Point (Page X-Y)",
-          description: "🚪 Marks the transition from Act 1 to Act 2A.",
+          description: "🚪 Marks the transition from Act 1 to Act 2.",
           timePosition: 24,
           pageRange: "X-Y",
           complete: false,
           notes: "The point of no return."
         },
+      ]
+    };
+    
+    const act2: Act = {
+      id: uuidv4(),
+      title: "Act 2: Confrontation",
+      colorHex: "#f59e0b", // amber
+      startPosition: 25,
+      endPosition: 75,
+      beats: [
         {
           id: uuidv4(),
           title: "🔹 1st Pinch Point (Page X-Y)",
@@ -193,11 +198,21 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           complete: false,
           notes: "Antagonist strengthens or executes a major move."
         },
+      ]
+    };
+    
+    const act3: Act = {
+      id: uuidv4(),
+      title: "Act 3: Resolution",
+      colorHex: "#ef4444", // red
+      startPosition: 75,
+      endPosition: 100,
+      beats: [
         {
           id: uuidv4(),
           title: "🔹 Renewed Push (Page X-Y)",
           description: "💥 The protagonist starts taking charge and moving toward the final battle.",
-          timePosition: 72,
+          timePosition: 78,
           pageRange: "X-Y",
           complete: false,
           notes: "Shifts from reaction to action."
@@ -206,7 +221,7 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
           id: uuidv4(),
           title: "🔹 3rd Plot Point (Page X-Y)",
           description: "🌑 A dark moment—the protagonist faces a major loss or setback.",
-          timePosition: 78,
+          timePosition: 85,
           pageRange: "X-Y",
           complete: false,
           notes: "The antagonist gains the upper hand."
@@ -232,25 +247,25 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
       ]
     };
 
-    // Update with default structure - with a single act containing all beats
     const updatedStructure = {
       ...localStructure,
-      name: "Save the Cat Beats",
-      acts: [saveCatBeats]
+      name: "Three Act Structure",
+      acts: [act1, act2, act3]
     };
     
     setLocalStructure(updatedStructure);
     setHasChanges(true);
     
-    // Open the act
     const allOpen: Record<string, boolean> = {};
-    allOpen[saveCatBeats.id] = true;
+    [act1.id, act2.id, act3.id].forEach(id => {
+      allOpen[id] = true;
+    });
     setExpandedActs(allOpen);
   };
   
   const cancelEditing = () => {
     setIsEditing(false);
-    setLocalStructure(structure); // Reset to original structure
+    setLocalStructure(structure);
     setHasChanges(false);
   };
 
