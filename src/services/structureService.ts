@@ -35,6 +35,8 @@ export async function getStructures(): Promise<Structure[]> {
 
 export async function getStructureById(id: string): Promise<Structure | null> {
   try {
+    console.log('Fetching structure with ID:', id);
+    
     const { data, error } = await supabase
       .from('structures')
       .select('*')
@@ -51,6 +53,8 @@ export async function getStructureById(id: string): Promise<Structure | null> {
     }
     
     if (!data) return null;
+    
+    console.log('Structure found:', data.id);
     
     return {
       id: data.id,
@@ -139,6 +143,8 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
       structure.id = uuidv4();
     }
     
+    console.log('Saving structure with ID:', structure.id);
+    
     // Ensure dates are set
     if (!structure.createdAt) {
       structure.createdAt = new Date();
@@ -167,6 +173,13 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
       console.error('Supabase error saving structure:', error);
       throw error;
     }
+    
+    if (!data) {
+      console.error('No data returned from structure upsert');
+      throw new Error('Failed to save structure');
+    }
+    
+    console.log('Structure saved successfully:', data.id);
     
     return {
       id: data.id,

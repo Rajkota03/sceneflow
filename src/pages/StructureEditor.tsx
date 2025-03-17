@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStructure } from '@/hooks/useStructure';
 import { ArrowLeft } from 'lucide-react';
@@ -21,14 +21,35 @@ const StructureEditorPage: React.FC = () => {
     updateStructure
   } = useStructure(undefined, structureId);
 
+  // Debug logging to trace structure loading
+  useEffect(() => {
+    if (error) {
+      console.error('Error loading structure:', error);
+    }
+    if (structure) {
+      console.log('Structure loaded successfully:', structure.id);
+    }
+  }, [structure, error]);
+
   const handleSave = async () => {
-    if (!structure) return;
+    if (!structure) {
+      console.error('Cannot save null structure');
+      return;
+    }
     
     try {
+      console.log('Saving structure:', structure);
       const saved = await saveStructure(structure);
+      console.log('Structure saved:', saved);
       
       if (structureId === 'new') {
+        // Ensure we have a valid ID before redirecting
+        if (!saved || !saved.id) {
+          throw new Error('Failed to get ID from saved structure');
+        }
+        
         // Redirect to the new structure's edit page
+        console.log('Redirecting to new structure:', saved.id);
         navigate(`/structure/${saved.id}`, { replace: true });
         toast({
           title: 'Structure created',

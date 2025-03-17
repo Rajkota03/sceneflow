@@ -25,7 +25,9 @@ export function useStructure(projectId?: string, structureId?: string) {
       try {
         if (structureId && structureId !== 'new') {
           // Load structure by ID
+          console.log('Attempting to load structure by ID:', structureId);
           const loadedStructure = await getStructureById(structureId);
+          console.log('Loaded structure by ID result:', loadedStructure ? 'Found' : 'Not Found');
           setStructure(loadedStructure);
           if (loadedStructure) {
             // Store initial structure JSON to compare for changes
@@ -33,13 +35,16 @@ export function useStructure(projectId?: string, structureId?: string) {
           }
         } else if (projectId) {
           // Load structure by project ID
+          console.log('Attempting to load structure by project ID:', projectId);
           const loadedStructure = await getStructureByProjectId(projectId);
+          console.log('Loaded structure by project ID result:', loadedStructure ? 'Found' : 'Not Found');
           setStructure(loadedStructure);
           if (loadedStructure) {
             lastSavedStructureRef.current = JSON.stringify(loadedStructure);
           }
         } else if (structureId === 'new') {
           // Create a new structure
+          console.log('Creating new default structure');
           const newStructure = createDefaultStructure();
           newStructure.id = uuidv4();
           newStructure.createdAt = new Date();
@@ -48,6 +53,7 @@ export function useStructure(projectId?: string, structureId?: string) {
           lastSavedStructureRef.current = JSON.stringify(newStructure);
         } else {
           // Default empty structure
+          console.log('Creating empty structure as fallback');
           const emptyStructure = createDefaultStructure();
           emptyStructure.id = uuidv4();
           emptyStructure.createdAt = new Date();
@@ -119,7 +125,9 @@ export function useStructure(projectId?: string, structureId?: string) {
             structureToSave.createdAt = new Date();
           }
           
+          console.log('Auto-saving structure:', structureToSave.id);
           const saved = await saveStructureToDb(structureToSave);
+          console.log('Auto-save complete, new ID:', saved.id);
           setStructure(saved);
           setLastSaved(new Date());
           // Update the last saved reference
@@ -152,11 +160,13 @@ export function useStructure(projectId?: string, structureId?: string) {
   const saveStructure = async (updatedStructure: Structure) => {
     // Immediate save for explicit save actions (like button clicks)
     if (isSaving) {
+      console.log('Save already in progress, ignoring request');
       return updatedStructure;
     }
     
     // Don't save if there are no changes
     if (!hasChanged(updatedStructure)) {
+      console.log('No changes detected, skipping save');
       return updatedStructure;
     }
     
@@ -175,17 +185,14 @@ export function useStructure(projectId?: string, structureId?: string) {
         updatedStructure.createdAt = new Date();
       }
       
+      console.log('Manually saving structure:', updatedStructure.id);
       const saved = await saveStructureToDb(updatedStructure);
+      console.log('Manual save complete, ID:', saved.id);
       setStructure(saved);
       setLastSaved(new Date());
       
       // Update the last saved reference
       lastSavedStructureRef.current = JSON.stringify(saved);
-      
-      toast({
-        title: 'Structure saved',
-        description: 'Your structure has been saved successfully.',
-      });
       
       return saved;
     } catch (err) {
