@@ -1,21 +1,19 @@
 
 import React from 'react';
-import { ScriptElement, ElementType, Structure } from '@/lib/types';
+import { ScriptElement, ElementType, Structure, BeatMode } from '@/types/scriptTypes';
 import { useFormat } from '@/lib/formatContext';
 import EditorElement from '../EditorElement';
-import ScriptPage from './ScriptPage';
-import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptContentProps {
   filteredElements: ScriptElement[];
   activeElementId: string | null;
   currentPage: number;
-  getPreviousElementType: (index: number) => ElementType | undefined;
-  handleElementChange: (id: string, text: string, type: ElementType) => void;
+  getPreviousElementType: (index: number) => ElementType;
+  handleElementChange: (id: string, text: string, type: any) => void;
   handleFocus: (id: string) => void;
   handleNavigate: (direction: 'up' | 'down', id: string) => void;
   handleEnterKey: (id: string, shiftKey: boolean) => void;
-  handleFormatChange: (id: string, newType: ElementType) => void;
+  handleFormatChange: (id: string, newType: any) => void;
   handleTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;

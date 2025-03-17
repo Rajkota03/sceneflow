@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure, BeatMode } from '@/types/scriptTypes';
 import { useFormat } from '@/lib/formatContext';
 import TagManager from './TagManager';
-import ZoomControls from './ZoomControls';
-import ScriptContentComponent from './ScriptContent';
+import ZoomControls from './script-editor/ZoomControls';
+import ScriptContentComponent from './script-editor/ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
@@ -12,8 +12,8 @@ import useProjectStructures from '@/hooks/useProjectStructures';
 import { useScriptEditing } from '@/hooks/useScriptEditing';
 import { useBeatTagging } from '@/hooks/useBeatTagging';
 import { useTagFiltering } from '@/hooks/useTagFiltering';
-import EditorInitializer from './EditorInitializer';
-import { convertLibToScriptTypes, convertStructures } from '@/utils/typeAdapter';
+import EditorInitializer from './script-editor/EditorInitializer';
+import { convertLibToScriptTypes, convertStructures, convertScriptTypesToLib } from '@/utils/typeAdapter';
 
 interface ScriptEditorProps {
   initialContent: any; // Accept any content and convert it appropriately
@@ -90,11 +90,14 @@ const ScriptEditor = ({
 
   // Get filtered elements based on tag/act filters
   const filteredElements = useFilteredElements(
-    elements.map(el => ({ 
-      ...el, 
+    elements.map(el => ({
+      id: el.id,
       type: typeof el.type === 'string' ? 
-        el.type as unknown as ElementType : 
-        el.type 
+        convertLibElementTypeToScriptType(el.type as any) : el.type,
+      text: el.text,
+      tags: el.tags || [],
+      beatId: (el as any).beatId || (el as any).beat,
+      actId: (el as any).actId
     })), 
     activeTagFilter, 
     activeActFilter
@@ -148,13 +151,13 @@ const ScriptEditor = ({
         <TagManager 
           scriptContent={{ elements }} 
           onFilterByTag={handleFilterByTag}
-          onFilterByAct={(act) => handleFilterByAct(act)}
+          onFilterByAct={handleFilterByAct}
           activeFilter={activeTagFilter}
           activeActFilter={activeActFilter}
           projectName={projectName}
           structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
           beatMode={beatMode}
-          onToggleBeatMode={() => handleToggleBeatMode(beatMode === 'on' ? 'off' : 'on')}
+          onToggleBeatMode={handleToggleBeatMode}
           structures={structures}
           selectedStructureId={selectedStructureId || projectSelectedStructureId || undefined}
           onStructureChange={handleStructureChange}
@@ -185,7 +188,11 @@ const ScriptEditor = ({
         filteredElements={filteredElements}
         activeElementId={activeElementId}
         currentPage={currentPage}
-        getPreviousElementType={getPreviousElementType}
+        getPreviousElementType={(index) => {
+          const type = getPreviousElementType(index);
+          return typeof type === 'string' ? 
+            convertLibElementTypeToScriptType(type as any) : type;
+        }}
         handleElementChange={handleElementChange}
         handleFocus={handleFocus}
         handleNavigate={handleNavigate}

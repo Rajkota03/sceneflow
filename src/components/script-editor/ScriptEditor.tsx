@@ -13,7 +13,7 @@ import { useScriptEditing } from '@/hooks/useScriptEditing';
 import { useBeatTagging } from '@/hooks/useBeatTagging';
 import { useTagFiltering } from '@/hooks/useTagFiltering';
 import EditorInitializer from './EditorInitializer';
-import { convertLibToScriptTypes, convertStructures } from '@/utils/typeAdapter';
+import { convertLibToScriptTypes, convertStructures, convertLibElementTypeToScriptType } from '@/utils/typeAdapter';
 
 interface ScriptEditorProps {
   initialContent: any; // Accept any content and convert it appropriately
@@ -89,7 +89,19 @@ const ScriptEditor = ({
   } = useTagFiltering();
 
   // Get filtered elements based on tag/act filters
-  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
+  const filteredElements = useFilteredElements(
+    elements.map(el => ({
+      id: el.id,
+      type: typeof el.type === 'string' ? 
+        convertLibElementTypeToScriptType(el.type as any) : el.type,
+      text: el.text,
+      tags: el.tags || [],
+      beatId: (el as any).beatId || (el as any).beat,
+      actId: (el as any).actId
+    })), 
+    activeTagFilter, 
+    activeActFilter
+  );
 
   // Script editing operations
   const {
@@ -176,7 +188,11 @@ const ScriptEditor = ({
         filteredElements={filteredElements}
         activeElementId={activeElementId}
         currentPage={currentPage}
-        getPreviousElementType={getPreviousElementType}
+        getPreviousElementType={(index) => {
+          const type = getPreviousElementType(index);
+          return typeof type === 'string' ? 
+            convertLibElementTypeToScriptType(type as any) : type;
+        }}
         handleElementChange={handleElementChange}
         handleFocus={handleFocus}
         handleNavigate={handleNavigate}
