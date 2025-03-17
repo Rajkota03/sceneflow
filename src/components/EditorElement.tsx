@@ -1,10 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure, ActType } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
 import SceneTagButton from './SceneTagButton';
+import BeatTagging from './BeatTagging';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -85,11 +85,19 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [showBeatTagging, setShowBeatTagging] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     setText(element.text);
   }, [element.text]);
+
+  // Close beat tagging UI when user starts typing in the scene heading
+  useEffect(() => {
+    if (isActive && element.type === 'scene-heading' && text !== element.text) {
+      setShowBeatTagging(false);
+    }
+  }, [text, element.text, isActive, element.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
     const newText = e.target.innerText;
@@ -116,6 +124,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Hide beat tagging UI when user presses Enter in a scene heading
+      if (element.type === 'scene-heading') {
+        setShowBeatTagging(false);
+      }
       onEnterKey(element.id, e.shiftKey);
     } else if (e.key === 'ArrowUp') {
       onNavigate('up', element.id);
@@ -142,6 +154,21 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
+  const handleSceneClick = () => {
+    if (element.type === 'scene-heading' && !isActive) {
+      onFocus();
+      setShowBeatTagging(true);
+    }
+  };
+
+  // When a beat is selected, hide the UI
+  const handleBeatTagged = (elementId: string, beatId: string, actId: string) => {
+    if (onBeatTag) {
+      onBeatTag(elementId, beatId, actId);
+      setShowBeatTagging(false);
+    }
+  };
+
   const isSceneHeading = element.type === 'scene-heading';
   const sceneHighlight = getSceneHighlight(element);
 
@@ -157,7 +184,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active' : ''}
-          ${isSceneHeading ? 'pr-28' : ''}
+          ${isSceneHeading ? 'pr-28 cursor-pointer' : ''}
         `}
         contentEditable={isActive}
         suppressContentEditableWarning={true}
@@ -165,6 +192,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onBlur={() => setSuggestionsVisible(false)}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
+        onClick={isSceneHeading ? handleSceneClick : undefined}
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
@@ -174,54 +202,30 @@ const EditorElement: React.FC<EditorElementProps> = ({
         {text}
       </div>
       
-      {isSceneHeading && isHovered && !isActive && beatMode === 'on' && (
-        <div className="absolute right-2 top-0">
-          <SceneTagButton 
-            onTagSelect={(tagType, actType) => {
-              onFocus();
-              
-              if (tagType === 'act' && actType) {
-                const actTag = actType === ActType.ACT_1 ? 'Act 1: Setup' :
-                              actType === ActType.ACT_2A ? 'Act 2A: Reaction' :
-                              actType === ActType.MIDPOINT ? 'Midpoint: Turning Point' :
-                              actType === ActType.ACT_2B ? 'Act 2B: Approach' :
-                              'Act 3: Resolution';
-                              
-                const filteredTags = (element.tags || []).filter(tag => 
-                  !tag.startsWith('Act 1:') && 
-                  !tag.startsWith('Act 2A:') && 
-                  !tag.startsWith('Midpoint:') && 
-                  !tag.startsWith('Act 2B:') && 
-                  !tag.startsWith('Act 3:')
-                );
-                
-                onTagsChange(element.id, [...filteredTags, actTag]);
-              }
-            }}
-            selectedStructure={selectedStructure}
-            className="opacity-70 hover:opacity-100"
-          />
-        </div>
-      )}
-      
-      {isActive && beatMode === 'on' && (
+      {/* Show the beat tagging UI only when a scene heading is clicked and not being edited */}
+      {isSceneHeading && beatMode === 'on' && (
         <>
-          {suggestionsVisible && (
-            <CharacterSuggestions 
-              suggestions={filteredSuggestions} 
-              onSelect={handleSelectCharacter} 
-              focusIndex={focusIndex}
-            />
+          {showBeatTagging && selectedStructure && (
+            <div className="absolute top-0 right-0 bg-white shadow-md border rounded-md p-2 z-50 w-72">
+              <BeatTagging 
+                selectedStructure={selectedStructure}
+                elementId={element.id}
+                onBeatTag={handleBeatTagged}
+                selectedBeatId={element.beatId || undefined}
+              />
+            </div>
           )}
           
-          {element.type === 'scene-heading' && (
-            <SceneTags 
-              element={element} 
-              onTagsChange={onTagsChange} 
-              projectId={projectId}
-              selectedStructure={selectedStructure}
-              onBeatTag={onBeatTag}
-            />
+          {isActive && !showBeatTagging && (
+            <>
+              {suggestionsVisible && (
+                <CharacterSuggestions 
+                  suggestions={filteredSuggestions} 
+                  onSelect={handleSelectCharacter} 
+                  focusIndex={focusIndex}
+                />
+              )}
+            </>
           )}
         </>
       )}

@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure, BeatMode } from '@/types/scriptTypes';
 import { useFormat } from '@/lib/formatContext';
 import TagManager from './TagManager';
-import ZoomControls from './script-editor/ZoomControls';
-import ScriptContentComponent from './script-editor/ScriptContent';
+import ZoomControls from './ZoomControls';
+import ScriptContentComponent from './ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
@@ -17,7 +17,8 @@ import {
   convertLibToScriptTypes, 
   convertStructures, 
   convertLibElementTypeToScriptType,
-  convertLibScriptElementsToScriptType 
+  convertLibScriptElementsToScriptType,
+  convertScriptElementsToLibType
 } from '@/utils/typeAdapter';
 
 interface ScriptEditorProps {
@@ -94,7 +95,6 @@ const ScriptEditor = ({
   } = useTagFiltering();
 
   // Get filtered elements based on tag/act filters
-  // Convert lib elements to script elements before passing to useFilteredElements
   const scriptTypeElements = convertLibScriptElementsToScriptType(elements);
   const filteredElements = useFilteredElements(
     scriptTypeElements,
@@ -113,7 +113,11 @@ const ScriptEditor = ({
   // Beat tagging functionality
   const { handleBeatTag } = useBeatTagging(
     scriptTypeElements,
-    setElements,
+    // Pass a function that converts and updates the elements
+    (updatedElements) => {
+      const libElements = convertScriptElementsToLibType(updatedElements);
+      setElements(libElements);
+    },
     selectedStructure,
     projectSelectedStructureId || selectedStructureId,
     updateBeatCompletion,
@@ -148,7 +152,7 @@ const ScriptEditor = ({
     try {
       return (
         <TagManager 
-          scriptContent={{ elements }} 
+          scriptContent={{ elements: scriptTypeElements }} 
           onFilterByTag={handleFilterByTag}
           onFilterByAct={handleFilterByAct}
           activeFilter={activeTagFilter}
@@ -176,8 +180,11 @@ const ScriptEditor = ({
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <EditorInitializer 
-        elements={elements}
-        setElements={setElements}
+        elements={scriptTypeElements}
+        setElements={(newElements) => {
+          const libElements = convertScriptElementsToLibType(newElements);
+          setElements(libElements);
+        }}
         setActiveElementId={setActiveElementId}
       />
       
