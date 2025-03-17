@@ -72,41 +72,72 @@ export function convertActType(act: LibTypes.ActType): ScriptTypes.ActType {
 
 // Convert Structure between the two systems
 export function convertStructure(structure: LibTypes.Structure): ScriptTypes.Structure {
-  return {
-    id: structure.id,
-    name: structure.name,
-    description: structure.description || '',
-    author_id: structure.projectTitle || '',
-    created_at: structure.createdAt,
-    updated_at: structure.updatedAt,
-    createdAt: structure.createdAt,
-    updatedAt: structure.updatedAt,
-    structure_type: structure.structure_type,
-    acts: structure.acts?.map(act => ({
-      id: act.id,
-      structure_id: structure.id,
-      act_type: convertActType(act.act_type),
-      title: act.title,
-      order: act.order || 0,
-      colorHex: act.colorHex,
-      startPosition: act.startPosition,
-      endPosition: act.endPosition,
-      beats: act.beats?.map(beat => ({
-        id: beat.id,
-        act_id: act.id,
-        title: beat.title,
-        description: beat.description,
-        order: beat.order || 0,
-        is_complete: beat.complete,
-        pageRange: beat.pageRange,
-        complete: beat.complete,
-        notes: beat.notes
-      }))
-    }))
-  };
+  if (!structure) {
+    console.warn('Attempting to convert undefined structure');
+    return {
+      id: '',
+      name: '',
+      description: '',
+      author_id: '',
+      created_at: '',
+      updated_at: '',
+      acts: []
+    };
+  }
+
+  try {
+    return {
+      id: structure.id,
+      name: structure.name,
+      description: structure.description || '',
+      author_id: structure.projectTitle || '',
+      created_at: structure.createdAt,
+      updated_at: structure.updatedAt,
+      createdAt: structure.createdAt,
+      updatedAt: structure.updatedAt,
+      structure_type: structure.structure_type,
+      acts: Array.isArray(structure.acts) ? structure.acts.map(act => ({
+        id: act.id,
+        structure_id: structure.id,
+        act_type: convertActType(act.act_type),
+        title: act.title,
+        order: 0, // Default value for required property
+        colorHex: act.colorHex || '#000000', // Default value for required property
+        startPosition: act.startPosition,
+        endPosition: act.endPosition,
+        beats: Array.isArray(act.beats) ? act.beats.map(beat => ({
+          id: beat.id,
+          act_id: act.id,
+          title: beat.title,
+          description: beat.description,
+          order: 0, // Default value for required property
+          is_complete: beat.complete,
+          timePosition: beat.timePosition,
+          pageRange: beat.pageRange,
+          complete: beat.complete,
+          notes: beat.notes
+        })) : []
+      })) : []
+    };
+  } catch (error) {
+    console.error('Error converting structure:', error);
+    return {
+      id: structure.id || '',
+      name: structure.name || '',
+      description: structure.description || '',
+      author_id: '',
+      created_at: '',
+      updated_at: '',
+      acts: []
+    };
+  }
 }
 
 // Convert Structure[] between the two systems
 export function convertStructures(structures: LibTypes.Structure[]): ScriptTypes.Structure[] {
+  if (!structures || !Array.isArray(structures)) {
+    console.warn('Invalid structures array passed to convertStructures');
+    return [];
+  }
   return structures.map(convertStructure);
 }

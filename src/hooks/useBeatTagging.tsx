@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ScriptElement, ActType, Structure } from '@/lib/types';
+import { ScriptElement, ActType, Structure } from '@/types/scriptTypes';
 import { toast } from '@/components/ui/use-toast';
 
 export function useBeatTagging(
@@ -8,15 +8,15 @@ export function useBeatTagging(
   setElements: React.Dispatch<React.SetStateAction<ScriptElement[]>>,
   selectedStructure: Structure | null | undefined,
   selectedStructureId: string | undefined,
-  updateBeatCompletion: (beatId: string, actId: string, completed: boolean) => Structure | undefined,
-  saveBeatCompletion: (structureId: string, updatedStructure: Structure) => Promise<boolean>
+  updateBeatCompletion: (beatId: string, actId: string, completed: boolean) => any,
+  saveBeatCompletion: (structureId: string, updatedStructure: any) => Promise<boolean>
 ) {
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
     setElements(prevElements =>
       prevElements.map(element =>
-        element.id === elementId ? { ...element, beat: beatId } : element
+        element.id === elementId ? { ...element, beatId: beatId } : element
       )
     );
     

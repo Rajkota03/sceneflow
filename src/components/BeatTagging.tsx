@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Check, ChevronDown, ChevronUp, Target } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
+import { Structure } from '@/types/scriptTypes';
 
 interface BeatTaggingProps {
-  selectedStructure: any;
+  selectedStructure: Structure | null;
   elementId: string;
   onBeatTag: (elementId: string, beatId: string, actId: string) => void;
   selectedBeatId?: string;

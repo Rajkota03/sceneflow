@@ -58,6 +58,7 @@ export interface Structure {
   structure_type?: string;
   createdAt?: string;
   updatedAt?: string;
+  projectTitle?: string;
 }
 
 export interface Act {
@@ -67,7 +68,7 @@ export interface Act {
   title: string;
   order: number;
   beats?: Beat[];
-  colorHex?: string;
+  colorHex: string; // Changed from optional to required
   startPosition?: number;
   endPosition?: number;
 }
@@ -77,7 +78,7 @@ export interface Beat {
   act_id: string;
   title: string;
   description: string;
-  order: number;
+  order: number; // Required property 
   is_complete?: boolean;
   timePosition?: number;
   pageRange?: string;
@@ -184,6 +185,7 @@ export interface TitlePageData {
   author: string;
   contact: string;
   basedOn?: string;
+  [key: string]: string | undefined; // Add index signature
 }
 
 // Add ScriptElementProps for EditorElement component
