@@ -99,6 +99,14 @@ function App() {
                 } 
               />
               <Route 
+                path="/structure/:structureId" 
+                element={
+                  <ProtectedRoute>
+                    <Editor />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/profile" 
                 element={
                   <ProtectedRoute>
