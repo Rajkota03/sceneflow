@@ -1,11 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { ElementType, ScriptElement, Structure, ActType } from '@/lib/types';
+import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
-import SceneTagButton from './SceneTagButton';
-import BeatTagging from './BeatTagging';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -19,8 +17,8 @@ interface EditorElementProps {
   onTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode?: 'on' | 'off';
-  selectedStructure?: any;
+  beatMode?: BeatMode;
+  selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
@@ -45,26 +43,6 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
-const getSceneHighlight = (element: ScriptElement): string => {
-  if (element.type !== 'scene-heading' || !element.tags || element.tags.length === 0) {
-    return '';
-  }
-  
-  if (element.tags.some(tag => tag.startsWith('Act 1:'))) {
-    return 'bg-[#D3E4FD] bg-opacity-20';
-  } else if (element.tags.some(tag => tag.startsWith('Act 2A:'))) {
-    return 'bg-[#FEF7CD] bg-opacity-20';
-  } else if (element.tags.some(tag => tag.startsWith('Midpoint:'))) {
-    return 'bg-[#FFCCCB] bg-opacity-20';
-  } else if (element.tags.some(tag => tag.startsWith('Act 2B:'))) {
-    return 'bg-[#FDE1D3] bg-opacity-20';
-  } else if (element.tags.some(tag => tag.startsWith('Act 3:'))) {
-    return 'bg-[#F2FCE2] bg-opacity-20';
-  }
-  
-  return '';
-};
-
 const EditorElement: React.FC<EditorElementProps> = ({ 
   element, 
   previousElementType, 
@@ -85,19 +63,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-  const [showBeatTagging, setShowBeatTagging] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     setText(element.text);
   }, [element.text]);
-
-  useEffect(() => {
-    if (isActive && element.type === 'scene-heading' && text !== element.text) {
-      setShowBeatTagging(false);
-    }
-  }, [text, element.text, isActive, element.type]);
 
   const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
     const newText = e.target.innerText;
@@ -124,15 +94,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (element.type === 'scene-heading') {
-        setShowBeatTagging(false);
-      }
       onEnterKey(element.id, e.shiftKey);
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
       onNavigate('up', element.id);
     } else if (e.key === 'ArrowDown') {
-      e.preventDefault();
       onNavigate('down', element.id);
     } else if (suggestionsVisible && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault();
@@ -155,36 +120,14 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
-  const handleSceneClick = () => {
-    if (element.type === 'scene-heading' && !isActive) {
-      onFocus();
-      setShowBeatTagging(true);
-    }
-  };
-
-  const handleBeatTagged = (elementId: string, beatId: string, actId: string) => {
-    if (onBeatTag) {
-      onBeatTag(elementId, beatId, actId);
-      setShowBeatTagging(false);
-    }
-  };
-
-  const isSceneHeading = element.type === 'scene-heading';
-  const sceneHighlight = getSceneHighlight(element);
-
   return (
-    <div 
-      className={`editor-element ${element.type} ${isActive ? 'active' : ''} relative ${sceneHighlight} rounded`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
+    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''}`}>
       <div
         ref={editorRef}
         className={`
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active' : ''}
-          ${isSceneHeading ? 'pr-28 cursor-pointer' : ''}
         `}
         contentEditable={isActive}
         suppressContentEditableWarning={true}
@@ -192,40 +135,33 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onBlur={() => setSuggestionsVisible(false)}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
-        onClick={isSceneHeading ? handleSceneClick : undefined}
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
-          wordBreak: 'break-word',
-          direction: 'ltr'  // Ensure text direction is left-to-right
+          wordBreak: 'break-word'
         }}
       >
         {text}
       </div>
       
-      {isSceneHeading && beatMode === 'on' && (
+      {isActive && beatMode === 'on' && (
         <>
-          {showBeatTagging && selectedStructure && (
-            <div className="absolute top-0 right-0 bg-white shadow-md border rounded-md p-2 z-50 w-72">
-              <BeatTagging 
-                selectedStructure={selectedStructure}
-                elementId={element.id}
-                onBeatTag={handleBeatTagged}
-                selectedBeatId={element.beat || element.beatId}
-              />
-            </div>
+          {suggestionsVisible && (
+            <CharacterSuggestions 
+              suggestions={filteredSuggestions} 
+              onSelect={handleSelectCharacter} 
+              focusIndex={focusIndex}
+            />
           )}
           
-          {isActive && !showBeatTagging && (
-            <>
-              {suggestionsVisible && (
-                <CharacterSuggestions 
-                  suggestions={filteredSuggestions} 
-                  onSelect={handleSelectCharacter} 
-                  focusIndex={focusIndex}
-                />
-              )}
-            </>
+          {element.type === 'scene-heading' && (
+            <SceneTags 
+              element={element} 
+              onTagsChange={onTagsChange} 
+              projectId={projectId}
+              selectedStructure={selectedStructure}
+              onBeatTag={onBeatTag}
+            />
           )}
         </>
       )}

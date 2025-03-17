@@ -1,3 +1,4 @@
+
 // Define all types with proper exports
 import { Json } from '@/integrations/supabase/types';
 
@@ -51,7 +52,6 @@ export interface TagManagerProps {
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
   structures?: Structure[];
-  selectedStructure?: Structure | null;
 }
 
 export interface ScriptElementProps {
@@ -97,7 +97,6 @@ export interface Act {
   startPosition: number; // percentage (0-100)
   endPosition: number; // percentage (0-100)
   beats: Beat[];
-  act_type: ActType; // Added to match usage in code
 }
 
 export interface Beat {

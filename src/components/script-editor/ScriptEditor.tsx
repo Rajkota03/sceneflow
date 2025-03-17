@@ -1,7 +1,8 @@
-
-import { useState } from 'react';
-import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure, BeatMode } from '@/types/scriptTypes';
+import { useEffect, useState } from 'react';
+import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
+import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
+import { shouldAddContd } from '@/lib/characterUtils';
 import TagManager from '../TagManager';
 import ZoomControls from './ZoomControls';
 import ScriptContentComponent from './ScriptContent';
@@ -9,21 +10,13 @@ import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import useProjectStructures from '@/hooks/useProjectStructures';
-import { useScriptEditing } from '@/hooks/useScriptEditing';
-import { useBeatTagging } from '@/hooks/useBeatTagging';
-import { useTagFiltering } from '@/hooks/useTagFiltering';
-import EditorInitializer from './EditorInitializer';
-import { 
-  convertLibToScriptTypes, 
-  convertStructures, 
-  convertLibElementTypeToScriptType,
-  convertLibScriptElementsToScriptType,
-  convertScriptElementsToLibType 
-} from '@/utils/typeAdapter';
+import { toast } from '@/components/ui/use-toast';
+
+type BeatMode = 'on' | 'off';
 
 interface ScriptEditorProps {
-  initialContent: any; // Accept any content and convert it appropriately
-  onChange: (content: ScriptContent) => void;
+  initialContent: ScriptContentType;
+  onChange: (content: ScriptContentType) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
@@ -44,32 +37,22 @@ const ScriptEditor = ({
   structureName = "Three Act Structure",
   projectId,
   onStructureChange,
-  selectedStructureId,
 }: ScriptEditorProps) => {
-  // Convert initialContent to ScriptContent if needed
-  const scriptContent = 'elements' in initialContent ? 
-    initialContent as ScriptContent : 
-    convertLibToScriptTypes(initialContent);
-  
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
+  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
+  const [beatMode, setBeatMode] = useState<BeatMode>('on');
 
-  // Get structures data
   const { 
-    structures: libStructures, 
-    selectedStructureId: projectSelectedStructureId, 
-    selectedStructure: libSelectedStructure,
+    structures, 
+    selectedStructureId, 
+    selectedStructure,
     handleStructureChange: changeSelectedStructure,
     updateBeatCompletion,
     saveBeatCompletion
   } = useProjectStructures(projectId);
 
-  // Convert lib structures to script structures
-  const structures = libStructures ? convertStructures(libStructures) : [];
-  const selectedStructure = libSelectedStructure ? 
-    convertStructures([libSelectedStructure])[0] : null;
-
-  // Get script elements
   const {
     elements,
     setElements,
@@ -79,53 +62,33 @@ const ScriptEditor = ({
     getPreviousElementType,
     addNewElement,
     changeElementType
-  } = useScriptElements(scriptContent, onChange);
+  } = useScriptElements(initialContent, onChange);
 
-  // Get character names from the script
   const characterNames = useCharacterNames(elements);
+  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
 
-  // Tag filtering functionality
-  const {
-    activeTagFilter,
-    activeActFilter,
-    beatMode,
-    handleFilterByTag,
-    handleFilterByAct,
-    handleToggleBeatMode
-  } = useTagFiltering();
+  useEffect(() => {
+    if (!elements || elements.length === 0) {
+      console.log("No elements found, creating default elements");
+      const defaultElements: ScriptElement[] = [
+        {
+          id: generateUniqueId(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: generateUniqueId(),
+          type: 'action',
+          text: 'Type your action here...'
+        }
+      ];
+      setElements(defaultElements);
+      setActiveElementId(defaultElements[0].id);
+    }
+  }, [elements, setElements, setActiveElementId]);
 
-  // Get filtered elements based on tag/act filters
-  const scriptTypeElements = convertLibScriptElementsToScriptType(elements);
-  const filteredElements = useFilteredElements(
-    scriptTypeElements,
-    activeTagFilter, 
-    activeActFilter
-  );
-
-  // Script editing operations
-  const {
-    handleEnterKey,
-    handleNavigate,
-    handleFormatChange,
-    handleTagsChange
-  } = useScriptEditing(elements, setElements, activeElementId, setActiveElementId);
-
-  // Beat tagging functionality
-  const { handleBeatTag } = useBeatTagging(
-    scriptTypeElements,
-    (updatedElements) => {
-      const libElements = convertScriptElementsToLibType(updatedElements);
-      // Direct assignment to avoid TypeScript error
-      setElements(libElements as any);
-    },
-    selectedStructure,
-    projectSelectedStructureId || selectedStructureId,
-    updateBeatCompletion,
-    saveBeatCompletion
-  );
-
-  // Handle zoom changes
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
+
   const handleZoomChange = (value: number[]) => {
     const newZoomLevel = value[0] / 100;
     const { formatState: currentState, setZoomLevel } = useFormat();
@@ -134,7 +97,120 @@ const ScriptEditor = ({
     }
   };
 
-  // Handle structure changes
+  const handleFormatChange = (id: string, newType: ElementType) => {
+    changeElementType(id, newType);
+  };
+
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    const currentElement = elements[currentIndex];
+    
+    if (shiftKey && currentElement.type === 'dialogue') {
+      const updatedElements = [...elements];
+      updatedElements[currentIndex] = {
+        ...currentElement,
+        text: currentElement.text + '\n'
+      };
+      setElements(updatedElements);
+      return;
+    }
+    
+    let nextType: ElementType;
+    switch (currentElement.type) {
+      case 'scene-heading':
+        nextType = 'action';
+        break;
+      case 'character':
+        nextType = 'dialogue';
+        break;
+      case 'dialogue':
+        nextType = 'action';
+        break;
+      case 'parenthetical':
+        nextType = 'dialogue';
+        break;
+      case 'transition':
+        nextType = 'scene-heading';
+        break;
+      default:
+        nextType = 'action';
+    }
+    
+    const newElement: ScriptElement = {
+      id: generateUniqueId(),
+      type: nextType,
+      text: ''
+    };
+    
+    if (nextType === 'character' as ElementType) {
+      let prevCharIndex = -1;
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        if (elements[i].type === 'character') {
+          prevCharIndex = i;
+          break;
+        }
+      }
+      
+      if (prevCharIndex !== -1) {
+        const charName = elements[prevCharIndex].text.replace(/\s*\(CONT'D\)\s*$/, '');
+        if (shouldAddContd(charName, currentIndex + 1, [...elements, newElement])) {
+          newElement.text = `${charName} (CONT'D)`;
+        } else {
+          newElement.text = charName;
+        }
+      }
+    }
+    
+    const updatedElements = [
+      ...elements.slice(0, currentIndex + 1),
+      newElement,
+      ...elements.slice(currentIndex + 1)
+    ];
+    
+    setElements(updatedElements);
+    setActiveElementId(newElement.id);
+  };
+
+  const handleNavigate = (direction: 'up' | 'down', id: string) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    if (direction === 'up' && currentIndex > 0) {
+      setActiveElementId(elements[currentIndex - 1].id);
+    } else if (direction === 'down' && currentIndex < elements.length - 1) {
+      setActiveElementId(elements[currentIndex + 1].id);
+    }
+  };
+
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
+
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, tags } : element
+      )
+    );
+  };
+
+  const handleFilterByTag = (tag: string | null) => {
+    setActiveTagFilter(tag);
+    if (tag !== null) {
+      setActiveActFilter(null);
+    }
+  };
+
+  const handleFilterByAct = (act: ActType | null) => {
+    setActiveActFilter(act);
+  };
+
+  const handleToggleBeatMode = (mode: BeatMode) => {
+    setBeatMode(mode);
+  };
+
   const handleStructureChange = (structureId: string) => {
     changeSelectedStructure(structureId);
     if (onStructureChange) {
@@ -142,65 +218,56 @@ const ScriptEditor = ({
     }
   };
 
-  // Handle element focus
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
-  };
-
-  // Error handling: Wrap TagManager with error boundary to prevent entire app from crashing
-  const renderTagManager = () => {
-    try {
-      return (
-        <TagManager 
-          scriptContent={{ elements: scriptTypeElements }} 
-          onFilterByTag={handleFilterByTag}
-          onFilterByAct={handleFilterByAct}
-          activeFilter={activeTagFilter}
-          activeActFilter={activeActFilter}
-          projectName={projectName}
-          structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
-          beatMode={beatMode}
-          onToggleBeatMode={handleToggleBeatMode}
-          structures={structures}
-          selectedStructureId={selectedStructureId || projectSelectedStructureId || undefined}
-          onStructureChange={handleStructureChange}
-          selectedStructure={selectedStructure}
-        />
-      );
-    } catch (error) {
-      console.error("Error rendering TagManager:", error);
-      return (
-        <div className="p-2 bg-red-50 text-red-600 text-sm">
-          Error loading tag manager. Please refresh the page.
-        </div>
-      );
+  const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
+    if (!selectedStructure || !selectedStructureId) return;
+    
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, beat: beatId } : element
+      )
+    );
+    
+    const updatedStructure = updateBeatCompletion(beatId, actId, true);
+    if (updatedStructure) {
+      const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
+      if (success) {
+        toast({
+          title: "Beat tagged",
+          description: "The scene has been tagged and structure progress updated.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update the structure progress.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <EditorInitializer 
-        elements={scriptTypeElements}
-        setElements={(newElements) => {
-          const libElements = convertScriptElementsToLibType(newElements);
-          // Direct assignment to avoid TypeScript error
-          setElements(libElements as any);
-        }}
-        setActiveElementId={setActiveElementId}
+      <TagManager 
+        scriptContent={{ elements }} 
+        onFilterByTag={handleFilterByTag}
+        onFilterByAct={handleFilterByAct}
+        activeFilter={activeTagFilter}
+        activeActFilter={activeActFilter}
+        projectName={projectName}
+        structureName={structureName || (selectedStructure?.name || "Three Act Structure")}
+        beatMode={beatMode}
+        onToggleBeatMode={handleToggleBeatMode}
+        structures={structures}
+        selectedStructureId={selectedStructureId || undefined}
+        onStructureChange={handleStructureChange}
+        selectedStructure={selectedStructure}
       />
-      
-      {renderTagManager()}
       
       <ScriptContentComponent
         filteredElements={filteredElements}
         activeElementId={activeElementId}
         currentPage={currentPage}
-        getPreviousElementType={(index) => {
-          const type = getPreviousElementType(index);
-          return typeof type === 'string' ? 
-            convertLibElementTypeToScriptType(type as any) : 
-            type ? convertLibElementTypeToScriptType(type) : undefined;
-        }}
+        getPreviousElementType={getPreviousElementType}
         handleElementChange={handleElementChange}
         handleFocus={handleFocus}
         handleNavigate={handleNavigate}

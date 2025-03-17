@@ -72,8 +72,7 @@
 /* Screenplay formatting styles */
 .script-page {
   width: 8.5in;
-  height: auto;
-  min-height: 11in;
+  height: 11in;
   padding: 0;
   margin: 0 auto;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
@@ -92,7 +91,6 @@
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
-  overflow: visible;
 }
 
 /* Element-specific formatting */
@@ -151,7 +149,6 @@
   width: 100%;
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
-  overflow: visible;
 }
 
 /* Remove all scrollbars from editor elements */
@@ -161,7 +158,7 @@ textarea.resize-none {
   resize: none;
   height: auto;
   min-height: 1em;
-  font-family: 'Courier Final Draft, Courier Prime, monospace' !important;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 /* Auto-expanding textarea styles */
@@ -170,21 +167,21 @@ textarea.auto-resize {
   resize: none;
   height: auto;
   min-height: 1em;
-  font-family: 'Courier Final Draft, Courier Prime, monospace' !important;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 /* PDF export specific styles */
 .pdf-export p {
   margin: 0;
   padding: 0;
-  font-family: 'Courier Final Draft, Courier Prime, monospace' !important;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   line-height: 1 !important;
 }
 
 /* Make sure all textareas use the correct font */
 .script-page-content textarea {
-  font-family: 'Courier Final Draft, Courier Prime, monospace' !important;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   overflow: hidden !important; /* Remove scrollbars on all textareas */
 }
@@ -214,15 +211,6 @@ textarea.auto-resize {
 ::selection {
   background-color: rgba(0, 120, 212, 0.2);
   color: inherit;
-}
-
-/* Hide scrollbars but allow scrolling */
-.overflow-visible {
-  overflow: visible !important;
-}
-
-.main-editor-container {
-  overflow: visible !important;
 }
 
 /* Print-specific styles */

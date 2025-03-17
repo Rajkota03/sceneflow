@@ -1,29 +1,28 @@
 
 import React from 'react';
-import { ScriptElement, ElementType, Structure, BeatMode } from '@/types/scriptTypes';
-import { useFormat } from '@/lib/formatContext';
-import EditorElement from '../EditorElement';
-import { ScrollArea } from '../ui/scroll-area';
+import { ScriptElement, ElementType, Structure } from '@/lib/types';
+import ScriptPage from './ScriptPage';
+import { BeatMode } from '@/types/scriptTypes';
 
-interface ScriptContentProps {
+export interface ScriptContentComponentProps {
   filteredElements: ScriptElement[];
-  activeElementId: string | null;
+  activeElementId: string;
   currentPage: number;
   getPreviousElementType: (index: number) => ElementType;
-  handleElementChange: (id: string, text: string, type: any) => void;
+  handleElementChange: (id: string, text: string, type: ElementType) => void;
   handleFocus: (id: string) => void;
   handleNavigate: (direction: 'up' | 'down', id: string) => void;
   handleEnterKey: (id: string, shiftKey: boolean) => void;
-  handleFormatChange: (id: string, newType: any) => void;
+  handleFormatChange: (id: string, newType: ElementType) => void;
   handleTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode: BeatMode;
-  selectedStructure?: Structure | null;
+  beatMode?: BeatMode;
+  selectedStructure?: Structure | null; // Add selectedStructure prop
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const ScriptContentComponent: React.FC<ScriptContentProps> = ({
+const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
   filteredElements,
   activeElementId,
   currentPage,
@@ -36,61 +35,28 @@ const ScriptContentComponent: React.FC<ScriptContentProps> = ({
   handleTagsChange,
   characterNames,
   projectId,
-  beatMode,
+  beatMode = 'on',
   selectedStructure,
   onBeatTag
 }) => {
-  const { formatState } = useFormat();
-
   return (
-    <div className="flex justify-center w-full h-full">
-      <div className="w-full max-w-4xl mx-auto">
-        <ScrollArea className="h-full w-full" hideScrollbar={true}>
-          <div 
-            className="script-page" 
-            style={{ 
-              transform: `scale(${formatState.zoomLevel})`,
-              transformOrigin: 'top center',
-              transition: 'transform 0.2s ease-out',
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-            }}
-          >
-            <div className="script-page-content" style={{
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              fontSize: '12pt',
-              position: 'relative'
-            }}>
-              {/* Page number positioned inside the page */}
-              <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-                fontFamily: "Courier Final Draft, Courier Prime, monospace",
-                fontSize: "12pt",
-              }}>
-                {currentPage}
-              </div>
-              
-              {filteredElements.map((element, index) => (
-                <EditorElement
-                  key={element.id}
-                  element={element}
-                  previousElementType={getPreviousElementType(index - 1)}
-                  onChange={handleElementChange}
-                  onFocus={() => handleFocus(element.id)}
-                  isActive={activeElementId === element.id}
-                  onNavigate={handleNavigate}
-                  onEnterKey={handleEnterKey}
-                  onFormatChange={handleFormatChange}
-                  onTagsChange={handleTagsChange}
-                  characterNames={characterNames}
-                  projectId={projectId}
-                  beatMode={beatMode}
-                  selectedStructure={selectedStructure}
-                  onBeatTag={onBeatTag}
-                />
-              ))}
-            </div>
-          </div>
-        </ScrollArea>
-      </div>
+    <div className="flex-1 overflow-y-auto relative">
+      <ScriptPage
+        elements={filteredElements}
+        activeElementId={activeElementId}
+        handleElementChange={handleElementChange}
+        handleFocus={handleFocus}
+        handleNavigate={handleNavigate}
+        handleEnterKey={handleEnterKey}
+        handleFormatChange={handleFormatChange}
+        handleTagsChange={handleTagsChange}
+        getPreviousElementType={getPreviousElementType}
+        characterNames={characterNames}
+        projectId={projectId}
+        beatMode={beatMode}
+        selectedStructure={selectedStructure}
+        onBeatTag={onBeatTag}
+      />
     </div>
   );
 };

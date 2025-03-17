@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ScriptEditor from '../components/script-editor/ScriptEditor';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, ElementType } from '@/types/scriptTypes';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note } from '../lib/types';
 import { emptyProject } from '../lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Save, ArrowLeft, FileText, ChevronDown, Eye, Loader, Check, Edit, Pencil } from 'lucide-react';
@@ -13,14 +13,13 @@ import { FormatProvider } from '@/lib/formatContext';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
 import TitlePageView from '@/components/TitlePageView';
-import { TitlePageData } from '@/types/scriptTypes';
+import { TitlePageData } from '@/components/TitlePageEditor';
 import { Json } from '@/integrations/supabase/types';
 import NotesMenu from '@/components/notes/NotesMenu';
 import NoteWindow from '@/components/notes/NoteWindow';
 import CreateNoteDialog from '@/components/notes/CreateNoteDialog';
 import NoteEditor from '@/components/notes/NoteEditor';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { convertLibToScriptTypes, convertScriptTypesToLib, convertScriptTypeTitlePageToLib } from '@/utils/typeAdapter';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -39,8 +38,8 @@ const Editor = () => {
   const [titlePageData, setTitlePageData] = useState<TitlePageData>({
     title: '',
     author: '',
-    contact: '',
-    basedOn: ''
+    basedOn: '',
+    contact: ''
   });
   
   const [notes, setNotes] = useState<Note[]>([]);
@@ -74,12 +73,12 @@ const Editor = () => {
               elements: [
                 {
                   id: "default-element-1",
-                  type: ElementType.SCENE_HEADING,
+                  type: "scene-heading",
                   text: "INT. SOMEWHERE - DAY"
                 },
                 {
                   id: "default-element-2",
-                  type: ElementType.ACTION,
+                  type: "action",
                   text: "Start writing your screenplay here..."
                 }
               ]
@@ -356,17 +355,10 @@ const Editor = () => {
     }
   };
 
-  const handleTitlePageUpdate = (data: any) => {
-    const updatedData: TitlePageData = {
-      title: data.title || '',
-      author: data.author || '',
-      contact: data.contact || '',
-      basedOn: data.basedOn || ''
-    };
-    
-    setTitlePageData(updatedData);
-    if (updatedData.title !== title) {
-      setTitle(updatedData.title);
+  const handleTitlePageUpdate = (data: TitlePageData) => {
+    setTitlePageData(data);
+    if (data.title !== title) {
+      setTitle(data.title);
     }
   };
 
@@ -519,8 +511,8 @@ const Editor = () => {
           onSave={() => handleSave()} 
           onSaveAs={handleSaveAs} 
           onTitlePage={() => toggleTitlePage()}
-          onEditTitlePage={handleTitlePageUpdate}
-          titlePageData={titlePageData as any}
+          onEditTitlePage={(data) => handleTitlePageUpdate(data)}
+          titlePageData={titlePageData}
           showTitlePage={showTitlePage}
           onToggleTitlePage={toggleTitlePage}
           notes={notes}
@@ -603,7 +595,7 @@ const Editor = () => {
               <ResizablePanel defaultSize={70} minSize={30}>
                 <div className="h-full overflow-auto">
                   {showTitlePage ? (
-                    <TitlePageView data={titlePageData as any} />
+                    <TitlePageView data={titlePageData} />
                   ) : (
                     <ScriptEditor 
                       initialContent={content} 
@@ -664,7 +656,7 @@ const Editor = () => {
           ) : (
             <>
               {showTitlePage ? (
-                <TitlePageView data={titlePageData as any} />
+                <TitlePageView data={titlePageData} />
               ) : (
                 <ScriptEditor 
                   initialContent={content} 

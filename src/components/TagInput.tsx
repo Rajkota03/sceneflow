@@ -47,6 +47,23 @@ const TagInput: React.FC<TagInputProps> = ({
       setInputValue('');
     }
   };
+
+  // Split tags into act tags and custom tags
+  const actTags = tags.filter(tag => 
+    tag.startsWith('Act 1:') || 
+    tag.startsWith('Act 2A:') || 
+    tag.startsWith('Midpoint:') || 
+    tag.startsWith('Act 2B:') || 
+    tag.startsWith('Act 3:')
+  );
+  
+  const customTags = tags.filter(tag => 
+    !tag.startsWith('Act 1:') && 
+    !tag.startsWith('Act 2A:') && 
+    !tag.startsWith('Midpoint:') && 
+    !tag.startsWith('Act 2B:') && 
+    !tag.startsWith('Act 3:')
+  );
   
   // Get color for act tags
   const getTagColor = (tag: string): string => {
@@ -62,16 +79,10 @@ const TagInput: React.FC<TagInputProps> = ({
     <div className={className}>
       <div className="text-xs font-medium mb-1 text-gray-500">Tags</div>
       <div className="flex flex-wrap items-center">
-        {tags.map((tag) => (
+        {actTags.map((tag) => (
           <div 
             key={tag} 
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs mr-1 mb-1 ${
-              tag.startsWith('Act 1:') || 
-              tag.startsWith('Act 2A:') || 
-              tag.startsWith('Midpoint:') || 
-              tag.startsWith('Act 2B:') || 
-              tag.startsWith('Act 3:') ? getTagColor(tag) : 'bg-slate-100 text-slate-700'
-            }`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs mr-1 mb-1 ${getTagColor(tag)}`}
           >
             <TagIcon size={12} className="mr-1" />
             <span>{tag}</span>
@@ -85,6 +96,14 @@ const TagInput: React.FC<TagInputProps> = ({
               </svg>
             </button>
           </div>
+        ))}
+        
+        {customTags.map((tag) => (
+          <SceneTag 
+            key={tag} 
+            tag={tag} 
+            onRemove={() => onRemoveTag(tag)} 
+          />
         ))}
         
         {isInputVisible ? (

@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
+import { Structure, Beat, Act } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronDown, ChevronUp, Target } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
-import { Structure } from '@/types/scriptTypes';
 
 interface BeatTaggingProps {
   selectedStructure: Structure | null;
@@ -39,8 +39,8 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
   let selectedActTitle = "";
   
   if (selectedBeatId) {
-    for (const act of selectedStructure.acts || []) {
-      const beat = (act.beats || []).find((b: any) => b.id === selectedBeatId);
+    for (const act of selectedStructure.acts) {
+      const beat = act.beats.find(b => b.id === selectedBeatId);
       if (beat) {
         selectedBeatTitle = beat.title;
         selectedActTitle = act.title;
@@ -76,7 +76,7 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
       {expanded && (
         <div className="border rounded-md mt-1 bg-white shadow-sm">
           <ScrollArea className="max-h-48">
-            {(selectedStructure.acts || []).map((act: any) => (
+            {selectedStructure.acts.map((act) => (
               <div key={act.id} className="p-2">
                 <div 
                   className="text-xs font-semibold pb-1 mb-1 border-b"
@@ -85,7 +85,7 @@ const BeatTagging: React.FC<BeatTaggingProps> = ({
                   {act.title}
                 </div>
                 <div className="space-y-1">
-                  {(act.beats || []).map((beat: any) => (
+                  {act.beats.map((beat) => (
                     <Button
                       key={beat.id}
                       variant="ghost"

@@ -1,11 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent, ActType, ActCountsRecord, ElementType } from '@/types/scriptTypes';
+import { ScriptContent, ActType } from '@/lib/types';
+import { ActCountsRecord } from '@/types/scriptTypes';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Initialize with the correct ActType enum values from types/scriptTypes.ts
+  // Initialize with the correct ActType enum values
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
     [ActType.ACT_1]: 0,
     [ActType.ACT_2A]: 0,
@@ -28,7 +29,7 @@ const useActCounts = (scriptContent: ScriptContent) => {
     };
 
     scriptContent.elements.forEach(element => {
-      if (element.type === ElementType.SCENE_HEADING && element.tags) {
+      if (element.type === 'scene-heading' && element.tags) {
         element.tags.forEach(tag => {
           tags.add(tag);
           
