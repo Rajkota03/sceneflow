@@ -23,13 +23,17 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
     const created_at = structure.createdAt.toISOString();
     const updated_at = structure.updatedAt.toISOString();
     
-    // Sanitize project ID if it's an undefined object
+    // Safely handle projectId - Fix for TypeScript error
     let projectId = null;
-    if (structure.projectId && typeof structure.projectId === 'object' && structure.projectId._type === 'undefined') {
-      // Handle the case where projectId is an object with undefined value
-      projectId = null;
-    } else {
-      projectId = structure.projectId;
+    if (structure.projectId) {
+      if (typeof structure.projectId === 'object' && 
+          '_type' in structure.projectId && 
+          structure.projectId._type === 'undefined') {
+        // Handle the case where projectId is an object with undefined value
+        projectId = null;
+      } else {
+        projectId = structure.projectId;
+      }
     }
     
     // Convert acts to JSON-compatible object for storage
