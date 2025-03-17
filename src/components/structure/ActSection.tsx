@@ -47,6 +47,54 @@ const ActSection: React.FC<ActSectionProps> = ({
   const actProgress = getActProgressPercentage();
   const isMidpoint = act.title.toLowerCase().includes('midpoint');
 
+  // Color scheme consistent with the specified design
+  const getActColors = () => {
+    if (act.title.includes("Act 1")) {
+      return {
+        bg: "bg-blue-50",
+        border: "border-blue-200",
+        dot: "bg-blue-500",
+        hover: "hover:bg-blue-100"
+      };
+    } else if (act.title.includes("Act 2A")) {
+      return {
+        bg: "bg-yellow-50",
+        border: "border-yellow-200",
+        dot: "bg-yellow-500",
+        hover: "hover:bg-yellow-100"
+      };
+    } else if (act.title.includes("Act 2B")) {
+      return {
+        bg: "bg-amber-50",
+        border: "border-amber-200",
+        dot: "bg-amber-500",
+        hover: "hover:bg-amber-100"
+      };
+    } else if (act.title.includes("Act 3")) {
+      return {
+        bg: "bg-red-50",
+        border: "border-red-200",
+        dot: "bg-red-500",
+        hover: "hover:bg-red-100"
+      };
+    } else if (isMidpoint) {
+      return {
+        bg: "bg-orange-50",
+        border: "border-orange-200",
+        dot: "bg-orange-500",
+        hover: "hover:bg-orange-100"
+      };
+    }
+    return {
+      bg: "bg-gray-50",
+      border: "border-gray-200",
+      dot: "bg-gray-500",
+      hover: "hover:bg-gray-100"
+    };
+  };
+
+  const colors = getActColors();
+
   return (
     <Collapsible 
       open={isExpanded} 
@@ -57,26 +105,19 @@ const ActSection: React.FC<ActSectionProps> = ({
       )}
     >
       <div className={cn(
-        "flex items-center justify-between p-3 transition-colors",
-        { "bg-blue-50 border-blue-200": act.title.includes("Act 1") },
-        { "bg-yellow-50 border-yellow-200": act.title.includes("Act 2A") },
-        { "bg-amber-50 border-amber-200": act.title.includes("Act 2B") },
-        { "bg-red-50 border-red-200": act.title.includes("Act 3") },
-        { "bg-orange-50 border-orange-200": isMidpoint }
+        "flex items-center justify-between p-4 transition-colors",
+        colors.bg,
+        colors.border
       )}>
-        <div className="flex items-center gap-2 flex-grow">
+        <div className="flex items-center gap-3 flex-grow">
           <div className={cn(
             "w-3 h-3 rounded-full flex-shrink-0",
-            { "bg-blue-500": act.title.includes("Act 1") },
-            { "bg-yellow-500": act.title.includes("Act 2A") },
-            { "bg-amber-500": act.title.includes("Act 2B") },
-            { "bg-red-500": act.title.includes("Act 3") },
-            { "bg-orange-500": isMidpoint }
+            colors.dot
           )} />
           <div className="flex flex-col">
-            <h3 className="font-medium">{act.title}</h3>
+            <h3 className="font-semibold text-gray-800">{act.title}</h3>
             
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-3 mt-1.5">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -86,22 +127,22 @@ const ActSection: React.FC<ActSectionProps> = ({
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">Approximate page range in screenplay</p>
+                    <p className="text-xs">Screenplay page range</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
               
-              <div className="flex items-center gap-1 ml-2">
+              <div className="flex items-center gap-2">
                 <Progress 
                   value={actProgress} 
                   className={cn(
-                    "h-1.5 w-20",
+                    "h-1.5 w-24",
                     actProgress === 0 ? "bg-gray-200" :
                     actProgress < 30 ? "bg-red-100" :
                     actProgress < 70 ? "bg-yellow-100" : "bg-green-100"
                   )}
                 />
-                <span className="text-xs text-gray-600">{Math.round(actProgress)}%</span>
+                <span className="text-xs text-gray-600 font-medium">{Math.round(actProgress)}%</span>
               </div>
             </div>
           </div>
@@ -110,20 +151,16 @@ const ActSection: React.FC<ActSectionProps> = ({
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
             {isExpanded ? 
-              <ChevronDown className="h-4 w-4" /> : 
-              <ChevronRight className="h-4 w-4" />
+              <ChevronDown className="h-4 w-4 text-gray-600" /> : 
+              <ChevronRight className="h-4 w-4 text-gray-600" />
             }
           </Button>
         </CollapsibleTrigger>
       </div>
       
       <CollapsibleContent className={cn(
-        "p-3 transition-all",
-        { "bg-blue-50/30": act.title.includes("Act 1") },
-        { "bg-yellow-50/30": act.title.includes("Act 2A") },
-        { "bg-amber-50/30": act.title.includes("Act 2B") },
-        { "bg-red-50/30": act.title.includes("Act 3") },
-        { "bg-orange-50/30": isMidpoint }
+        "px-4 py-3 transition-all",
+        colors.bg + "/30"
       )}>
         <ActSortableBeats
           act={act}

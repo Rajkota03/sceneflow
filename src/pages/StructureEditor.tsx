@@ -148,7 +148,7 @@ const StructureEditor = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-md">
+      <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white shadow-md">
         <div className="container mx-auto py-6 px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -156,7 +156,7 @@ const StructureEditor = () => {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => navigate('/dashboard')}
-                className="text-white hover:bg-slate-700"
+                className="text-white hover:bg-indigo-700/30"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Dashboard
@@ -169,7 +169,7 @@ const StructureEditor = () => {
                     ref={nameInputRef}
                     value={structureName}
                     onChange={(e) => setStructureName(e.target.value)}
-                    className="bg-slate-700 border-slate-600 text-white placeholder-slate-400 focus-visible:ring-slate-500"
+                    className="bg-indigo-700/30 border-indigo-600 text-white placeholder-indigo-300 focus-visible:ring-indigo-500"
                     placeholder="Structure name"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -185,7 +185,7 @@ const StructureEditor = () => {
                     size="sm" 
                     onClick={handleSaveStructureName}
                     disabled={isSaving}
-                    className="text-white hover:bg-slate-700"
+                    className="text-white hover:bg-indigo-700/30"
                   >
                     <Check className="h-4 w-4" />
                   </Button>
@@ -214,7 +214,7 @@ const StructureEditor = () => {
         {loading ? (
           <LoadingState />
         ) : structure ? (
-          <div className="bg-white rounded-lg shadow-md border p-6">
+          <div className="bg-white rounded-lg shadow-md border border-gray-100 p-6">
             <ThreeActStructurePanel 
               structure={structure} 
               onStructureUpdate={handleUpdateStructure}

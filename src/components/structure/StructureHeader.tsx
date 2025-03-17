@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Edit, Save } from 'lucide-react';
+import { Edit, Save, FileText } from 'lucide-react';
 
 interface StructureHeaderProps {
   name: string;
@@ -34,25 +34,35 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
   canEdit
 }) => {
   return (
-    <div className="mb-4 relative group">
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="text-lg font-semibold">{name}</h2>
-        {linkedToProject && projectTitle && (
-          <span className="text-sm text-gray-600">
-            Linked to: {projectTitle}
-          </span>
-        )}
+    <div className="mb-6 relative group">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">{name}</h2>
+          {linkedToProject && projectTitle && (
+            <span className="text-sm text-gray-600 mt-1 flex items-center">
+              <FileText className="h-3 w-3 mr-1" />
+              Linked to: {projectTitle}
+            </span>
+          )}
+        </div>
+        <div className="text-sm font-medium text-gray-700">
+          Overall Progress: {Math.round(progressPercentage)}%
+        </div>
       </div>
       
       {description && (
         <p className="text-sm text-gray-600 mb-3">{description}</p>
       )}
       
-      <div className="flex items-center gap-3 mb-3">
-        <Progress value={progressPercentage} className="h-2 flex-grow" />
-        <span className="text-sm font-medium">
-          {Math.round(progressPercentage)}%
-        </span>
+      <div className="flex items-center gap-3 mb-4">
+        <Progress 
+          value={progressPercentage} 
+          className={cn(
+            "h-2 flex-grow",
+            progressPercentage < 30 ? "bg-red-100" :
+            progressPercentage < 70 ? "bg-yellow-100" : "bg-green-100"
+          )}
+        />
       </div>
       
       <div className="flex items-center justify-end mb-4">
@@ -63,7 +73,7 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
               variant={hasChanges ? "default" : "outline"} 
               onClick={onSave} 
               disabled={isSaving || !hasChanges}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               <Save className="h-3 w-3 mr-1" />
               {isSaving ? "Saving..." : "Save Changes"}
@@ -83,6 +93,7 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
               variant={canEdit ? "default" : "outline"} 
               onClick={onEdit}
               disabled={!canEdit}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
               <Edit className="h-3 w-3 mr-1" />
               Edit Structure
@@ -90,8 +101,22 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
           </div>
         )}
       </div>
+      
+      {isEditing && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800 mb-4">
+          <p className="font-medium">Edit Mode Active</p>
+          <p className="text-xs mt-1">You can now edit beat titles, descriptions, add notes, and reorder beats using drag-and-drop.</p>
+        </div>
+      )}
+
+      <div className="border-b border-gray-200 mb-4"></div>
     </div>
   );
+};
+
+// Helper function for class merging
+const cn = (...classes: (string | boolean | undefined)[]) => {
+  return classes.filter(Boolean).join(' ');
 };
 
 export default StructureHeader;

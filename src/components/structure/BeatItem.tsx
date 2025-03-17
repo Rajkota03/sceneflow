@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Act, Beat } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -72,22 +73,28 @@ const BeatItem: React.FC<BeatItemProps> = ({
     return `${startPage}-${endPage}`;
   };
 
+  // Get border color based on the act type
+  const getBorderColor = () => {
+    if (isMidpoint) return "border-orange-500";
+    if (act.title.includes("Act 1")) return "border-blue-500";
+    if (act.title.includes("Act 2A")) return "border-yellow-500";
+    if (act.title.includes("Act 2B")) return "border-amber-500";
+    if (act.title.includes("Act 3")) return "border-red-500";
+    return "border-gray-300";
+  };
+
   return (
     <div 
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-3 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md group",
-        beat.complete ? "opacity-80 bg-gray-50" : "opacity-100",
-        isMidpoint ? `border-l-[6px] font-medium` : "",
-        { "border-blue-500": act.title.includes("Act 1") },
-        { "border-yellow-500": act.title.includes("Act 2A") },
-        { "border-orange-500": isMidpoint },
-        { "border-amber-500": act.title.includes("Act 2B") },
-        { "border-red-500": act.title.includes("Act 3") }
+        "p-4 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md group",
+        getBorderColor(),
+        beat.complete ? "opacity-85 bg-gray-50" : "opacity-100",
+        isMidpoint ? "border-l-[6px] font-medium" : ""
       )}
     >
-      <div className="flex justify-between items-start mb-1">
+      <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-2">
           {isEditing && (
             <button 
@@ -149,7 +156,7 @@ const BeatItem: React.FC<BeatItemProps> = ({
             </h4>
           )}
         </div>
-        <div className="flex items-center gap-1 ml-2">
+        <div className="flex items-center gap-2 ml-2">
           <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 font-normal">
             <FileText className="h-3 w-3 mr-1" />
             Pages {beat.pageRange || getApproximatePages()}
@@ -187,7 +194,7 @@ const BeatItem: React.FC<BeatItemProps> = ({
             value={localDescription}
             onChange={(e) => setLocalDescription(e.target.value)}
             className="text-xs resize-none"
-            rows={2}
+            rows={3}
             autoFocus
             onBlur={handleDescriptionSave}
           />
