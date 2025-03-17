@@ -4,7 +4,7 @@ import { Act, Beat } from '@/lib/models/structureModel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Trash2, GripVertical, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit, Trash2, GripVertical, MessageSquare, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 
 interface BeatItemProps {
   act: Act;
@@ -34,6 +34,11 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   
   const toggleNotes = () => {
     setIsNotesExpanded(!isNotesExpanded);
+  };
+  
+  // Convert percentage to estimated page count (assuming 1% = 1.2 pages in a 120-page screenplay)
+  const getEstimatedPageCount = (percentage: number) => {
+    return Math.round((percentage / 100) * 120);
   };
   
   if (isEditing) {
@@ -92,6 +97,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
   };
   
   const hasNotes = beat.description && beat.description.trim() !== '';
+  const pageCount = getEstimatedPageCount(beat.timePosition);
   
   return (
     <div 
@@ -106,10 +112,11 @@ export const BeatItem: React.FC<BeatItemProps> = ({
               <div className="flex items-center mb-1">
                 <h4 className="font-medium text-slate-800">{beat.title}</h4>
                 <span 
-                  className="ml-2 text-xs px-2 py-1 rounded-full text-slate-700"
+                  className="ml-2 text-xs px-2 py-1 rounded-full text-slate-700 flex items-center"
                   style={{ backgroundColor: getBeatBackground() }}
                 >
-                  {Math.round(beat.timePosition)}%
+                  <FileText className="h-3 w-3 mr-1" />
+                  Page {pageCount}
                 </span>
               </div>
             </div>

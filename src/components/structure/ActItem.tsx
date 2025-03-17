@@ -4,7 +4,7 @@ import { Act, Beat } from '@/lib/models/structureModel';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronDown, ChevronUp, Edit, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Edit, Plus, Trash2, FileText } from 'lucide-react';
 import { BeatList } from './BeatList';
 
 interface ActItemProps {
@@ -41,6 +41,14 @@ export const ActItem: React.FC<ActItemProps> = ({
   // Count beats in this act for the badge display
   const beatCount = act.beats.length;
   
+  // Convert percentage to estimated page count (assuming 1% = 1.2 pages in a 120-page screenplay)
+  const getEstimatedPageCount = (percentage: number) => {
+    return Math.round((percentage / 100) * 120);
+  };
+  
+  const startPage = getEstimatedPageCount(act.startPosition);
+  const endPage = getEstimatedPageCount(act.endPosition);
+  
   return (
     <Card 
       key={act.id} 
@@ -59,8 +67,9 @@ export const ActItem: React.FC<ActItemProps> = ({
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800">{act.title}</CardTitle>
             <div className="flex items-center mt-1">
-              <span className="text-sm text-slate-500 mr-2">
-                {act.startPosition}% - {act.endPosition}%
+              <span className="flex items-center text-sm text-slate-500 mr-2">
+                <FileText className="h-3 w-3 mr-1" />
+                Pages {startPage}-{endPage}
               </span>
               {beatCount > 0 && (
                 <span className="bg-slate-200 text-slate-700 text-xs px-2 py-0.5 rounded-full">

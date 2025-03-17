@@ -50,10 +50,12 @@ export const saveStructureWithUpdatedTimestamps = async (
     if (updatedStructure.projectId) {
       // Check if projectId is an object before trying to access its properties
       if (typeof updatedStructure.projectId === 'object' && 
-          updatedStructure.projectId !== null && 
-          '_type' in updatedStructure.projectId && 
-          updatedStructure.projectId._type === 'undefined') {
-        updatedStructure.projectId = undefined;
+          updatedStructure.projectId !== null) {
+        // Now it's safe to check for _type property
+        if ('_type' in updatedStructure.projectId && 
+            updatedStructure.projectId._type === 'undefined') {
+          updatedStructure.projectId = undefined;
+        }
       }
     }
     

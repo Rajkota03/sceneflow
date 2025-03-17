@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Structure } from '@/lib/models/structureModel';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,12 @@ export const StructureMetadata: React.FC<StructureMetadataProps> = ({
   const [newName, setNewName] = useState(structure.name);
   const [newDescription, setNewDescription] = useState(structure.description || '');
 
+  // Update state when structure changes (e.g., when a new structure is loaded)
+  useEffect(() => {
+    setNewName(structure.name);
+    setNewDescription(structure.description || '');
+  }, [structure.id, structure.name, structure.description]);
+
   const handleMetadataChange = () => {
     onChange({
       ...structure,
@@ -28,23 +34,52 @@ export const StructureMetadata: React.FC<StructureMetadataProps> = ({
     setIsEditing(false);
   };
 
+  // Function to handle importing project name if available
+  const handleUseProjectName = () => {
+    if (structure.projectTitle) {
+      setNewName(structure.projectTitle);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-slate-100 to-slate-50 p-6 rounded-xl shadow-sm border border-slate-100">
       {isEditing ? (
         <div className="w-full space-y-4">
-          <Input 
-            value={newName} 
-            onChange={(e) => setNewName(e.target.value)} 
-            placeholder="Structure name"
-            className="text-xl font-bold border-slate-200 focus:border-primary/50 transition-all"
-          />
-          <Textarea 
-            value={newDescription} 
-            onChange={(e) => setNewDescription(e.target.value)} 
-            placeholder="Structure description"
-            rows={3}
-            className="border-slate-200 focus:border-primary/50 transition-all"
-          />
+          <div>
+            <label htmlFor="structure-name" className="block text-sm font-medium text-slate-700 mb-1">
+              Structure Name
+            </label>
+            <Input 
+              id="structure-name"
+              value={newName} 
+              onChange={(e) => setNewName(e.target.value)} 
+              placeholder="Structure name"
+              className="text-xl font-bold border-slate-200 focus:border-primary/50 transition-all"
+            />
+            {structure.projectTitle && (
+              <Button 
+                variant="link" 
+                size="sm" 
+                className="mt-1 p-0 h-auto text-xs text-primary"
+                onClick={handleUseProjectName}
+              >
+                Use project name: {structure.projectTitle}
+              </Button>
+            )}
+          </div>
+          <div>
+            <label htmlFor="structure-description" className="block text-sm font-medium text-slate-700 mb-1">
+              Description
+            </label>
+            <Textarea 
+              id="structure-description"
+              value={newDescription} 
+              onChange={(e) => setNewDescription(e.target.value)} 
+              placeholder="Structure description"
+              rows={3}
+              className="border-slate-200 focus:border-primary/50 transition-all"
+            />
+          </div>
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
             <Button onClick={handleMetadataChange}>Save</Button>
