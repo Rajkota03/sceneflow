@@ -127,9 +127,18 @@ export interface TitlePageData {
 }
 
 // Helper functions for converting between formats
-export const jsonToScriptContent = (jsonString: string): ScriptContent => {
+export const jsonToScriptContent = (jsonData: string | Json): ScriptContent => {
   try {
-    return JSON.parse(jsonString);
+    if (typeof jsonData === 'string') {
+      // Parse JSON string
+      return JSON.parse(jsonData);
+    } else if (jsonData && typeof jsonData === 'object') {
+      // Use the JSON object directly
+      return jsonData as unknown as ScriptContent;
+    } else {
+      console.error('Invalid input to jsonToScriptContent:', jsonData);
+      return { elements: [] };
+    }
   } catch (e) {
     console.error('Error parsing script content:', e);
     return { elements: [] };
