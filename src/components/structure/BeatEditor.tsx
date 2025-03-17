@@ -45,7 +45,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
             beat: { ...editingBeat.beat, description: e.target.value }
           })} 
           rows={3}
-          className="border-slate-200 min-h-[80px]"
+          className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
           placeholder="Enter beat description..."
         />
       </div>

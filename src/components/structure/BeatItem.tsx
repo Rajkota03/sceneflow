@@ -57,6 +57,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
                 title: e.target.value
               })} 
               className="border-slate-200"
+              placeholder="Enter beat title..."
             />
           </div>
           <div>
@@ -169,7 +170,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
           <div className="mt-3 pt-3 border-t border-dashed border-slate-200">
             <div className="flex items-start">
               <MessageSquare className="h-4 w-4 text-slate-400 mt-0.5 mr-2" />
-              <p className="text-sm text-slate-600">{beat.description}</p>
+              <p className="text-sm text-slate-600 whitespace-pre-wrap">{beat.description}</p>
             </div>
           </div>
         )}
