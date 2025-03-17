@@ -6,7 +6,6 @@ import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
 import StructureSelector from './tag-manager/StructureSelector';
-import useStructures from './tag-manager/useStructures';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
@@ -54,7 +53,7 @@ const TagManager: React.FC<TagManagerProps> = ({
         )}
       </div>
       
-      {/* Structure selector */}
+      {/* Structure selector with improved UI */}
       {structures.length > 0 && onStructureChange && (
         <StructureSelector
           structures={structures}
