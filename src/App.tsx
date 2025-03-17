@@ -11,8 +11,6 @@ import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
-import PublicNavbar from './components/PublicNavbar';
-import Footer from './components/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
 import StructureEditorPage from './pages/StructureEditor';
@@ -81,7 +79,6 @@ function App() {
       <AuthContext.Provider value={{ session, setSession }}>
         <FormatProvider>
           <Router>
-            <PublicNavbar />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/sign-in/*" element={<SignIn />} />
@@ -120,7 +117,6 @@ function App() {
               />
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <Footer />
           </Router>
           <Toaster />
         </FormatProvider>
