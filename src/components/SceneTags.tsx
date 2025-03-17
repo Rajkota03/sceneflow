@@ -1,10 +1,13 @@
 
 import React, { useState } from 'react';
-import { ScriptElement, Structure, ActType } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Tag, X } from 'lucide-react';
-import SceneTag from './SceneTag';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScriptElement, Structure } from '@/lib/types';
+import { Tag } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from './ui/button';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -14,175 +17,70 @@ interface SceneTagsProps {
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const getActTypeFromTitle = (title: string): ActType => {
-  if (title.includes('Act 1')) return ActType.ACT_1;
-  if (title.includes('Act 2A')) return ActType.ACT_2A;
-  if (title.includes('Midpoint')) return ActType.MIDPOINT;
-  if (title.includes('Act 2B')) return ActType.ACT_2B;
-  if (title.includes('Act 3')) return ActType.ACT_3;
-  return ActType.ACT_1; // Default
-};
-
-const SceneTags: React.FC<SceneTagsProps> = ({ 
-  element, 
+const SceneTags: React.FC<SceneTagsProps> = ({
+  element,
   onTagsChange,
   projectId,
   selectedStructure,
   onBeatTag
 }) => {
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [newTag, setNewTag] = useState('');
-  const [beatMenuOpen, setBeatMenuOpen] = useState(false);
-  
-  const handleAddTag = () => {
-    if (newTag.trim() && !element.tags?.includes(newTag.trim())) {
-      const updatedTags = [...(element.tags || []), newTag.trim()];
-      onTagsChange(element.id, updatedTags);
-    }
-    setNewTag('');
-    setIsAddingTag(false);
-  };
-  
-  const handleTagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
-  
-  const handleRemoveTag = (tagToRemove: string) => {
-    if (element.tags) {
-      const updatedTags = element.tags.filter(tag => tag !== tagToRemove);
-      onTagsChange(element.id, updatedTags);
-    }
-  };
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleBeatTagging = (beatId: string, actId: string, actType: ActType) => {
+  const handleTagClick = (beatId: string, actId: string) => {
     if (onBeatTag) {
       onBeatTag(element.id, beatId, actId);
-      setBeatMenuOpen(false);
+      setIsOpen(false);
     }
   };
 
-  const hasBeats = selectedStructure && 
-                 selectedStructure.acts && 
-                 Array.isArray(selectedStructure.acts) && 
-                 selectedStructure.acts.length > 0;
+  if (!selectedStructure || !selectedStructure.acts || selectedStructure.acts.length === 0) {
+    return (
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <Tag className="h-4 w-4 text-gray-400" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-60 p-2">
+          <div className="text-xs text-gray-500 p-2">
+            No structure selected or structure has no acts/beats.
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 mt-1 mb-2 px-2">
-      {element.tags?.map((tag, index) => (
-        <SceneTag key={index} tag={tag} onRemove={() => handleRemoveTag(tag)} />
-      ))}
-      
-      {isAddingTag ? (
-        <div className="inline-flex items-center">
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            onKeyDown={handleTagKeyDown}
-            className="px-2 py-0.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
-            placeholder="Add tag..."
-            autoFocus
-            dir="ltr"
-          />
-          <button 
-            onClick={handleAddTag}
-            className="ml-1 text-green-600 hover:text-green-800"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-          </button>
-          <button 
-            onClick={() => setIsAddingTag(false)}
-            className="ml-1 text-red-600 hover:text-red-800"
-          >
-            <X size={14} />
-          </button>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-6 px-2 py-0 text-xs"
-          onClick={() => setIsAddingTag(true)}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add Tag
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-50 hover:opacity-100 transition-opacity">
+          <Tag className="h-4 w-4 text-gray-500" />
         </Button>
-      )}
-      
-      {onBeatTag && (
-        <Popover open={beatMenuOpen} onOpenChange={setBeatMenuOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 rounded-full ml-1"
-              title="Add Story Beat"
-            >
-              <Tag size={14} />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-60 p-2 max-h-80 overflow-auto">
-            {!hasBeats && (
-              <div className="text-sm text-gray-500 p-2">
-                No beats available. Please select a structure first.
-              </div>
-            )}
-            
-            {hasBeats && selectedStructure?.acts.map((act) => (
-              <div key={act.id} className="mb-2">
-                <div 
-                  className="text-xs font-semibold pb-1 mb-1 border-b"
-                  style={{ color: act.colorHex }}
-                >
-                  {act.title}
-                </div>
-                <div className="space-y-1">
-                  {act.beats && act.beats.map((beat) => {
-                    const actType = getActTypeFromTitle(act.title);
-                    const isSelected = element.beat === beat.id;
-                    return (
-                      <div
-                        key={beat.id}
-                        className={`text-xs py-1 px-2 rounded cursor-pointer flex items-center ${
-                          isSelected ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => handleBeatTagging(beat.id, act.id, actType)}
-                      >
-                        <span>{beat.title}</span>
-                        {isSelected && (
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="ml-auto"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                      </div>
-                    );
-                  })}
+      </PopoverTrigger>
+      <PopoverContent className="w-60 p-0" align="end">
+        <div className="p-2 max-h-[300px] overflow-y-auto">
+          <h3 className="font-semibold text-sm mb-2">{selectedStructure.name} Beats</h3>
+          <div className="space-y-2">
+            {selectedStructure.acts.map((act) => (
+              <div key={act.id} className="space-y-1">
+                <h4 className="text-xs font-medium text-gray-600">{act.name}</h4>
+                <div className="grid grid-cols-1 gap-1">
+                  {act.beats.map((beat) => (
+                    <button
+                      key={beat.id}
+                      onClick={() => handleTagClick(beat.id, act.id)}
+                      className="text-xs py-1 px-2 text-left hover:bg-gray-100 rounded transition-colors w-full truncate"
+                    >
+                      {beat.name}
+                    </button>
+                  ))}
                 </div>
               </div>
             ))}
-          </PopoverContent>
-        </Popover>
-      )}
-    </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

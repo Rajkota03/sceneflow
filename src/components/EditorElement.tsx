@@ -5,6 +5,8 @@ import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
 import { BeatMode } from '@/types/scriptTypes';
+import { formatType } from '@/lib/formatScript';
+import { Tag } from 'lucide-react';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -64,6 +66,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
+  const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -97,18 +100,39 @@ const EditorElement: React.FC<EditorElementProps> = ({
       e.preventDefault();
       onEnterKey(element.id, e.shiftKey);
     } else if (e.key === 'ArrowUp') {
-      onNavigate('up', element.id);
+      if (suggestionsVisible && filteredSuggestions.length > 0) {
+        e.preventDefault();
+        setFocusIndex(prevIndex => Math.max(0, prevIndex - 1));
+      } else {
+        onNavigate('up', element.id);
+      }
     } else if (e.key === 'ArrowDown') {
-      onNavigate('down', element.id);
-    } else if (suggestionsVisible && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault();
-      setFocusIndex(prevIndex => {
-        const newIndex = e.key === 'ArrowLeft' ? prevIndex - 1 : prevIndex + 1;
-        return Math.max(0, Math.min(newIndex, filteredSuggestions.length - 1));
-      });
-    } else if (suggestionsVisible && e.key === 'Tab') {
+      if (suggestionsVisible && filteredSuggestions.length > 0) {
+        e.preventDefault();
+        setFocusIndex(prevIndex => Math.min(filteredSuggestions.length - 1, prevIndex + 1));
+      } else {
+        onNavigate('down', element.id);
+      }
+    } else if (suggestionsVisible && filteredSuggestions.length > 0 && e.key === 'Tab') {
       e.preventDefault();
       handleSelectCharacter(filteredSuggestions[focusIndex]);
+    } else if (e.key === 'Tab') {
+      // Cycle through element types when Tab is pressed
+      e.preventDefault();
+      
+      const elementTypes: ElementType[] = [
+        'scene-heading',
+        'action',
+        'character',
+        'dialogue',
+        'parenthetical',
+        'transition'
+      ];
+      
+      const currentIndex = elementTypes.indexOf(element.type);
+      const nextIndex = (currentIndex + 1) % elementTypes.length;
+      
+      onFormatChange(element.id, elementTypes[nextIndex]);
     }
   };
 
@@ -121,8 +145,31 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowElementMenu(!showElementMenu);
+  };
+
+  const handleElementTypeChange = (newType: ElementType) => {
+    onFormatChange(element.id, newType);
+    setShowElementMenu(false);
+  };
+
   return (
-    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''}`}>
+    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''} relative group`} onContextMenu={handleRightClick}>
+      <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {isActive && (
+          <div className="flex items-center gap-1 text-xs text-gray-500">
+            <button
+              onClick={() => setShowElementMenu(!showElementMenu)}
+              className="px-1.5 py-0.5 text-blue-600 hover:bg-gray-100 rounded"
+            >
+              {formatType(element.type)}
+            </button>
+          </div>
+        )}
+      </div>
+      
       <div
         ref={editorRef}
         className={`
@@ -149,7 +196,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         {text}
       </div>
       
-      {isActive && beatMode === 'on' && (
+      {isActive && (
         <>
           {suggestionsVisible && (
             <CharacterSuggestions 
@@ -159,14 +206,30 @@ const EditorElement: React.FC<EditorElementProps> = ({
             />
           )}
           
-          {element.type === 'scene-heading' && (
-            <SceneTags 
-              element={element} 
-              onTagsChange={onTagsChange} 
-              projectId={projectId}
-              selectedStructure={selectedStructure}
-              onBeatTag={onBeatTag}
-            />
+          {element.type === 'scene-heading' && beatMode === 'on' && (
+            <div className="absolute right-0 top-0">
+              <SceneTags 
+                element={element} 
+                onTagsChange={onTagsChange} 
+                projectId={projectId}
+                selectedStructure={selectedStructure}
+                onBeatTag={onBeatTag}
+              />
+            </div>
+          )}
+          
+          {showElementMenu && (
+            <div className="absolute top-full left-0 w-40 bg-white border border-gray-300 shadow-md rounded-md z-50">
+              {['scene-heading', 'action', 'character', 'dialogue', 'parenthetical', 'transition'].map((type) => (
+                <div 
+                  key={type}
+                  className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${element.type === type ? 'bg-gray-100' : ''}`}
+                  onClick={() => handleElementTypeChange(type as ElementType)}
+                >
+                  {formatType(type as ElementType)}
+                </div>
+              ))}
+            </div>
           )}
         </>
       )}

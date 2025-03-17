@@ -15,7 +15,7 @@ interface CharacterSuggestionsProps {
   currentType?: ElementType;
   suggestions?: string[];
   isVisible?: boolean;
-  focusIndex?: number; // Add the missing focusIndex prop
+  focusIndex?: number;
 }
 
 const CharacterSuggestions: React.FC<CharacterSuggestionsProps> = ({ 
@@ -24,7 +24,7 @@ const CharacterSuggestions: React.FC<CharacterSuggestionsProps> = ({
   onClose,
   currentType,
   isVisible = true,
-  focusIndex = 0 // Default value
+  focusIndex = 0
 }) => {
   // For element type selection
   if (currentType !== undefined) {
@@ -61,17 +61,18 @@ const CharacterSuggestions: React.FC<CharacterSuggestionsProps> = ({
   if (!isVisible || !suggestions || suggestions.length === 0) return null;
 
   return (
-    <div className="character-suggestions absolute top-full left-0 w-full z-10">
-      <Select onValueChange={onSelect}>
-        <SelectTrigger className="w-full bg-white border border-gray-300">
-          <SelectValue placeholder="Select character..." />
-        </SelectTrigger>
-        <SelectContent className="bg-white">
-          {suggestions.map((character, index) => (
-            <SelectItem key={index} value={character}>{character}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="character-suggestions z-10">
+      <div className="bg-white border border-gray-300 shadow-md rounded-md">
+        {suggestions.map((character, index) => (
+          <div
+            key={index}
+            className={`px-3 py-2 cursor-pointer hover:bg-gray-100 ${index === focusIndex ? 'bg-gray-100' : ''}`}
+            onClick={() => onSelect(character)}
+          >
+            {character}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
