@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, Note } from '@/lib/types';
+import { Project, Note, Structure } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
-import { Structure } from '@/types/scriptTypes';
+import { v4 as uuidv4 } from 'uuid';
 import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
-import { v4 as uuidv4 } from 'uuid';
+import { Json } from '@/integrations/supabase/types'; 
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -108,14 +108,32 @@ const Dashboard = () => {
         if (error) throw error;
         
         if (data) {
-          const formattedStructures: Structure[] = data.map(structure => ({
-            id: structure.id,
-            name: structure.name,
-            description: structure.description || undefined,
-            acts: structure.beats?.acts || [],
-            createdAt: new Date(structure.created_at),
-            updatedAt: new Date(structure.updated_at)
-          }));
+          const formattedStructures: Structure[] = data.map(structure => {
+            // Safely parse the beats data
+            let actsData: Act[] = [];
+            try {
+              if (typeof structure.beats === 'string') {
+                const parsed = JSON.parse(structure.beats);
+                actsData = parsed.acts || [];
+              } else if (structure.beats && typeof structure.beats === 'object') {
+                // If it's already an object, try to access acts
+                const beatsObj = structure.beats as any;
+                actsData = beatsObj.acts || [];
+              }
+            } catch (e) {
+              console.error('Error parsing beats data:', e);
+              actsData = [];
+            }
+            
+            return {
+              id: structure.id,
+              name: structure.name,
+              description: structure.description || undefined,
+              acts: actsData,
+              createdAt: new Date(structure.created_at),
+              updatedAt: new Date(structure.updated_at)
+            };
+          });
           
           setStructures(formattedStructures);
         }
@@ -472,7 +490,6 @@ const Dashboard = () => {
         description: 'Failed to delete the structure. Please try again.',
         variant: 'destructive',
       });
-      throw error;
     }
   };
 
@@ -486,6 +503,17 @@ const Dashboard = () => {
     note.title.toLowerCase().includes(notesSearchQuery.toLowerCase()) || 
     note.content.toLowerCase().includes(notesSearchQuery.toLowerCase())
   );
+
+  // Filter structures based on search query
+  const filteredStructures = structures.filter(structure =>
+    structure.name.toLowerCase().includes(structuresSearchQuery.toLowerCase()) ||
+    (structure.description && structure.description.toLowerCase().includes(structuresSearchQuery.toLowerCase()))
+  );
+
+  if (!session) {
+    navigate('/signin');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -532,7 +560,7 @@ const Dashboard = () => {
           
           <TabsContent value="structures">
             <StructuresTab 
-              structures={structures}
+              structures={filteredStructures}
               searchQuery={structuresSearchQuery}
               setSearchQuery={setStructuresSearchQuery}
               isLoading={isStructuresLoading}

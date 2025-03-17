@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Structure, Act } from '@/lib/types';
 
 // Define a simple type for structure info
 export interface StructureInfo {
