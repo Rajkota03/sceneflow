@@ -1,5 +1,35 @@
 
-import { ScriptContent, ActType } from "@/lib/types";
+// Define all types with proper exports
+
+// Basic element types
+export type ElementType = 
+  'scene-heading' | 
+  'action' | 
+  'character' | 
+  'dialogue' | 
+  'parenthetical' | 
+  'transition' | 
+  'note';
+
+export enum ActType {
+  ACT_1 = 'act1',
+  ACT_2A = 'act2a',
+  MIDPOINT = 'midpoint',
+  ACT_2B = 'act2b',
+  ACT_3 = 'act3'
+}
+
+export interface ScriptElement {
+  id: string;
+  type: ElementType;
+  text: string;
+  tags?: string[];
+  act?: ActType;
+}
+
+export interface ScriptContent {
+  elements: ScriptElement[];
+}
 
 export type ActCountsRecord = {
   [key in ActType]: number;
@@ -39,7 +69,7 @@ export interface ScriptElementProps {
   beatMode?: BeatMode;
 }
 
-// Updated Structure-related types
+// Structure-related types
 export interface Structure {
   id: string;
   name: string;
@@ -68,4 +98,83 @@ export interface Beat {
   pageRange?: string;
   complete?: boolean;
   notes?: string;
+}
+
+// Note-related types
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Project-related types
+export interface Project {
+  id: string;
+  title: string;
+  content: ScriptContent;
+  updated_at: Date;
+  created_at: Date;
+  user_id?: string;
+}
+
+export interface TitlePageData {
+  title: string;
+  author: string;
+  contact: string;
+}
+
+// Helper functions for converting between formats
+export const jsonToScriptContent = (jsonString: string): ScriptContent => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Error parsing script content:', e);
+    return { elements: [] };
+  }
+};
+
+export const scriptContentToJson = (content: ScriptContent): string => {
+  try {
+    return JSON.stringify(content);
+  } catch (e) {
+    console.error('Error stringifying script content:', e);
+    return '{"elements":[]}';
+  }
+};
+
+// ThreeActStructure used in some components
+export interface ThreeActStructure {
+  id: string;
+  name: string;
+  acts: {
+    setup: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+    confrontation: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+    resolution: {
+      name: string;
+      description: string;
+      beats: {
+        name: string;
+        description: string;
+        position: number;
+      }[];
+    };
+  };
 }

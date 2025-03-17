@@ -10,16 +10,21 @@ interface StructureProgressBarProps {
   currentPage?: number;
   totalPages?: number;
   className?: string;
+  // Add progress property to fix the typing error
+  progress?: number;
 }
 
 const StructureProgressBar: React.FC<StructureProgressBarProps> = ({
   structure,
   currentPage = 1,
   totalPages = 120,
-  className
+  className,
+  progress
 }) => {
   // Calculate current progress as a percentage
-  const currentProgress = (currentPage / totalPages) * 100;
+  const currentProgress = progress !== undefined 
+    ? progress 
+    : (currentPage / totalPages) * 100;
   
   return (
     <div className={cn("w-full space-y-2", className)}>

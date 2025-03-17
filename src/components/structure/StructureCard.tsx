@@ -152,8 +152,8 @@ const StructureCard: React.FC<StructureCardProps> = ({ structure, onEdit, onDele
             <span>{Math.round(progressPercentage)}%</span>
           </div>
           <StructureProgressBar 
-            progress={progressPercentage} 
-            acts={structure.acts}
+            structure={structure}
+            progress={progressPercentage}
           />
         </div>
         
