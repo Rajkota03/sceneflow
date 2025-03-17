@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { ElementType, ScriptElement, Structure } from '@/lib/types';
+import { ElementType, ScriptElement, Structure, ActType } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
@@ -45,13 +44,11 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
-// Helper function to get background highlight for tagged scenes
 const getSceneHighlight = (element: ScriptElement): string => {
   if (element.type !== 'scene-heading' || !element.tags || element.tags.length === 0) {
     return '';
   }
   
-  // Check for act tags and apply appropriate color
   if (element.tags.some(tag => tag.startsWith('Act 1:'))) {
     return 'bg-[#D3E4FD] bg-opacity-20';
   } else if (element.tags.some(tag => tag.startsWith('Act 2A:'))) {
@@ -145,7 +142,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
-  // Determine if this element is a scene heading and should have the tag button
   const isSceneHeading = element.type === 'scene-heading';
   const sceneHighlight = getSceneHighlight(element);
 
@@ -178,15 +174,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
         {text}
       </div>
       
-      {/* Floating Tag Scene button on hover for scene headings */}
       {isSceneHeading && isHovered && !isActive && beatMode === 'on' && (
         <div className="absolute right-2 top-0">
           <SceneTagButton 
             onTagSelect={(tagType, actType, beatId) => {
-              // Focus this element first
               onFocus();
               
-              // Handle tag selection
               if (tagType === 'act' && actType) {
                 const actTag = actType === ActType.ACT_1 ? 'Act 1: Setup' :
                               actType === ActType.ACT_2A ? 'Act 2A: Reaction' :
@@ -194,7 +187,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
                               actType === ActType.ACT_2B ? 'Act 2B: Approach' :
                               'Act 3: Resolution';
                               
-                // Remove existing act tags
                 const filteredTags = (element.tags || []).filter(tag => 
                   !tag.startsWith('Act 1:') && 
                   !tag.startsWith('Act 2A:') && 
@@ -206,24 +198,21 @@ const EditorElement: React.FC<EditorElementProps> = ({
                 onTagsChange(element.id, [...filteredTags, actTag]);
               }
               else if (tagType === 'beat' && beatId && actType && selectedStructure) {
-                // Find the beat in the selected structure
                 let beatName = '';
                 selectedStructure.acts?.forEach(act => {
                   if (act.act_type === actType) {
                     act.beats?.forEach(beat => {
                       if (beat.id === beatId) {
-                        beatName = beat.name;
+                        beatName = beat.title;
                       }
                     });
                   }
                 });
                 
                 if (beatName && onBeatTag) {
-                  // Get the act ID based on act type
                   const actId = selectedStructure.acts?.find(act => act.act_type === actType)?.id || '';
                   onBeatTag(element.id, beatId, actId);
                   
-                  // Add a tag for this beat
                   const actPrefix = actType === ActType.ACT_1 ? 'Act 1: ' :
                                   actType === ActType.ACT_2A ? 'Act 2A: ' :
                                   actType === ActType.MIDPOINT ? 'Midpoint: ' :
@@ -237,7 +226,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
                   }
                 }
               }
-              // Custom tags are handled in the SceneTags component
             }}
             selectedStructure={selectedStructure}
             className="opacity-70 hover:opacity-100"

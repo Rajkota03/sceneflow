@@ -118,7 +118,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
         if (act.act_type === actType) {
           act.beats?.forEach(beat => {
             if (beat.id === beatId) {
-              beatName = beat.name;
+              beatName = beat.title;
             }
           });
         }

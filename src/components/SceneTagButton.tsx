@@ -128,7 +128,7 @@ const SceneTagButton: React.FC<SceneTagButtonProps> = ({
                     onClick={() => onTagSelect('beat', act.act_type, beat.id)}
                   >
                     <TagIcon className="mr-2 h-4 w-4" />
-                    <span>{beat.name}</span>
+                    <span>{beat.title}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuGroup>
