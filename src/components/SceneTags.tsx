@@ -101,41 +101,150 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   }
 
   const getActColor = (act: ActType): string => {
-    switch (act) {
-      case ActType.ACT_1: return 'bg-[#D3E4FD] border-[#4A90E2] text-[#2171D2]';
-      case ActType.ACT_2A: return 'bg-[#FEF7CD] border-[#F5A623] text-[#D28A21]';
-      case ActType.MIDPOINT: return 'bg-[#FFCCCB] border-[#FF9E9D] text-[#D24E4D]';
-      case ActType.ACT_2B: return 'bg-[#FDE1D3] border-[#F57C00] text-[#D26600]';
-      case ActType.ACT_3: return 'bg-[#F2FCE2] border-[#009688] text-[#007F73]';
-      default: return 'bg-gray-100 text-gray-600';
+    // Return specific colors based on selected structure type
+    if (selectedStructure?.structure_type === 'save_the_cat') {
+      switch (act) {
+        case ActType.ACT_1: return 'bg-[#D3E4FD] border-[#4A90E2] text-[#2171D2]';
+        case ActType.ACT_2A: return 'bg-[#FEF7CD] border-[#F5A623] text-[#D28A21]';
+        case ActType.MIDPOINT: return 'bg-[#8B5CF6] border-[#6D28D9] text-[#4C1D95]';
+        case ActType.ACT_2B: return 'bg-[#FDE1D3] border-[#F57C00] text-[#D26600]';
+        case ActType.ACT_3: return 'bg-[#F2FCE2] border-[#009688] text-[#007F73]';
+        default: return 'bg-gray-100 text-gray-600';
+      }
+    } else if (selectedStructure?.structure_type === 'hero_journey') {
+      switch (act) {
+        case ActType.ACT_1: return 'bg-[#10b981] border-[#064e36] text-white';
+        case ActType.ACT_2A: return 'bg-[#f59e0b] border-[#8c5a04] text-white';
+        case ActType.MIDPOINT: return 'bg-[#ef4444] border-[#7f1d1d] text-white';
+        case ActType.ACT_2B: return 'bg-[#f59e0b] border-[#8c5a04] text-white';
+        case ActType.ACT_3: return 'bg-[#ef4444] border-[#7f1d1d] text-white';
+        default: return 'bg-gray-100 text-gray-600';
+      }
+    } else if (selectedStructure?.structure_type === 'story_circle') {
+      switch (act) {
+        case ActType.ACT_1: return 'bg-[#ec4899] border-[#9d174d] text-white';
+        case ActType.ACT_2A: return 'bg-[#a855f7] border-[#6b21a8] text-white';
+        case ActType.MIDPOINT: return 'bg-[#3b82f6] border-[#1d4ed8] text-white';
+        case ActType.ACT_2B: return 'bg-[#a855f7] border-[#6b21a8] text-white';
+        case ActType.ACT_3: return 'bg-[#ec4899] border-[#9d174d] text-white';
+        default: return 'bg-gray-100 text-gray-600';
+      }
+    } else {
+      // Default Three Act Structure
+      switch (act) {
+        case ActType.ACT_1: return 'bg-[#D3E4FD] border-[#4A90E2] text-[#2171D2]';
+        case ActType.ACT_2A: return 'bg-[#FEF7CD] border-[#F5A623] text-[#D28A21]';
+        case ActType.MIDPOINT: return 'bg-[#FFCCCB] border-[#FF9E9D] text-[#D24E4D]';
+        case ActType.ACT_2B: return 'bg-[#FDE1D3] border-[#F57C00] text-[#D26600]';
+        case ActType.ACT_3: return 'bg-[#F2FCE2] border-[#009688] text-[#007F73]';
+        default: return 'bg-gray-100 text-gray-600';
+      }
     }
   };
 
   const getActLabel = (act: ActType): string => {
-    switch (act) {
-      case ActType.ACT_1: return 'Act 1';
-      case ActType.ACT_2A: return 'Act 2A';
-      case ActType.MIDPOINT: return 'Midpoint';
-      case ActType.ACT_2B: return 'Act 2B';
-      case ActType.ACT_3: return 'Act 3';
-      default: return '';
+    if (selectedStructure?.structure_type === 'save_the_cat') {
+      switch (act) {
+        case ActType.ACT_1: return 'Setup';
+        case ActType.ACT_2A: return 'Confrontation I';
+        case ActType.MIDPOINT: return 'Midpoint';
+        case ActType.ACT_2B: return 'Confrontation II';
+        case ActType.ACT_3: return 'Resolution';
+        default: return '';
+      }
+    } else if (selectedStructure?.structure_type === 'hero_journey') {
+      switch (act) {
+        case ActType.ACT_1: return 'Departure';
+        case ActType.ACT_2A: return 'Initiation I';
+        case ActType.MIDPOINT: return 'Supreme Ordeal';
+        case ActType.ACT_2B: return 'Initiation II';
+        case ActType.ACT_3: return 'Return';
+        default: return '';
+      }
+    } else if (selectedStructure?.structure_type === 'story_circle') {
+      switch (act) {
+        case ActType.ACT_1: return 'Need';
+        case ActType.ACT_2A: return 'Go';
+        case ActType.MIDPOINT: return 'Find';
+        case ActType.ACT_2B: return 'Take';
+        case ActType.ACT_3: return 'Return';
+        default: return '';
+      }
+    } else {
+      // Default Three Act Structure
+      switch (act) {
+        case ActType.ACT_1: return 'Act 1';
+        case ActType.ACT_2A: return 'Act 2A';
+        case ActType.MIDPOINT: return 'Midpoint';
+        case ActType.ACT_2B: return 'Act 2B';
+        case ActType.ACT_3: return 'Act 3';
+        default: return '';
+      }
     }
   };
 
   const getActBeats = (act: ActType): string[] => {
-    switch (act) {
-      case ActType.ACT_1:
-        return ['Hook', 'Setup', 'Inciting Incident', 'First Plot Point'];
-      case ActType.ACT_2A:
-        return ['First Pinch Point', 'Rising Action'];
-      case ActType.MIDPOINT:
-        return ['Revelation', 'Shift', 'Game Changer'];
-      case ActType.ACT_2B:
-        return ['Second Pinch Point', 'Rising Complications'];
-      case ActType.ACT_3:
-        return ['Crisis', 'Climax', 'Resolution'];
-      default:
-        return [];
+    if (selectedStructure?.structure_type === 'save_the_cat') {
+      switch (act) {
+        case ActType.ACT_1:
+          return ['Opening Image', 'Theme Stated', 'Set-Up', 'Catalyst', 'Debate', 'Break into Two'];
+        case ActType.ACT_2A:
+          return ['B Story', 'Fun and Games'];
+        case ActType.MIDPOINT:
+          return ['Midpoint'];
+        case ActType.ACT_2B:
+          return ['Bad Guys Close In', 'All Is Lost', 'Dark Night of the Soul'];
+        case ActType.ACT_3:
+          return ['Break into Three', 'Finale', 'Final Image'];
+        default:
+          return [];
+      }
+    } else if (selectedStructure?.structure_type === 'hero_journey') {
+      switch (act) {
+        case ActType.ACT_1:
+          return ['Ordinary World', 'Call to Adventure', 'Refusal of the Call', 'Meeting with the Mentor', 'Crossing the First Threshold'];
+        case ActType.ACT_2A:
+          return ['Tests, Allies, and Enemies', 'Approach to the Inmost Cave'];
+        case ActType.MIDPOINT:
+          return ['The Ordeal'];
+        case ActType.ACT_2B:
+          return ['Reward (Seizing the Sword)'];
+        case ActType.ACT_3:
+          return ['The Road Back', 'Resurrection', 'Return with the Elixir'];
+        default:
+          return [];
+      }
+    } else if (selectedStructure?.structure_type === 'story_circle') {
+      switch (act) {
+        case ActType.ACT_1:
+          return ['You', 'Need'];
+        case ActType.ACT_2A:
+          return ['Go', 'Search'];
+        case ActType.MIDPOINT:
+          return ['Find'];
+        case ActType.ACT_2B:
+          return ['Take'];
+        case ActType.ACT_3:
+          return ['Return', 'Change'];
+        default:
+          return [];
+      }
+    } else {
+      // Default Three Act Structure
+      switch (act) {
+        case ActType.ACT_1:
+          return ['Hook', 'Setup', 'Inciting Incident', 'First Plot Point'];
+        case ActType.ACT_2A:
+          return ['First Pinch Point', 'Rising Action'];
+        case ActType.MIDPOINT:
+          return ['Revelation', 'Shift', 'Game Changer'];
+        case ActType.ACT_2B:
+          return ['Second Pinch Point', 'Rising Complications'];
+        case ActType.ACT_3:
+          return ['Crisis', 'Climax', 'Resolution'];
+        default:
+          return [];
+      }
     }
   };
 

@@ -20,7 +20,8 @@ const TagManager: React.FC<TagManagerProps> = ({
   onToggleBeatMode,
   selectedStructureId,
   onStructureChange,
-  structures = []
+  structures = [],
+  selectedStructure
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
   
@@ -45,6 +46,10 @@ const TagManager: React.FC<TagManagerProps> = ({
             projectName={projectName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
+            availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
+            selectedStructureId={selectedStructureId}
+            onStructureChange={onStructureChange}
+            selectedStructure={selectedStructure}
           />
         )}
       </div>
