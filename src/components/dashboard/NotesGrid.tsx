@@ -38,47 +38,55 @@ const NotesGrid = ({ notes, onDeleteNote, onViewNote, onEditNote }: NotesGridPro
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {notes.map((note) => (
-        <Card key={note.id} className="border border-border bg-card hover:shadow-md transition-shadow">
+        <Card key={note.id} className="border border-border bg-card hover:shadow-md transition-shadow group">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-start">
               <div className="flex items-center gap-2">
                 <NotebookPen className="h-4 w-4 text-primary" />
                 <CardTitle className="text-lg font-medium">{note.title}</CardTitle>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteNote(note.id);
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteNote(note.id);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete</span>
+                </Button>
+              </div>
             </div>
             <CardDescription className="text-xs flex items-center mt-1">
               <Calendar className="h-3 w-3 mr-1" />
               {formatDate(note.createdAt)}
             </CardDescription>
           </CardHeader>
-          <CardContent className="cursor-pointer" onClick={() => onEditNote && onEditNote(note)}>
+          <CardContent 
+            className="cursor-pointer" 
+            onClick={() => onEditNote && onEditNote(note)}
+          >
             <p className="text-sm text-muted-foreground line-clamp-3 h-14">{note.content}</p>
           </CardContent>
           <CardFooter className="pt-2 pb-3">
             {onEditNote && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-xs text-primary flex items-center"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditNote(note);
-                }}
-              >
-                <Pencil className="h-3 w-3 mr-1" />
-                Edit
-              </Button>
+              <div className="w-full opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-xs text-primary flex items-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditNote(note);
+                  }}
+                >
+                  <Pencil className="h-3 w-3 mr-1" />
+                  Edit Note
+                </Button>
+              </div>
             )}
           </CardFooter>
         </Card>

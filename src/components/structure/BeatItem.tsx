@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Act, Beat } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -78,7 +77,7 @@ const BeatItem: React.FC<BeatItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-3 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md",
+        "p-3 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md group",
         beat.complete ? "opacity-80 bg-gray-50" : "opacity-100",
         isMidpoint ? `border-l-[6px] font-medium` : "",
         { "border-blue-500": act.title.includes("Act 1") },
@@ -156,26 +155,28 @@ const BeatItem: React.FC<BeatItemProps> = ({
             Pages {beat.pageRange || getApproximatePages()}
           </Badge>
           {isEditing && onBeatToggleComplete && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.complete)}
-                  >
-                    <Check className={cn(
-                      "h-4 w-4",
-                      beat.complete ? "text-green-500" : "text-gray-300"
-                    )} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-xs">Mark as {beat.complete ? "incomplete" : "complete"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.complete)}
+                    >
+                      <Check className={cn(
+                        "h-4 w-4",
+                        beat.complete ? "text-green-500" : "text-gray-300"
+                      )} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Mark as {beat.complete ? "incomplete" : "complete"}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           )}
         </div>
       </div>
@@ -276,15 +277,17 @@ const BeatItem: React.FC<BeatItemProps> = ({
             <p>{beat.notes}</p>
           </div>
         ) : isEditing ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 mt-2 text-xs text-gray-500"
-            onClick={() => setEditingNotes(true)}
-          >
-            <Edit className="h-3 w-3 mr-1" />
-            Add Notes
-          </Button>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 mt-2 text-xs text-gray-500"
+              onClick={() => setEditingNotes(true)}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Add Notes
+            </Button>
+          </div>
         ) : null
       )}
     </div>

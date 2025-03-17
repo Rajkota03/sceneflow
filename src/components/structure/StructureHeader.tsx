@@ -34,7 +34,7 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
   canEdit
 }) => {
   return (
-    <div className="mb-4">
+    <div className="mb-4 relative group">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-lg font-semibold">{name}</h2>
         {linkedToProject && projectTitle && (
@@ -77,15 +77,17 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
             </Button>
           </div>
         ) : (
-          <Button 
-            size="sm" 
-            variant={canEdit ? "default" : "outline"} 
-            onClick={onEdit}
-            disabled={!canEdit}
-          >
-            <Edit className="h-3 w-3 mr-1" />
-            Edit Structure
-          </Button>
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button 
+              size="sm" 
+              variant={canEdit ? "default" : "outline"} 
+              onClick={onEdit}
+              disabled={!canEdit}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Edit Structure
+            </Button>
+          </div>
         )}
       </div>
     </div>
