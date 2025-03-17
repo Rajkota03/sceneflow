@@ -47,9 +47,12 @@ export const saveStructureWithUpdatedTimestamps = async (
     }
     
     // Safely handle projectId - fix for TypeScript error
-    if (updatedStructure.projectId && typeof updatedStructure.projectId === 'object') {
-      // Handle object case
-      if ('_type' in updatedStructure.projectId && updatedStructure.projectId._type === 'undefined') {
+    if (updatedStructure.projectId) {
+      // Check if projectId is an object before trying to access its properties
+      if (typeof updatedStructure.projectId === 'object' && 
+          updatedStructure.projectId !== null && 
+          '_type' in updatedStructure.projectId && 
+          updatedStructure.projectId._type === 'undefined') {
         updatedStructure.projectId = undefined;
       }
     }
