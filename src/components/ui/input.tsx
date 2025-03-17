@@ -14,7 +14,12 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         )}
         ref={ref}
         onKeyDown={(e) => {
-          // Ensure space key works normally by allowing default behavior
+          // Ensure the spacebar works normally
+          if (e.key === " ") {
+            e.stopPropagation(); // Prevent outer handlers from capturing space events
+          }
+          
+          // Call the original onKeyDown handler if it exists
           if (props.onKeyDown) {
             props.onKeyDown(e);
           }

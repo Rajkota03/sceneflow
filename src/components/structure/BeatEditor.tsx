@@ -31,6 +31,7 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
           })} 
           className="border-slate-200"
           placeholder="Enter beat title..."
+          spellCheck={true}
         />
       </div>
       <div>
@@ -46,7 +47,8 @@ export const BeatEditor: React.FC<BeatEditorProps> = ({
           })} 
           rows={3}
           className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
-          placeholder="Enter beat description..."
+          placeholder="Enter beat description... (Press Enter for new lines)"
+          spellCheck={true}
         />
       </div>
       <div className="flex justify-end space-x-2">

@@ -58,6 +58,7 @@ export const BeatItem: React.FC<BeatItemProps> = ({
               })} 
               className="border-slate-200"
               placeholder="Enter beat title..."
+              spellCheck={true}
             />
           </div>
           <div>
@@ -68,15 +69,15 @@ export const BeatItem: React.FC<BeatItemProps> = ({
               id="beat-description"
               value={editedBeat.description} 
               onChange={(e) => {
-                // Update the beat description, ensuring spaces are preserved
                 setEditedBeat({
                   ...editedBeat,
                   description: e.target.value
                 });
               }}
               rows={3}
-              className="border-slate-200 min-h-[80px]"
+              className="border-slate-200 min-h-[80px] whitespace-pre-wrap"
               placeholder="Enter beat description..."
+              spellCheck={true}
             />
           </div>
           <div className="flex justify-end space-x-2">
