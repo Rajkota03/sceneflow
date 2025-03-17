@@ -302,13 +302,16 @@ export const useDashboardStructures = () => {
         }
       };
       
+      // Convert the structure data to a format compatible with Supabase JSON column
+      const beatsData = JSON.stringify(defaultStructure.beats);
+      
       const { error } = await supabase
         .from('structures')
         .insert({
           id: defaultStructure.id,
           name: defaultStructure.name,
           description: defaultStructure.description,
-          beats: defaultStructure.beats
+          beats: beatsData
         });
       
       if (error) throw error;
@@ -339,24 +342,6 @@ export const useDashboardStructures = () => {
     }
   };
 
-  const handleEditStructure = (id: string) => {
-    const structure = structures.find(s => s.id === id);
-    if (!structure) {
-      toast({
-        title: "Structure not found",
-        description: "Cannot find the requested structure.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Find the structure in the list and show the editor dialog
-    toast({
-      title: "Structure editor",
-      description: "Use the edit button to modify structure beats."
-    });
-  };
-
   const handleUpdateStructure = async (updatedStructure: Structure) => {
     if (!session) {
       toast({
@@ -368,10 +353,8 @@ export const useDashboardStructures = () => {
     }
     
     try {
-      // Format the structure data for the database
-      const beatsData = {
-        acts: updatedStructure.acts
-      };
+      // Format the structure data for the database - convert to JSON string
+      const beatsData = JSON.stringify({ acts: updatedStructure.acts });
       
       // Update the structure in the database
       const { error } = await supabase
@@ -400,6 +383,24 @@ export const useDashboardStructures = () => {
       console.error('Error updating structure:', error);
       throw error; // Re-throw to be handled by the component
     }
+  };
+
+  const handleEditStructure = (id: string) => {
+    const structure = structures.find(s => s.id === id);
+    if (!structure) {
+      toast({
+        title: "Structure not found",
+        description: "Cannot find the requested structure.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Find the structure in the list and show the editor dialog
+    toast({
+      title: "Structure editor",
+      description: "Use the edit button to modify structure beats."
+    });
   };
 
   const handleDeleteStructure = async (id: string) => {

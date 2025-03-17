@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, Eye, FileText, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Save, ArrowLeft } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import EmptyState from './EmptyState';
 import LoadingState from './LoadingState';
@@ -9,6 +9,7 @@ import { Structure } from '@/lib/types';
 import ThreeActStructurePanel from '@/components/structure/ThreeActStructurePanel';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle, Dialog } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -34,6 +35,9 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
   const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [structureToDelete, setStructureToDelete] = useState<string | null>(null);
+  const [inlineEditMode, setInlineEditMode] = useState(false);
   
   // If loading, show loading state
   if (isLoading) {
@@ -55,16 +59,39 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
     );
   }
   
-  const handlePreview = (structure: Structure, editingMode: boolean = false) => {
+  const handleOpenPreview = (structure: Structure) => {
     setSelectedStructure(structure);
-    setEditMode(editingMode);
     setPreviewOpen(true);
+    setEditMode(false);
   };
   
   const handleClosePreview = () => {
     setPreviewOpen(false);
     setSelectedStructure(null);
     setEditMode(false);
+  };
+  
+  const handleStartInlineEdit = (structure: Structure) => {
+    setSelectedStructure(structure);
+    setInlineEditMode(true);
+  };
+  
+  const handleCancelInlineEdit = () => {
+    setSelectedStructure(null);
+    setInlineEditMode(false);
+  };
+  
+  const confirmDelete = (id: string) => {
+    setStructureToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+  
+  const executeDelete = async () => {
+    if (structureToDelete) {
+      await handleDeleteStructure(structureToDelete);
+      setDeleteConfirmOpen(false);
+      setStructureToDelete(null);
+    }
   };
   
   const handleStructureUpdate = async (updatedStructure: Structure) => {
@@ -83,6 +110,12 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         title: "Structure updated",
         description: "Your changes have been saved successfully"
       });
+      
+      // If we're in inline edit mode, exit it after saving
+      if (inlineEditMode) {
+        setInlineEditMode(false);
+        setSelectedStructure(null);
+      }
     } catch (error) {
       console.error("Error updating structure:", error);
       toast({
@@ -94,7 +127,45 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
     }
   };
   
-  // Show structures grid
+  // If we're in inline edit mode, show the editor directly on the page
+  if (inlineEditMode && selectedStructure) {
+    return (
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleCancelInlineEdit}
+              className="mr-2"
+            >
+              <ArrowLeft size={16} className="mr-2" />
+              Back to Structures
+            </Button>
+            <h2 className="text-xl font-semibold">Editing: {selectedStructure.name}</h2>
+          </div>
+          <Button 
+            size="sm" 
+            onClick={() => selectedStructure && handleStructureUpdate(selectedStructure)}
+          >
+            <Save size={16} className="mr-2" />
+            Save Changes
+          </Button>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border">
+          {selectedStructure && (
+            <ThreeActStructurePanel 
+              structure={selectedStructure} 
+              onStructureUpdate={handleStructureUpdate}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+  
+  // Show structures grid (default view)
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -141,7 +212,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handlePreview(structure)}
+                  onClick={() => handleOpenPreview(structure)}
                 >
                   <Eye size={16} className="mr-2" />
                   Preview
@@ -150,7 +221,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handlePreview(structure, true)}
+                    onClick={() => handleStartInlineEdit(structure)}
                   >
                     <Edit size={16} className="mr-2" />
                     Edit
@@ -158,7 +229,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => handleDeleteStructure(structure.id)}
+                    onClick={() => confirmDelete(structure.id)}
                   >
                     <Trash2 size={16} className="mr-2" />
                     Delete
@@ -170,26 +241,40 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         })}
       </div>
       
+      {/* Preview dialog - kept separate from edit functionality */}
       <Dialog open={previewOpen} onOpenChange={handleClosePreview}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editMode ? "Edit Structure" : "Structure Preview"}
-            </DialogTitle>
+            <DialogTitle>Structure Preview</DialogTitle>
             <DialogDescription>
-              {editMode 
-                ? "Edit your structure beats - changes will be saved automatically" 
-                : "View the detailed structure and beats"}
+              View the detailed structure and beats
             </DialogDescription>
           </DialogHeader>
           {selectedStructure && (
             <ThreeActStructurePanel 
               structure={selectedStructure} 
-              onStructureUpdate={editMode ? handleStructureUpdate : undefined}
+              onStructureUpdate={undefined}
             />
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the structure
+              and remove its data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteConfirmOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
