@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import StructureEditor from '@/components/structure/StructureEditor';
 import { LoadingState, NotFoundState } from '@/components/structure/StructureStates';
+import { createDefaultStructure } from '@/lib/models/structureModel';
 
 const StructureEditorPage: React.FC = () => {
   const { structureId } = useParams<{ structureId: string }>();
@@ -79,7 +80,7 @@ const StructureEditorPage: React.FC = () => {
     return <LoadingState />;
   }
 
-  if (error) {
+  if (error && structureId !== 'new') {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="text-center">
@@ -98,7 +99,12 @@ const StructureEditorPage: React.FC = () => {
     );
   }
 
-  if (!structure) {
+  // If we're on the "new" route and structure is null, create a default structure
+  const editorStructure = structureId === 'new' && !structure 
+    ? createDefaultStructure() 
+    : structure;
+
+  if (!editorStructure) {
     return <NotFoundState onNavigateBack={handleNavigateBack} />;
   }
 
@@ -117,7 +123,7 @@ const StructureEditorPage: React.FC = () => {
       </div>
 
       <StructureEditor 
-        structure={structure} 
+        structure={editorStructure} 
         onChange={updateStructure}
         onSave={handleSave}
         isSaving={isSaving}

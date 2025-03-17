@@ -7,9 +7,13 @@ import {
 } from '@/services/structure';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/components/ui/use-toast';
+import { createDefaultStructure as createDefaultStructureModel } from '@/lib/models/structureModel';
 
 export const loadStructureById = async (structureId: string): Promise<Structure | null> => {
   console.log('Attempting to load structure by ID:', structureId);
+  if (structureId === 'new') {
+    return createNewStructure();
+  }
   const loadedStructure = await getStructureById(structureId);
   console.log('Loaded structure by ID result:', loadedStructure ? 'Found' : 'Not Found');
   return loadedStructure;
@@ -24,7 +28,7 @@ export const loadStructureByProjectId = async (projectId: string): Promise<Struc
 
 export const createNewStructure = (projectId?: string, projectTitle?: string): Structure => {
   console.log('Creating new default structure');
-  const newStructure = createDefaultStructure(projectId, projectTitle);
+  const newStructure = createDefaultStructureModel(projectId, projectTitle);
   newStructure.id = uuidv4();
   newStructure.createdAt = new Date();
   newStructure.updatedAt = new Date();
@@ -42,6 +46,13 @@ export const saveStructureWithUpdatedTimestamps = async (
       updatedStructure.createdAt = new Date();
     }
     
+    // Sanitize projectId if it's an object
+    if (updatedStructure.projectId && typeof updatedStructure.projectId === 'object') {
+      if (updatedStructure.projectId._type === 'undefined') {
+        updatedStructure.projectId = undefined;
+      }
+    }
+    
     console.log(isManualSave ? 'Manually saving structure:' : 'Auto-saving structure:', updatedStructure.id);
     const saved = await saveStructureToDb(updatedStructure);
     console.log(isManualSave ? 'Manual save complete, ID:' : 'Auto-save complete, new ID:', saved.id);
@@ -56,43 +67,4 @@ export const saveStructureWithUpdatedTimestamps = async (
     });
     throw err instanceof Error ? err : new Error('Failed to save structure');
   }
-};
-
-// Helper function imported from structureModel
-const createDefaultStructure = (projectId?: string, projectTitle?: string): Structure => {
-  return {
-    id: '',
-    name: projectTitle ? `${projectTitle} Structure` : 'Untitled Structure',
-    description: '',
-    projectId,
-    projectTitle: projectTitle || '',
-    acts: [
-      {
-        id: uuidv4(),
-        title: 'Act One',
-        colorHex: '#4338CA',
-        startPosition: 0,
-        endPosition: 25,
-        beats: []
-      },
-      {
-        id: uuidv4(),
-        title: 'Act Two',
-        colorHex: '#0369A1',
-        startPosition: 25,
-        endPosition: 75,
-        beats: []
-      },
-      {
-        id: uuidv4(),
-        title: 'Act Three',
-        colorHex: '#15803D',
-        startPosition: 75,
-        endPosition: 100,
-        beats: []
-      }
-    ],
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
 };

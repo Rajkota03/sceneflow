@@ -23,6 +23,15 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
     const created_at = structure.createdAt.toISOString();
     const updated_at = structure.updatedAt.toISOString();
     
+    // Sanitize project ID if it's an undefined object
+    let projectId = null;
+    if (structure.projectId && typeof structure.projectId === 'object' && structure.projectId._type === 'undefined') {
+      // Handle the case where projectId is an object with undefined value
+      projectId = null;
+    } else {
+      projectId = structure.projectId;
+    }
+    
     // Convert acts to JSON-compatible object for storage
     const { data, error } = await supabase
       .from('structures')
@@ -54,7 +63,7 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
       name: data.name,
       description: data.description || '',
       projectTitle: structure.projectTitle || '',
-      projectId: structure.projectId,
+      projectId: projectId,
       acts: Array.isArray(data.beats) ? data.beats as unknown as Act[] : [],
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at),

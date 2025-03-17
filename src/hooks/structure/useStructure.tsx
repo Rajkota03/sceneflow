@@ -19,6 +19,7 @@ export function useStructure(projectId?: string, structureId?: string): UseStruc
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<Structure | null>(null);
   const lastSavedStructureRef = useRef<string>('');
+  const initialLoadCompleted = useRef<boolean>(false);
 
   useEffect(() => {
     async function loadStructure() {
@@ -26,17 +27,18 @@ export function useStructure(projectId?: string, structureId?: string): UseStruc
       try {
         let loadedStructure: Structure | null = null;
         
-        if (structureId && structureId !== 'new') {
+        if (structureId === 'new') {
+          // Create a new structure immediately for /new route
+          loadedStructure = createNewStructure(projectId || undefined);
+          console.log('Created new structure for /new route:', loadedStructure.id);
+        } else if (structureId) {
           // Load structure by ID
           loadedStructure = await loadStructureById(structureId);
         } else if (projectId) {
           // Load structure by project ID
           loadedStructure = await loadStructureByProjectId(projectId);
-        } else if (structureId === 'new') {
-          // Create a new structure
-          loadedStructure = createNewStructure();
         } else {
-          // Default empty structure
+          // Default empty structure if no ids provided
           console.log('Creating empty structure as fallback');
           loadedStructure = createNewStructure();
         }
@@ -49,13 +51,23 @@ export function useStructure(projectId?: string, structureId?: string): UseStruc
       } catch (err) {
         console.error('Error loading structure:', err);
         setError(err instanceof Error ? err : new Error('Failed to load structure'));
-        toast({
-          title: 'Error loading structure',
-          description: 'Please check your connection and try again.',
-          variant: 'destructive',
-        });
+        
+        // For /new route, we should still provide a default structure even if loading fails
+        if (structureId === 'new') {
+          const newStructure = createNewStructure(projectId || undefined);
+          setStructure(newStructure);
+          lastSavedStructureRef.current = JSON.stringify(newStructure);
+          setError(null); // Clear error since we have a fallback
+        } else {
+          toast({
+            title: 'Error loading structure',
+            description: 'Please check your connection and try again.',
+            variant: 'destructive',
+          });
+        }
       } finally {
         setIsLoading(false);
+        initialLoadCompleted.current = true;
       }
     }
 
@@ -80,6 +92,7 @@ export function useStructure(projectId?: string, structureId?: string): UseStruc
   const debouncedSave = useCallback((updatedStructure: Structure) => {
     // Only save if there are actual changes
     if (!hasChanged(updatedStructure)) {
+      console.log('No changes detected, skipping save');
       return Promise.resolve(updatedStructure);
     }
     
@@ -136,10 +149,9 @@ export function useStructure(projectId?: string, structureId?: string): UseStruc
       return updatedStructure;
     }
     
-    // Don't save if there are no changes
-    if (!hasChanged(updatedStructure)) {
-      console.log('No changes detected, skipping save');
-      return updatedStructure;
+    // Don't save if there are no changes (except for new structures)
+    if (!updatedStructure.id.includes('-') || !hasChanged(updatedStructure)) {
+      console.log('No changes detected or this is a new structure, proceeding with save');
     }
     
     // Clear any pending debounced save
