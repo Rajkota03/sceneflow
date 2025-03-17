@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { createDefaultStructure, Structure, Act, Beat } from '@/lib/models/structureModel';
 import { toast } from '@/components/ui/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function getStructures(): Promise<Structure[]> {
   try {
@@ -40,7 +41,14 @@ export async function getStructureById(id: string): Promise<Structure | null> {
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        console.log('No structure found with ID:', id);
+        return null;
+      }
+      throw error;
+    }
     
     if (!data) return null;
     
@@ -73,7 +81,12 @@ export async function getStructureByProjectId(projectId: string): Promise<Struct
       .eq('id', projectId)
       .single();
     
-    if (projectError) throw projectError;
+    if (projectError) {
+      console.log('Error fetching project:', projectError);
+      if (projectError.code !== 'PGRST116') {
+        throw projectError;
+      }
+    }
     
     // Check for linked structure
     const { data: linkData, error: linkError } = await supabase
@@ -98,12 +111,16 @@ export async function getStructureByProjectId(projectId: string): Promise<Struct
     
     // If no structure is linked, create a default one
     const newStructure = createDefaultStructure(projectId, projectData?.title || "Untitled Project");
-    await saveStructure(newStructure);
+    newStructure.id = uuidv4(); // Ensure it has a UUID
+    newStructure.createdAt = new Date();
+    newStructure.updatedAt = new Date();
+    
+    const saved = await saveStructure(newStructure);
     
     // Link the structure to the project
-    await linkStructureToProject(newStructure.id, projectId);
+    await linkStructureToProject(saved.id, projectId);
     
-    return newStructure;
+    return saved;
   } catch (error) {
     console.error('Error fetching structure for project:', error);
     toast({
@@ -117,6 +134,21 @@ export async function getStructureByProjectId(projectId: string): Promise<Struct
 
 export async function saveStructure(structure: Structure): Promise<Structure> {
   try {
+    // Ensure the structure has an ID
+    if (!structure.id) {
+      structure.id = uuidv4();
+    }
+    
+    // Ensure dates are set
+    if (!structure.createdAt) {
+      structure.createdAt = new Date();
+    }
+    structure.updatedAt = new Date();
+    
+    // Convert dates to ISO strings for storage
+    const created_at = structure.createdAt.toISOString();
+    const updated_at = structure.updatedAt.toISOString();
+    
     // Convert acts to JSON-compatible object for storage
     const { data, error } = await supabase
       .from('structures')
@@ -125,13 +157,16 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
         name: structure.name,
         description: structure.description || '',
         beats: structure.acts as any, // Cast to any to avoid type errors
-        created_at: structure.createdAt.toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at,
+        updated_at,
       })
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error saving structure:', error);
+      throw error;
+    }
     
     return {
       id: data.id,
@@ -150,7 +185,7 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
       description: 'Please try again later.',
       variant: 'destructive',
     });
-    return structure;
+    throw error;
   }
 }
 
@@ -186,13 +221,18 @@ export async function deleteStructure(id: string): Promise<boolean> {
 
 export async function linkStructureToProject(structureId: string, projectId: string): Promise<boolean> {
   try {
+    console.log('Linking structure', structureId, 'to project', projectId);
+    
     // Remove any existing links for this project
     const { error: unlinkError } = await supabase
       .from('project_structures')
       .delete()
       .eq('project_id', projectId);
     
-    if (unlinkError) throw unlinkError;
+    if (unlinkError) {
+      console.error('Error unlinking existing structures:', unlinkError);
+      throw unlinkError;
+    }
     
     // Create the new link
     const { error } = await supabase
@@ -202,8 +242,12 @@ export async function linkStructureToProject(structureId: string, projectId: str
         structure_id: structureId,
       });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error linking structure to project:', error);
+      throw error;
+    }
     
+    console.log('Successfully linked structure to project');
     return true;
   } catch (error) {
     console.error('Error linking structure to project:', error);

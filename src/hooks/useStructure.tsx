@@ -42,18 +42,27 @@ export function useStructure(projectId?: string, structureId?: string) {
           // Create a new structure
           const newStructure = createDefaultStructure();
           newStructure.id = uuidv4();
+          newStructure.createdAt = new Date();
+          newStructure.updatedAt = new Date();
           setStructure(newStructure);
           lastSavedStructureRef.current = JSON.stringify(newStructure);
         } else {
           // Default empty structure
           const emptyStructure = createDefaultStructure();
           emptyStructure.id = uuidv4();
+          emptyStructure.createdAt = new Date();
+          emptyStructure.updatedAt = new Date();
           setStructure(emptyStructure);
           lastSavedStructureRef.current = JSON.stringify(emptyStructure);
         }
       } catch (err) {
         console.error('Error loading structure:', err);
         setError(err instanceof Error ? err : new Error('Failed to load structure'));
+        toast({
+          title: 'Error loading structure',
+          description: 'Please check your connection and try again.',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
@@ -80,7 +89,7 @@ export function useStructure(projectId?: string, structureId?: string) {
   const debouncedSave = useCallback((updatedStructure: Structure) => {
     // Only save if there are actual changes
     if (!hasChanged(updatedStructure)) {
-      return;
+      return Promise.resolve(updatedStructure);
     }
     
     // Store the latest version we want to save
@@ -91,34 +100,53 @@ export function useStructure(projectId?: string, structureId?: string) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set a new timeout
-    saveTimeoutRef.current = setTimeout(async () => {
-      if (isSaving || !pendingSaveRef.current) return;
-      
-      try {
-        setIsSaving(true);
-        const structureToSave = pendingSaveRef.current;
-        pendingSaveRef.current = null; // Clear pending save
+    return new Promise<Structure>((resolve) => {
+      // Set a new timeout
+      saveTimeoutRef.current = setTimeout(async () => {
+        if (isSaving || !pendingSaveRef.current) {
+          resolve(updatedStructure);
+          return;
+        }
         
-        const saved = await saveStructureToDb(structureToSave);
-        setStructure(saved);
-        setLastSaved(new Date());
-        // Update the last saved reference
-        lastSavedStructureRef.current = JSON.stringify(saved);
-        
-        // Show toast only once per save operation
-        toast({
-          title: 'Structure saved',
-          description: 'Your structure has been saved automatically.',
-          duration: 2000,
-        });
-      } catch (err) {
-        console.error('Error saving structure:', err);
-        setError(err instanceof Error ? err : new Error('Failed to save structure'));
-      } finally {
-        setIsSaving(false);
-      }
-    }, 3000); // 3 second debounce
+        try {
+          setIsSaving(true);
+          const structureToSave = pendingSaveRef.current;
+          pendingSaveRef.current = null; // Clear pending save
+          
+          // Ensure timestamps are updated
+          structureToSave.updatedAt = new Date();
+          if (!structureToSave.createdAt) {
+            structureToSave.createdAt = new Date();
+          }
+          
+          const saved = await saveStructureToDb(structureToSave);
+          setStructure(saved);
+          setLastSaved(new Date());
+          // Update the last saved reference
+          lastSavedStructureRef.current = JSON.stringify(saved);
+          
+          // Show toast only once per save operation
+          toast({
+            title: 'Structure saved',
+            description: 'Your structure has been saved automatically.',
+            duration: 2000,
+          });
+          
+          resolve(saved);
+        } catch (err) {
+          console.error('Error saving structure:', err);
+          setError(err instanceof Error ? err : new Error('Failed to save structure'));
+          toast({
+            title: 'Error saving structure',
+            description: 'Please try again later.',
+            variant: 'destructive',
+          });
+          resolve(updatedStructure);
+        } finally {
+          setIsSaving(false);
+        }
+      }, 2000); // 2 second debounce
+    });
   }, [isSaving, hasChanged]);
 
   const saveStructure = async (updatedStructure: Structure) => {
@@ -141,6 +169,12 @@ export function useStructure(projectId?: string, structureId?: string) {
     
     setIsSaving(true);
     try {
+      // Ensure timestamps are updated
+      updatedStructure.updatedAt = new Date();
+      if (!updatedStructure.createdAt) {
+        updatedStructure.createdAt = new Date();
+      }
+      
       const saved = await saveStructureToDb(updatedStructure);
       setStructure(saved);
       setLastSaved(new Date());
@@ -148,10 +182,20 @@ export function useStructure(projectId?: string, structureId?: string) {
       // Update the last saved reference
       lastSavedStructureRef.current = JSON.stringify(saved);
       
+      toast({
+        title: 'Structure saved',
+        description: 'Your structure has been saved successfully.',
+      });
+      
       return saved;
     } catch (err) {
       console.error('Error saving structure:', err);
       setError(err instanceof Error ? err : new Error('Failed to save structure'));
+      toast({
+        title: 'Error saving structure',
+        description: 'Please try again later.',
+        variant: 'destructive',
+      });
       throw err;
     } finally {
       setIsSaving(false);
@@ -160,7 +204,7 @@ export function useStructure(projectId?: string, structureId?: string) {
 
   const updateStructure = (updatedStructure: Structure) => {
     setStructure(updatedStructure);
-    debouncedSave(updatedStructure);
+    return debouncedSave(updatedStructure);
   };
 
   return {

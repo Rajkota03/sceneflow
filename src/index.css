@@ -1,8 +1,9 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import the Courier Final Draft font */
+/* Import the Courier Final Draft font - using preconnect for performance */
 @font-face {
   font-family: 'Courier Final Draft';
   src: url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff2') format('woff2'),
@@ -74,7 +75,7 @@
   height: 11in;
   padding: 0;
   margin: 0 auto;
-  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt;
   line-height: 1;
   color: #000;
@@ -157,6 +158,7 @@ textarea.resize-none {
   resize: none;
   height: auto;
   min-height: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 /* Auto-expanding textarea styles */
@@ -165,6 +167,7 @@ textarea.auto-resize {
   resize: none;
   height: auto;
   min-height: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 /* PDF export specific styles */

@@ -35,11 +35,11 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'default' }) => {
 
   return (
     <div className="flex items-center">
-      <div className={`relative font-serif font-bold ${sizeClass} flex items-baseline`}>
-        <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mr-0.5">
+      <div className={`font-serif font-bold ${sizeClass} flex items-baseline`}>
+        <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
           Scene
         </span>
-        <motion.div className="w-5 h-5 mx-0.5 relative">
+        <motion.div className="w-5 h-5 relative inline-flex items-end">
           <motion.span 
             className="absolute bottom-1.5 left-0.5 w-1.5 h-1.5 bg-primary rounded-full"
             variants={dotVariants}
