@@ -19,6 +19,8 @@ interface ActListProps {
   editingBeat: { act: Act, beat: Beat } | null;
   sensors: any;
   handleDragEnd: (event: DragEndEvent) => void;
+  handleSaveBeat?: (updatedBeat: Beat) => void;
+  handleCancelEditBeat?: () => void;
 }
 
 export const ActList: React.FC<ActListProps> = ({
@@ -35,7 +37,9 @@ export const ActList: React.FC<ActListProps> = ({
   handleSaveAct,
   editingBeat,
   sensors,
-  handleDragEnd
+  handleDragEnd,
+  handleSaveBeat,
+  handleCancelEditBeat
 }) => {
   return (
     <DndContext 
@@ -59,6 +63,8 @@ export const ActList: React.FC<ActListProps> = ({
             handleSaveAct={handleSaveAct}
             editingBeat={editingBeat}
             sensors={sensors}
+            handleSaveBeat={handleSaveBeat}
+            handleCancelEditBeat={handleCancelEditBeat}
           />
         ))}
       </div>

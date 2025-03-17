@@ -63,11 +63,14 @@ export const StructureProgress: React.FC<StructureProgressProps> = ({ structure 
         let taggedScenes = 0;
         
         // Safely check if content has elements and if elements is an array
-        if (content && typeof content === 'object' && 'elements' in content && 
-            Array.isArray(content.elements)) {
+        if (content && 
+            typeof content === 'object' && 
+            'elements' in content && 
+            Array.isArray((content as any).elements)) {
           
           // Now it's safe to access elements as an array
-          taggedScenes = content.elements.filter((element: any) => 
+          const elements = (content as any).elements;
+          taggedScenes = elements.filter((element: any) => 
             element.type === 'scene-heading' && 
             element.tags && 
             Array.isArray(element.tags) && 

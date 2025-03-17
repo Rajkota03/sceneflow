@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Act, Beat } from '@/lib/models/structureModel';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,8 @@ interface ActItemProps {
   handleSaveAct: () => void;
   editingBeat: { act: Act, beat: Beat } | null;
   sensors: any;
+  handleSaveBeat?: (updatedBeat: Beat) => void;
+  handleCancelEditBeat?: () => void;
 }
 
 export const ActItem: React.FC<ActItemProps> = ({
@@ -36,7 +37,9 @@ export const ActItem: React.FC<ActItemProps> = ({
   setEditingAct,
   handleSaveAct,
   editingBeat,
-  sensors
+  sensors,
+  handleSaveBeat,
+  handleCancelEditBeat
 }) => {
   // Count beats in this act for the badge display
   const beatCount = act.beats.length;
@@ -121,6 +124,8 @@ export const ActItem: React.FC<ActItemProps> = ({
                 handleEditBeat={handleEditBeat}
                 handleDeleteBeat={handleDeleteBeat}
                 sensors={sensors}
+                handleSaveBeat={handleSaveBeat}
+                handleCancelEditBeat={handleCancelEditBeat}
               />
             </div>
           )}
