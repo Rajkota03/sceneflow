@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { Check, ChevronDown, ChevronRight, Edit, Milestone, GripVertical, Save, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Edit, Milestone, GripVertical, Save, X, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from "@/components/ui/badge";
 import { toast } from '@/components/ui/use-toast';
 import { 
   DndContext, 
@@ -81,13 +82,23 @@ const SortableBeat: React.FC<BeatItemProps> = ({
     setEditingNotes(false);
   };
 
+  // Calculate approximate screenplay page based on timePosition
+  const getApproximatePages = () => {
+    if (beat.pageRange) return beat.pageRange;
+    
+    // Assuming 120 pages screenplay (standard feature length)
+    const startPage = Math.round((beat.timePosition / 100) * 120);
+    const endPage = startPage + 3; // Just an approximation
+    return `${startPage}-${endPage}`;
+  };
+
   return (
     <div 
       ref={setNodeRef}
       style={style}
       className={cn(
         "p-3 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md",
-        beat.complete ? "opacity-80" : "opacity-100",
+        beat.complete ? "opacity-80 bg-gray-50" : "opacity-100",
         isMidpoint ? `border-l-[6px] font-medium` : "",
         { "border-blue-500": act.title.includes("Act 1") },
         { "border-yellow-500": act.title.includes("Act 2A") },
@@ -159,11 +170,10 @@ const SortableBeat: React.FC<BeatItemProps> = ({
           )}
         </div>
         <div className="flex items-center gap-1 ml-2">
-          {beat.pageRange && (
-            <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">
-              Pages {beat.pageRange}
-            </span>
-          )}
+          <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 font-normal">
+            <FileText className="h-3 w-3 mr-1" />
+            Pages {beat.pageRange || getApproximatePages()}
+          </Badge>
           {isEditing && onBeatToggleComplete && (
             <TooltipProvider>
               <Tooltip>
@@ -483,6 +493,14 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
     const completeActBeats = act.beats.filter(beat => beat.complete).length;
     return totalActBeats > 0 ? (completeActBeats / totalActBeats) * 100 : 0;
   };
+
+  // Calculate approximate page range for act
+  const getActPageRange = (act: Act) => {
+    // Assuming 120 pages screenplay (standard feature length)
+    const startPage = Math.round((act.startPosition / 100) * 120);
+    const endPage = Math.round((act.endPosition / 100) * 120);
+    return `${startPage}-${endPage}`;
+  };
   
   return (
     <div className="w-full">
@@ -515,6 +533,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                 variant={hasChanges ? "default" : "outline"} 
                 onClick={handleSaveStructure} 
                 disabled={isSaving || !hasChanges}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
                 <Save className="h-3 w-3 mr-1" />
                 {isSaving ? "Saving..." : "Save Changes"}
@@ -548,13 +567,17 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
       <div className="space-y-3">
         {localStructure.acts.map((act) => {
           const actProgress = getActProgressPercentage(act);
+          const isMidpoint = act.title.toLowerCase().includes('midpoint');
           
           return (
             <Collapsible 
               key={act.id} 
               open={expandedActs[act.id]} 
               onOpenChange={() => toggleAct(act.id)}
-              className="border rounded-md overflow-hidden transition-all duration-200 hover:shadow-sm"
+              className={cn(
+                "border rounded-md overflow-hidden transition-all duration-200 hover:shadow-sm",
+                isMidpoint && "border-orange-300"
+              )}
             >
               <div className={cn(
                 "flex items-center justify-between p-3 transition-colors",
@@ -562,7 +585,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                 { "bg-yellow-50 border-yellow-200": act.title.includes("Act 2A") },
                 { "bg-amber-50 border-amber-200": act.title.includes("Act 2B") },
                 { "bg-red-50 border-red-200": act.title.includes("Act 3") },
-                { "bg-orange-50 border-orange-200": act.title.includes("Midpoint") }
+                { "bg-orange-50 border-orange-200": isMidpoint }
               )}>
                 <div className="flex items-center gap-2 flex-grow">
                   <div className={cn(
@@ -571,7 +594,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                     { "bg-yellow-500": act.title.includes("Act 2A") },
                     { "bg-amber-500": act.title.includes("Act 2B") },
                     { "bg-red-500": act.title.includes("Act 3") },
-                    { "bg-orange-500": act.title.includes("Midpoint") }
+                    { "bg-orange-500": isMidpoint }
                   )} />
                   <div className="flex flex-col">
                     <h3 className="font-medium">{act.title}</h3>
@@ -580,9 +603,10 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                              {Math.round(act.startPosition)}% - {Math.round(act.endPosition)}%
-                            </span>
+                            <Badge variant="outline" className="text-xs bg-white">
+                              <FileText className="h-3 w-3 mr-1" />
+                              Pages {getActPageRange(act)}
+                            </Badge>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p className="text-xs">Approximate page range in screenplay</p>
@@ -593,7 +617,12 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                       <div className="flex items-center gap-1 ml-2">
                         <Progress 
                           value={actProgress} 
-                          className="h-1.5 w-20" 
+                          className={cn(
+                            "h-1.5 w-20",
+                            actProgress === 0 ? "bg-gray-200" :
+                            actProgress < 30 ? "bg-red-100" :
+                            actProgress < 70 ? "bg-yellow-100" : "bg-green-100"
+                          )}
                         />
                         <span className="text-xs text-gray-600">{Math.round(actProgress)}%</span>
                       </div>
@@ -611,7 +640,14 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
                 </CollapsibleTrigger>
               </div>
               
-              <CollapsibleContent className="p-3 bg-gray-50 transition-all">
+              <CollapsibleContent className={cn(
+                "p-3 transition-all",
+                { "bg-blue-50/30": act.title.includes("Act 1") },
+                { "bg-yellow-50/30": act.title.includes("Act 2A") },
+                { "bg-amber-50/30": act.title.includes("Act 2B") },
+                { "bg-red-50/30": act.title.includes("Act 3") },
+                { "bg-orange-50/30": isMidpoint }
+              )}>
                 <ActSortableBeats
                   act={act}
                   isExpanded={true}
