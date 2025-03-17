@@ -114,6 +114,7 @@ const ScriptEditor = ({
   const { handleBeatTag } = useBeatTagging(
     scriptTypeElements,
     (updatedElements) => {
+      // Use direct assignment instead of function to fix type error
       const libElements = convertScriptElementsToLibType(updatedElements);
       setElements(libElements);
     },
@@ -181,6 +182,7 @@ const ScriptEditor = ({
       <EditorInitializer 
         elements={scriptTypeElements}
         setElements={(newElements) => {
+          // Use direct assignment instead of function to fix type error
           const libElements = convertScriptElementsToLibType(newElements);
           setElements(libElements);
         }}

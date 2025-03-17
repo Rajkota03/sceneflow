@@ -43,7 +43,7 @@ const ScriptContentComponent: React.FC<ScriptContentProps> = ({
   const { formatState } = useFormat();
 
   return (
-    <div className="flex justify-center w-full h-full overflow-auto">
+    <div className="flex justify-center w-full h-full overflow-visible">
       <div className="w-full max-w-4xl mx-auto">
         <div 
           className="script-page" 

@@ -79,22 +79,22 @@ export function convertStructures(libStructures: LibStructure[]): ScriptTypeStru
       description: structure.description || '',
       structure_type: structure.structure_type || 'three_act',
       projectTitle: structure.projectTitle || '',
-      author_id: '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      author_id: structure.author_id || '',
+      created_at: structure.created_at || new Date().toISOString(),
+      updated_at: structure.updated_at || new Date().toISOString(),
       acts: structure.acts.map(act => ({
         id: act.id,
         structure_id: structure.id,
         act_type: act.act_type || ActType.ACT_1,
-        title: act.title,
-        order: 0, // Default value since act.order is missing
+        title: act.title || '',
+        order: act.order || 0,
         colorHex: act.colorHex || '#000000',
         beats: Array.isArray(act.beats) ? act.beats.map(beat => ({
           id: beat.id,
           act_id: act.id,
           title: beat.title || '',
           description: beat.description || '',
-          order: 0, // Default value since beat.order is missing
+          order: beat.order || 0,
           is_complete: beat.complete || false,
           notes: beat.notes || ''
         })) : []
@@ -176,7 +176,8 @@ export function convertScriptElementsToLibType(
           element.type === ElementType.NOTE ? 'note' : 'action',
     text: element.text,
     tags: element.tags || [],
-    beat: element.beatId
+    beat: element.beatId,
+    act: element.actId
   }));
 }
 
