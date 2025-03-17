@@ -2,7 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Edit, Save, FileText } from 'lucide-react';
+import { Edit, Save, FileText, RotateCcw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StructureHeaderProps {
   name: string;
@@ -16,6 +17,7 @@ interface StructureHeaderProps {
   onEdit: () => void;
   onSave: () => Promise<void>;
   onCancel: () => void;
+  onReset?: () => void;
   canEdit: boolean;
 }
 
@@ -31,6 +33,7 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
   onEdit,
   onSave,
   onCancel,
+  onReset,
   canEdit
 }) => {
   return (
@@ -78,6 +81,17 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
               <Save className="h-3 w-3 mr-1" />
               {isSaving ? "Saving..." : "Save Changes"}
             </Button>
+            {onReset && (
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={onReset}
+                className="text-amber-600 border-amber-200 hover:bg-amber-50"
+              >
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Reset to Default
+              </Button>
+            )}
             <Button 
               size="sm" 
               variant="outline" 
@@ -112,11 +126,6 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
       <div className="border-b border-gray-200 mb-4"></div>
     </div>
   );
-};
-
-// Helper function for class merging
-const cn = (...classes: (string | boolean | undefined)[]) => {
-  return classes.filter(Boolean).join(' ');
 };
 
 export default StructureHeader;

@@ -31,6 +31,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
     handleBeatUpdate,
     handleBeatToggleComplete,
     handleSaveStructure,
+    resetToDefaultStructure,
     setIsEditing,
     cancelEditing
   } = useStructureState({ structure, onStructureUpdate });
@@ -49,6 +50,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
         onEdit={() => setIsEditing(true)}
         onSave={handleSaveStructure}
         onCancel={cancelEditing}
+        onReset={isEditing ? resetToDefaultStructure : undefined}
         canEdit={!!onStructureUpdate}
       />
       
