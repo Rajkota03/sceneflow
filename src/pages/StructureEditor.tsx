@@ -15,7 +15,7 @@ const StructureEditor = () => {
   const [structure, setStructure] = useState<Structure | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
-  const [structureName, setStructureName] = useState('');
+  const [structureName, setStructureName] = useState('Save the Cat Beats'); // Changed default name
   const [isSaving, setIsSaving] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
