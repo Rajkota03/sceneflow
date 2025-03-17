@@ -110,7 +110,7 @@ export const useDashboardStructures = () => {
                 {
                   id: uuidv4(),
                   title: 'Set-Up',
-                  description: 'Establish protagonist's ordinary world and key relationships.',
+                  description: "Establish protagonist's ordinary world and key relationships.",
                   timePosition: 5,
                   pageRange: "4-9",
                   complete: false,
