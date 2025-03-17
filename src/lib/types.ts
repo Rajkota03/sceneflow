@@ -1,5 +1,6 @@
 
 // Define all types with proper exports
+import { Json } from '@/integrations/supabase/types';
 
 // Basic element types
 export type ElementType = 
@@ -25,6 +26,7 @@ export interface ScriptElement {
   text: string;
   tags?: string[];
   act?: ActType;
+  beat?: string; // Add beat identifier
 }
 
 export interface ScriptContent {
@@ -47,6 +49,9 @@ export interface TagManagerProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  structures?: Structure[];
 }
 
 export interface ScriptElementProps {
@@ -55,6 +60,7 @@ export interface ScriptElementProps {
     type: string;
     text: string;
     tags?: string[];
+    beat?: string;
   };
   previousElementType?: string;
   onChange: (id: string, text: string, type: string) => void;
@@ -67,6 +73,9 @@ export interface ScriptElementProps {
   characterNames: string[];
   projectId?: string;
   beatMode?: BeatMode;
+  structures?: Structure[];
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
 // Structure-related types
@@ -75,8 +84,8 @@ export interface Structure {
   name: string;
   description?: string;
   acts: Act[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   structure_type?: string;
   projectTitle?: string;
 }
@@ -105,8 +114,8 @@ export interface Note {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 // Project-related types
@@ -114,16 +123,17 @@ export interface Project {
   id: string;
   title: string;
   content: ScriptContent;
-  updated_at: string; // Changed from Date to string to match what's coming from the DB
-  created_at: string; // Changed from Date to string to match what's coming from the DB
+  updated_at: string; 
+  created_at: string;
   user_id?: string;
-  author_id?: string; // Added this field that appears in the database
+  author_id?: string;
 }
 
 export interface TitlePageData {
   title: string;
   author: string;
   contact: string;
+  basedOn?: string;
 }
 
 // Helper functions for converting between formats

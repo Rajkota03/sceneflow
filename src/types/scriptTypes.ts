@@ -1,5 +1,4 @@
-
-import { ScriptContent, ActType } from "@/lib/types";
+import { ScriptContent, ActType, Structure } from "@/lib/types";
 
 export type ActCountsRecord = {
   [key in ActType]: number;
@@ -17,6 +16,9 @@ export interface TagManagerProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  structures?: Structure[];
 }
 
 export interface ScriptElementProps {
@@ -25,6 +27,7 @@ export interface ScriptElementProps {
     type: string;
     text: string;
     tags?: string[];
+    beat?: string;
   };
   previousElementType?: string;
   onChange: (id: string, text: string, type: string) => void;
@@ -37,9 +40,10 @@ export interface ScriptElementProps {
   characterNames: string[];
   projectId?: string;
   beatMode?: BeatMode;
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-// New Structure-related types
 export interface Structure {
   id: string;
   name: string;

@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType } from '../../lib/types';
+import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
 import { shouldAddContd } from '@/lib/characterUtils';
@@ -10,6 +10,8 @@ import ScriptContentComponent from './ScriptContent';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
+import useProjectStructures from '@/hooks/useProjectStructures';
+import { toast } from '@/components/ui/use-toast';
 
 type BeatMode = 'on' | 'off';
 
@@ -35,12 +37,23 @@ const ScriptEditor = ({
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
   projectId,
+  onStructureChange,
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
+
+  // Fetch structures for this project
+  const { 
+    structures, 
+    selectedStructureId, 
+    selectedStructure,
+    handleStructureChange: changeSelectedStructure,
+    updateBeatCompletion,
+    saveBeatCompletion
+  } = useProjectStructures(projectId);
 
   const {
     elements,
@@ -200,6 +213,43 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
+  const handleStructureChange = (structureId: string) => {
+    changeSelectedStructure(structureId);
+    if (onStructureChange) {
+      onStructureChange(structureId);
+    }
+  };
+
+  const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
+    if (!selectedStructure || !selectedStructureId) return;
+    
+    // Update the element with the beat tag
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, beat: beatId } : element
+      )
+    );
+    
+    // Update the beat's completion status in the structure
+    const updatedStructure = updateBeatCompletion(beatId, actId, true);
+    if (updatedStructure) {
+      // Save the updated structure to the database
+      const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
+      if (success) {
+        toast({
+          title: "Beat tagged",
+          description: "The scene has been tagged and structure progress updated.",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update the structure progress.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <TagManager 
@@ -212,6 +262,9 @@ const ScriptEditor = ({
         structureName={structureName}
         beatMode={beatMode}
         onToggleBeatMode={handleToggleBeatMode}
+        structures={structures}
+        selectedStructureId={selectedStructureId || undefined}
+        onStructureChange={handleStructureChange}
       />
       
       <ScriptContentComponent
@@ -228,6 +281,8 @@ const ScriptEditor = ({
         characterNames={characterNames}
         projectId={projectId}
         beatMode={beatMode}
+        selectedStructure={selectedStructure}
+        onBeatTag={handleBeatTag}
       />
       
       <ZoomControls 

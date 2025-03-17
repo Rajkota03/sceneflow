@@ -1,17 +1,28 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScriptElement, ActType } from '@/lib/types';
+import { ScriptElement, ActType, Structure } from '@/lib/types';
 import TagInput from './TagInput';
 import { Tags } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BeatTagging from './BeatTagging';
 
 interface SceneTagsProps {
   element: ScriptElement;
   onTagsChange: (elementId: string, tags: string[]) => void;
   projectId?: string;
+  structures?: Structure[];
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId }) => {
+const SceneTags: React.FC<SceneTagsProps> = ({ 
+  element, 
+  onTagsChange, 
+  projectId,
+  structures = [],
+  selectedStructure,
+  onBeatTag 
+}) => {
   const [tags, setTags] = useState<string[]>(element.tags || []);
   const [selectedAct, setSelectedAct] = useState<ActType | null>(null);
   
@@ -79,6 +90,12 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
     onTagsChange(element.id, newTags);
   };
 
+  const handleBeatTagging = (elementId: string, beatId: string, actId: string) => {
+    if (onBeatTag) {
+      onBeatTag(elementId, beatId, actId);
+    }
+  };
+
   if (element.type !== 'scene-heading') {
     return null;
   }
@@ -129,8 +146,18 @@ const SceneTags: React.FC<SceneTagsProps> = ({ element, onTagsChange, projectId 
         <span className="text-xs font-medium">Scene Tags</span>
       </div>
       
+      {/* Add BeatTagging component when a structure is selected */}
+      {selectedStructure && onBeatTag && (
+        <BeatTagging
+          selectedStructure={selectedStructure}
+          elementId={element.id}
+          onBeatTag={handleBeatTagging}
+          selectedBeatId={element.beat}
+        />
+      )}
+      
       <div className="mb-2">
-        <div className="text-xs font-medium mb-1 text-gray-500">Story Beat</div>
+        <div className="text-xs font-medium mb-1 text-gray-500">Script Structure</div>
         <div className="grid grid-cols-5 gap-1 mb-2">
           {([ActType.ACT_1, ActType.ACT_2A, ActType.MIDPOINT, ActType.ACT_2B, ActType.ACT_3]).map((act) => (
             <button

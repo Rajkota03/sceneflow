@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { ActType } from '@/lib/types';
+import { ActType, Structure } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
+import StructureSelector from './tag-manager/StructureSelector';
+import useStructures from './tag-manager/useStructures';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
@@ -16,6 +18,9 @@ const TagManager: React.FC<TagManagerProps> = ({
   structureName,
   beatMode = 'on',
   onToggleBeatMode,
+  selectedStructureId,
+  onStructureChange,
+  structures = []
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
   
@@ -23,13 +28,12 @@ const TagManager: React.FC<TagManagerProps> = ({
     if (onFilterByAct) {
       onFilterByAct(act);
       // Clear tag filter when using act filter
-      if (act !== null && activeFilter !== null) {
+      if (act !== null && activeFilter !== null && onFilterByTag) {
         onFilterByTag(null);
       }
     }
   };
 
-  // Always render the ActBar so the user can toggle between modes
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
@@ -44,6 +48,15 @@ const TagManager: React.FC<TagManagerProps> = ({
           />
         )}
       </div>
+      
+      {/* Structure selector */}
+      {structures.length > 0 && onStructureChange && (
+        <StructureSelector
+          structures={structures}
+          selectedStructureId={selectedStructureId}
+          onStructureChange={onStructureChange}
+        />
+      )}
       
       {beatMode === 'on' && availableTags.length > 0 && (
         <TagFilter 

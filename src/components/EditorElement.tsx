@@ -1,83 +1,97 @@
-
-import React, { useEffect, useRef, useState } from 'react';
-import { ElementType, ScriptElement } from '@/lib/types';
-import { formatType } from '@/lib/formatScript';
+import React, { useState, useRef, useEffect } from 'react';
+import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
-import { cn } from '@/lib/utils';
+import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorElementProps {
   element: ScriptElement;
   previousElementType?: ElementType;
   onChange: (id: string, text: string, type: ElementType) => void;
-  onFormatChange: (id: string, type: ElementType) => void;
   onFocus: () => void;
   isActive: boolean;
   onNavigate: (direction: 'up' | 'down', id: string) => void;
   onEnterKey: (id: string, shiftKey: boolean) => void;
+  onFormatChange: (id: string, newType: ElementType) => void;
   onTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode?: 'on' | 'off';
+  beatMode?: BeatMode;
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const EditorElement: React.FC<EditorElementProps> = ({
-  element,
-  previousElementType,
-  onChange,
-  onFormatChange,
-  onFocus,
-  isActive,
-  onNavigate,
-  onEnterKey,
+const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
+  switch (type) {
+    case 'scene-heading':
+      return 'font-bold uppercase tracking-wider my-2';
+    case 'action':
+      return 'my-1';
+    case 'character':
+      return 'text-center font-bold my-1';
+    case 'dialogue':
+      return 'my-1';
+    case 'parenthetical':
+      return 'text-center italic text-sm text-gray-600 my-1';
+    case 'transition':
+      return 'text-right font-bold uppercase tracking-wider my-2';
+    case 'note':
+      return 'text-sm italic text-gray-500 my-1';
+    default:
+      return 'my-1';
+  }
+};
+
+const EditorElement: React.FC<EditorElementProps> = ({ 
+  element, 
+  previousElementType, 
+  onChange, 
+  onFocus, 
+  isActive, 
+  onNavigate, 
+  onEnterKey, 
+  onFormatChange, 
   onTagsChange,
   characterNames,
   projectId,
-  beatMode = 'on'
+  beatMode = 'on',
+  selectedStructure,
+  onBeatTag
 }) => {
   const [text, setText] = useState(element.text);
-  const [elementType, setElementType] = useState(element.type);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const [suggestionsVisible, setSuggestionsVisible] = useState(false);
+  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+  const [focusIndex, setFocusIndex] = useState(0);
+  const editorRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     setText(element.text);
-    setElementType(element.type);
-  }, [element.text, element.type]);
+  }, [element.text]);
 
-  useEffect(() => {
-    if (isActive && textareaRef.current) {
-      textareaRef.current.focus();
-    }
-  }, [isActive]);
-
-  // Auto-resize textarea when content changes
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-    }
-  }, [text]);
-
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    let newText = e.target.value;
-    
-    // Auto-capitalize scene headings and character names as they type
-    if (elementType === 'scene-heading' || elementType === 'character') {
-      newText = newText.toUpperCase();
-    }
-    
+  const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
+    const newText = e.target.innerText;
     setText(newText);
-    onChange(element.id, newText, elementType);
+    onChange(element.id, newText, element.type);
     
-    // Auto-resize as user types
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    if (element.type === 'character') {
+      const detected = detectCharacter(newText, characterNames);
+      setSuggestionsVisible(detected);
+      
+      if (detected) {
+        const searchText = newText.toLowerCase();
+        const newSuggestions = characterNames.filter(name =>
+          name.toLowerCase().startsWith(searchText) && name !== newText
+        );
+        setFilteredSuggestions(newSuggestions);
+        setFocusIndex(0);
+      }
+    } else {
+      setSuggestionsVisible(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       onEnterKey(element.id, e.shiftKey);
@@ -85,43 +99,72 @@ const EditorElement: React.FC<EditorElementProps> = ({
       onNavigate('up', element.id);
     } else if (e.key === 'ArrowDown') {
       onNavigate('down', element.id);
+    } else if (suggestionsVisible && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault();
+      setFocusIndex(prevIndex => {
+        const newIndex = e.key === 'ArrowLeft' ? prevIndex - 1 : prevIndex + 1;
+        return Math.max(0, Math.min(newIndex, filteredSuggestions.length - 1));
+      });
+    } else if (suggestionsVisible && e.key === 'Tab') {
+      e.preventDefault();
+      handleSelectCharacter(filteredSuggestions[focusIndex]);
     }
   };
 
-  const handleTypeChange = (newType: ElementType) => {
-    setElementType(newType);
-    onFormatChange(element.id, newType);
+  const handleSelectCharacter = (name: string) => {
+    if (editorRef.current) {
+      editorRef.current.innerText = name;
+      setText(name);
+      onChange(element.id, name, element.type);
+      setSuggestionsVisible(false);
+    }
   };
 
   return (
-    <div className={`editor-element relative ${element.type} ${isActive ? 'active' : ''}`}>
-      <div className="flex items-start">
-        <div className="element-type-selector relative">
-          
-        </div>
-        
-        <textarea 
-          ref={textareaRef} 
-          value={text} 
-          onChange={handleTextChange} 
-          onKeyDown={handleKeyDown} 
-          onFocus={onFocus} 
-          className={cn(
-            "w-full p-2 text-sm focus:outline-none resize-none border-0 rounded-r-md bg-transparent overflow-hidden",
-            {
-              'font-bold uppercase': elementType === 'character' || elementType === 'scene-heading',
-              'uppercase': elementType === 'transition',
-              'italic': elementType === 'action'
-            }
-          )} 
-          placeholder={elementType === 'action' ? 'Type action here...' : '...'} 
-          rows={1}
-        />
+    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''}`}>
+      <div
+        ref={editorRef}
+        className={`
+          element-text 
+          ${renderStyle(element.type, previousElementType)}
+          ${isActive ? 'active' : ''}
+        `}
+        contentEditable={isActive}
+        suppressContentEditableWarning={true}
+        onFocus={onFocus}
+        onBlur={() => setSuggestionsVisible(false)}
+        onKeyDown={handleKeyDown}
+        onInput={handleChange}
+        style={{
+          outline: 'none',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word'
+        }}
+      >
+        {text}
       </div>
       
-      {isActive && element.type === 'scene-heading' && beatMode === 'on' && 
-        <SceneTags element={element} onTagsChange={onTagsChange} projectId={projectId} />
-      }
+      {isActive && beatMode === 'on' && (
+        <>
+          {suggestionsVisible && (
+            <CharacterSuggestions 
+              suggestions={filteredSuggestions} 
+              onSelect={handleSelectCharacter} 
+              focusIndex={focusIndex}
+            />
+          )}
+          
+          {element.type === 'scene-heading' && (
+            <SceneTags 
+              element={element} 
+              onTagsChange={onTagsChange} 
+              projectId={projectId}
+              selectedStructure={selectedStructure}
+              onBeatTag={onBeatTag}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };
