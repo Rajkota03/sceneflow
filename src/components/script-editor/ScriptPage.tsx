@@ -1,16 +1,12 @@
 
 import React from 'react';
-import { ScriptElement, ElementType } from '@/lib/types';
+import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
-
-// Define the BeatMode type to be consistent
-type BeatMode = 'on' | 'off';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
   activeElementId: string | null;
-  formatState: { zoomLevel: number };
-  currentPage: number;
   getPreviousElementType: (index: number) => ElementType | undefined;
   handleElementChange: (id: string, text: string, type: ElementType) => void;
   handleFocus: (id: string) => void;
@@ -21,13 +17,15 @@ interface ScriptPageProps {
   characterNames: string[];
   projectId?: string;
   beatMode: BeatMode;
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  formatState?: { zoomLevel: number };
+  currentPage?: number;
 }
 
 const ScriptPage: React.FC<ScriptPageProps> = ({
   elements,
   activeElementId,
-  formatState,
-  currentPage,
   getPreviousElementType,
   handleElementChange,
   handleFocus,
@@ -37,7 +35,11 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   handleTagsChange,
   characterNames,
   projectId,
-  beatMode
+  beatMode,
+  selectedStructure,
+  onBeatTag,
+  formatState = { zoomLevel: 1 },
+  currentPage = 1
 }) => {
   return (
     <div className="script-page" style={{ 
@@ -74,6 +76,8 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
             characterNames={characterNames}
             projectId={projectId}
             beatMode={beatMode}
+            selectedStructure={selectedStructure}
+            onBeatTag={onBeatTag}
           />
         ))}
       </div>
