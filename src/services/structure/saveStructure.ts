@@ -26,9 +26,13 @@ export async function saveStructure(structure: Structure): Promise<Structure> {
     // Safely handle projectId - Fix for TypeScript error
     let projectId = null;
     if (structure.projectId !== undefined && structure.projectId !== null) {
+      // First check if it's an object to handle safely
       if (typeof structure.projectId === 'object' && structure.projectId !== null) {
-        // Now it's safe to check for _type property
-        if ('_type' in structure.projectId && structure.projectId._type === 'undefined') {
+        // Safe type guard before accessing property
+        const hasTypeProperty = '_type' in structure.projectId;
+        
+        // Now with type guard in place, we can safely check the _type value
+        if (hasTypeProperty && structure.projectId._type === 'undefined') {
           // Handle the case where projectId is an object with undefined value
           projectId = null;
         } else {
