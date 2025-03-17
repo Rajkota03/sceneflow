@@ -34,30 +34,34 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', variant = 'default' }) => {
   };
 
   return (
-    <div className="flex items-center">
-      <div className={`font-serif font-bold ${sizeClass} flex items-baseline relative`}>
-        <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-          Scene
-        </span>
-        {/* Fixed positioning of dots container */}
-        <div className="w-5 h-5 flex items-center justify-center relative">
-          <motion.span 
-            className="absolute w-1.5 h-1.5 bottom-1.5 left-0.5 bg-primary rounded-full"
-            variants={dotVariants}
-            initial="initial"
-            animate="animate"
-            custom={0}
-          />
-          <motion.span 
-            className="absolute w-1.5 h-1.5 bottom-1.5 right-0.5 bg-primary rounded-full"
-            variants={dotVariants}
-            initial="initial"
-            animate="animate"
-            custom={1}
-          />
-        </div>
-        <span className={variantClass}>Flow</span>
+    <div className="flex items-center space-x-1">
+      {/* Fixed text alignment */}
+      <span className={`font-serif font-bold ${sizeClass} bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent`}>
+        Scene
+      </span>
+
+      {/* Dot Container Moved Outside for Proper Alignment */}
+      <div className="flex space-x-1">
+        <motion.span 
+          className="w-1.5 h-1.5 bg-primary rounded-full"
+          variants={dotVariants}
+          initial="initial"
+          animate="animate"
+          custom={0}
+        />
+        <motion.span 
+          className="w-1.5 h-1.5 bg-primary rounded-full"
+          variants={dotVariants}
+          initial="initial"
+          animate="animate"
+          custom={1}
+        />
       </div>
+
+      {/* "Flow" text positioned correctly */}
+      <span className={`${variantClass} font-serif font-bold ${sizeClass}`}>
+        Flow
+      </span>
     </div>
   );
 };
