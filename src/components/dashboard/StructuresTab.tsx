@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2, Eye, Save, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, ArrowLeft } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import EmptyState from './EmptyState';
 import LoadingState from './LoadingState';
@@ -34,7 +34,6 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
 }) => {
   const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [structureToDelete, setStructureToDelete] = useState<string | null>(null);
   const [inlineEditMode, setInlineEditMode] = useState(false);
@@ -62,13 +61,11 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
   const handleOpenPreview = (structure: Structure) => {
     setSelectedStructure(structure);
     setPreviewOpen(true);
-    setEditMode(false);
   };
   
   const handleClosePreview = () => {
     setPreviewOpen(false);
     setSelectedStructure(null);
-    setEditMode(false);
   };
   
   const handleStartInlineEdit = (structure: Structure) => {
@@ -132,32 +129,36 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
     return (
       <div>
         <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleCancelInlineEdit}
-              className="mr-2"
-            >
-              <ArrowLeft size={16} className="mr-2" />
-              Back to Structures
-            </Button>
-            <h2 className="text-xl font-semibold">Editing: {selectedStructure.name}</h2>
-          </div>
           <Button 
+            variant="ghost" 
             size="sm" 
-            onClick={() => selectedStructure && handleStructureUpdate(selectedStructure)}
+            onClick={handleCancelInlineEdit}
+            className="gap-1"
           >
-            <Save size={16} className="mr-2" />
-            Save Changes
+            <ArrowLeft size={16} />
+            Back to Structures
           </Button>
+          <h2 className="text-xl font-semibold">Editing: {selectedStructure.name}</h2>
         </div>
         
-        <div className="bg-white p-6 rounded-lg border">
+        <div className="bg-white p-4 rounded-lg border">
           {selectedStructure && (
             <ThreeActStructurePanel 
               structure={selectedStructure} 
               onStructureUpdate={handleStructureUpdate}
+              onBeatToggleComplete={(actId, beatId, complete) => {
+                if (selectedStructure) {
+                  const updatedStructure = {...selectedStructure};
+                  const act = updatedStructure.acts.find(a => a.id === actId);
+                  if (act) {
+                    const beat = act.beats.find(b => b.id === beatId);
+                    if (beat) {
+                      beat.complete = complete;
+                      handleStructureUpdate(updatedStructure);
+                    }
+                  }
+                }
+              }}
             />
           )}
         </div>
@@ -185,7 +186,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
           const progress = totalBeats > 0 ? Math.round((completeBeats / totalBeats) * 100) : 0;
           
           return (
-            <Card key={structure.id} className="flex flex-col">
+            <Card key={structure.id} className="flex flex-col hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle>{structure.name}</CardTitle>
                 {structure.description && (
@@ -200,11 +201,20 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
                   {structure.acts.reduce((total, act) => total + act.beats.length, 0)} Beats
                 </div>
                 <div className="mt-2 text-sm text-gray-500">
-                  Created: {structure.createdAt.toLocaleDateString()}
+                  Created: {new Date(structure.createdAt).toLocaleDateString()}
                 </div>
                 {progress > 0 && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    Progress: {progress}% complete
+                  <div className="mt-3 space-y-1">
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div 
+                        className="bg-green-500 h-1.5 rounded-full" 
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
                   </div>
                 )}
               </CardContent>

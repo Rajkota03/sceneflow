@@ -1,16 +1,15 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Act, Beat, Structure } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
-import { Check, ChevronDown, ChevronRight, Edit, Milestone, GripVertical, Save } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Edit, Milestone, GripVertical, Save, X } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { 
   DndContext, 
@@ -34,7 +33,6 @@ interface BeatItemProps {
   act: Act;
   beat: Beat;
   isMidpoint: boolean;
-  onBeatEdit?: (actId: string, beatId: string) => void;
   onBeatToggleComplete?: (actId: string, beatId: string, complete: boolean) => void;
   onBeatUpdate: (actId: string, beatId: string, updatedBeat: Partial<Beat>) => void;
   isEditing: boolean;
@@ -44,7 +42,6 @@ const SortableBeat: React.FC<BeatItemProps> = ({
   act, 
   beat, 
   isMidpoint, 
-  onBeatEdit, 
   onBeatToggleComplete,
   onBeatUpdate,
   isEditing
@@ -89,8 +86,8 @@ const SortableBeat: React.FC<BeatItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "p-3 border-l-4 rounded-r mb-2 bg-white shadow-sm transition-all",
-        beat.complete ? "opacity-70" : "opacity-100",
+        "p-3 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md",
+        beat.complete ? "opacity-80" : "opacity-100",
         isMidpoint ? `border-l-[6px] font-medium` : "",
         { "border-blue-500": act.title.includes("Act 1") },
         { "border-yellow-500": act.title.includes("Act 2A") },
@@ -111,68 +108,83 @@ const SortableBeat: React.FC<BeatItemProps> = ({
             </button>
           )}
           <Milestone className={cn(
-            "h-4 w-4",
+            "h-4 w-4 flex-shrink-0",
             beat.complete ? "text-green-500" : "text-gray-400"
           )} />
           
           {isEditing && editingTitle ? (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-grow">
               <Input
                 value={localTitle}
                 onChange={(e) => setLocalTitle(e.target.value)}
-                className="text-sm font-medium h-7 py-1"
+                className="text-sm font-medium h-8 py-1"
                 autoFocus
                 onBlur={handleTitleSave}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleTitleSave();
                 }}
               />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0"
-                onClick={handleTitleSave}
-              >
-                <Save className="h-3 w-3 text-green-500" />
-              </Button>
+              <div className="flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={handleTitleSave}
+                >
+                  <Save className="h-3 w-3 text-green-500" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={() => {
+                    setLocalTitle(beat.title);
+                    setEditingTitle(false);
+                  }}
+                >
+                  <X className="h-3 w-3 text-red-500" />
+                </Button>
+              </div>
             </div>
           ) : (
             <h4 
-              className="font-medium text-sm"
+              className={cn(
+                "font-medium text-sm transition-colors",
+                isEditing && "hover:text-blue-600 cursor-pointer"
+              )}
               onClick={() => isEditing && setEditingTitle(true)}
             >
               {beat.title}
             </h4>
           )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 ml-2">
           {beat.pageRange && (
             <span className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">
               Pages {beat.pageRange}
             </span>
           )}
-          {onBeatToggleComplete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.complete)}
-            >
-              <Check className={cn(
-                "h-4 w-4",
-                beat.complete ? "text-green-500" : "text-gray-300"
-              )} />
-            </Button>
-          )}
-          {onBeatEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0"
-              onClick={() => onBeatEdit(act.id, beat.id)}
-            >
-              <Edit className="h-3 w-3 text-gray-500" />
-            </Button>
+          {isEditing && onBeatToggleComplete && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.complete)}
+                  >
+                    <Check className={cn(
+                      "h-4 w-4",
+                      beat.complete ? "text-green-500" : "text-gray-300"
+                    )} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Mark as {beat.complete ? "incomplete" : "complete"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
@@ -187,20 +199,37 @@ const SortableBeat: React.FC<BeatItemProps> = ({
             autoFocus
             onBlur={handleDescriptionSave}
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 mt-1"
-            onClick={handleDescriptionSave}
-          >
-            <Save className="h-3 w-3 mr-1 text-green-500" />
-            <span className="text-xs">Save Description</span>
-          </Button>
+          <div className="flex space-x-2 mt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={handleDescriptionSave}
+            >
+              <Save className="h-3 w-3 mr-1 text-green-500" />
+              Save
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={() => {
+                setLocalDescription(beat.description);
+                setEditingDescription(false);
+              }}
+            >
+              <X className="h-3 w-3 mr-1 text-red-500" />
+              Cancel
+            </Button>
+          </div>
         </div>
       ) : (
         beat.description && (
           <p 
-            className="text-xs text-gray-600 mt-1 cursor-pointer"
+            className={cn(
+              "text-xs text-gray-600 mt-1",
+              isEditing && "hover:text-blue-600 cursor-pointer hover:bg-blue-50 p-1 rounded"
+            )}
             onClick={() => isEditing && setEditingDescription(true)}
           >
             {beat.description}
@@ -219,26 +248,53 @@ const SortableBeat: React.FC<BeatItemProps> = ({
             onBlur={handleNotesSave}
             placeholder="Add notes for this beat..."
           />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 mt-1"
-            onClick={handleNotesSave}
-          >
-            <Save className="h-3 w-3 mr-1 text-green-500" />
-            <span className="text-xs">Save Notes</span>
-          </Button>
+          <div className="flex space-x-2 mt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={handleNotesSave}
+            >
+              <Save className="h-3 w-3 mr-1 text-green-500" />
+              Save Notes
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={() => {
+                setLocalNotes(beat.notes || '');
+                setEditingNotes(false);
+              }}
+            >
+              <X className="h-3 w-3 mr-1 text-red-500" />
+              Cancel
+            </Button>
+          </div>
         </div>
       ) : (
-        beat.notes && (
+        beat.notes ? (
           <div 
-            className="mt-2 p-2 bg-yellow-50 rounded text-xs text-gray-700 border border-yellow-100 cursor-pointer"
+            className={cn(
+              "mt-2 p-2 bg-yellow-50 rounded text-xs text-gray-700 border border-yellow-100",
+              isEditing && "cursor-pointer hover:bg-yellow-100"
+            )}
             onClick={() => isEditing && setEditingNotes(true)}
           >
             <p className="font-medium text-xs mb-1">Notes:</p>
             <p>{beat.notes}</p>
           </div>
-        )
+        ) : isEditing ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 mt-2 text-xs text-gray-500"
+            onClick={() => setEditingNotes(true)}
+          >
+            <Edit className="h-3 w-3 mr-1" />
+            Add Notes
+          </Button>
+        ) : null
       )}
     </div>
   );
@@ -247,7 +303,6 @@ const SortableBeat: React.FC<BeatItemProps> = ({
 interface ActSortableBeatsProps {
   act: Act;
   isExpanded: boolean;
-  onBeatEdit?: (actId: string, beatId: string) => void;
   onBeatToggleComplete?: (actId: string, beatId: string, complete: boolean) => void;
   onBeatsReorder: (actId: string, reorderedBeats: Beat[]) => void;
   onBeatUpdate: (actId: string, beatId: string, updatedBeat: Partial<Beat>) => void;
@@ -257,7 +312,6 @@ interface ActSortableBeatsProps {
 const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
   act,
   isExpanded,
-  onBeatEdit,
   onBeatToggleComplete,
   onBeatsReorder,
   onBeatUpdate,
@@ -304,7 +358,6 @@ const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
               act={act}
               beat={beat}
               isMidpoint={isMidpoint}
-              onBeatEdit={onBeatEdit}
               onBeatToggleComplete={onBeatToggleComplete}
               onBeatUpdate={onBeatUpdate}
               isEditing={isEditing}
@@ -318,7 +371,6 @@ const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
 
 interface ThreeActStructurePanelProps {
   structure: Structure;
-  onBeatEdit?: (actId: string, beatId: string) => void;
   onBeatToggleComplete?: (actId: string, beatId: string, complete: boolean) => void;
   onBeatDragDrop?: (beatId: string, targetSceneId: string) => void;
   onStructureUpdate?: (updatedStructure: Structure) => Promise<void>;
@@ -327,7 +379,6 @@ interface ThreeActStructurePanelProps {
 
 const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
   structure,
-  onBeatEdit,
   onBeatToggleComplete,
   onBeatDragDrop,
   onStructureUpdate,
@@ -337,24 +388,28 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [localStructure, setLocalStructure] = useState<Structure>(structure);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  useEffect(() => {
+    // Initialize with all acts expanded
+    const initialExpandedState: Record<string, boolean> = {};
+    structure.acts.forEach(act => {
+      initialExpandedState[act.id] = true;
+    });
+    setExpandedActs(initialExpandedState);
+  }, [structure.acts]);
+
+  useEffect(() => {
+    // Reset local structure when the prop changes
+    setLocalStructure(structure);
+    setHasChanges(false);
+  }, [structure]);
   
   const toggleAct = (actId: string) => {
     setExpandedActs(prev => ({
       ...prev,
       [actId]: !prev[actId]
     }));
-  };
-  
-  const expandAllActs = () => {
-    const allExpanded: Record<string, boolean> = {};
-    structure.acts.forEach(act => {
-      allExpanded[act.id] = true;
-    });
-    setExpandedActs(allExpanded);
-  };
-  
-  const collapseAllActs = () => {
-    setExpandedActs({});
   };
   
   // Calculate overall progress
@@ -372,6 +427,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
       ...localStructure,
       acts: updatedActs
     });
+    setHasChanges(true);
   };
   
   const handleBeatUpdate = (actId: string, beatId: string, updatedBeatFields: Partial<Beat>) => {
@@ -389,6 +445,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
       ...localStructure,
       acts: updatedActs
     });
+    setHasChanges(true);
   };
   
   const handleSaveStructure = async () => {
@@ -408,6 +465,7 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
         title: "Success",
         description: "Structure saved successfully"
       });
+      setHasChanges(false);
     } catch (error) {
       console.error("Error saving structure:", error);
       toast({
@@ -418,6 +476,12 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
     } finally {
       setIsSaving(false);
     }
+  };
+  
+  const getActProgressPercentage = (act: Act) => {
+    const totalActBeats = act.beats.length;
+    const completeActBeats = act.beats.filter(beat => beat.complete).length;
+    return totalActBeats > 0 ? (completeActBeats / totalActBeats) * 100 : 0;
   };
   
   return (
@@ -443,120 +507,123 @@ const ThreeActStructurePanel: React.FC<ThreeActStructurePanelProps> = ({
           </span>
         </div>
         
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={expandAllActs}>
-              <ChevronDown className="h-3 w-3 mr-1" />
-              Expand All
-            </Button>
-            <Button size="sm" variant="outline" onClick={collapseAllActs}>
-              <ChevronRight className="h-3 w-3 mr-1" />
-              Collapse All
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {isEditing ? (
-              <>
-                <Button 
-                  size="sm" 
-                  variant="default" 
-                  onClick={handleSaveStructure} 
-                  disabled={isSaving}
-                >
-                  <Save className="h-3 w-3 mr-1" />
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    setIsEditing(false);
-                    setLocalStructure(structure); // Reset to original structure
-                  }}
-                >
-                  Cancel
-                </Button>
-              </>
-            ) : (
+        <div className="flex items-center justify-end mb-4">
+          {isEditing ? (
+            <div className="flex items-center gap-2">
               <Button 
                 size="sm" 
-                variant={onStructureUpdate ? "default" : "outline"} 
-                onClick={() => setIsEditing(true)}
-                disabled={!onStructureUpdate}
+                variant={hasChanges ? "default" : "outline"} 
+                onClick={handleSaveStructure} 
+                disabled={isSaving || !hasChanges}
               >
-                <Edit className="h-3 w-3 mr-1" />
-                Edit Structure
+                <Save className="h-3 w-3 mr-1" />
+                {isSaving ? "Saving..." : "Save Changes"}
               </Button>
-            )}
-          </div>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => {
+                  setIsEditing(false);
+                  setLocalStructure(structure); // Reset to original structure
+                  setHasChanges(false);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              size="sm" 
+              variant={onStructureUpdate ? "default" : "outline"} 
+              onClick={() => setIsEditing(true)}
+              disabled={!onStructureUpdate}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              Edit Structure
+            </Button>
+          )}
         </div>
       </div>
       
       <div className="space-y-3">
-        {localStructure.acts.map((act) => (
-          <Collapsible 
-            key={act.id} 
-            open={expandedActs[act.id]} 
-            onOpenChange={() => toggleAct(act.id)}
-            className="border rounded-md overflow-hidden"
-          >
-            <div className={cn(
-              "flex items-center justify-between p-3",
-              { "bg-blue-50 border-blue-200": act.title.includes("Act 1") },
-              { "bg-yellow-50 border-yellow-200": act.title.includes("Act 2A") },
-              { "bg-amber-50 border-amber-200": act.title.includes("Act 2B") },
-              { "bg-red-50 border-red-200": act.title.includes("Act 3") },
-              { "bg-orange-50 border-orange-200": act.title.includes("Midpoint") }
-            )}>
-              <div className="flex items-center gap-2">
-                <div className={cn(
-                  "w-3 h-3 rounded-full",
-                  { "bg-blue-500": act.title.includes("Act 1") },
-                  { "bg-yellow-500": act.title.includes("Act 2A") },
-                  { "bg-amber-500": act.title.includes("Act 2B") },
-                  { "bg-red-500": act.title.includes("Act 3") },
-                  { "bg-orange-500": act.title.includes("Midpoint") }
-                )} />
-                <h3 className="font-medium">{act.title}</h3>
+        {localStructure.acts.map((act) => {
+          const actProgress = getActProgressPercentage(act);
+          
+          return (
+            <Collapsible 
+              key={act.id} 
+              open={expandedActs[act.id]} 
+              onOpenChange={() => toggleAct(act.id)}
+              className="border rounded-md overflow-hidden transition-all duration-200 hover:shadow-sm"
+            >
+              <div className={cn(
+                "flex items-center justify-between p-3 transition-colors",
+                { "bg-blue-50 border-blue-200": act.title.includes("Act 1") },
+                { "bg-yellow-50 border-yellow-200": act.title.includes("Act 2A") },
+                { "bg-amber-50 border-amber-200": act.title.includes("Act 2B") },
+                { "bg-red-50 border-red-200": act.title.includes("Act 3") },
+                { "bg-orange-50 border-orange-200": act.title.includes("Midpoint") }
+              )}>
+                <div className="flex items-center gap-2 flex-grow">
+                  <div className={cn(
+                    "w-3 h-3 rounded-full flex-shrink-0",
+                    { "bg-blue-500": act.title.includes("Act 1") },
+                    { "bg-yellow-500": act.title.includes("Act 2A") },
+                    { "bg-amber-500": act.title.includes("Act 2B") },
+                    { "bg-red-500": act.title.includes("Act 3") },
+                    { "bg-orange-500": act.title.includes("Midpoint") }
+                  )} />
+                  <div className="flex flex-col">
+                    <h3 className="font-medium">{act.title}</h3>
+                    
+                    <div className="flex items-center gap-2 mt-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                              {Math.round(act.startPosition)}% - {Math.round(act.endPosition)}%
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Approximate page range in screenplay</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      
+                      <div className="flex items-center gap-1 ml-2">
+                        <Progress 
+                          value={actProgress} 
+                          className="h-1.5 w-20" 
+                        />
+                        <span className="text-xs text-gray-600">{Math.round(actProgress)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full ml-2">
-                        {Math.round(act.startPosition)}% - {Math.round(act.endPosition)}%
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-xs">Approximate page range</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    {expandedActs[act.id] ? 
+                      <ChevronDown className="h-4 w-4" /> : 
+                      <ChevronRight className="h-4 w-4" />
+                    }
+                  </Button>
+                </CollapsibleTrigger>
               </div>
               
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  {expandedActs[act.id] ? 
-                    <ChevronDown className="h-4 w-4" /> : 
-                    <ChevronRight className="h-4 w-4" />
-                  }
-                </Button>
-              </CollapsibleTrigger>
-            </div>
-            
-            <CollapsibleContent className="p-3 bg-gray-50">
-              <ActSortableBeats
-                act={act}
-                isExpanded={true}
-                onBeatEdit={onBeatEdit}
-                onBeatToggleComplete={onBeatToggleComplete}
-                onBeatsReorder={handleBeatsReorder}
-                onBeatUpdate={handleBeatUpdate}
-                isEditing={isEditing}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+              <CollapsibleContent className="p-3 bg-gray-50 transition-all">
+                <ActSortableBeats
+                  act={act}
+                  isExpanded={true}
+                  onBeatToggleComplete={onBeatToggleComplete}
+                  onBeatsReorder={handleBeatsReorder}
+                  onBeatUpdate={handleBeatUpdate}
+                  isEditing={isEditing}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </div>
     </div>
   );
