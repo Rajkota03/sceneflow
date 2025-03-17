@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,9 +7,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Structure } from '@/lib/models/structureModel';
 import { useToast } from '@/components/ui/use-toast';
-import { getStructures, deleteStructure } from '@/services/structureService';
+import { getStructures, deleteStructure } from '@/services/structure';
 import { LoadingState } from '@/components/structure/StructureStates';
-import { supabase } from '@/integrations/supabase/client';
 
 const StructuresTab: React.FC = () => {
   const [structures, setStructures] = useState<Structure[]>([]);

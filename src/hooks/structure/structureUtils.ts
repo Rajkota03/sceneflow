@@ -4,7 +4,7 @@ import {
   getStructureByProjectId, 
   getStructureById,
   saveStructure as saveStructureToDb
-} from '@/services/structureService';
+} from '@/services/structure';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/components/ui/use-toast';
 
