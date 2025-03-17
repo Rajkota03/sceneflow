@@ -15,11 +15,11 @@ export function useBeatTagging(
     if (!selectedStructure || !selectedStructureId) return;
     
     // Update the element with the beat ID
-    setElements(prevElements =>
-      prevElements.map(element =>
+    setElements(prevElements => {
+      return prevElements.map(element =>
         element.id === elementId ? { ...element, beatId: beatId } : element
-      )
-    );
+      );
+    });
     
     // Find the act type for the selected beat
     let actType: ActType | null = null;
@@ -40,8 +40,8 @@ export function useBeatTagging(
                    actType === ActType.ACT_2B ? 'Act 2B: Approach' :
                    'Act 3: Resolution';
                    
-      setElements(prevElements =>
-        prevElements.map(element => {
+      setElements(prevElements => {
+        return prevElements.map(element => {
           if (element.id === elementId) {
             // Remove any existing act tags
             const filteredTags = (element.tags || []).filter(tag => 
@@ -56,8 +56,8 @@ export function useBeatTagging(
             return { ...element, tags: [...filteredTags, actTag] };
           }
           return element;
-        })
-      );
+        });
+      });
     }
     
     // Update the beat completion status

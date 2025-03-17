@@ -92,7 +92,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setText(element.text);
   }, [element.text]);
 
-  // Close beat tagging UI when user starts typing in the scene heading
   useEffect(() => {
     if (isActive && element.type === 'scene-heading' && text !== element.text) {
       setShowBeatTagging(false);
@@ -124,7 +123,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      // Hide beat tagging UI when user presses Enter in a scene heading
       if (element.type === 'scene-heading') {
         setShowBeatTagging(false);
       }
@@ -161,7 +159,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   };
 
-  // When a beat is selected, hide the UI
   const handleBeatTagged = (elementId: string, beatId: string, actId: string) => {
     if (onBeatTag) {
       onBeatTag(elementId, beatId, actId);
@@ -202,7 +199,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
         {text}
       </div>
       
-      {/* Show the beat tagging UI only when a scene heading is clicked and not being edited */}
       {isSceneHeading && beatMode === 'on' && (
         <>
           {showBeatTagging && selectedStructure && (
@@ -211,7 +207,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
                 selectedStructure={selectedStructure}
                 elementId={element.id}
                 onBeatTag={handleBeatTagged}
-                selectedBeatId={element.beatId || undefined}
+                selectedBeatId={element.beat || undefined}
               />
             </div>
           )}

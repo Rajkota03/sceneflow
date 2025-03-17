@@ -113,7 +113,6 @@ const ScriptEditor = ({
   // Beat tagging functionality
   const { handleBeatTag } = useBeatTagging(
     scriptTypeElements,
-    // Pass a function that converts and updates the elements
     (updatedElements) => {
       const libElements = convertScriptElementsToLibType(updatedElements);
       setElements(libElements);

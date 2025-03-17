@@ -1,3 +1,4 @@
+
 import { 
   ScriptContent, 
   ScriptElement, 
@@ -16,8 +17,7 @@ import {
   Beat as LibBeat,
   ScriptContent as LibScriptContent,
   ScriptElement as LibScriptElement,
-  ElementType as LibElementType,
-  SceneHeading as LibSceneHeading
+  ElementType as LibElementType
 } from '@/lib/types';
 
 export function convertLibToScriptTypes(libScript: LibScriptContent): ScriptContent {
@@ -48,7 +48,7 @@ export function convertScriptTypesToLib(scriptScript: ScriptContent): LibScriptC
     text: element.text,
     tags: element.tags || [],
     beat: element.beatId || undefined,
-    act: element.actId || undefined
+    act: element.actId ? element.actId.toString() : undefined
   }));
 
   return { elements };
@@ -58,39 +58,53 @@ export function convertStructures(libStructures: LibStructure[]): ScriptTypeStru
   if (!libStructures) return [];
   
   return libStructures.map(structure => {
+    // Ensure structure is valid and acts is an array
+    if (!structure || !Array.isArray(structure.acts)) {
+      return {
+        id: structure.id || '',
+        name: structure.name || '',
+        description: structure.description || '',
+        structure_type: structure.structure_type || 'three_act',
+        projectTitle: structure.projectTitle || '',
+        author_id: '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        acts: []
+      };
+    }
+    
     return {
       id: structure.id,
       name: structure.name,
       description: structure.description || '',
       structure_type: structure.structure_type || 'three_act',
-      // Use optional chaining to handle properties that might not exist
       projectTitle: structure.projectTitle || '',
       author_id: '',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      acts: (structure.acts || []).map(act => ({
+      acts: structure.acts.map(act => ({
         id: act.id,
         structure_id: structure.id,
         act_type: act.act_type || ActType.ACT_1,
         title: act.title,
-        order: act.order || 0,
+        order: 0, // Default value since act.order is missing
         colorHex: act.colorHex || '#000000',
-        beats: (act.beats || []).map(beat => ({
+        beats: Array.isArray(act.beats) ? act.beats.map(beat => ({
           id: beat.id,
           act_id: act.id,
           title: beat.title || '',
           description: beat.description || '',
-          order: beat.order || 0,
+          order: 0, // Default value since beat.order is missing
           is_complete: beat.complete || false,
           notes: beat.notes || ''
-        }))
+        })) : []
       }))
     };
   });
 }
 
 export function convertLibSceneHeadingToScriptType(
-  libSceneHeading: LibSceneHeading
+  libSceneHeading: LibScriptElement
 ): ScriptElement {
   return {
     id: libSceneHeading.id,
@@ -98,7 +112,7 @@ export function convertLibSceneHeadingToScriptType(
     text: libSceneHeading.text,
     tags: libSceneHeading.tags || [],
     beatId: libSceneHeading.beat || undefined,
-    actId: libSceneHeading.act || undefined
+    actId: libSceneHeading.act ? libSceneHeading.act.toString() : undefined
   };
 }
 
@@ -139,7 +153,7 @@ export function convertLibScriptElementsToScriptType(
     text: element.text,
     tags: element.tags || [],
     beatId: element.beat || undefined,
-    actId: undefined
+    actId: element.act ? element.act.toString() : undefined
   }));
 }
 
@@ -164,4 +178,9 @@ export function convertScriptElementsToLibType(
     tags: element.tags || [],
     beat: element.beatId
   }));
+}
+
+// Add this function to support the Editor.tsx import
+export function convertScriptTypeTitlePageToLib(titlePage: any): any {
+  return titlePage; // Simple pass-through for now
 }
