@@ -5,7 +5,6 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import LoadingState from '@/components/dashboard/LoadingState';
 import EmptyState from '@/components/dashboard/EmptyState';
 import StructureCard from '@/components/structure/StructureCard';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useNavigate } from 'react-router-dom';
 
 interface StructuresTabProps {

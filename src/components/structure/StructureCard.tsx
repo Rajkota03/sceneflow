@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { FileText, Edit, Trash2, Calendar } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Link } from 'react-router-dom';
 import { Progress } from '@/components/ui/progress';
 
 interface StructureCardProps {
@@ -74,16 +73,6 @@ const StructureCard = ({ structure, onEdit, onDelete }: StructureCardProps) => {
           </p>
         </div>
       </CardContent>
-      
-      <CardFooter className="bg-slate-50 border-t border-slate-200 p-4">
-        <Button 
-          onClick={() => onEdit(structure)}
-          variant="outline" 
-          className="w-full inline-flex items-center justify-center text-primary hover:text-primary-foreground hover:bg-primary transition-colors rounded-md py-1.5 px-3 text-sm font-medium"
-        >
-          Open Structure
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

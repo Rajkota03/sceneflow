@@ -4,12 +4,14 @@ import { toast } from '@/components/ui/use-toast';
 import { Structure, Act } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from '@/App';
+import { useNavigate } from 'react-router-dom';
 
 export const useDashboardStructures = () => {
   const [structures, setStructures] = useState<Structure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { session } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (session) {
@@ -377,10 +379,7 @@ export const useDashboardStructures = () => {
   };
 
   const handleEditStructure = (structure: Structure) => {
-    toast({
-      title: "Structure editor",
-      description: "Use the edit button to modify structure beats."
-    });
+    navigate(`/structure/${structure.id}`);
   };
 
   const handleDeleteStructure = async (id: string) => {
