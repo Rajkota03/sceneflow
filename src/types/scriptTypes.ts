@@ -1,4 +1,5 @@
-import { ScriptContent, ActType, Structure } from "@/lib/types";
+
+import { ScriptContent, ActType } from "@/lib/types";
 
 export type ActCountsRecord = {
   [key in ActType]: number;
@@ -49,8 +50,10 @@ export interface Structure {
   name: string;
   description?: string;
   acts: Act[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
+  structure_type?: string;
+  projectTitle?: string;
 }
 
 export interface Act {
@@ -67,4 +70,7 @@ export interface Beat {
   title: string;
   description: string;
   timePosition: number; // percentage (0-100)
+  pageRange?: string;
+  complete?: boolean;
+  notes?: string;
 }

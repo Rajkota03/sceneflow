@@ -65,8 +65,8 @@ const StructureEditor = () => {
           name: data.name,
           description: data.description || undefined,
           acts: actsData,
-          createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at),
+          createdAt: new Date(data.created_at).toISOString(), // Convert Date to string
+          updatedAt: new Date(data.updated_at).toISOString(), // Convert Date to string
           structure_type: data.structure_type || 'three_act'
         };
         

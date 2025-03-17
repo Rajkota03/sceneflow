@@ -200,6 +200,14 @@ export const useDashboardProjects = () => {
         updatedAt: new Date()
       };
       
+      const createdAtStr = typeof newNote.createdAt === 'string' 
+        ? newNote.createdAt 
+        : newNote.createdAt.toISOString();
+        
+      const updatedAtStr = typeof newNote.updatedAt === 'string'
+        ? newNote.updatedAt
+        : newNote.updatedAt.toISOString();
+      
       const { error } = await supabase
         .from('standalone_notes')
         .insert({
@@ -207,8 +215,8 @@ export const useDashboardProjects = () => {
           title: newNote.title,
           content: newNote.content,
           author_id: session.user.id,
-          created_at: newNote.createdAt.toISOString(),
-          updated_at: newNote.updatedAt.toISOString()
+          created_at: createdAtStr,
+          updated_at: updatedAtStr
         });
       
       if (error) {
@@ -248,12 +256,16 @@ export const useDashboardProjects = () => {
         updatedAt: new Date()
       };
       
+      const updatedAtStr = typeof updatedNote.updatedAt === 'string'
+        ? updatedNote.updatedAt
+        : updatedNote.updatedAt.toISOString();
+      
       const { error } = await supabase
         .from('standalone_notes')
         .update({
           title: updatedNote.title,
           content: updatedNote.content,
-          updated_at: updatedNote.updatedAt.toISOString()
+          updated_at: updatedAtStr
         })
         .eq('id', updatedNote.id)
         .eq('author_id', session.user.id);

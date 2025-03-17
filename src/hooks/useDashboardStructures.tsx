@@ -60,8 +60,8 @@ export const useDashboardStructures = () => {
             name: structure.name,
             description: structure.description || undefined,
             acts: actsData,
-            createdAt: new Date(structure.created_at),
-            updatedAt: new Date(structure.updated_at),
+            createdAt: new Date(structure.created_at).toISOString(), // Convert to string
+            updatedAt: new Date(structure.updated_at).toISOString(), // Convert to string
             structure_type: structure.structure_type || 'three_act'
           };
         });
@@ -173,7 +173,7 @@ export const useDashboardStructures = () => {
       setStructures(prev => 
         prev.map(structure => 
           structure.id === updatedStructure.id 
-            ? { ...updatedStructure, updatedAt: new Date() } 
+            ? { ...updatedStructure, updatedAt: new Date().toISOString() } 
             : structure
         )
       );

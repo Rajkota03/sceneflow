@@ -1,4 +1,3 @@
-
 import { Structure, Act, Beat } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -140,8 +139,8 @@ export const createThreeActStructure = (id: string): Structure => {
     name: "Three Act Structure",
     description: "The classic structure dividing a story into Setup, Confrontation, and Resolution.",
     acts: [act1, act2, act3],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     structure_type: "three_act"
   };
 };
@@ -247,7 +246,7 @@ export const createSaveTheCatStructure = (id: string): Structure => {
         "The clue to success often comes from the B Story."
       ),
       createBeat(
-        "🔹 Finale (Pages 85-110)",
+        "��� Finale (Pages 85-110)",
         "The hero proves they've changed and defeats the antagonist.",
         95,
         "85-110",
@@ -268,8 +267,8 @@ export const createSaveTheCatStructure = (id: string): Structure => {
     name: "Save the Cat Beat Sheet",
     description: "Blake Snyder's popular screenwriting formula with 15 essential plot points.",
     acts: [act],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     structure_type: "save_the_cat"
   };
 };
@@ -395,8 +394,8 @@ export const createHeroJourneyStructure = (id: string): Structure => {
     name: "Hero's Journey",
     description: "Joseph Campbell's monomyth structure used in countless stories across cultures.",
     acts: [act1, act2, act3],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     structure_type: "hero_journey"
   };
 };
@@ -474,8 +473,8 @@ export const createStoryCircleStructure = (id: string): Structure => {
     name: "Story Circle",
     description: "Dan Harmon's circular story structure used in shows like Rick and Morty and Community.",
     acts: [act],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     structure_type: "story_circle"
   };
 };

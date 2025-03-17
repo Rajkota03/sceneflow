@@ -11,10 +11,11 @@ import {
 
 interface CharacterSuggestionsProps {
   onSelect: (character: string | ElementType) => void;
-  onClose?: () => void; // Make onClose optional
+  onClose?: () => void;
   currentType?: ElementType;
   suggestions?: string[];
   isVisible?: boolean;
+  focusIndex?: number; // Add the missing focusIndex prop
 }
 
 const CharacterSuggestions: React.FC<CharacterSuggestionsProps> = ({ 
@@ -22,7 +23,8 @@ const CharacterSuggestions: React.FC<CharacterSuggestionsProps> = ({
   onSelect,
   onClose,
   currentType,
-  isVisible = true
+  isVisible = true,
+  focusIndex = 0 // Default value
 }) => {
   // For element type selection
   if (currentType !== undefined) {

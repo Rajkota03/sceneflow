@@ -1,4 +1,3 @@
-
 import { ScriptElement, ElementType } from './types';
 
 // Check if a character should have (CONT'D) added
@@ -76,4 +75,13 @@ export function addContdToCharacter(
   }
   
   return cleanName;
+}
+
+// Add the missing detectCharacter function
+export function detectCharacter(text: string, characterNames: string[]): boolean {
+  if (!text || !characterNames.length) return false;
+  const cleanText = text.trim().toLowerCase();
+  return characterNames.some(name => 
+    name.toLowerCase().startsWith(cleanText) && name.toLowerCase() !== cleanText
+  );
 }

@@ -1,18 +1,14 @@
 
 import React from 'react';
-import { ScriptElement, ElementType, ActType } from '@/lib/types';
-import FormatStyler from '../FormatStyler';
+import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import ScriptPage from './ScriptPage';
-import { useFormat } from '@/lib/formatContext';
+import { BeatMode } from '@/types/scriptTypes';
 
-// Define the BeatMode type to be consistent
-type BeatMode = 'on' | 'off';
-
-interface ScriptContentComponentProps {
+export interface ScriptContentComponentProps {
   filteredElements: ScriptElement[];
-  activeElementId: string | null;
+  activeElementId: string;
   currentPage: number;
-  getPreviousElementType: (index: number) => ElementType | undefined;
+  getPreviousElementType: (index: number) => ElementType;
   handleElementChange: (id: string, text: string, type: ElementType) => void;
   handleFocus: (id: string) => void;
   handleNavigate: (direction: 'up' | 'down', id: string) => void;
@@ -21,7 +17,9 @@ interface ScriptContentComponentProps {
   handleTagsChange: (elementId: string, tags: string[]) => void;
   characterNames: string[];
   projectId?: string;
-  beatMode: BeatMode;
+  beatMode?: BeatMode;
+  selectedStructure?: Structure | null; // Add selectedStructure prop
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
 const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
@@ -37,32 +35,28 @@ const ScriptContentComponent: React.FC<ScriptContentComponentProps> = ({
   handleTagsChange,
   characterNames,
   projectId,
-  beatMode
+  beatMode = 'on',
+  selectedStructure,
+  onBeatTag
 }) => {
-  const { formatState } = useFormat();
-
   return (
-    <div className="flex justify-center w-full h-full overflow-auto">
-      <div className="w-full max-w-4xl mx-auto">
-        <FormatStyler currentPage={currentPage}>
-          <ScriptPage 
-            elements={filteredElements}
-            activeElementId={activeElementId}
-            formatState={formatState}
-            currentPage={currentPage}
-            getPreviousElementType={getPreviousElementType}
-            handleElementChange={handleElementChange}
-            handleFocus={handleFocus}
-            handleNavigate={handleNavigate}
-            handleEnterKey={handleEnterKey}
-            handleFormatChange={handleFormatChange}
-            handleTagsChange={handleTagsChange}
-            characterNames={characterNames}
-            projectId={projectId}
-            beatMode={beatMode}
-          />
-        </FormatStyler>
-      </div>
+    <div className="flex-1 overflow-y-auto relative">
+      <ScriptPage
+        elements={filteredElements}
+        activeElementId={activeElementId}
+        onElementChange={handleElementChange}
+        onElementFocus={handleFocus}
+        onNavigate={handleNavigate}
+        onEnterKey={handleEnterKey}
+        onFormatChange={handleFormatChange}
+        onTagsChange={handleTagsChange}
+        getPreviousElementType={getPreviousElementType}
+        characterNames={characterNames}
+        projectId={projectId}
+        beatMode={beatMode}
+        selectedStructure={selectedStructure}
+        onBeatTag={onBeatTag}
+      />
     </div>
   );
 };

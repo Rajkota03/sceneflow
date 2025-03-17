@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
@@ -140,11 +139,11 @@ const useProjectStructures = (projectId?: string) => {
         if (insertError) throw insertError;
       }
       
-      // Update the structure in the database
+      // Update the structure in the database - convert acts to JSON string
       const { error: updateError } = await supabase
         .from('structures')
         .update({ 
-          beats: updatedStructure.acts, 
+          beats: JSON.stringify({ acts: updatedStructure.acts }), 
           updated_at: new Date().toISOString() 
         })
         .eq('id', structureId);

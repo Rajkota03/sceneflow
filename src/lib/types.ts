@@ -84,8 +84,8 @@ export interface Structure {
   name: string;
   description?: string;
   acts: Act[];
-  createdAt: string;
-  updatedAt: string;
+  createdAt: string; // Changed from Date to string
+  updatedAt: string; // Changed from Date to string
   structure_type?: string;
   projectTitle?: string;
 }
@@ -114,8 +114,8 @@ export interface Note {
   id: string;
   title: string;
   content: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
+  createdAt: string | Date; // Support both string and Date
+  updatedAt: string | Date; // Support both string and Date
 }
 
 // Project-related types
