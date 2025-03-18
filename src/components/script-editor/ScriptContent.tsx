@@ -17,7 +17,7 @@ const ScriptContent: React.FC = () => {
     handleNavigate,
     handleEnterKey,
     changeElementType,
-    handleTagsChange: onTagsChange,
+    handleTagsChange,
     characterNames,
     projectId,
     beatMode,
@@ -45,7 +45,7 @@ const ScriptContent: React.FC = () => {
             handleNavigate={handleNavigate}
             handleEnterKey={handleEnterKey}
             handleFormatChange={changeElementType}
-            handleTagsChange={onTagsChange}
+            handleTagsChange={handleTagsChange}
             characterNames={characterNames}
             projectId={projectId}
             beatMode={beatMode}

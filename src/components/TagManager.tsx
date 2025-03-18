@@ -1,14 +1,14 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ScriptContent, ActType, Structure } from '@/lib/types';
 import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
 import { BeatMode } from '@/types/scriptTypes';
-import useProjectStructures from '@/hooks/useProjectStructures';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import BeatModeToggle from './act-bar/BeatModeToggle';
+import { cn } from '@/lib/utils';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -21,6 +21,9 @@ interface TagManagerProps {
   projectId?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
+  selectedStructure?: Structure | null;
+  activeBeatId?: string | null;
+  onBeatClick?: (beatId: string) => void;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -33,7 +36,10 @@ const TagManager: React.FC<TagManagerProps> = ({
   structureName = "Three Act Structure",
   projectId,
   beatMode = 'on',
-  onToggleBeatMode
+  onToggleBeatMode,
+  selectedStructure,
+  activeBeatId,
+  onBeatClick
 }) => {
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
@@ -58,9 +64,6 @@ const TagManager: React.FC<TagManagerProps> = ({
     act: act as ActType,
     count
   }));
-  
-  // Get structure data if a projectId is provided
-  const { selectedStructure } = useProjectStructures(projectId);
   
   return (
     <div className="bg-white dark:bg-slate-850 border-b border-gray-200 dark:border-gray-700 shadow-sm">
@@ -111,7 +114,9 @@ const TagManager: React.FC<TagManagerProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={`h-8 px-3 text-xs text-gray-600 dark:text-gray-400`}
+                  className={cn(
+                    `h-8 px-3 text-xs text-gray-600 dark:text-gray-400`
+                  )}
                 >
                   Free Mode
                 </Button>
@@ -128,6 +133,9 @@ const TagManager: React.FC<TagManagerProps> = ({
           projectName={projectName}
           structureName={structureName}
           selectedStructure={selectedStructure}
+          beatMode={beatMode}
+          activeBeatId={activeBeatId}
+          onBeatClick={onBeatClick}
         />
         
         {allTags.length > 0 && (

@@ -13,8 +13,15 @@ const TagManagerContainer: React.FC = () => {
     beatMode,
     onToggleBeatMode,
     projectId,
-    projectTitle
+    projectTitle,
+    selectedStructure,
+    activeBeatId,
+    setActiveBeatId
   } = useScriptEditor();
+
+  const handleBeatClick = (beatId: string) => {
+    setActiveBeatId(beatId);
+  };
 
   return (
     <TagManager
@@ -28,6 +35,9 @@ const TagManagerContainer: React.FC = () => {
       projectId={projectId}
       beatMode={beatMode}
       onToggleBeatMode={onToggleBeatMode}
+      selectedStructure={selectedStructure}
+      activeBeatId={activeBeatId}
+      onBeatClick={handleBeatClick}
     />
   );
 };

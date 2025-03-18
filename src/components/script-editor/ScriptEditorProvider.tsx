@@ -1,6 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ScriptContent, ScriptElement, ActType, Structure } from '@/lib/types';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { ScriptContent, ScriptElement, ActType, Structure, ElementType } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
 import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useCharacterNames from '@/hooks/useCharacterNames';
@@ -12,10 +12,10 @@ interface ScriptEditorContextType {
   setElements: React.Dispatch<React.SetStateAction<ScriptElement[]>>;
   activeElementId: string | null;
   setActiveElementId: React.Dispatch<React.SetStateAction<string | null>>;
-  handleElementChange: (id: string, text: string, type: ActType) => void;
-  getPreviousElementType: (index: number) => ActType | undefined;
-  addNewElement: (afterId: string, explicitType?: ActType) => void;
-  changeElementType: (id: string, newType: ActType) => void;
+  handleElementChange: (id: string, text: string, type: ElementType) => void;
+  getPreviousElementType: (index: number) => ElementType | undefined;
+  addNewElement: (afterId: string, explicitType?: ElementType) => void;
+  changeElementType: (id: string, newType: ElementType) => void;
   handleNavigate: (direction: 'up' | 'down', id: string) => void;
   handleEnterKey: (id: string, shiftKey: boolean) => void;
   characterNames: string[];
@@ -30,6 +30,11 @@ interface ScriptEditorContextType {
   beatMode: BeatMode;
   onToggleBeatMode: (mode: BeatMode) => void;
   projectTitle?: string;
+  currentPage: number;
+  scriptContentRef: React.RefObject<HTMLDivElement>;
+  handleTagsChange: (elementId: string, tags: string[]) => void;
+  activeBeatId: string | null;
+  setActiveBeatId: (beatId: string | null) => void;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
@@ -56,6 +61,9 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeBeatId, setActiveBeatId] = useState<string | null>(null);
+  const scriptContentRef = useRef<HTMLDivElement>(null);
   
   const { selectedStructure } = useProjectStructures(projectId);
 
@@ -83,6 +91,14 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setBeatMode(mode);
   };
 
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, tags } : element
+      )
+    );
+  };
+
   return (
     <ScriptEditorContext.Provider
       value={{
@@ -107,7 +123,12 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
         selectedStructure,
         beatMode,
         onToggleBeatMode,
-        projectTitle
+        projectTitle,
+        currentPage,
+        scriptContentRef,
+        handleTagsChange,
+        activeBeatId,
+        setActiveBeatId
       }}
     >
       {children}

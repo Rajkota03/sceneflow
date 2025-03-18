@@ -11,7 +11,8 @@ import {
 import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
-import { ActCountsRecord } from '@/types/scriptTypes';
+import BeatSection from './BeatSection';
+import { cn } from '@/lib/utils';
 
 interface ActCount {
   act: ActType;
@@ -25,6 +26,9 @@ interface ActBarProps {
   projectName?: string;
   structureName?: string;
   selectedStructure?: Structure | null;
+  beatMode?: 'on' | 'off';
+  activeBeatId?: string | null;
+  onBeatClick?: (beatId: string) => void;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -33,7 +37,10 @@ const ActBar: React.FC<ActBarProps> = ({
   actCounts,
   projectName,
   structureName,
-  selectedStructure
+  selectedStructure,
+  beatMode = 'on',
+  activeBeatId,
+  onBeatClick
 }) => {
   const [showAllActs, setShowAllActs] = useState(false);
   const [actButtons, setActButtons] = useState<Array<{
@@ -41,6 +48,7 @@ const ActBar: React.FC<ActBarProps> = ({
     label: string;
     color: string;
     bgColor: string;
+    beats?: Array<{id: string; title: string; description?: string; complete?: boolean;}>;
   }>>([]);
   
   // Default structure colors
@@ -53,14 +61,15 @@ const ActBar: React.FC<ActBarProps> = ({
   ];
   
   useEffect(() => {
-    if (selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
+    if (selectedStructure?.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
       const buttons = selectedStructure.acts.map((act, index) => {
         const defaultColor = defaultActColors[index] || defaultActColors[0];
         return {
           id: act.id,
           label: act.title || `Act ${index + 1}`,
           color: defaultColor.color,
-          bgColor: defaultColor.bgColor
+          bgColor: defaultColor.bgColor,
+          beats: act.beats ? [...act.beats] : []
         };
       });
       
@@ -80,15 +89,39 @@ const ActBar: React.FC<ActBarProps> = ({
   }));
   
   return (
-    <div className="w-full">
+    <div className="w-full space-y-3">
       <StructureBar
         visibleActs={structureBarButtons}
         activeAct={activeAct}
         onSelectAct={onSelectAct}
+        className="mb-1"
       />
       
+      {/* Show beats sections if beatMode is 'on' */}
+      {beatMode === 'on' && (
+        <div className="space-y-0.5">
+          {visibleActs.map((act) => (
+            <React.Fragment key={`beats-${act.id}`}>
+              {activeAct === act.id as ActType && (
+                <BeatSection
+                  actId={act.id}
+                  actColor={act.color}
+                  actBgColor={act.bgColor}
+                  beats={act.beats || []}
+                  onBeatClick={onBeatClick}
+                  activeBeatId={activeBeatId}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+      
       {/* Button filters for quick navigation */}
-      <div className="flex flex-wrap items-center space-x-2 mb-2 mt-3">
+      <div className={cn(
+        "flex flex-wrap items-center gap-2",
+        beatMode === 'on' ? "mt-3" : "mt-2"
+      )}>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
