@@ -2,138 +2,125 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
-import { useAuth } from '@/App';
-import { Json } from '@/integrations/supabase/types';
 import { StructureType } from '@/types/scriptTypes';
+import { Json } from '@/integrations/supabase/types';
+import getStructureTemplate from '@/lib/structureTemplates';
+import { useAuth } from '@/App';
+import { toast } from '@/components/ui/use-toast';
 
-interface UseDashboardStructuresResult {
+export interface UseDashboardStructuresResult {
   structures: Structure[];
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
   isLoading: boolean;
-  handleCreateStructure: (structureType?: StructureType) => void;
-  handleEditStructure: (structure: Structure) => void;
-  handleDeleteStructure: (id: string) => Promise<void>;
+  isCreating: boolean;
+  refetch: () => Promise<void>;
+  handleCreateStructure: (structureType: StructureType) => Promise<Structure | null>;
+  handleUpdateStructure: (structure: Structure) => Promise<boolean>;
+  handleDeleteStructure: (id: string) => Promise<boolean>;
 }
 
-export const useDashboardStructures = (): UseDashboardStructuresResult => {
+const useDashboardStructures = (): UseDashboardStructuresResult => {
   const [structures, setStructures] = useState<Structure[]>([]);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
   const { session } = useAuth();
 
   useEffect(() => {
-    const fetchStructures = async () => {
-      try {
-        setIsLoading(true);
-        
-        const { data: structuresData, error } = await supabase
-          .from('structures')
-          .select('*')
-          .eq('user_id', session?.user.id);
-        
-        if (error) {
-          console.error('Error fetching structures:', error);
-          return;
-        }
-        
-        // Transform the data to match the Structure type
-        const formattedStructures: Structure[] = structuresData.map(structure => {
-          // Parse beats from JSON to convert to acts array
-          const beatsData = structure.beats as Json;
-          let acts: Act[] = [];
-          
-          // Try to convert the beats data to acts structure
-          if (Array.isArray(beatsData)) {
-            // Type assertion to convert from Json[] to Act[]
-            acts = beatsData as unknown as Act[];
-          }
-          
-          return {
-            id: structure.id,
-            name: structure.name,
-            description: structure.description || '',
-            acts: acts,
-            created_at: structure.created_at,
-            updated_at: structure.updated_at,
-            structure_type: structure.structure_type as StructureType
-          };
-        });
-        
-        setStructures(formattedStructures);
-      } catch (error) {
-        console.error('Error in fetchStructures:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
     if (session) {
-      fetchStructures();
+      fetchUserStructures();
     }
   }, [session]);
 
-  const handleCreateStructure = async (structureType: StructureType = 'three_act') => {
+  const fetchUserStructures = async () => {
     if (!session) return;
-
-    setIsLoading(true);
+    
     try {
-      // Create default acts for a new structure
-      const defaultActs: Act[] = [
-        {
-          id: 'act-1',
-          title: 'Act 1',
-          colorHex: '#4299e1',
-          startPosition: 0,
-          endPosition: 33,
-          beats: [
-            { id: 'beat-1', title: 'Opening Image', description: '', timePosition: 0, completed: false },
-            { id: 'beat-2', title: 'Theme Stated', description: '', timePosition: 10, completed: false },
-            { id: 'beat-3', title: 'Set-up', description: '', timePosition: 20, completed: false },
-          ],
-        },
-        {
-          id: 'act-2',
-          title: 'Act 2',
-          colorHex: '#48bb78',
-          startPosition: 33,
-          endPosition: 66,
-          beats: [
-            { id: 'beat-4', title: 'Catalyst', description: '', timePosition: 33, completed: false },
-            { id: 'beat-5', title: 'Debate', description: '', timePosition: 45, completed: false },
-            { id: 'beat-6', title: 'Break into Two', description: '', timePosition: 55, completed: false },
-          ],
-        },
-        {
-          id: 'act-3',
-          title: 'Act 3',
-          colorHex: '#ed8936',
-          startPosition: 66,
-          endPosition: 100,
-          beats: [
-            { id: 'beat-7', title: 'B Story', description: '', timePosition: 66, completed: false },
-            { id: 'beat-8', title: 'Fun and Games', description: '', timePosition: 80, completed: false },
-            { id: 'beat-9', title: 'Midpoint', description: '', timePosition: 90, completed: false },
-          ],
-        },
-      ];
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('structures')
+        .select('*')
+        .eq('user_id', session.user.id);
+      
+      if (error) {
+        console.error('Error fetching structures:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load your story structures.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Transform the data to match the Structure type
+      const formattedStructures: Structure[] = data.map(structure => {
+        // Parse beats from JSON to convert to acts array
+        const beatsData = structure.beats as Json;
+        let acts: Act[] = [];
+        
+        // Try to convert the beats data to acts structure
+        if (Array.isArray(beatsData)) {
+          // Type assertion to convert from Json[] to Act[]
+          acts = beatsData as unknown as Act[];
+        }
+        
+        return {
+          id: structure.id,
+          name: structure.name,
+          description: structure.description || '',
+          acts: acts,
+          created_at: structure.created_at,
+          updated_at: structure.updated_at,
+          structure_type: structure.structure_type as StructureType
+        };
+      });
+      
+      setStructures(formattedStructures);
+    } catch (error) {
+      console.error('Error fetching structures:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your story structures.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  const handleCreateStructure = async (structureType: StructureType): Promise<Structure | null> => {
+    if (!session) return null;
+    
+    try {
+      setIsCreating(true);
+      
+      // Get template for the specified structure type
+      const template = getStructureTemplate(structureType);
+      
+      // Create default acts based on the template
+      const defaultActs = template.acts;
+      
+      // Create the new structure in the database
       const { data, error } = await supabase
         .from('structures')
         .insert([{
-          name: 'Untitled Structure',
+          name: template.name,
           description: 'A new story structure',
           user_id: session.user.id,
           structure_type: structureType,
           beats: defaultActs as unknown as Json
         }])
         .select('*');
-
+      
       if (error) {
         console.error('Error creating structure:', error);
-        return;
+        toast({
+          title: "Error",
+          description: "Failed to create a new structure.",
+          variant: "destructive",
+        });
+        return null;
       }
-
+      
       if (data && data.length > 0) {
         const newStructureData = data[0];
         
@@ -156,21 +143,35 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
           structure_type: newStructureData.structure_type as StructureType
         };
         
-        setStructures(prevStructures => [...prevStructures, newStructure]);
+        // Update the local state
+        setStructures([...structures, newStructure]);
+        
+        toast({
+          title: "Success",
+          description: "New structure created successfully."
+        });
+        
+        return newStructure;
       }
+      
+      return null;
     } catch (error) {
       console.error('Error creating structure:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create a new structure.",
+        variant: "destructive",
+      });
+      return null;
     } finally {
-      setIsLoading(false);
+      setIsCreating(false);
     }
   };
 
-  const handleEditStructure = async (structure: Structure) => {
-    if (!session) return;
-
-    setIsLoading(true);
+  const handleUpdateStructure = async (structure: Structure): Promise<boolean> => {
+    if (!session) return false;
+    
     try {
-      // Convert acts to beats format for database
       const { error } = await supabase
         .from('structures')
         .update({
@@ -181,52 +182,91 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
           structure_type: structure.structure_type
         })
         .eq('id', structure.id);
-
+      
       if (error) {
         console.error('Error updating structure:', error);
-        return;
+        toast({
+          title: "Error",
+          description: "Failed to update structure.",
+          variant: "destructive",
+        });
+        return false;
       }
-
-      setStructures(prevStructures =>
-        prevStructures.map(s => (s.id === structure.id ? structure : s))
+      
+      // Update the local state
+      setStructures(
+        structures.map(s => (s.id === structure.id ? structure : s))
       );
+      
+      toast({
+        title: "Success",
+        description: "Structure updated successfully."
+      });
+      
+      return true;
     } catch (error) {
       console.error('Error updating structure:', error);
-    } finally {
-      setIsLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to update structure.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
-  const handleDeleteStructure = async (id: string) => {
-    if (!session) return;
-
-    setIsLoading(true);
+  const handleDeleteStructure = async (id: string): Promise<boolean> => {
+    if (!session) return false;
+    
     try {
       const { error } = await supabase
         .from('structures')
         .delete()
         .eq('id', id);
-
+      
       if (error) {
         console.error('Error deleting structure:', error);
-        return;
+        toast({
+          title: "Error",
+          description: "Failed to delete structure.",
+          variant: "destructive",
+        });
+        return false;
       }
-
-      setStructures(prevStructures => prevStructures.filter(s => s.id !== id));
+      
+      // Update the local state
+      setStructures(structures.filter(s => s.id !== id));
+      
+      toast({
+        title: "Success",
+        description: "Structure deleted successfully."
+      });
+      
+      return true;
     } catch (error) {
       console.error('Error deleting structure:', error);
-    } finally {
-      setIsLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to delete structure.",
+        variant: "destructive",
+      });
+      return false;
     }
+  };
+
+  const refetch = async () => {
+    await fetchUserStructures();
   };
 
   return {
     structures,
-    searchQuery,
-    setSearchQuery,
     isLoading,
+    isCreating,
+    refetch,
     handleCreateStructure,
-    handleEditStructure,
-    handleDeleteStructure,
+    handleUpdateStructure,
+    handleDeleteStructure
   };
 };
+
+export default useDashboardStructures;

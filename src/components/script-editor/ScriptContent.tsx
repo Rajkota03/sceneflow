@@ -5,6 +5,7 @@ import { useFormat } from '@/lib/formatContext';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
 import ScriptPage from './ScriptPage';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface ScriptContentProps {
   filteredElements: ScriptElement[];
@@ -47,28 +48,30 @@ const ScriptContent: React.FC<ScriptContentProps> = ({
   const beatModeClass = beatMode === 'off' ? 'beat-mode-off' : 'beat-mode-on';
 
   return (
-    <div className={`flex justify-center w-full h-full overflow-auto ${beatModeClass}`}>
-      <div className="w-full max-w-4xl mx-auto pt-8 pb-20">
-        <ScriptPage
-          elements={filteredElements}
-          activeElementId={activeElementId}
-          getPreviousElementType={getPreviousElementType}
-          handleElementChange={handleElementChange}
-          handleFocus={handleFocus}
-          handleNavigate={handleNavigate}
-          handleEnterKey={handleEnterKey}
-          handleFormatChange={handleFormatChange}
-          handleTagsChange={handleTagsChange}
-          characterNames={characterNames}
-          projectId={projectId}
-          beatMode={beatMode}
-          selectedStructure={selectedStructure}
-          onBeatTag={onBeatTag}
-          formatState={formatState}
-          currentPage={currentPage}
-        />
+    <ScrollArea className={`w-full h-full ${beatModeClass}`}>
+      <div className="editor-container flex justify-center w-full">
+        <div className="w-full max-w-4xl mx-auto pt-8 pb-20">
+          <ScriptPage
+            elements={filteredElements}
+            activeElementId={activeElementId}
+            getPreviousElementType={getPreviousElementType}
+            handleElementChange={handleElementChange}
+            handleFocus={handleFocus}
+            handleNavigate={handleNavigate}
+            handleEnterKey={handleEnterKey}
+            handleFormatChange={handleFormatChange}
+            handleTagsChange={handleTagsChange}
+            characterNames={characterNames}
+            projectId={projectId}
+            beatMode={beatMode}
+            selectedStructure={selectedStructure}
+            onBeatTag={onBeatTag}
+            formatState={formatState}
+            currentPage={currentPage}
+          />
+        </div>
       </div>
-    </div>
+    </ScrollArea>
   );
 };
 

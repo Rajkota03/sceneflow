@@ -34,8 +34,7 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
         
         const { data: structuresData, error } = await supabase
           .from('structures')
-          .select('*')
-          .eq('project_id', projectId);
+          .select('*');
         
         if (error) {
           console.error('Error fetching structures:', error);
@@ -114,7 +113,7 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
 
   const saveBeatCompletion = async (structureId: string, updatedStructure: Structure): Promise<boolean> => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('structures')
         .update({ 
           beats: updatedStructure.acts as unknown as Json

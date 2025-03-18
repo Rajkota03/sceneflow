@@ -18,11 +18,16 @@
 .script-content-wrapper {
   position: relative;
   overflow: auto;
-  height: calc(100% - 40px); /* Adjust for the zoom control height */
+  height: calc(100vh - 180px); /* Adjusted to provide more space */
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .script-page {
   margin-bottom: 60px; /* Provide space at the bottom for zoom controls */
+  max-width: 8.5in; /* Ensure the page doesn't expand beyond standard size */
+  width: 100%;
 }
 
 /* Beat mode styles */
@@ -32,4 +37,27 @@
 
 .beat-mode-on .scene-tags-container {
   display: flex !important;
+}
+
+/* Fix for editor container to ensure proper centering and scrolling */
+.editor-container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding-bottom: 80px; /* Added padding to ensure content is not cut off */
+}
+
+/* Ensure zoom controls are visible and properly positioned */
+.zoom-control {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f1f1f1;
+  border-top: 1px solid #ddd;
+  padding: 8px 16px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

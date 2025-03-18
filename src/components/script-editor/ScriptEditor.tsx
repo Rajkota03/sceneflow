@@ -130,24 +130,18 @@ const ScriptEditor = ({
     }
     
     let nextType: ElementType;
-    switch (currentElement.type) {
-      case 'scene-heading':
-        nextType = 'action';
-        break;
-      case 'character':
-        nextType = 'dialogue';
-        break;
-      case 'dialogue':
-        nextType = 'action';
-        break;
-      case 'parenthetical':
-        nextType = 'dialogue';
-        break;
-      case 'transition':
-        nextType = 'scene-heading';
-        break;
-      default:
-        nextType = 'action';
+    if (currentElement.type === 'scene-heading') {
+      nextType = 'action';
+    } else if (currentElement.type === 'character') {
+      nextType = 'dialogue';
+    } else if (currentElement.type === 'dialogue') {
+      nextType = 'action';
+    } else if (currentElement.type === 'parenthetical') {
+      nextType = 'dialogue';
+    } else if (currentElement.type === 'transition') {
+      nextType = 'scene-heading';
+    } else {
+      nextType = 'action';
     }
     
     const newElement: ScriptElement = {
@@ -345,7 +339,7 @@ const ScriptEditor = ({
         </div>
       )}
       
-      <div ref={scriptContentRef} className="script-content-wrapper relative">
+      <div ref={scriptContentRef} className="script-content-wrapper">
         <ScriptContentComponent
           filteredElements={filteredElements}
           activeElementId={activeElementId}
