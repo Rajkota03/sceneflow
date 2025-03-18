@@ -350,7 +350,7 @@ const ScriptEditor = ({
                 <td>Parenthetical</td>
               </tr>
               <tr>
-                <td><span className="keyboard-shortcut-key">⇧⌘R</span></td>
+                <td><span className="keyboard-shortcut-key">⌘6</span></td>
                 <td>Transition</td>
               </tr>
               <tr>

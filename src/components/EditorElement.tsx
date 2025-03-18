@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -45,7 +44,6 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
-// Define element-specific CSS based on Final Draft standards
 const getElementStyles = (type: ElementType): React.CSSProperties => {
   switch (type) {
     case 'scene-heading':
@@ -60,7 +58,7 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
       };
     case 'character':
       return {
-        width: '30%', // Centered with specific width
+        width: '30%',
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: 'auto',
@@ -68,7 +66,7 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
       };
     case 'dialogue':
       return {
-        width: '65%', // Standard dialogue width
+        width: '65%',
         marginLeft: 'auto',
         marginRight: 'auto'
       };
@@ -124,7 +122,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setText(element.text);
     if (editorRef.current && isActive) {
       editorRef.current.innerText = element.text;
-      // Set cursor at the end of the text
       const range = document.createRange();
       const sel = window.getSelection();
       if (editorRef.current.childNodes.length > 0) {
@@ -162,7 +159,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Keyboard shortcuts for screenplay formatting
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -185,13 +181,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           e.preventDefault();
           onFormatChange(element.id, 'parenthetical');
           return;
-        case 'r':
-          if (e.shiftKey) {
-            e.preventDefault();
-            onFormatChange(element.id, 'transition');
-            setText('CUT TO:');
-            onChange(element.id, 'CUT TO:', 'transition');
-          }
+        case '6':
+          e.preventDefault();
+          onFormatChange(element.id, 'transition');
+          setText('CUT TO:');
+          onChange(element.id, 'CUT TO:', 'transition');
           return;
         default:
           break;
@@ -219,19 +213,16 @@ const EditorElement: React.FC<EditorElementProps> = ({
       e.preventDefault();
       handleSelectCharacter(filteredSuggestions[focusIndex]);
     } else if (e.key === 'Tab') {
-      // Convert dialogue to parenthetical or cycle through element types
       e.preventDefault();
       
       if (element.type === 'dialogue') {
         onFormatChange(element.id, 'parenthetical');
-        // Add parentheses if not already present
         if (!text.startsWith('(') && !text.endsWith(')')) {
           const newText = `(${text})`;
           setText(newText);
           onChange(element.id, newText, 'parenthetical');
         }
       } else {
-        // Cycle through element types for other elements
         const elementTypes: ElementType[] = [
           'scene-heading',
           'action',
@@ -268,7 +259,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setShowElementMenu(false);
   };
 
-  // Get appropriate styles for this element type
   const elementStyles = getElementStyles(element.type);
 
   return (
@@ -353,7 +343,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
                     {type === 'character' && '⌘3'}
                     {type === 'dialogue' && '⌘4'}
                     {type === 'parenthetical' && '⌘5'}
-                    {type === 'transition' && '⇧⌘R'}
+                    {type === 'transition' && '⌘6'}
                   </span>
                 </div>
               ))}
