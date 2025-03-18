@@ -27,7 +27,7 @@ const ElementTypeMenu: React.FC<ElementTypeMenuProps> = ({
             {type === 'character' && '⌘3'}
             {type === 'dialogue' && '⌘4'}
             {type === 'parenthetical' && '⌘5'}
-            {type === 'transition' && '⇧⌘R'}
+            {type === 'transition' && '⌘6'}
           </span>
         </div>
       ))}

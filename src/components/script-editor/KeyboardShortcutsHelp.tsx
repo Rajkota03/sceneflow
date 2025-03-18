@@ -28,7 +28,7 @@ const KeyboardShortcutsHelp: React.FC = () => {
             <td>Parenthetical</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⇧⌘R</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘6</span></td>
             <td>Transition</td>
           </tr>
           <tr>

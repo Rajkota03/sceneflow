@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
@@ -37,7 +36,6 @@ export function useElementInteraction({
     setText(initialText);
     if (editorRef.current && isActive) {
       editorRef.current.innerText = initialText;
-      // Set cursor at the end of the text
       const range = document.createRange();
       const sel = window.getSelection();
       if (editorRef.current.childNodes.length > 0) {
@@ -103,14 +101,12 @@ export function useElementInteraction({
           e.preventDefault();
           onFormatChange(elementId, 'parenthetical');
           return;
-        case 'r':
-          if (e.shiftKey) {
-            e.preventDefault();
-            onFormatChange(elementId, 'transition');
-            const newText = 'CUT TO:';
-            setText(newText);
-            onChange(elementId, newText, 'transition');
-          }
+        case '6':
+          e.preventDefault();
+          onFormatChange(elementId, 'transition');
+          const newText = text.trim() === '' ? 'CUT TO:' : text;
+          setText(newText);
+          onChange(elementId, newText, 'transition');
           return;
         default:
           break;
