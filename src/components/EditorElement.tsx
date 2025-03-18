@@ -44,7 +44,6 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
-// Define element-specific CSS based on Final Draft standards
 const getElementStyles = (type: ElementType): React.CSSProperties => {
   switch (type) {
     case 'scene-heading':
@@ -59,7 +58,7 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
       };
     case 'character':
       return {
-        width: '30%', // Centered with specific width
+        width: '30%',
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: 'auto',
@@ -67,7 +66,7 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
       };
     case 'dialogue':
       return {
-        width: '65%', // Standard dialogue width
+        width: '65%',
         marginLeft: 'auto',
         marginRight: 'auto'
       };
@@ -161,7 +160,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Keyboard shortcuts for screenplay formatting
+    if (e.key === 'Backspace' && text.trim() === '') {
+      e.preventDefault();
+      onNavigate('up', element.id);
+      return;
+    }
+    
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -218,19 +222,16 @@ const EditorElement: React.FC<EditorElementProps> = ({
       e.preventDefault();
       handleSelectCharacter(filteredSuggestions[focusIndex]);
     } else if (e.key === 'Tab') {
-      // Convert dialogue to parenthetical or cycle through element types
       e.preventDefault();
       
       if (element.type === 'dialogue') {
         onFormatChange(element.id, 'parenthetical');
-        // Add parentheses if not already present
         if (!text.startsWith('(') && !text.endsWith(')')) {
           const newText = `(${text})`;
           setText(newText);
           onChange(element.id, newText, 'parenthetical');
         }
       } else {
-        // Cycle through element types for other elements
         const elementTypes: ElementType[] = [
           'scene-heading',
           'action',
@@ -267,7 +268,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setShowElementMenu(false);
   };
 
-  // Get appropriate styles for this element type
   const elementStyles = getElementStyles(element.type);
 
   return (
