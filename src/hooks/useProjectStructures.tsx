@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Structure, Act, Beat } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
