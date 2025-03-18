@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { Structure, Act, Beat } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,13 +16,11 @@ const useProjectStructures = (projectId?: string) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
 
-  // Define fetchStructures function that was missing
   const fetchStructures = useCallback(async () => {
     if (!projectId) return;
     
     setIsLoading(true);
     try {
-      // Fetch all structures and get the linked structure for this project
       const { data: allStructures, error: structuresError } = await supabase
         .from('structures')
         .select('*');
@@ -44,7 +41,6 @@ const useProjectStructures = (projectId?: string) => {
         const parsedStructures: Structure[] = allStructures.map((s: any) => {
           let parsedStructure: Structure;
           try {
-            // Parse JSON fields if they're stored as strings
             const acts = Array.isArray(s.acts) ? s.acts : (typeof s.acts === 'string' ? JSON.parse(s.acts) : []);
             
             parsedStructure = {
@@ -52,10 +48,12 @@ const useProjectStructures = (projectId?: string) => {
               name: s.name,
               description: s.description,
               structure_type: s.structure_type,
-              author_id: s.author_id,
               created_at: s.created_at,
               updated_at: s.updated_at,
-              acts: acts
+              acts: acts,
+              createdAt: new Date(s.created_at).toISOString(),
+              updatedAt: new Date(s.updated_at).toISOString(),
+              author_id: s.author_id
             };
             
             return parsedStructure;
@@ -66,17 +64,16 @@ const useProjectStructures = (projectId?: string) => {
               name: s.name,
               description: s.description || '',
               structure_type: s.structure_type || 'three_act',
-              author_id: s.author_id,
-              created_at: s.created_at,
-              updated_at: s.updated_at,
-              acts: []
+              acts: [],
+              createdAt: new Date(s.created_at).toISOString(),
+              updatedAt: new Date(s.updated_at).toISOString(),
+              author_id: s.author_id
             };
           }
         });
         
         setStructures(parsedStructures);
         
-        // Set the linked structure as selected if it exists
         if (projectStructure && !linkError) {
           const linkedStructureId = projectStructure.structure_id;
           setSelectedStructureId(linkedStructureId);
@@ -86,7 +83,6 @@ const useProjectStructures = (projectId?: string) => {
             setSelectedStructure(linkedStructure);
           }
         } else if (parsedStructures.length > 0) {
-          // Default to first structure if no link exists
           setSelectedStructureId(parsedStructures[0].id);
           setSelectedStructure(parsedStructures[0]);
         }
@@ -106,7 +102,6 @@ const useProjectStructures = (projectId?: string) => {
   const handleStructureChange = useCallback(async (structureId: string) => {
     console.log("Changing structure to:", structureId);
     
-    // Find the structure in the list
     const newSelectedStructure = structures.find(s => s.id === structureId);
     if (!newSelectedStructure) {
       console.error('Structure not found:', structureId);
@@ -116,16 +111,13 @@ const useProjectStructures = (projectId?: string) => {
     setSelectedStructureId(structureId);
     setSelectedStructure(newSelectedStructure);
     
-    // Update the project-structure link if we have a project ID
     if (projectId) {
       try {
-        // First delete any existing links
         await supabase
           .from('project_structures')
           .delete()
           .eq('project_id', projectId);
         
-        // Then create a new link
         const { error } = await supabase
           .from('project_structures')
           .insert({
@@ -149,7 +141,6 @@ const useProjectStructures = (projectId?: string) => {
     }
   }, [projectId, structures]);
 
-  // Function to update a beat's completion status
   const updateBeatCompletion = useCallback((beatId: string, actId: string, complete: boolean) => {
     if (!selectedStructure) {
       console.error('No structure selected');
@@ -158,7 +149,6 @@ const useProjectStructures = (projectId?: string) => {
     
     const updatedStructure = { ...selectedStructure };
     
-    // Make sure acts is always an array
     if (!Array.isArray(updatedStructure.acts)) {
       console.error('Structure acts is not an array:', updatedStructure.acts);
       updatedStructure.acts = [];
@@ -173,7 +163,6 @@ const useProjectStructures = (projectId?: string) => {
     
     const act = updatedStructure.acts[actIndex];
     
-    // Make sure beats is always an array
     if (!Array.isArray(act.beats)) {
       console.error('Act beats is not an array:', act.beats);
       act.beats = [];
@@ -190,12 +179,10 @@ const useProjectStructures = (projectId?: string) => {
     return updatedStructure;
   }, [selectedStructure]);
 
-  // Function to save the updated structure to the database
   const saveBeatCompletion = useCallback(async (structureId: string, updatedStructure: Structure) => {
     if (!structureId) return false;
     
     try {
-      // Extract just the acts from the structure for the update
       const acts = updatedStructure.acts;
       
       const { error } = await supabase

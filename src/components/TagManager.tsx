@@ -7,6 +7,12 @@ import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
 import useStructures from './tag-manager/useStructures';
 
+// Define ActCount interface for consistency with ActBar
+interface ActCount {
+  act: ActType | null;
+  count: number;
+}
+
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
   onFilterByTag,
@@ -25,6 +31,12 @@ const TagManager: React.FC<TagManagerProps> = ({
   
   // Find the selected structure from the list
   const selectedStructure = structures.find(s => s.id === selectedStructureId) || null;
+  
+  // Convert actCounts record to array format for ActBar
+  const actCountsArray: ActCount[] = Object.entries(actCounts).map(([act, count]) => ({
+    act: act as ActType,
+    count
+  }));
   
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
@@ -51,7 +63,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           <ActBar 
             activeAct={activeActFilter || null} 
             onSelectAct={handleActFilter} 
-            actCounts={actCounts}
+            actCounts={actCountsArray}
             projectName={projectName}
             structureName={selectedStructure?.name || structureName}
             beatMode={beatMode}

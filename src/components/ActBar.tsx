@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ActType, Structure } from '@/lib/types';
 import { Button } from './ui/button';
@@ -37,7 +36,6 @@ interface ActBarProps {
   selectedStructure?: Structure | null;
 }
 
-// Function to generate vibrant colors based on index
 const generateColorForIndex = (index: number, total: number): string => {
   const colors = [
     'bg-blue-500 hover:bg-blue-600',
@@ -54,7 +52,6 @@ const generateColorForIndex = (index: number, total: number): string => {
     return colors[index];
   }
   
-  // Fallback for more than 8 acts
   return colors[index % colors.length];
 };
 
@@ -78,7 +75,6 @@ const ActBar: React.FC<ActBarProps> = ({
     color: string;
   }>>([]);
   
-  // Initialize with standard 3-act structure if no selectedStructure
   useEffect(() => {
     if (selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
       console.log("Selected structure in ActBar:", selectedStructure.name);
@@ -93,7 +89,6 @@ const ActBar: React.FC<ActBarProps> = ({
       setActButtons(buttons);
     } else {
       console.log("No valid structure acts found, using default");
-      // Default 3-act structure buttons as fallback
       setActButtons([
         { id: 'act1', label: 'ACT 1', color: 'bg-blue-500 hover:bg-blue-600' },
         { id: 'act2a', label: 'ACT 2A', color: 'bg-purple-500 hover:bg-purple-600' },
@@ -197,14 +192,11 @@ const ActBar: React.FC<ActBarProps> = ({
         </TooltipProvider>
 
         {visibleActs.map((actBtn) => {
-          // Get count for this act
           const actCount = actCounts.find(
             count => count.act === actBtn.id
           );
           const count = actCount ? actCount.count : 0;
           
-          // Convert actBtn.id to ActType before passing to onSelectAct
-          // This is the fix for the type error
           const handleActClick = () => {
             onSelectAct(actBtn.id as ActType);
           };
@@ -254,3 +246,4 @@ const ActBar: React.FC<ActBarProps> = ({
 };
 
 export default ActBar;
+
