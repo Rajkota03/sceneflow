@@ -39,8 +39,7 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
       
       const { data, error } = await supabase
         .from('structures')
-        .select('*')
-        .eq('user_id', session.user.id);
+        .select('*');
       
       if (error) {
         console.error('Error fetching structures:', error);
@@ -55,6 +54,7 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
       // Transform the data to match the Structure type
       const formattedStructures: Structure[] = data.map(structure => {
         // Parse beats from JSON to convert to acts array
+        // Use a type assertion to handle the Json to Act[] conversion
         const beatsData = structure.beats as unknown as Act[];
         let acts: Act[] = [];
         
@@ -113,15 +113,15 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
       }
       
       // Create the new structure in the database
+      // Important: Fix the structure of the insert data to match the database schema
       const { data, error } = await supabase
         .from('structures')
-        .insert([{
+        .insert({
           name: template.name,
           description: template.description,
-          user_id: session.user.id,
           structure_type: structureType,
           beats: template.acts as unknown as Json
-        }])
+        })
         .select('*');
       
       if (error) {

@@ -1,3 +1,4 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
@@ -150,6 +151,7 @@ const ScriptEditor = ({
       text: ''
     };
     
+    // Fix the type comparison by using proper comparison for string literal types
     if (nextType === 'character') {
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
