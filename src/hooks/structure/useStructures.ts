@@ -96,7 +96,7 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     handleStructureChange,
     updateBeatCompletion: updateBeatCompletionHandler,
     saveBeatCompletion: saveBeatCompletionHandler,
-    fetchStructures // Make sure fetchStructures is included in the return value
+    fetchStructures // Make sure fetchStructures is explicitly included in the return value
   };
 };
 
