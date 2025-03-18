@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { X, Tag } from 'lucide-react';
+import { X } from 'lucide-react';
 import SceneTag from '../SceneTag';
 
 interface TagFilterProps {
