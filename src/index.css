@@ -65,13 +65,15 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow: hidden;
   }
 }
 
 /* Screenplay formatting styles - Based on Final Draft industry standards */
 .script-page {
   width: 8.5in;
-  height: 11in;
+  height: auto;
+  min-height: 11in;
   padding: 0;
   margin: 0 auto;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
@@ -157,6 +159,19 @@
   margin-bottom: 0.25em;
 }
 
+/* Script content wrapper */
+.script-content-wrapper {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Active element highlighting - Modified to be more subtle */
+.element-text.active-element {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
 /* Remove all scrollbars from editor elements */
 .element-container textarea,
 textarea.resize-none {
@@ -217,11 +232,6 @@ textarea.auto-resize {
 ::selection {
   background-color: rgba(0, 120, 212, 0.2);
   color: inherit;
-}
-
-/* Active element highlighting - Modified to be more subtle */
-.element-text.active-element {
-  background-color: rgba(0, 0, 0, 0.01);
 }
 
 /* Final Draft specific page numbering - Standard screenplay format */
@@ -333,4 +343,12 @@ textarea.auto-resize {
 
 .element-container:hover .element-format-indicator {
   opacity: 1;
+}
+
+/* Ensure proper scrolling */
+.script-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }

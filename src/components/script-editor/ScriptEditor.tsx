@@ -378,7 +378,7 @@ const ScriptEditor = ({
         </div>
       )}
       
-      <div ref={scriptContentRef} className="script-content-wrapper relative">
+      <div ref={scriptContentRef} className="script-content-wrapper relative flex-grow h-full overflow-hidden">
         <ScriptContentComponent
           filteredElements={filteredElements}
           activeElementId={activeElementId}
