@@ -76,7 +76,7 @@ export interface ScriptContent {
   author?: string;
 }
 
-export type StructureType = 'three_act' | 'save_the_cat' | 'hero_journey' | 'story_circle';
+export type StructureType = 'three_act' | 'save_the_cat' | 'heroes_journey' | 'story_circle';
 
 export interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -126,9 +126,9 @@ export interface Structure {
   name: string;
   description?: string;
   acts: Act[];
-  createdAt: string; // Changed from Date to string
-  updatedAt: string; // Changed from Date to string
-  structure_type?: string;
+  created_at: string; 
+  updated_at: string;
+  structure_type?: StructureType;
   projectTitle?: string;
 }
 
@@ -147,7 +147,7 @@ export interface Beat {
   description: string;
   timePosition: number; // percentage (0-100)
   pageRange?: string;
-  complete?: boolean;
+  completed?: boolean;
   notes?: string;
 }
 

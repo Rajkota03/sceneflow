@@ -1,6 +1,5 @@
-
 import { useEffect, useState, useRef } from 'react';
-import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
+import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
 import { shouldAddContd } from '@/lib/characterUtils';
@@ -18,8 +17,8 @@ import html2canvas from 'html2canvas';
 type BeatMode = 'on' | 'off';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContentType;
-  onChange: (content: ScriptContentType) => void;
+  initialContent: ScriptContent;
+  onChange: (content: ScriptContent) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
@@ -35,7 +34,7 @@ const ScriptEditor = ({
   onChange, 
   notes, 
   onNoteCreate, 
-  className,
+  className = '',
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
   projectId,
@@ -50,19 +49,19 @@ const ScriptEditor = ({
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const scriptContentRef = useRef<HTMLDivElement>(null);
 
-  // Fetch structures for this project
+  // Fetch structures for this project with error handling
   const { 
-    structures, 
-    selectedStructureId, 
-    selectedStructure,
+    structures = [], 
+    selectedStructureId = null, 
+    selectedStructure = null,
     handleStructureChange: changeSelectedStructure,
     updateBeatCompletion,
     saveBeatCompletion
-  } = useProjectStructures(projectId);
+  } = useProjectStructures(projectId || '');
 
   // Sync the external selectedStructureId with our local state if provided
   useEffect(() => {
-    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
+    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId && changeSelectedStructure) {
       changeSelectedStructure(externalSelectedStructureId);
     }
   }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
@@ -103,35 +102,11 @@ const ScriptEditor = ({
     }
   }, [elements, setElements, setActiveElementId]);
 
-  // PDF import handler
-  useEffect(() => {
-    const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
-      if (event.detail && Array.isArray(event.detail.elements)) {
-        const importedElements = event.detail.elements;
-        if (importedElements.length > 0) {
-          setElements(importedElements);
-          setActiveElementId(importedElements[0].id);
-          
-          toast({
-            title: "PDF Imported",
-            description: `Successfully imported ${importedElements.length} elements from PDF`,
-          });
-        }
-      }
-    };
-    
-    window.addEventListener('pdf-imported' as any, handlePdfImported as any);
-    
-    return () => {
-      window.removeEventListener('pdf-imported' as any, handlePdfImported as any);
-    };
-  }, [setElements, setActiveElementId]);
-
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
   const handleZoomChange = (value: number[]) => {
     const newZoomLevel = value[0] / 100;
-    const { formatState: currentState, setZoomLevel } = useFormat();
+    const { setZoomLevel } = useFormat();
     if (setZoomLevel) {
       setZoomLevel(newZoomLevel);
     }
@@ -185,7 +160,7 @@ const ScriptEditor = ({
       text: ''
     };
     
-    if (nextType === 'character' as ElementType) {
+    if (nextType === 'character') {
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
         if (elements[i].type === 'character') {
@@ -254,7 +229,10 @@ const ScriptEditor = ({
   };
 
   const handleStructureChange = (structureId: string) => {
-    changeSelectedStructure(structureId);
+    if (changeSelectedStructure) {
+      changeSelectedStructure(structureId);
+    }
+    
     if (onStructureChange) {
       onStructureChange(structureId);
     }
@@ -271,21 +249,23 @@ const ScriptEditor = ({
     setElements(newElements);
     
     // Update the beat's completion status in the structure
-    const updatedStructure = updateBeatCompletion(beatId, actId, true);
-    if (updatedStructure) {
-      // Save the updated structure to the database
-      const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
-      if (success) {
-        toast({
-          title: "Beat tagged",
-          description: "The scene has been tagged and structure progress updated.",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to update the structure progress.",
-          variant: "destructive",
-        });
+    if (updateBeatCompletion && saveBeatCompletion) {
+      const updatedStructure = updateBeatCompletion(beatId, actId, true);
+      if (updatedStructure) {
+        // Save the updated structure to the database
+        const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
+        if (success) {
+          toast({
+            title: "Beat tagged",
+            description: "The scene has been tagged and structure progress updated.",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to update the structure progress.",
+            variant: "destructive",
+          });
+        }
       }
     }
   };
@@ -307,7 +287,7 @@ const ScriptEditor = ({
   }, []);
 
   return (
-    <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
+    <div className={`flex flex-col w-full h-full relative ${className}`}>
       <TagManager 
         scriptContent={{ elements }} 
         onFilterByTag={handleFilterByTag}

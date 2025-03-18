@@ -2,11 +2,15 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ActType, ActCountsRecord, StructureType } from '@/lib/types';
+import { ActType, StructureType } from '@/lib/types';
 import { Badge } from './ui/badge';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
 import { Eye, EyeOff } from 'lucide-react';
 import { BeatMode } from '@/types/scriptTypes';
+
+interface ActCountsRecord {
+  [key in ActType]: number;
+}
 
 // Map structure types to their respective act types
 const structureActMapping: Record<StructureType, ActType[]> = {
@@ -14,7 +18,7 @@ const structureActMapping: Record<StructureType, ActType[]> = {
   save_the_cat: [ActType.OPENING_IMAGE, ActType.SETUP, ActType.CATALYST, ActType.DEBATE, ActType.BREAK_INTO_2, 
                 ActType.B_STORY, ActType.FUN_AND_GAMES, ActType.MIDPOINT, ActType.BAD_GUYS_CLOSE_IN, 
                 ActType.ALL_IS_LOST, ActType.DARK_NIGHT_OF_SOUL, ActType.BREAK_INTO_3, ActType.FINALE],
-  hero_journey: [ActType.ORDINARY_WORLD, ActType.CALL_TO_ADVENTURE, ActType.REFUSAL, ActType.MENTOR, 
+  heroes_journey: [ActType.ORDINARY_WORLD, ActType.CALL_TO_ADVENTURE, ActType.REFUSAL, ActType.MENTOR, 
                 ActType.CROSSING_THRESHOLD, ActType.TESTS_ALLIES_ENEMIES, ActType.APPROACH, 
                 ActType.ORDEAL, ActType.REWARD, ActType.ROAD_BACK, ActType.RESURRECTION, ActType.RETURN],
   story_circle: [ActType.YOU, ActType.NEED, ActType.GO, ActType.SEARCH, 
@@ -56,89 +60,6 @@ const ActBar: React.FC<ActBarProps> = ({
   const relevantActTypes = structureActMapping[selectedStructureType] || structureActMapping.three_act;
 
   const getBadgeStyle = (actType: ActType) => {
-    // Colors for Three Act Structure
-    if (structureActMapping.three_act.includes(actType)) {
-      switch (actType) {
-        case ActType.ACT_1:
-          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-        case ActType.ACT_2A:
-          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-        case ActType.MIDPOINT:
-          return "bg-[#FFCCCB] hover:bg-[#FFBCBB] text-[#D24E4D]";
-        case ActType.ACT_2B:
-          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-        case ActType.ACT_3:
-          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
-      }
-    }
-    
-    // Colors for Save The Cat
-    if (structureActMapping.save_the_cat.includes(actType)) {
-      switch (actType) {
-        case ActType.OPENING_IMAGE:
-        case ActType.SETUP:
-          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-        case ActType.CATALYST:
-        case ActType.DEBATE:
-        case ActType.BREAK_INTO_2:
-          return "bg-[#E6F7FF] hover:bg-[#CCE5FF] text-[#0066CC]";
-        case ActType.B_STORY:
-        case ActType.FUN_AND_GAMES:
-          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-        case ActType.MIDPOINT:
-          return "bg-[#FFCCCB] hover:bg-[#FFBCBB] text-[#D24E4D]";
-        case ActType.BAD_GUYS_CLOSE_IN:
-        case ActType.ALL_IS_LOST:
-        case ActType.DARK_NIGHT_OF_SOUL:
-          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-        case ActType.BREAK_INTO_3:
-        case ActType.FINALE:
-          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
-      }
-    }
-    
-    // Colors for Hero's Journey
-    if (structureActMapping.hero_journey.includes(actType)) {
-      switch (actType) {
-        case ActType.ORDINARY_WORLD:
-        case ActType.CALL_TO_ADVENTURE:
-        case ActType.REFUSAL:
-          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-        case ActType.MENTOR:
-        case ActType.CROSSING_THRESHOLD:
-          return "bg-[#E6F7FF] hover:bg-[#CCE5FF] text-[#0066CC]";
-        case ActType.TESTS_ALLIES_ENEMIES:
-        case ActType.APPROACH:
-          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-        case ActType.ORDEAL:
-        case ActType.REWARD:
-          return "bg-[#FFCCCB] hover:bg-[#FFBCBB] text-[#D24E4D]";
-        case ActType.ROAD_BACK:
-        case ActType.RESURRECTION:
-          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-        case ActType.RETURN:
-          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
-      }
-    }
-    
-    // Colors for Story Circle
-    if (structureActMapping.story_circle.includes(actType)) {
-      switch (actType) {
-        case ActType.YOU:
-        case ActType.NEED:
-          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-        case ActType.GO:
-        case ActType.SEARCH:
-          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-        case ActType.FIND:
-        case ActType.TAKE:
-          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-        case ActType.RETURN:
-        case ActType.CHANGE:
-          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
-      }
-    }
-    
     // Default style
     return "bg-gray-100 hover:bg-gray-200 text-gray-700";
   };

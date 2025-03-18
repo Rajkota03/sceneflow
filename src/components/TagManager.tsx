@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActType, Structure, StructureType } from '@/lib/types';
+import { ActType, StructureType } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
@@ -27,7 +27,18 @@ const TagManager: React.FC<TagManagerProps> = ({
     if (!selectedStructureId || !structures.length) return 'three_act';
     
     const selectedStructure = structures.find(s => s.id === selectedStructureId);
-    return selectedStructure?.structure_type as StructureType || 'three_act';
+    if (!selectedStructure || !selectedStructure.structure_type) return 'three_act';
+    
+    // Ensure we're using a valid StructureType
+    const structureType = selectedStructure.structure_type;
+    if (structureType === 'three_act' || 
+        structureType === 'save_the_cat' || 
+        structureType === 'heroes_journey' || 
+        structureType === 'story_circle') {
+      return structureType;
+    }
+    
+    return 'three_act';
   };
   
   const structureType = getStructureType();

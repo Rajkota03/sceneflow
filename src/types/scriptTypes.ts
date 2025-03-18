@@ -1,5 +1,5 @@
 
-import { ActType, ScriptContent, Structure as LibStructure } from "@/lib/types";
+import { ActType, ScriptContent, Structure } from "@/lib/types";
 
 export type BeatMode = 'on' | 'off';
 
@@ -39,34 +39,4 @@ export interface ScriptElementProps {
   beatMode?: BeatMode;
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
-}
-
-export interface Structure {
-  id: string;
-  name: string;
-  description?: string;
-  acts: Act[];
-  createdAt: string;
-  updatedAt: string;
-  structure_type?: string;
-  projectTitle?: string;
-}
-
-export interface Act {
-  id: string;
-  title: string;
-  colorHex: string;
-  startPosition: number; // percentage (0-100)
-  endPosition: number; // percentage (0-100)
-  beats: Beat[];
-}
-
-export interface Beat {
-  id: string;
-  title: string;
-  description: string;
-  timePosition: number; // percentage (0-100)
-  pageRange?: string;
-  complete?: boolean;
-  notes?: string;
 }
