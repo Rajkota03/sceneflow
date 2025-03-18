@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Structure } from '@/lib/types';
+import { Structure, Act, Beat } from '@/lib/types';
 import { useAuth } from '@/App';
 import { toast } from '@/components/ui/use-toast';
-import { StructureType } from './useDashboardStructures';
+import { StructureType } from '@/types/scriptTypes';
+import { Json } from '@/integrations/supabase/types';
 
 interface UseProjectStructuresResult {
   structures: Structure[];
@@ -41,15 +43,26 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
         }
         
         // Transform to match Structure type
-        const formattedStructures: Structure[] = structuresData.map(structure => ({
-          id: structure.id,
-          name: structure.name,
-          description: structure.description,
-          acts: structure.acts,
-          created_at: structure.created_at || structure.createdAt || new Date().toISOString(),
-          updated_at: structure.updated_at || structure.updatedAt || new Date().toISOString(),
-          structure_type: structure.structure_type as StructureType
-        }));
+        const formattedStructures: Structure[] = structuresData.map(structure => {
+          // Parse beats from JSON to convert to acts array
+          const beatsData = structure.beats as Json;
+          let acts: Act[] = [];
+          
+          // Try to convert the beats data to acts structure
+          if (Array.isArray(beatsData)) {
+            acts = beatsData as Act[];
+          }
+          
+          return {
+            id: structure.id,
+            name: structure.name,
+            description: structure.description || '',
+            acts: acts,
+            created_at: structure.created_at,
+            updated_at: structure.updated_at,
+            structure_type: structure.structure_type as StructureType
+          };
+        });
         
         setStructures(formattedStructures);
         
@@ -103,7 +116,9 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
     try {
       const { data, error } = await supabase
         .from('structures')
-        .update({ acts: updatedStructure.acts })
+        .update({ 
+          beats: updatedStructure.acts 
+        })
         .eq('id', structureId);
       
       if (error) {

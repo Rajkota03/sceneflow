@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
@@ -8,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/App';
 import { supabase } from '@/integrations/supabase/client';
-import { Structure } from '@/lib/types';
+import { Structure, Act } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { Json } from '@/integrations/supabase/types';
 
 // Import the StructureType from the scriptTypes to ensure consistency
 import { StructureType } from '@/types/scriptTypes';
@@ -37,7 +39,7 @@ const StructureEditor: React.FC<StructureEditorProps> = () => {
   useEffect(() => {
     if (structure) {
       setName(structure.name);
-      setDescription(structure.description);
+      setDescription(structure.description || '');
     }
   }, [structure]);
 
@@ -72,7 +74,13 @@ const StructureEditor: React.FC<StructureEditorProps> = () => {
       });
       
       // Optimistically update the local state
-      setStructure({ ...structure, name: name, description: description });
+      if (structure) {
+        setStructure({
+          ...structure,
+          name: name,
+          description: description
+        });
+      }
     } catch (error) {
       console.error('Error in handleSave:', error);
       toast({
@@ -108,14 +116,27 @@ const StructureEditor: React.FC<StructureEditorProps> = () => {
         return;
       }
       
-      // Ensure we convert structure_type to the correct StructureType
+      // Ensure we convert structure_type to the correct StructureType and parse beats to acts
       if (data) {
-        setStructure({
-          ...data,
-          structure_type: data.structure_type as StructureType,
-          created_at: data.created_at || data.createdAt || new Date().toISOString(),
-          updated_at: data.updated_at || data.updatedAt || new Date().toISOString()
-        });
+        // Convert the beats JSON to acts array
+        const beatsData = data.beats as Json;
+        let acts: Act[] = [];
+        
+        if (Array.isArray(beatsData)) {
+          acts = beatsData as Act[];
+        }
+        
+        const structureData: Structure = {
+          id: data.id,
+          name: data.name,
+          description: data.description || '',
+          acts: acts,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          structure_type: data.structure_type as StructureType
+        };
+        
+        setStructure(structureData);
       }
     } catch (error) {
       console.error('Error in loadStructure:', error);
