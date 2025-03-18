@@ -8,23 +8,26 @@ import ScriptPage from './ScriptPage';
 const ScriptContent: React.FC = () => {
   const { formatState } = useFormat();
   const {
-    filteredElements,
+    elements,
     activeElementId,
     currentPage,
     getPreviousElementType,
     handleElementChange,
-    handleFocus,
+    setActiveElementId,
     handleNavigate,
     handleEnterKey,
     changeElementType,
-    handleTagsChange,
+    handleTagsChange: onTagsChange,
     characterNames,
     projectId,
     beatMode,
     selectedStructure,
-    handleBeatTag,
     scriptContentRef
   } = useScriptEditor();
+
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
 
   return (
     <ScrollArea className="h-full w-full overflow-auto">
@@ -34,7 +37,7 @@ const ScriptContent: React.FC = () => {
       >
         <div className="w-full max-w-4xl mx-auto">
           <ScriptPage
-            elements={filteredElements}
+            elements={elements || []}
             activeElementId={activeElementId}
             getPreviousElementType={getPreviousElementType}
             handleElementChange={handleElementChange}
@@ -42,12 +45,11 @@ const ScriptContent: React.FC = () => {
             handleNavigate={handleNavigate}
             handleEnterKey={handleEnterKey}
             handleFormatChange={changeElementType}
-            handleTagsChange={handleTagsChange}
+            handleTagsChange={onTagsChange}
             characterNames={characterNames}
             projectId={projectId}
             beatMode={beatMode}
             selectedStructure={selectedStructure}
-            onBeatTag={handleBeatTag}
             formatState={formatState}
             currentPage={currentPage}
           />

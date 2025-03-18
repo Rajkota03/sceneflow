@@ -18,7 +18,7 @@ const TagManagerContainer: React.FC = () => {
 
   return (
     <TagManager
-      scriptContent={{ elements }}
+      scriptContent={{ elements: elements || [] }}
       onFilterByTag={setActiveTagFilter}
       onFilterByAct={setActiveActFilter}
       activeFilter={activeTagFilter}
