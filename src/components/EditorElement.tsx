@@ -71,10 +71,24 @@ const EditorElement: React.FC<EditorElementProps> = ({
   
   useEffect(() => {
     setText(element.text);
-  }, [element.text]);
+    if (editorRef.current && isActive) {
+      editorRef.current.innerText = element.text;
+      // Set cursor at the end of the text
+      const range = document.createRange();
+      const sel = window.getSelection();
+      if (editorRef.current.childNodes.length > 0) {
+        range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+      } else {
+        range.setStart(editorRef.current, 0);
+      }
+      range.collapse(true);
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+    }
+  }, [element.text, isActive]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
-    const newText = e.target.innerText;
+  const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
+    const newText = e.currentTarget.innerText;
     setText(newText);
     onChange(element.id, newText, element.type);
     
@@ -177,7 +191,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active' : ''}
         `}
-        contentEditable={isActive}
+        contentEditable={true}
         suppressContentEditableWarning={true}
         onFocus={onFocus}
         onBlur={() => setSuggestionsVisible(false)}

@@ -46,7 +46,14 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
       transform: `scale(${formatState.zoomLevel})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: '"Courier Final Draft", "Courier Prime", monospace'
+      fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+      padding: '1in',
+      backgroundColor: 'white',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)', 
+      width: '8.5in',
+      minHeight: '11in',
+      margin: '0 auto',
+      position: 'relative'
     }}>
       <div className="script-page-content" style={{
         fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
@@ -65,7 +72,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           <EditorElement
             key={element.id}
             element={element}
-            previousElementType={getPreviousElementType(index - 1)}
+            previousElementType={getPreviousElementType(index)}
             onChange={handleElementChange}
             onFocus={() => handleFocus(element.id)}
             isActive={activeElementId === element.id}

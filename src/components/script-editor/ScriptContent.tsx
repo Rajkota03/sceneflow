@@ -4,6 +4,7 @@ import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
+import ScriptPage from './ScriptPage';
 
 interface ScriptContentProps {
   filteredElements: ScriptElement[];
@@ -43,61 +44,26 @@ const ScriptContent: React.FC<ScriptContentProps> = ({
   const { formatState } = useFormat();
 
   return (
-    <div className="flex justify-center w-full h-full overflow-visible">
-      <div className="w-full max-w-4xl mx-auto">
-        <div
-          className="script-page"
-          style={{
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out',
-            fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-            overflowX: 'visible',
-            overflowY: 'visible'
-          }}
-        >
-          <div
-            className="script-page-content"
-            style={{
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              fontSize: '12pt',
-              position: 'relative',
-              overflowX: 'visible',
-              overflowY: 'visible'
-            }}
-          >
-            {/* Page number positioned inside the page */}
-            <div
-              className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10"
-              style={{
-                fontFamily: "Courier Final Draft, Courier Prime, monospace",
-                fontSize: "12pt",
-              }}
-            >
-              {currentPage}
-            </div>
-
-            {filteredElements.map((element, index) => (
-              <EditorElement
-                key={element.id}
-                element={element}
-                previousElementType={getPreviousElementType(index)}
-                onChange={handleElementChange}
-                onFocus={() => handleFocus(element.id)}
-                isActive={activeElementId === element.id}
-                onNavigate={handleNavigate}
-                onEnterKey={handleEnterKey}
-                onFormatChange={handleFormatChange}
-                onTagsChange={handleTagsChange}
-                characterNames={characterNames}
-                projectId={projectId}
-                beatMode={beatMode}
-                selectedStructure={selectedStructure}
-                onBeatTag={onBeatTag}
-              />
-            ))}
-          </div>
-        </div>
+    <div className="flex justify-center w-full h-full overflow-auto">
+      <div className="w-full max-w-4xl mx-auto pt-8 pb-20">
+        <ScriptPage
+          elements={filteredElements}
+          activeElementId={activeElementId}
+          getPreviousElementType={getPreviousElementType}
+          handleElementChange={handleElementChange}
+          handleFocus={handleFocus}
+          handleNavigate={handleNavigate}
+          handleEnterKey={handleEnterKey}
+          handleFormatChange={handleFormatChange}
+          handleTagsChange={handleTagsChange}
+          characterNames={characterNames}
+          projectId={projectId}
+          beatMode={beatMode}
+          selectedStructure={selectedStructure}
+          onBeatTag={onBeatTag}
+          formatState={formatState}
+          currentPage={currentPage}
+        />
       </div>
     </div>
   );
