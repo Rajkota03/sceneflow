@@ -73,7 +73,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   if (showTitlePage) {
     return (
       <div className="flex-grow overflow-auto bg-white dark:bg-slate-850 py-8">
-        <TitlePageView titlePageData={titlePageData} />
+        <TitlePageView data={titlePageData} />
       </div>
     );
   }
@@ -110,7 +110,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
             note={splitScreenNote} 
             onClose={exitSplitScreen}
             onSplitScreen={() => {}}
-            onEditClick={() => onEditNote(splitScreenNote)}
+            onEdit={() => onEditNote(splitScreenNote)}
             className="h-full"
             isSplitScreen
           />
@@ -137,7 +137,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
           note={note} 
           onClose={() => onNoteClose(note.id)}
           onSplitScreen={() => onSplitScreen(note)}
-          onEditClick={() => onEditNote(note)}
+          onEdit={() => onEditNote(note)}
           className="absolute top-4 right-4 w-80 h-72"
         />
       ))}

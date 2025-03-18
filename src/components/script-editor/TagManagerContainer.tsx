@@ -24,6 +24,7 @@ const TagManagerContainer: React.FC = () => {
       projectName={projectId ? undefined : "Untitled Project"}
       structureName={"Three Act Structure"}
       projectId={projectId}
+      beatMode={beatMode}
     />
   );
 };
