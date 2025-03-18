@@ -5,8 +5,7 @@ import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
 import { BeatMode } from '@/types/scriptTypes';
-import BeatModeToggle from './act-bar/BeatModeToggle';
-import { useProjectStructures } from '@/hooks/useProjectStructures';
+import useProjectStructures from '@/hooks/useProjectStructures';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -29,9 +28,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeActFilter,
   projectName = "Untitled Project", 
   structureName = "Three Act Structure",
-  projectId,
-  beatMode = 'on',
-  onToggleBeatMode
+  projectId
 }) => {
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
@@ -59,7 +56,7 @@ const TagManager: React.FC<TagManagerProps> = ({
       <div className="space-y-4">
         {allTags.length > 0 && (
           <TagFilter 
-            allTags={allTags}
+            tags={allTags}
             activeFilter={activeFilter}
             onFilterByTag={onFilterByTag}
           />

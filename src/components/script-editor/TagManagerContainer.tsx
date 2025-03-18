@@ -11,10 +11,6 @@ const TagManagerContainer: React.FC = () => {
     activeActFilter,
     setActiveActFilter,
     beatMode,
-    setBeatMode,
-    structures,
-    selectedStructureId,
-    handleStructureChange,
     projectId
   } = useScriptEditor();
 
@@ -26,12 +22,8 @@ const TagManagerContainer: React.FC = () => {
       activeFilter={activeTagFilter}
       activeActFilter={activeActFilter}
       projectName={projectId ? undefined : "Untitled Project"}
-      structureName={selectedStructureId ? undefined : "Three Act Structure"}
-      beatMode={beatMode}
-      onToggleBeatMode={setBeatMode}
-      structures={structures}
-      selectedStructureId={selectedStructureId || undefined}
-      onStructureChange={handleStructureChange}
+      structureName={"Three Act Structure"}
+      projectId={projectId}
     />
   );
 };

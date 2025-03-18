@@ -113,10 +113,6 @@ const ScriptEditor = ({
     setActiveActFilter(act);
   };
 
-  const handleToggleBeatMode = (mode: 'on' | 'off') => {
-    setBeatMode(mode);
-  };
-
   const handleZoomChange = (value: number[]) => {
     const newZoomLevel = value[0] / 100;
     const { setZoomLevel } = useFormat();
@@ -141,7 +137,6 @@ const ScriptEditor = ({
             activeActFilter={activeActFilter}
             projectName={projectName}
             structureName={structureName}
-            beatMode={beatMode}
           />
           
           {showKeyboardShortcuts && <KeyboardShortcutsHelp />}

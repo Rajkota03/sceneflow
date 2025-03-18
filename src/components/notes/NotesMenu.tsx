@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { NotebookPen, Plus, Trash2, Edit, BookText } from 'lucide-react';
+import { NotebookPen, Plus, Trash2, Edit, BookText, FileText } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { Note } from '@/lib/types';
 import StructureSelector from '../act-bar/StructureSelector';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface NotesMenuProps {
   notes: Note[];
@@ -25,6 +26,8 @@ interface NotesMenuProps {
   availableStructures?: Array<{ id: string; name: string }>;
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const NotesMenu = ({ 
@@ -35,7 +38,9 @@ const NotesMenu = ({
   onEditNote,
   availableStructures = [],
   selectedStructureId,
-  onStructureChange
+  onStructureChange,
+  beatMode = 'on',
+  onToggleBeatMode
 }: NotesMenuProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -76,6 +81,12 @@ const NotesMenu = ({
     onOpenNote(note);
   };
 
+  const handleToggleBeatMode = () => {
+    if (onToggleBeatMode) {
+      onToggleBeatMode(beatMode === 'on' ? 'off' : 'on');
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -86,6 +97,32 @@ const NotesMenu = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
+          {/* Beat Mode Toggle */}
+          {onToggleBeatMode && (
+            <>
+              <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
+                Beat Mode
+              </div>
+              <div className="px-2 pb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleBeatMode}
+                  className={`w-full h-8 px-2 ${beatMode === 'on' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  {beatMode === 'on' ? (
+                    <BookText size={16} className="mr-1" />
+                  ) : (
+                    <FileText size={16} className="mr-1" />
+                  )}
+                  {beatMode === 'on' ? 'Beat Mode: On' : 'Beat Mode: Off'}
+                </Button>
+              </div>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          
+          {/* Structure Selection */}
           {availableStructures && availableStructures.length > 0 && onStructureChange && (
             <>
               <div className="py-2 px-2 text-xs font-medium text-muted-foreground">

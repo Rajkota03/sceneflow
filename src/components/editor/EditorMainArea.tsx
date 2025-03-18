@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TitlePageView } from '@/components/TitlePageView';
+import TitlePageView from '@/components/TitlePageView';
 import { Note, ScriptContent, TitlePageData } from '@/lib/types';
 import NoteWindow from '@/components/notes/NoteWindow';
 import ScriptEditor from '@/components/ScriptEditor';
@@ -109,7 +109,8 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
           <NoteWindow 
             note={splitScreenNote} 
             onClose={exitSplitScreen}
-            onEdit={() => onEditNote(splitScreenNote)}
+            onSplitScreen={() => {}}
+            onEditClick={() => onEditNote(splitScreenNote)}
             className="h-full"
             isSplitScreen
           />
@@ -136,7 +137,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
           note={note} 
           onClose={() => onNoteClose(note.id)}
           onSplitScreen={() => onSplitScreen(note)}
-          onEdit={() => onEditNote(note)}
+          onEditClick={() => onEditNote(note)}
           className="absolute top-4 right-4 w-80 h-72"
         />
       ))}
