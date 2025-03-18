@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   MenubarMenu, 
@@ -42,11 +43,13 @@ const FormatMenu = () => {
   };
 
   const handleFontSettings = () => {
-    setFont("Courier Final Draft");
+    const fonts = ["Courier Prime", "Courier New", "Final Draft", "Courier Screenplay"];
+    const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+    setFont(randomFont);
     
     toast({
       title: "Font Settings Updated",
-      description: `Font changed to Courier Final Draft`,
+      description: `Font changed to ${randomFont}`,
     });
   };
 

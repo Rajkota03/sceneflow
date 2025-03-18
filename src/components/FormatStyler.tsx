@@ -27,7 +27,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       formatState.isStrikethrough ? 'line-through' : ''
     ].filter(Boolean).join(' '),
     color: formatState.textColor || '#000000',
-    backgroundColor: 'transparent',
+    backgroundColor: 'transparent', // Fixed: removed duplicate backgroundColor
     textAlign: formatState.alignment || 'left',
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
@@ -49,7 +49,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   return (
     <div 
       style={style} 
-      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version export-version' : 'overflow-visible'}`}
+      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
       data-font="courier-final-draft"
       dir="ltr"
     >

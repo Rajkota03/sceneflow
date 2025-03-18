@@ -1,182 +1,184 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { ActType } from '@/lib/types';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { ActType, StructureType } from '@/lib/types';
-import { Badge } from './ui/badge';
-import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { Eye, EyeOff } from 'lucide-react';
-import { BeatMode } from '@/types/scriptTypes';
+import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronUp, Zap, ZapOff, Check, Film } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from './ui/use-toast';
+import { ActCountsRecord } from '@/types/scriptTypes';
 
-interface ActCountsRecord {
-  [key: string]: number;
-}
-
-// Map structure types to their respective act types
-const structureActMapping: Record<StructureType, ActType[]> = {
-  three_act: [ActType.ACT_1, ActType.ACT_2A, ActType.MIDPOINT, ActType.ACT_2B, ActType.ACT_3],
-  save_the_cat: [ActType.OPENING_IMAGE, ActType.SETUP, ActType.CATALYST, ActType.DEBATE, ActType.BREAK_INTO_2, 
-                ActType.B_STORY, ActType.FUN_AND_GAMES, ActType.MIDPOINT, ActType.BAD_GUYS_CLOSE_IN, 
-                ActType.ALL_IS_LOST, ActType.DARK_NIGHT_OF_SOUL, ActType.BREAK_INTO_3, ActType.FINALE],
-  heroes_journey: [ActType.ORDINARY_WORLD, ActType.CALL_TO_ADVENTURE, ActType.REFUSAL, ActType.MENTOR, 
-                ActType.CROSSING_THRESHOLD, ActType.TESTS_ALLIES_ENEMIES, ActType.APPROACH, 
-                ActType.ORDEAL, ActType.REWARD, ActType.ROAD_BACK, ActType.RESURRECTION, ActType.RETURN],
-  story_circle: [ActType.YOU, ActType.NEED, ActType.GO, ActType.SEARCH, 
-                ActType.FIND, ActType.TAKE, ActType.RETURN, ActType.CHANGE]
-};
-
+// Define the BeatMode type to ensure consistent usage
+type BeatMode = 'on' | 'off';
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
   actCounts: ActCountsRecord;
   projectName?: string;
+  structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
-  availableStructures?: Array<{ id: string, name: string }>;
+  availableStructures?: {
+    id: string;
+    name: string;
+  }[];
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
-  selectedStructureType?: StructureType;
 }
 
-const ActBar: React.FC<ActBarProps> = ({ 
-  activeAct, 
-  onSelectAct, 
-  actCounts, 
-  projectName,
+const ActBar: React.FC<ActBarProps> = ({
+  activeAct,
+  onSelectAct,
+  actCounts,
+  projectName = "Untitled Project",
+  structureName = "Three Act Structure",
   beatMode = 'on',
   onToggleBeatMode,
   availableStructures = [],
   onStructureChange,
-  selectedStructureId,
-  selectedStructureType = 'three_act'
+  selectedStructureId
 }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const acts = [{
+    id: ActType.ACT_1,
+    label: 'Act 1',
+    color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]'
+  }, {
+    id: ActType.ACT_2A,
+    label: 'Act 2A',
+    color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]'
+  }, {
+    id: ActType.MIDPOINT,
+    label: 'Midpoint',
+    color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]'
+  }, {
+    id: ActType.ACT_2B,
+    label: 'Act 2B',
+    color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]'
+  }, {
+    id: ActType.ACT_3,
+    label: 'Act 3',
+    color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]'
+  }];
+  
+  const handleBeatModeToggle = (value: BeatMode) => {
+    if (onToggleBeatMode) {
+      onToggleBeatMode(value);
+    }
+  };
+  
   const handleStructureChange = (value: string) => {
     if (onStructureChange) {
       onStructureChange(value);
+    } else {
+      toast({
+        title: "Structure Selection",
+        description: "Please go to the Structure page to edit this structure"
+      });
     }
   };
-
-  // Get the appropriate act types based on the selected structure type
-  const relevantActTypes = structureActMapping[selectedStructureType] || structureActMapping.three_act;
-
-  const getBadgeStyle = (actType: ActType) => {
-    // Default style
-    return "bg-gray-100 hover:bg-gray-200 text-gray-700";
-  };
-
-  const getActLabel = (actType: ActType) => {
-    switch (actType) {
-      // Three Act Structure
-      case ActType.ACT_1: return "Act 1";
-      case ActType.ACT_2A: return "Act 2A";
-      case ActType.MIDPOINT: return "Midpoint";
-      case ActType.ACT_2B: return "Act 2B";
-      case ActType.ACT_3: return "Act 3";
-      
-      // Save The Cat
-      case ActType.OPENING_IMAGE: return "Opening Image";
-      case ActType.SETUP: return "Setup";
-      case ActType.CATALYST: return "Catalyst";
-      case ActType.DEBATE: return "Debate";
-      case ActType.BREAK_INTO_2: return "Break Into 2";
-      case ActType.B_STORY: return "B Story";
-      case ActType.FUN_AND_GAMES: return "Fun & Games";
-      case ActType.BAD_GUYS_CLOSE_IN: return "Bad Guys Close In";
-      case ActType.ALL_IS_LOST: return "All Is Lost";
-      case ActType.DARK_NIGHT_OF_SOUL: return "Dark Night of Soul";
-      case ActType.BREAK_INTO_3: return "Break Into 3";
-      case ActType.FINALE: return "Finale";
-      
-      // Hero's Journey
-      case ActType.ORDINARY_WORLD: return "Ordinary World";
-      case ActType.CALL_TO_ADVENTURE: return "Call to Adventure";
-      case ActType.REFUSAL: return "Refusal of the Call";
-      case ActType.MENTOR: return "Meeting the Mentor";
-      case ActType.CROSSING_THRESHOLD: return "Crossing the Threshold";
-      case ActType.TESTS_ALLIES_ENEMIES: return "Tests, Allies, Enemies";
-      case ActType.APPROACH: return "Approach to Inmost Cave";
-      case ActType.ORDEAL: return "Ordeal";
-      case ActType.REWARD: return "Reward";
-      case ActType.ROAD_BACK: return "Road Back";
-      case ActType.RESURRECTION: return "Resurrection";
-      case ActType.RETURN: return "Return with Elixir";
-      
-      // Story Circle
-      case ActType.YOU: return "You";
-      case ActType.NEED: return "Need";
-      case ActType.GO: return "Go";
-      case ActType.SEARCH: return "Search";
-      case ActType.FIND: return "Find";
-      case ActType.TAKE: return "Take";
-      case ActType.CHANGE: return "Change";
-      
-      default: return actType;
-    }
-  };
-
+  
   return (
-    <div className="act-bar flex items-center flex-wrap gap-3">
-      <div className="flex gap-1">
-        <Button
-          variant="outline"
-          size="sm"
-          className={`px-3 py-1 h-8 text-xs font-medium ${activeAct === null ? 'bg-gray-100' : ''}`}
-          onClick={() => onSelectAct(null)}
-        >
-          All Scenes
-        </Button>
-        
-        {beatMode === 'on' && relevantActTypes.map((actType) => (
-          <Badge
-            key={actType}
-            variant="outline"
-            className={`px-3 cursor-pointer ${getBadgeStyle(actType)} ${activeAct === actType ? 'ring-2 ring-offset-1' : ''}`}
-            onClick={() => onSelectAct(actType)}
-          >
-            {getActLabel(actType)}
+    <Collapsible 
+      open={isOpen} 
+      onOpenChange={setIsOpen} 
+      className="bg-slate-50 rounded-md shadow-sm mb-3 w-full"
+    >
+      <div className="p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
+                <Film size={16} className="mr-2 text-slate-600" />
+                <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
+                {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </Button>
+            </CollapsibleTrigger>
             
-            {actCounts[actType] > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-white bg-opacity-60">
-                {actCounts[actType]}
-              </span>
+            {/* Structure selector placed directly in the header */}
+            {availableStructures.length > 0 && onStructureChange && (
+              <Select 
+                value={selectedStructureId || ''} 
+                onValueChange={handleStructureChange}
+              >
+                <SelectTrigger className="h-7 w-[180px] text-xs ml-2 bg-white">
+                  <SelectValue placeholder="Select a structure" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableStructures.map(structure => (
+                    <SelectItem 
+                      key={structure.id} 
+                      value={structure.id} 
+                      className="text-xs"
+                    >
+                      {structure.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
-          </Badge>
-        ))}
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {onToggleBeatMode && (
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant={beatMode === 'on' ? 'default' : 'outline'} 
+                  size="sm" 
+                  onClick={() => handleBeatModeToggle('on')} 
+                  className={cn(
+                    "h-7 flex items-center gap-1 relative text-xs", 
+                    beatMode === 'on' && "after:absolute after:inset-0 after:animate-pulse after:bg-primary/20 after:rounded-md after:z-[-1]"
+                  )}
+                >
+                  <Zap size={14} />
+                  <span className="hidden md:inline">Beat Mode</span>
+                  {beatMode === 'on' && <Check size={14} className="ml-1" />}
+                </Button>
+                
+                <Button 
+                  variant={beatMode === 'off' ? 'default' : 'outline'} 
+                  size="sm" 
+                  onClick={() => handleBeatModeToggle('off')} 
+                  className="h-7 flex items-center gap-1 text-xs"
+                >
+                  <ZapOff size={14} />
+                  <span className="hidden md:inline">Free Mode</span>
+                  {beatMode === 'off' && <Check size={14} className="ml-1" />}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <CollapsibleContent>
+          {beatMode === 'on' && (
+            <div className="grid grid-cols-5 gap-1 mt-2">
+              {acts.map(act => (
+                <button
+                  key={act.id}
+                  onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
+                  className={cn(
+                    act.color,
+                    'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
+                    activeAct === act.id ? 'border-2' : 'border opacity-95',
+                    activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
+                  )}
+                >
+                  {act.label}
+                  {actCounts[act.id] > 0 && (
+                    <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
+                      {actCounts[act.id]}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </CollapsibleContent>
       </div>
-      
-      <div className="flex-grow"></div>
-
-      {availableStructures.length > 0 && onStructureChange && (
-        <Select
-          value={selectedStructureId}
-          onValueChange={handleStructureChange}
-        >
-          <SelectTrigger className="w-[180px] h-8 text-xs">
-            <SelectValue placeholder="Select structure" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableStructures.map(structure => (
-              <SelectItem key={structure.id} value={structure.id} className="text-xs">
-                {structure.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
-      
-      {onToggleBeatMode && (
-        <ToggleGroup type="single" value={beatMode} onValueChange={(value: any) => onToggleBeatMode(value)}>
-          <ToggleGroupItem value="on" size="sm" className="h-8 px-2">
-            <Eye className="h-4 w-4 mr-1" />
-            <span className="text-xs">Show Beats</span>
-          </ToggleGroupItem>
-          <ToggleGroupItem value="off" size="sm" className="h-8 px-2">
-            <EyeOff className="h-4 w-4 mr-1" />
-            <span className="text-xs">Hide Beats</span>
-          </ToggleGroupItem>
-        </ToggleGroup>
-      )}
-    </div>
+    </Collapsible>
   );
 };
 

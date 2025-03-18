@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -44,64 +45,55 @@ const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   }
 };
 
+// Define element-specific CSS based on Final Draft standards
 const getElementStyles = (type: ElementType): React.CSSProperties => {
   switch (type) {
     case 'scene-heading':
       return {
         width: '100%',
         textTransform: 'uppercase',
-        fontWeight: 'bold',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontWeight: 'bold'
       };
     case 'action':
       return {
-        width: '100%',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        width: '100%'
       };
     case 'character':
       return {
-        width: '30%',
+        width: '30%', // Centered with specific width
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: 'auto',
-        marginRight: 'auto',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        marginRight: 'auto'
       };
     case 'dialogue':
       return {
-        width: '65%',
+        width: '65%', // Standard dialogue width
         marginLeft: 'auto',
-        marginRight: 'auto',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        marginRight: 'auto'
       };
     case 'parenthetical':
       return {
         width: '40%',
         marginLeft: 'auto',
         marginRight: 'auto',
-        fontStyle: 'italic',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontStyle: 'italic'
       };
     case 'transition':
       return {
         width: '100%',
         textAlign: 'right',
         textTransform: 'uppercase',
-        fontWeight: 'bold',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontWeight: 'bold'
       };
     case 'note':
       return {
         width: '100%',
         fontStyle: 'italic',
-        color: '#666',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        color: '#666'
       };
     default:
-      return { 
-        width: '100%',
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-      };
+      return { width: '100%' };
   }
 };
 
@@ -132,6 +124,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setText(element.text);
     if (editorRef.current && isActive) {
       editorRef.current.innerText = element.text;
+      // Set cursor at the end of the text
       const range = document.createRange();
       const sel = window.getSelection();
       if (editorRef.current.childNodes.length > 0) {
@@ -169,6 +162,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Keyboard shortcuts for screenplay formatting
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -191,11 +185,13 @@ const EditorElement: React.FC<EditorElementProps> = ({
           e.preventDefault();
           onFormatChange(element.id, 'parenthetical');
           return;
-        case '6':
-          e.preventDefault();
-          onFormatChange(element.id, 'transition');
-          setText('CUT TO:');
-          onChange(element.id, 'CUT TO:', 'transition');
+        case 'r':
+          if (e.shiftKey) {
+            e.preventDefault();
+            onFormatChange(element.id, 'transition');
+            setText('CUT TO:');
+            onChange(element.id, 'CUT TO:', 'transition');
+          }
           return;
         default:
           break;
@@ -223,16 +219,19 @@ const EditorElement: React.FC<EditorElementProps> = ({
       e.preventDefault();
       handleSelectCharacter(filteredSuggestions[focusIndex]);
     } else if (e.key === 'Tab') {
+      // Convert dialogue to parenthetical or cycle through element types
       e.preventDefault();
       
       if (element.type === 'dialogue') {
         onFormatChange(element.id, 'parenthetical');
+        // Add parentheses if not already present
         if (!text.startsWith('(') && !text.endsWith(')')) {
           const newText = `(${text})`;
           setText(newText);
           onChange(element.id, newText, 'parenthetical');
         }
       } else {
+        // Cycle through element types for other elements
         const elementTypes: ElementType[] = [
           'scene-heading',
           'action',
@@ -268,6 +267,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
     onFormatChange(element.id, newType);
     setShowElementMenu(false);
   };
+
+  // Get appropriate styles for this element type
+  const elementStyles = getElementStyles(element.type);
 
   return (
     <div 
@@ -307,7 +309,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          ...getElementStyles(element.type)
+          ...elementStyles
         }}
         dir="ltr"
       >
@@ -327,9 +329,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           {element.type === 'scene-heading' && beatMode === 'on' && (
             <div className="absolute right-0 top-0">
               <SceneTags 
-                elementId={element.id}
-                tags={element.tags}
-                onTagsChange={onTagsChange}
+                element={element} 
+                onTagsChange={onTagsChange} 
                 projectId={projectId}
                 selectedStructure={selectedStructure}
                 onBeatTag={onBeatTag}
@@ -352,7 +353,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
                     {type === 'character' && '⌘3'}
                     {type === 'dialogue' && '⌘4'}
                     {type === 'parenthetical' && '⌘5'}
-                    {type === 'transition' && '⌘6'}
+                    {type === 'transition' && '⇧⌘R'}
                   </span>
                 </div>
               ))}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActType, StructureType } from '@/lib/types';
+import { ActType, Structure } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
@@ -21,27 +21,6 @@ const TagManager: React.FC<TagManagerProps> = ({
   structures = []
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
-  
-  // Determine the structure type based on the selected structure
-  const getStructureType = (): StructureType => {
-    if (!selectedStructureId || !structures.length) return 'three_act';
-    
-    const selectedStructure = structures.find(s => s.id === selectedStructureId);
-    if (!selectedStructure || !selectedStructure.structure_type) return 'three_act';
-    
-    // Ensure we're using a valid StructureType
-    const structureType = selectedStructure.structure_type;
-    if (structureType === 'three_act' || 
-        structureType === 'save_the_cat' || 
-        structureType === 'heroes_journey' || 
-        structureType === 'story_circle') {
-      return structureType;
-    }
-    
-    return 'three_act';
-  };
-  
-  const structureType = getStructureType();
   
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
@@ -67,7 +46,6 @@ const TagManager: React.FC<TagManagerProps> = ({
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
             onStructureChange={onStructureChange}
             selectedStructureId={selectedStructureId}
-            selectedStructureType={structureType}
           />
         )}
       </div>

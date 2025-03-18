@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Act, Beat } from '@/lib/types';
+import { Act } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +15,8 @@ interface ActSectionProps {
   isExpanded: boolean;
   toggleAct: (actId: string) => void;
   onBeatToggleComplete?: (actId: string, beatId: string, complete: boolean) => void;
-  onBeatsReorder: (actId: string, reorderedBeats: Beat[]) => void;
-  onBeatUpdate: (actId: string, beatId: string, updatedBeat: Partial<Beat>) => void;
+  onBeatsReorder: (actId: string, reorderedBeats: any[]) => void;
+  onBeatUpdate: (actId: string, beatId: string, updatedBeat: any) => void;
   isEditing: boolean;
 }
 
@@ -31,7 +32,7 @@ const ActSection: React.FC<ActSectionProps> = ({
   // Calculate act progress
   const getActProgressPercentage = () => {
     const totalActBeats = act.beats.length;
-    const completeActBeats = act.beats.filter(beat => beat.completed).length;
+    const completeActBeats = act.beats.filter(beat => beat.complete).length;
     return totalActBeats > 0 ? (completeActBeats / totalActBeats) * 100 : 0;
   };
 

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Structure, Act, Beat, StructureType } from '@/lib/types';
+import { Structure, Act, Beat } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { 
@@ -45,7 +45,7 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   const calculateProgress = () => {
     const totalBeats = localStructure.acts.reduce((sum, act) => sum + act.beats.length, 0);
     const completeBeats = localStructure.acts.reduce((sum, act) => 
-      sum + act.beats.filter(beat => beat.completed).length, 0);
+      sum + act.beats.filter(beat => beat.complete).length, 0);
     return totalBeats > 0 ? (completeBeats / totalBeats) * 100 : 0;
   };
 
@@ -82,7 +82,7 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   };
   
   const handleBeatToggleComplete = (actId: string, beatId: string, complete: boolean) => {
-    handleBeatUpdate(actId, beatId, { completed: complete });
+    handleBeatUpdate(actId, beatId, { complete });
   };
   
   const handleSaveStructure = async () => {
@@ -119,25 +119,20 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
     // Reset based on structure type
     let updatedStructure: Structure;
     
-    if (!localStructure.structure_type || typeof localStructure.structure_type !== 'string') {
-      updatedStructure = createThreeActStructure(localStructure.id);
-    } else {
-      const structureType = localStructure.structure_type as StructureType;
-      switch (structureType) {
-        case 'save_the_cat':
-          updatedStructure = createSaveTheCatStructure(localStructure.id);
-          break;
-        case 'heroes_journey':
-          updatedStructure = createHeroJourneyStructure(localStructure.id);
-          break;
-        case 'story_circle':
-          updatedStructure = createStoryCircleStructure(localStructure.id);
-          break;
-        case 'three_act':
-        default:
-          updatedStructure = createThreeActStructure(localStructure.id);
-          break;
-      }
+    switch (localStructure.structure_type) {
+      case 'save_the_cat':
+        updatedStructure = createSaveTheCatStructure(localStructure.id);
+        break;
+      case 'hero_journey':
+        updatedStructure = createHeroJourneyStructure(localStructure.id);
+        break;
+      case 'story_circle':
+        updatedStructure = createStoryCircleStructure(localStructure.id);
+        break;
+      case 'three_act':
+      default:
+        updatedStructure = createThreeActStructure(localStructure.id);
+        break;
     }
     
     // Preserve the structure name

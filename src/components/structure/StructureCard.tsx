@@ -1,10 +1,10 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Structure, Act, StructureType } from '@/lib/types';
+import { Structure, Act } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MoreVertical, Pencil, Trash2 } from 'lucide-react';
@@ -24,7 +24,7 @@ const calculateProgress = (acts: Act[]): number => {
   acts.forEach(act => {
     act.beats.forEach(beat => {
       totalBeats++;
-      if (beat.completed) {
+      if (beat.complete) {
         completedBeats++;
       }
     });
@@ -53,17 +53,16 @@ const StructureCard: React.FC<StructureCardProps> = ({ structure, onEdit, onDele
   };
   
   // Format the dates
-  const createdDate = new Date(structure.created_at);
-  const updatedDate = new Date(structure.updated_at);
+  const createdDate = new Date(structure.createdAt);
+  const updatedDate = new Date(structure.updatedAt);
   
   const getStructureTypeLabel = () => {
-    const structureType = structure.structure_type as StructureType;
-    switch (structureType) {
+    switch (structure.structure_type) {
       case 'three_act':
         return 'Three Act Structure';
       case 'save_the_cat':
         return 'Save the Cat';
-      case 'heroes_journey':
+      case 'hero_journey':
         return 'Hero\'s Journey';
       case 'story_circle':
         return 'Story Circle';

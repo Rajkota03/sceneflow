@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ChevronDown } from 'lucide-react';
-import { StructureType } from '@/types/scriptTypes';
+import { StructureType } from '@/hooks/useDashboardStructures';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -65,7 +65,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               Save the Cat Beat Sheet
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => {
-              handleCreateStructure('heroes_journey');
+              handleCreateStructure('hero_journey');
               setIsStructureMenuOpen(false);
             }}>
               Hero's Journey
