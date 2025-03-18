@@ -1,14 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { ScriptElement, Structure } from '@/lib/types';
-import { Tag } from 'lucide-react';
+import TagInput from './TagInput';
+import { SceneTag } from './SceneTag';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from '@/components/ui/popover';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Tag, Plus, Flame } from 'lucide-react';
 import { Button } from './ui/button';
-import { toast } from './ui/use-toast';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -18,113 +31,175 @@ interface SceneTagsProps {
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const SceneTags: React.FC<SceneTagsProps> = ({
-  element,
+const SceneTags: React.FC<SceneTagsProps> = ({ 
+  element, 
   onTagsChange,
   projectId,
   selectedStructure,
   onBeatTag
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [tags, setTags] = useState<string[]>(element.tags || []);
+  const [beatMenuOpen, setBeatMenuOpen] = useState(false);
   
   useEffect(() => {
-    if (selectedStructure) {
-      console.log('SceneTags - Selected structure:', selectedStructure.name);
-      console.log('SceneTags - Structure acts:', selectedStructure.acts.length);
-    } else {
-      console.log('SceneTags - No structure selected');
-    }
-  }, [selectedStructure]);
-
-  const handleTagClick = (beatId: string, actId: string) => {
-    if (onBeatTag) {
-      console.log('Tagging beat:', beatId, 'in act:', actId);
-      onBeatTag(element.id, beatId, actId);
-      setIsOpen(false);
-      
-      toast({
-        title: "Beat Tag Applied",
-        description: "The scene has been tagged with the selected beat.",
-      });
+    setTags(element.tags || []);
+  }, [element.tags]);
+  
+  const handleTagAdd = (tag: string) => {
+    if (tag && !tags.includes(tag)) {
+      const newTags = [...tags, tag];
+      setTags(newTags);
+      onTagsChange(element.id, newTags);
+      setInputValue('');
     }
   };
-
-  // Check if this scene element already has a beat tag
-  const currentBeatId = element.beat;
-  let currentBeatInfo: { title: string, actTitle: string } | null = null;
   
-  if (currentBeatId && selectedStructure) {
-    for (const act of selectedStructure.acts) {
-      const beat = act.beats.find(b => b.id === currentBeatId);
-      if (beat) {
-        currentBeatInfo = {
-          title: beat.title,
-          actTitle: act.title
-        };
-        break;
-      }
+  const handleTagRemove = (tag: string) => {
+    const newTags = tags.filter(t => t !== tag);
+    setTags(newTags);
+    onTagsChange(element.id, newTags);
+  };
+  
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+  };
+  
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && inputValue) {
+      e.preventDefault();
+      handleTagAdd(inputValue.trim());
     }
-  }
-
-  if (!selectedStructure || !selectedStructure.acts || !Array.isArray(selectedStructure.acts) || selectedStructure.acts.length === 0) {
+  };
+  
+  // Check if we have a selected structure with acts
+  const hasStructure = !!(selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0);
+  
+  // If we don't have a valid structure selected, show a message
+  if (!hasStructure) {
+    console.log("SceneTags - No structure selected");
     return (
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-            <Tag className="h-4 w-4 text-gray-400" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-60 p-2">
-          <div className="text-xs text-gray-500 p-2">
-            No structure selected or structure has no acts/beats.
-          </div>
-        </PopoverContent>
-      </Popover>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 rounded-full text-gray-500"
+            >
+              <Tag size={14} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>No structure selected. Select a structure to tag beats.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   }
+  
+  console.log("SceneTags - Selected structure:", selectedStructure?.name);
+  console.log("SceneTags - Structure acts:", selectedStructure?.acts?.length || 0);
+  
+  // Get all available beats from the structure
+  const availableBeats = selectedStructure?.acts?.flatMap(act => 
+    act.beats?.map(beat => ({
+      beatId: beat.id,
+      actId: act.id,
+      beatTitle: beat.title,
+      actTitle: act.title
+    })) || []
+  ) || [];
+  
+  // Check if this scene has a beat tag
+  const hasBeatTag = !!element.beat;
+  
+  // Find the beat details if this scene has a beat tag
+  const beatDetails = hasBeatTag 
+    ? availableBeats.find(b => b.beatId === element.beat)
+    : null;
+  
+  const handleBeatSelect = (beatId: string, actId: string) => {
+    if (onBeatTag) {
+      onBeatTag(element.id, beatId, actId);
+    }
+    setBeatMenuOpen(false);
+  };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={`h-6 w-6 p-0 transition-opacity ${currentBeatId ? 'bg-blue-50 opacity-100' : 'opacity-50 hover:opacity-100'}`}
-        >
-          <Tag className={`h-4 w-4 ${currentBeatId ? 'text-blue-500' : 'text-gray-500'}`} />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        <div className="p-2 max-h-[300px] overflow-y-auto">
-          <h3 className="font-semibold text-sm mb-2">{selectedStructure.name} Beats</h3>
-          {currentBeatInfo && (
-            <div className="bg-blue-50 text-blue-800 text-xs p-2 mb-3 rounded">
-              Currently tagged: <span className="font-medium">{currentBeatInfo.title}</span> 
-              <span className="text-blue-600"> ({currentBeatInfo.actTitle})</span>
-            </div>
-          )}
-          <div className="space-y-2">
-            {selectedStructure.acts.map((act) => (
-              <div key={act.id} className="space-y-1">
-                <h4 className="text-xs font-medium text-gray-600">{act.title || act.id}</h4>
-                <div className="grid grid-cols-1 gap-1">
-                  {Array.isArray(act.beats) && act.beats.map((beat) => (
-                    <button
-                      key={beat.id}
-                      onClick={() => handleTagClick(beat.id, act.id)}
-                      className={`text-xs py-1 px-2 text-left hover:bg-gray-100 rounded transition-colors w-full truncate
-                        ${currentBeatId === beat.id ? 'bg-blue-100 font-medium' : ''}`}
-                    >
-                      {beat.title || beat.id}
-                    </button>
-                  ))}
+    <div className="flex items-center text-xs space-x-1">
+      {tags.map(tag => (
+        <SceneTag 
+          key={tag} 
+          tag={tag} 
+          onRemove={() => handleTagRemove(tag)} 
+        />
+      ))}
+      
+      <div className="flex items-center space-x-1">
+        {/* Beat selector dropdown */}
+        <DropdownMenu open={beatMenuOpen} onOpenChange={setBeatMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant={hasBeatTag ? "default" : "outline"} 
+              size="sm" 
+              className={`h-6 px-2 ${
+                hasBeatTag 
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                  : 'border-dashed border-gray-300 text-gray-500'
+              }`}
+            >
+              <Flame size={14} className={hasBeatTag ? 'mr-1' : ''} />
+              {beatDetails ? beatDetails.beatTitle : ''}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-auto">
+            {selectedStructure?.acts?.map(act => (
+              <React.Fragment key={act.id}>
+                <div className="px-2 py-1.5 text-sm font-semibold text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-300">
+                  {act.title || "Act"}
                 </div>
-              </div>
+                {act.beats?.map(beat => (
+                  <DropdownMenuItem 
+                    key={beat.id}
+                    onClick={() => handleBeatSelect(beat.id, act.id)}
+                    className={`text-xs cursor-pointer ${element.beat === beat.id ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : ''}`}
+                  >
+                    {beat.title}
+                    {element.beat === beat.id && (
+                      <Flame size={14} className="ml-auto text-orange-500" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </React.Fragment>
             ))}
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        {/* Tag manager popover */}
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 w-6 p-0 rounded-full text-gray-500"
+            >
+              <Plus size={16} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-3" align="end">
+            <TagInput
+              value={inputValue}
+              onChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              onTagAdd={handleTagAdd}
+              placeholder="Add tags..."
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+    </div>
   );
 };
 

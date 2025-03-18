@@ -2,38 +2,68 @@
 import React, { useState, useEffect } from 'react';
 import { ActType, Structure } from '@/lib/types';
 import { Button } from './ui/button';
-import { cn } from '@/lib/utils';
-import { ChevronDown, ChevronUp, Zap, ZapOff, Check, Film } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from './ui/use-toast';
-import { ActCountsRecord } from '@/types/scriptTypes';
+import { BeatMode } from '@/types/scriptTypes';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from './ui/select';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
+import { FileText, BookText, List } from 'lucide-react';
 
-// Define the BeatMode type to ensure consistent usage
-type BeatMode = 'on' | 'off';
+interface ActCount {
+  act: ActType | null;
+  count: number;
+}
+
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
-  actCounts: ActCountsRecord;
+  actCounts: ActCount[];
   projectName?: string;
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
-  availableStructures?: {
-    id: string;
-    name: string;
-  }[];
+  availableStructures?: Array<{ id: string; name: string }>;
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
   selectedStructure?: Structure | null;
 }
 
-const ActBar: React.FC<ActBarProps> = ({
-  activeAct,
-  onSelectAct,
+// Function to generate vibrant colors based on index
+const generateColorForIndex = (index: number, total: number): string => {
+  const colors = [
+    'bg-blue-500 hover:bg-blue-600',
+    'bg-purple-500 hover:bg-purple-600',
+    'bg-green-500 hover:bg-green-600',
+    'bg-rose-500 hover:bg-rose-600',
+    'bg-amber-500 hover:bg-amber-600',
+    'bg-teal-500 hover:bg-teal-600',
+    'bg-indigo-500 hover:bg-indigo-600',
+    'bg-pink-500 hover:bg-pink-600',
+  ];
+  
+  if (index < colors.length) {
+    return colors[index];
+  }
+  
+  // Fallback for more than 8 acts
+  return colors[index % colors.length];
+};
+
+const ActBar: React.FC<ActBarProps> = ({ 
+  activeAct, 
+  onSelectAct, 
   actCounts,
-  projectName = "Untitled Project",
-  structureName = "Three Act Structure",
+  projectName,
+  structureName,
   beatMode = 'on',
   onToggleBeatMode,
   availableStructures = [],
@@ -41,141 +71,75 @@ const ActBar: React.FC<ActBarProps> = ({
   selectedStructureId,
   selectedStructure
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
-  const [structureActs, setStructureActs] = useState<{
-    id: string,
-    label: string,
-    color: string
-  }[]>([]);
+  const [showAllActs, setShowAllActs] = useState(false);
+  const [actButtons, setActButtons] = useState<Array<{
+    id: string;
+    label: string;
+    color: string;
+  }>>([]);
   
-  // Default acts for the standard Three Act Structure
-  const defaultActs = [{
-    id: ActType.ACT_1,
-    label: 'Act 1',
-    color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]'
-  }, {
-    id: ActType.ACT_2A,
-    label: 'Act 2A',
-    color: 'bg-[#FEF7CD] hover:bg-[#FDF0B0] border-[#F5A623]'
-  }, {
-    id: ActType.MIDPOINT,
-    label: 'Midpoint',
-    color: 'bg-[#FFCCCB] hover:bg-[#FFB9B8] border-[#FF9E9D]'
-  }, {
-    id: ActType.ACT_2B,
-    label: 'Act 2B',
-    color: 'bg-[#FDE1D3] hover:bg-[#FCCEB8] border-[#F57C00]'
-  }, {
-    id: ActType.ACT_3,
-    label: 'Act 3',
-    color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]'
-  }];
-
-  // Generate colors for each act based on the act index
-  const generateColorForIndex = (index: number, total: number) => {
-    const colorPalettes = [
-      // Blue shades
-      {bg: 'bg-[#D3E4FD]', hover: 'hover:bg-[#B8D2F8]', border: 'border-[#4A90E2]'},
-      // Yellow shades
-      {bg: 'bg-[#FEF7CD]', hover: 'hover:bg-[#FDF0B0]', border: 'border-[#F5A623]'},
-      // Red/pink shades
-      {bg: 'bg-[#FFCCCB]', hover: 'hover:bg-[#FFB9B8]', border: 'border-[#FF9E9D]'},
-      // Orange shades
-      {bg: 'bg-[#FDE1D3]', hover: 'hover:bg-[#FCCEB8]', border: 'border-[#F57C00]'},
-      // Green shades
-      {bg: 'bg-[#F2FCE2]', hover: 'hover:bg-[#E5F8C8]', border: 'border-[#009688]'},
-      // Purple shades
-      {bg: 'bg-[#E6E0F8]', hover: 'hover:bg-[#D1C4F4]', border: 'border-[#9C7CF4]'},
-      // Teal shades
-      {bg: 'bg-[#D9F2F4]', hover: 'hover:bg-[#B7E8EC]', border: 'border-[#5BC0C5]'},
-    ];
-    
-    // Calculate distribution for larger act counts
-    const paletteIndex = Math.min(Math.floor((index / total) * colorPalettes.length), colorPalettes.length - 1);
-    return `${colorPalettes[paletteIndex].bg} ${colorPalettes[paletteIndex].hover} ${colorPalettes[paletteIndex].border}`;
-  };
-
-  // Update acts when selected structure changes
+  // Initialize with standard 3-act structure if no selectedStructure
   useEffect(() => {
-    if (selectedStructure && selectedStructure.acts) {
+    if (selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
       console.log("Selected structure in ActBar:", selectedStructure.name);
       console.log("Number of acts:", selectedStructure.acts.length);
       
-      // Map the structure's acts to our display format
-      const customActs = selectedStructure.acts.map((act, index) => ({
+      const buttons = selectedStructure.acts.map((act, index) => ({
         id: act.id,
         label: act.title || `Act ${index + 1}`,
         color: generateColorForIndex(index, selectedStructure.acts.length)
       }));
       
-      setStructureActs(customActs);
+      setActButtons(buttons);
     } else {
-      // Fall back to default acts if no structure or acts available
-      setStructureActs(defaultActs);
+      console.log("No valid structure acts found, using default");
+      // Default 3-act structure buttons as fallback
+      setActButtons([
+        { id: 'act1', label: 'ACT 1', color: 'bg-blue-500 hover:bg-blue-600' },
+        { id: 'act2a', label: 'ACT 2A', color: 'bg-purple-500 hover:bg-purple-600' },
+        { id: 'midpoint', label: 'MIDPOINT', color: 'bg-green-500 hover:bg-green-600' },
+        { id: 'act2b', label: 'ACT 2B', color: 'bg-rose-500 hover:bg-rose-600' },
+        { id: 'act3', label: 'ACT 3', color: 'bg-amber-500 hover:bg-amber-600' }
+      ]);
     }
   }, [selectedStructure]);
   
-  const handleBeatModeToggle = (value: BeatMode) => {
+  const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 4);
+  
+  const handleToggleBeatMode = () => {
     if (onToggleBeatMode) {
-      onToggleBeatMode(value);
+      onToggleBeatMode(beatMode === 'on' ? 'off' : 'on');
     }
   };
   
   const handleStructureChange = (value: string) => {
     if (onStructureChange) {
-      console.log("ActBar: Structure changed to:", value);
       onStructureChange(value);
-      toast({
-        title: "Structure Changed",
-        description: "The story structure has been updated."
-      });
-    } else {
-      toast({
-        title: "Structure Selection",
-        description: "Please go to the Structure page to edit this structure"
-      });
     }
   };
-
-  // Log available structures for debugging
-  useEffect(() => {
-    if (availableStructures.length > 0) {
-      console.log('Available structures:', availableStructures);
-      console.log('Selected structure ID:', selectedStructureId);
-    }
-  }, [availableStructures, selectedStructureId]);
   
   return (
-    <Collapsible 
-      open={isOpen} 
-      onOpenChange={setIsOpen} 
-      className="bg-slate-50 rounded-md shadow-sm mb-3 w-full"
-    >
-      <div className="p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 px-2 -ml-2">
-                <Film size={16} className="mr-2 text-slate-600" />
-                <h3 className="text-sm font-medium text-slate-700 mr-1">Story Structure</h3>
-                {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-              </Button>
-            </CollapsibleTrigger>
-            
-            {/* Structure selector placed directly in the header */}
-            {availableStructures.length > 0 && onStructureChange && (
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-3">
+        <div className="flex items-center">
+          <h3 className="text-sm font-medium mr-3 text-gray-700 dark:text-gray-300">
+            {projectName}
+          </h3>
+          
+          {availableStructures && availableStructures.length > 0 && onStructureChange && (
+            <div className="relative flex-shrink-0 w-64">
               <Select 
-                value={selectedStructureId || ''} 
+                value={selectedStructureId} 
                 onValueChange={handleStructureChange}
               >
-                <SelectTrigger className="h-7 w-[180px] text-xs ml-2 bg-white">
-                  <SelectValue placeholder="Select a structure" />
+                <SelectTrigger className="h-8 text-xs bg-white dark:bg-gray-800">
+                  <SelectValue placeholder="Select structure" />
                 </SelectTrigger>
                 <SelectContent>
                   {availableStructures.map(structure => (
                     <SelectItem 
                       key={structure.id} 
-                      value={structure.id} 
+                      value={structure.id}
                       className="text-xs"
                     >
                       {structure.name}
@@ -183,68 +147,109 @@ const ActBar: React.FC<ActBarProps> = ({
                   ))}
                 </SelectContent>
               </Select>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {onToggleBeatMode && (
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant={beatMode === 'on' ? 'default' : 'outline'} 
-                  size="sm" 
-                  onClick={() => handleBeatModeToggle('on')} 
-                  className={cn(
-                    "h-7 flex items-center gap-1 relative text-xs", 
-                    beatMode === 'on' && "after:absolute after:inset-0 after:animate-pulse after:bg-primary/20 after:rounded-md after:z-[-1]"
-                  )}
-                >
-                  <Zap size={14} />
-                  <span className="hidden md:inline">Beat Mode</span>
-                  {beatMode === 'on' && <Check size={14} className="ml-1" />}
-                </Button>
-                
-                <Button 
-                  variant={beatMode === 'off' ? 'default' : 'outline'} 
-                  size="sm" 
-                  onClick={() => handleBeatModeToggle('off')} 
-                  className="h-7 flex items-center gap-1 text-xs"
-                >
-                  <ZapOff size={14} />
-                  <span className="hidden md:inline">Free Mode</span>
-                  {beatMode === 'off' && <Check size={14} className="ml-1" />}
-                </Button>
-              </div>
-            )}
-          </div>
-        </div>
-        
-        <CollapsibleContent>
-          {beatMode === 'on' && (
-            <div className="grid grid-cols-5 gap-1 mt-2">
-              {structureActs.map(act => (
-                <button
-                  key={act.id}
-                  onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
-                  className={cn(
-                    act.color,
-                    'h-8 rounded-md flex items-center justify-center text-xs font-medium transition-all shadow-sm',
-                    activeAct === act.id ? 'border-2' : 'border opacity-95',
-                    activeAct !== null && activeAct !== act.id ? 'opacity-70' : 'opacity-100'
-                  )}
-                >
-                  {act.label}
-                  {actCounts[act.id as ActType] > 0 && (
-                    <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                      {actCounts[act.id as ActType]}
-                    </span>
-                  )}
-                </button>
-              ))}
             </div>
           )}
-        </CollapsibleContent>
+        </div>
+        
+        {onToggleBeatMode && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleToggleBeatMode}
+                  className={`h-8 px-2 ${beatMode === 'on' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                  {beatMode === 'on' ? (
+                    <BookText size={16} className="mr-1" />
+                  ) : (
+                    <FileText size={16} className="mr-1" />
+                  )}
+                  {beatMode === 'on' ? 'Beats On' : 'Beats Off'}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle beat tracking mode</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
-    </Collapsible>
+      
+      <div className="flex flex-wrap items-center space-x-2 mb-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={activeAct === null ? "default" : "outline"}
+                size="sm"
+                onClick={() => onSelectAct(null)}
+                className="h-7 px-3 text-xs bg-gray-800 hover:bg-gray-700 text-white"
+              >
+                ALL
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Show all scenes</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        {visibleActs.map((actBtn) => {
+          // Get count for this act
+          const actCount = actCounts.find(
+            count => count.act === actBtn.id
+          );
+          const count = actCount ? actCount.count : 0;
+          
+          // Convert actBtn.id to ActType before passing to onSelectAct
+          // This is the fix for the type error
+          const handleActClick = () => {
+            onSelectAct(actBtn.id as ActType);
+          };
+          
+          return (
+            <TooltipProvider key={actBtn.id}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeAct === actBtn.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={handleActClick}
+                    className={`h-7 px-3 text-xs text-white ${
+                      activeAct === actBtn.id 
+                        ? actBtn.color 
+                        : 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    {actBtn.label}
+                    {count > 0 && (
+                      <span className="ml-1 opacity-80">({count})</span>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Show only scenes in {actBtn.label}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        })}
+        
+        {actButtons.length > 4 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAllActs(!showAllActs)}
+            className="h-7 px-2 text-xs text-gray-600 dark:text-gray-400"
+          >
+            <List size={16} />
+            <span className="ml-1">{showAllActs ? 'Less' : 'More'}</span>
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 

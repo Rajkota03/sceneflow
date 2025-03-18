@@ -5,6 +5,7 @@ import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
+import useStructures from './tag-manager/useStructures';
 
 const TagManager: React.FC<TagManagerProps> = ({ 
   scriptContent, 
