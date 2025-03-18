@@ -598,14 +598,12 @@ const Editor = () => {
                     <TitlePageView data={titlePageData} />
                   ) : (
                     <ScriptEditor 
-                      initialContent={content} 
-                      onChange={handleContentChange} 
-                      className="overflow-auto"
-                      projectName={title}
-                      structureName="Three Act Structure"
+                      content={content} 
+                      onContentChange={handleContentChange} 
                       projectId={projectId}
-                      onStructureChange={handleStructureChange}
+                      structures={[]}
                       selectedStructureId={selectedStructureId || undefined}
+                      onStructureChange={handleStructureChange}
                     />
                   )}
                 </div>
@@ -659,13 +657,12 @@ const Editor = () => {
                 <TitlePageView data={titlePageData} />
               ) : (
                 <ScriptEditor 
-                  initialContent={content} 
-                  onChange={handleContentChange}
-                  projectName={title}
-                  structureName="Three Act Structure" 
+                  content={content}
+                  onContentChange={handleContentChange}
                   projectId={projectId}
-                  onStructureChange={handleStructureChange}
+                  structures={[]}
                   selectedStructureId={selectedStructureId || undefined}
+                  onStructureChange={handleStructureChange}
                 />
               )}
             </>

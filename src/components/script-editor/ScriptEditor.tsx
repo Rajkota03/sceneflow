@@ -1,17 +1,15 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import TagManager from '../TagManager';
 import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
 import { BeatMode } from '@/types/scriptTypes';
-import Draggable from 'react-draggable';
 import ScriptContentComponent from './ScriptContent';
 import { PanelResizeHandle, Panel, PanelGroup } from 'react-resizable-panels';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { ChevronLeftIcon, ChevronRightIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
-import { ActBar } from '@/components/ActBar';
-import ZoomControls from './ZoomControls';
+import { ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import ActBar from '@/components/ActBar';
 
 interface ScriptEditorProps {
   content: ScriptContent;
@@ -20,16 +18,6 @@ interface ScriptEditorProps {
   structures?: Structure[];
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
-}
-
-interface DraggableData {
-  node: HTMLElement;
-  x: number;
-  y: number;
-  deltaX: number;
-  deltaY: number;
-  lastX: number;
-  lastY: number;
 }
 
 const ScriptEditor = ({
@@ -76,7 +64,7 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
-  const handleElementChange = (id: string, text: string, type: string) => {
+  const handleElementChange = (id: string, text: string, type: ElementType) => {
     const updatedElements = elements.map(element =>
       element.id === id ? { ...element, text, type } : element
     );
@@ -135,11 +123,11 @@ const ScriptEditor = ({
           nextType = 'action';
       }
 
-      handleCreateNewElement(currentIndex, nextType, currentType);
+      handleCreateNewElement(currentIndex, nextType);
     }
   };
 
-  const handleFormatChange = (id: string, newType: string) => {
+  const handleFormatChange = (id: string, newType: ElementType) => {
     const updatedElements = elements.map(element =>
       element.id === id ? { ...element, type: newType } : element
     );
@@ -178,7 +166,7 @@ const ScriptEditor = ({
     onContentChange(newContent);
   };
 
-  const handleCreateNewElement = (currentIndex: number, nextType: ElementType, prevElementType?: string) => {
+  const handleCreateNewElement = (currentIndex: number, nextType: ElementType, prevElementType?: ElementType) => {
     const uniqueId = generateUniqueId();
     const newElement: ScriptElement = {
       id: uniqueId,
@@ -186,7 +174,6 @@ const ScriptEditor = ({
       text: ''
     };
 
-    // Use strict equality for string literal type comparison
     if (nextType === 'character') {
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
@@ -216,7 +203,6 @@ const ScriptEditor = ({
 
     onContentChange(newContent);
 
-    // Set active element to the newly created element
     setTimeout(() => {
       setActiveElementId(uniqueId);
     }, 0);
