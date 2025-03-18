@@ -45,7 +45,8 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
           
           // Try to convert the beats data to acts structure
           if (Array.isArray(beatsData)) {
-            acts = beatsData as Act[];
+            // Type assertion to convert from Json[] to Act[]
+            acts = beatsData as unknown as Act[];
           }
           
           return {
@@ -124,7 +125,7 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
           description: 'A new story structure',
           user_id: session.user.id,
           structure_type: structureType,
-          beats: defaultActs
+          beats: defaultActs as unknown as Json
         }])
         .select('*');
 
@@ -137,11 +138,19 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
         const newStructureData = data[0];
         
         // Convert the database structure to the application structure
+        const beatsData = newStructureData.beats as Json;
+        let acts: Act[] = [];
+        
+        // Try to convert the beats data to acts structure
+        if (Array.isArray(beatsData)) {
+          acts = beatsData as unknown as Act[];
+        }
+        
         const newStructure: Structure = {
           id: newStructureData.id,
           name: newStructureData.name,
           description: newStructureData.description || '',
-          acts: Array.isArray(newStructureData.beats) ? newStructureData.beats as Act[] : [],
+          acts: acts,
           created_at: newStructureData.created_at,
           updated_at: newStructureData.updated_at,
           structure_type: newStructureData.structure_type as StructureType
@@ -167,7 +176,7 @@ export const useDashboardStructures = (): UseDashboardStructuresResult => {
         .update({
           name: structure.name,
           description: structure.description,
-          beats: structure.acts,
+          beats: structure.acts as unknown as Json,
           updated_at: new Date().toISOString(),
           structure_type: structure.structure_type
         })

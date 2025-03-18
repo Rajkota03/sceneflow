@@ -123,7 +123,7 @@ const StructureEditor: React.FC<StructureEditorProps> = () => {
         let acts: Act[] = [];
         
         if (Array.isArray(beatsData)) {
-          acts = beatsData as Act[];
+          acts = beatsData as unknown as Act[];
         }
         
         const structureData: Structure = {

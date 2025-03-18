@@ -50,7 +50,7 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
           
           // Try to convert the beats data to acts structure
           if (Array.isArray(beatsData)) {
-            acts = beatsData as Act[];
+            acts = beatsData as unknown as Act[];
           }
           
           return {
@@ -117,7 +117,7 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
       const { data, error } = await supabase
         .from('structures')
         .update({ 
-          beats: updatedStructure.acts 
+          beats: updatedStructure.acts as unknown as Json
         })
         .eq('id', structureId);
       
