@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { ActType, ActCountsRecord, StructureType } from '@/lib/types';
 import { Badge } from './ui/badge';
 import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group';
-import { Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { BeatMode } from '@/types/scriptTypes';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 // Map structure types to their respective act types
 const structureActMapping: Record<StructureType, ActType[]> = {
@@ -20,29 +19,6 @@ const structureActMapping: Record<StructureType, ActType[]> = {
                 ActType.ORDEAL, ActType.REWARD, ActType.ROAD_BACK, ActType.RESURRECTION, ActType.RETURN],
   story_circle: [ActType.YOU, ActType.NEED, ActType.GO, ActType.SEARCH, 
                 ActType.FIND, ActType.TAKE, ActType.RETURN, ActType.CHANGE]
-};
-
-// Group act types by major acts for each structure type
-const structureActGroups: Record<StructureType, Record<string, ActType[]>> = {
-  three_act: {
-    'Act 1': [ActType.ACT_1],
-    'Act 2': [ActType.ACT_2A, ActType.MIDPOINT, ActType.ACT_2B],
-    'Act 3': [ActType.ACT_3]
-  },
-  save_the_cat: {
-    'Act 1': [ActType.OPENING_IMAGE, ActType.SETUP, ActType.CATALYST, ActType.DEBATE, ActType.BREAK_INTO_2],
-    'Act 2': [ActType.B_STORY, ActType.FUN_AND_GAMES, ActType.MIDPOINT, ActType.BAD_GUYS_CLOSE_IN, ActType.ALL_IS_LOST, ActType.DARK_NIGHT_OF_SOUL],
-    'Act 3': [ActType.BREAK_INTO_3, ActType.FINALE]
-  },
-  hero_journey: {
-    'Departure': [ActType.ORDINARY_WORLD, ActType.CALL_TO_ADVENTURE, ActType.REFUSAL, ActType.MENTOR, ActType.CROSSING_THRESHOLD],
-    'Initiation': [ActType.TESTS_ALLIES_ENEMIES, ActType.APPROACH, ActType.ORDEAL, ActType.REWARD],
-    'Return': [ActType.ROAD_BACK, ActType.RESURRECTION, ActType.RETURN]
-  },
-  story_circle: {
-    'First Half': [ActType.YOU, ActType.NEED, ActType.GO, ActType.SEARCH],
-    'Second Half': [ActType.FIND, ActType.TAKE, ActType.RETURN, ActType.CHANGE]
-  }
 };
 
 interface ActBarProps {
@@ -70,29 +46,14 @@ const ActBar: React.FC<ActBarProps> = ({
   selectedStructureId,
   selectedStructureType = 'three_act'
 }) => {
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    'Act 1': true,
-    'Act 2': true,
-    'Act 3': true,
-    'Departure': true,
-    'Initiation': true,
-    'Return': true,
-    'First Half': true,
-    'Second Half': true
-  });
-  
   const handleStructureChange = (value: string) => {
     if (onStructureChange) {
       onStructureChange(value);
     }
   };
 
-  const toggleGroup = (groupName: string) => {
-    setOpenGroups(prev => ({
-      ...prev,
-      [groupName]: !prev[groupName]
-    }));
-  };
+  // Get the appropriate act types based on the selected structure type
+  const relevantActTypes = structureActMapping[selectedStructureType] || structureActMapping.three_act;
 
   const getBadgeStyle = (actType: ActType) => {
     // Colors for Three Act Structure
@@ -113,58 +74,68 @@ const ActBar: React.FC<ActBarProps> = ({
     
     // Colors for Save The Cat
     if (structureActMapping.save_the_cat.includes(actType)) {
-      // Act 1 (Blue shades)
-      if ([ActType.OPENING_IMAGE, ActType.SETUP, ActType.CATALYST, ActType.DEBATE, ActType.BREAK_INTO_2].includes(actType)) {
-        return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-      }
-      // Act 2 First Half (Yellow shades)
-      else if ([ActType.B_STORY, ActType.FUN_AND_GAMES, ActType.MIDPOINT].includes(actType)) {
-        return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-      }
-      // Act 2 Second Half (Orange shades)
-      else if ([ActType.BAD_GUYS_CLOSE_IN, ActType.ALL_IS_LOST, ActType.DARK_NIGHT_OF_SOUL].includes(actType)) {
-        return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-      }
-      // Act 3 (Green shades)
-      else if ([ActType.BREAK_INTO_3, ActType.FINALE].includes(actType)) {
-        return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
+      switch (actType) {
+        case ActType.OPENING_IMAGE:
+        case ActType.SETUP:
+          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
+        case ActType.CATALYST:
+        case ActType.DEBATE:
+        case ActType.BREAK_INTO_2:
+          return "bg-[#E6F7FF] hover:bg-[#CCE5FF] text-[#0066CC]";
+        case ActType.B_STORY:
+        case ActType.FUN_AND_GAMES:
+          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
+        case ActType.MIDPOINT:
+          return "bg-[#FFCCCB] hover:bg-[#FFBCBB] text-[#D24E4D]";
+        case ActType.BAD_GUYS_CLOSE_IN:
+        case ActType.ALL_IS_LOST:
+        case ActType.DARK_NIGHT_OF_SOUL:
+          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
+        case ActType.BREAK_INTO_3:
+        case ActType.FINALE:
+          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
       }
     }
     
     // Colors for Hero's Journey
     if (structureActMapping.hero_journey.includes(actType)) {
-      // Departure (Blue shades)
-      if ([ActType.ORDINARY_WORLD, ActType.CALL_TO_ADVENTURE, ActType.REFUSAL, ActType.MENTOR, ActType.CROSSING_THRESHOLD].includes(actType)) {
-        return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-      }
-      // Initiation (Yellow to Orange gradient)
-      else if ([ActType.TESTS_ALLIES_ENEMIES, ActType.APPROACH].includes(actType)) {
-        return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-      }
-      else if ([ActType.ORDEAL, ActType.REWARD].includes(actType)) {
-        return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-      }
-      // Return (Green shades)
-      else if ([ActType.ROAD_BACK, ActType.RESURRECTION, ActType.RETURN].includes(actType)) {
-        return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
+      switch (actType) {
+        case ActType.ORDINARY_WORLD:
+        case ActType.CALL_TO_ADVENTURE:
+        case ActType.REFUSAL:
+          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
+        case ActType.MENTOR:
+        case ActType.CROSSING_THRESHOLD:
+          return "bg-[#E6F7FF] hover:bg-[#CCE5FF] text-[#0066CC]";
+        case ActType.TESTS_ALLIES_ENEMIES:
+        case ActType.APPROACH:
+          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
+        case ActType.ORDEAL:
+        case ActType.REWARD:
+          return "bg-[#FFCCCB] hover:bg-[#FFBCBB] text-[#D24E4D]";
+        case ActType.ROAD_BACK:
+        case ActType.RESURRECTION:
+          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
+        case ActType.RETURN:
+          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
       }
     }
     
     // Colors for Story Circle
     if (structureActMapping.story_circle.includes(actType)) {
-      // First Half (Blue to Yellow)
-      if ([ActType.YOU, ActType.NEED].includes(actType)) {
-        return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
-      }
-      else if ([ActType.GO, ActType.SEARCH].includes(actType)) {
-        return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
-      }
-      // Second Half (Orange to Green)
-      else if ([ActType.FIND, ActType.TAKE].includes(actType)) {
-        return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
-      }
-      else if ([ActType.RETURN, ActType.CHANGE].includes(actType)) {
-        return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
+      switch (actType) {
+        case ActType.YOU:
+        case ActType.NEED:
+          return "bg-[#D3E4FD] hover:bg-[#C2D6F5] text-[#2171D2]";
+        case ActType.GO:
+        case ActType.SEARCH:
+          return "bg-[#FEF7CD] hover:bg-[#F5EEB9] text-[#D28A21]";
+        case ActType.FIND:
+        case ActType.TAKE:
+          return "bg-[#FDE1D3] hover:bg-[#F5D4C4] text-[#D26600]";
+        case ActType.RETURN:
+        case ActType.CHANGE:
+          return "bg-[#F2FCE2] hover:bg-[#E3F2CE] text-[#007F73]";
       }
     }
     
@@ -222,24 +193,9 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   };
 
-  const getActGroups = () => {
-    const groups = structureActGroups[selectedStructureType];
-    return Object.entries(groups);
-  };
-
-  const getStructureDisplayName = (type: StructureType): string => {
-    switch (type) {
-      case 'three_act': return 'Three-Act Structure';
-      case 'save_the_cat': return 'Save The Cat';
-      case 'hero_journey': return 'Hero\'s Journey';
-      case 'story_circle': return 'Story Circle';
-      default: return 'Structure';
-    }
-  };
-
   return (
-    <div className="act-bar flex flex-col space-y-2 w-full">
-      <div className="flex items-center justify-between">
+    <div className="act-bar flex items-center flex-wrap gap-3">
+      <div className="flex gap-1">
         <Button
           variant="outline"
           size="sm"
@@ -249,73 +205,55 @@ const ActBar: React.FC<ActBarProps> = ({
           All Scenes
         </Button>
         
-        <div className="flex items-center space-x-2">
-          {availableStructures.length > 0 && onStructureChange && (
-            <Select
-              value={selectedStructureId}
-              onValueChange={handleStructureChange}
-            >
-              <SelectTrigger className="w-[180px] h-8 text-xs">
-                <SelectValue placeholder={getStructureDisplayName(selectedStructureType)} />
-              </SelectTrigger>
-              <SelectContent>
-                {availableStructures.map(structure => (
-                  <SelectItem key={structure.id} value={structure.id} className="text-xs">
-                    {structure.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          {onToggleBeatMode && (
-            <ToggleGroup type="single" value={beatMode} onValueChange={(value: any) => value && onToggleBeatMode(value)}>
-              <ToggleGroupItem value="on" size="sm" className="h-8 px-2">
-                <Eye className="h-4 w-4 mr-1" />
-                <span className="text-xs">Show Beats</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem value="off" size="sm" className="h-8 px-2">
-                <EyeOff className="h-4 w-4 mr-1" />
-                <span className="text-xs">Hide Beats</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-          )}
-        </div>
+        {beatMode === 'on' && relevantActTypes.map((actType) => (
+          <Badge
+            key={actType}
+            variant="outline"
+            className={`px-3 cursor-pointer ${getBadgeStyle(actType)} ${activeAct === actType ? 'ring-2 ring-offset-1' : ''}`}
+            onClick={() => onSelectAct(actType)}
+          >
+            {getActLabel(actType)}
+            
+            {actCounts[actType] > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-white bg-opacity-60">
+                {actCounts[actType]}
+              </span>
+            )}
+          </Badge>
+        ))}
       </div>
+      
+      <div className="flex-grow"></div>
 
-      {beatMode === 'on' && (
-        <div className="flex flex-col space-y-1 overflow-hidden">
-          {getActGroups().map(([groupName, actTypes]) => (
-            <Collapsible key={groupName} open={openGroups[groupName]} onOpenChange={() => toggleGroup(groupName)}>
-              <CollapsibleTrigger asChild>
-                <div className="flex items-center justify-between px-2 py-1 bg-gray-50 rounded cursor-pointer">
-                  <span className="text-sm font-medium">{groupName}</span>
-                  {openGroups[groupName] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="flex flex-wrap gap-1 mt-1 pl-2">
-                  {actTypes.map((actType) => (
-                    <Badge
-                      key={actType}
-                      variant="outline"
-                      className={`px-3 py-1 cursor-pointer ${getBadgeStyle(actType)} ${activeAct === actType ? 'ring-2 ring-offset-1' : ''}`}
-                      onClick={() => onSelectAct(actType)}
-                    >
-                      {getActLabel(actType)}
-                      
-                      {actCounts[actType] > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-white bg-opacity-60">
-                          {actCounts[actType]}
-                        </span>
-                      )}
-                    </Badge>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </div>
+      {availableStructures.length > 0 && onStructureChange && (
+        <Select
+          value={selectedStructureId}
+          onValueChange={handleStructureChange}
+        >
+          <SelectTrigger className="w-[180px] h-8 text-xs">
+            <SelectValue placeholder="Select structure" />
+          </SelectTrigger>
+          <SelectContent>
+            {availableStructures.map(structure => (
+              <SelectItem key={structure.id} value={structure.id} className="text-xs">
+                {structure.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      
+      {onToggleBeatMode && (
+        <ToggleGroup type="single" value={beatMode} onValueChange={(value: any) => onToggleBeatMode(value)}>
+          <ToggleGroupItem value="on" size="sm" className="h-8 px-2">
+            <Eye className="h-4 w-4 mr-1" />
+            <span className="text-xs">Show Beats</span>
+          </ToggleGroupItem>
+          <ToggleGroupItem value="off" size="sm" className="h-8 px-2">
+            <EyeOff className="h-4 w-4 mr-1" />
+            <span className="text-xs">Hide Beats</span>
+          </ToggleGroupItem>
+        </ToggleGroup>
       )}
     </div>
   );
