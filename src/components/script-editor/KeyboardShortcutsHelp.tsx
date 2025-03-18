@@ -1,73 +1,58 @@
 
 import React from 'react';
 
-interface KeyboardShortcutsHelpProps {
-  onClose?: () => void;
-}
-
-const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({ onClose }) => {
+const KeyboardShortcutsHelp: React.FC = () => {
   return (
-    <div className="keyboard-shortcuts-help fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-md shadow-md z-50 border border-gray-200">
+    <div className="keyboard-shortcuts-help absolute z-50 top-20 right-4 bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-sm">
       <h3 className="text-lg font-medium mb-2">Keyboard Shortcuts</h3>
-      <table className="keyboard-shortcuts-table">
+      <table className="keyboard-shortcuts-table w-full">
         <tbody>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘1</span></td>
+            <td className="pr-4"><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘1</span></td>
             <td>Scene Heading</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘2</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘2</span></td>
             <td>Action</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘3</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘3</span></td>
             <td>Character</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘4</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘4</span></td>
             <td>Dialogue</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘5</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘5</span></td>
             <td>Parenthetical</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⇧⌘R</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⇧⌘R</span></td>
             <td>Transition</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">Tab</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">Tab</span></td>
             <td>Cycle element type</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">Enter</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">Enter</span></td>
             <td>New element</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⇧Enter</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⇧Enter</span></td>
             <td>New line in dialogue</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘E</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘E</span></td>
             <td>Export PDF</td>
           </tr>
           <tr>
-            <td><span className="keyboard-shortcut-key">⌘/</span></td>
+            <td><span className="keyboard-shortcut-key px-2 py-1 bg-gray-100 rounded text-sm">⌘/</span></td>
             <td>Show/hide this help</td>
           </tr>
         </tbody>
       </table>
-      
-      {onClose && (
-        <div className="mt-4 text-right">
-          <button 
-            onClick={onClose}
-            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-          >
-            Close
-          </button>
-        </div>
-      )}
     </div>
   );
 };
