@@ -77,6 +77,16 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     }
   };
 
+  // Implement the update beat completion function
+  const updateBeatCompletionHandler = (beatId: string, actId: string, complete: boolean) => {
+    return updateStructureBeatCompletion(selectedStructure, beatId, actId, complete);
+  };
+
+  // Implement the save beat completion function
+  const saveBeatCompletionHandler = async (structureId: string, updatedStructure: Structure) => {
+    return await saveStructureBeatCompletion(structureId, updatedStructure);
+  };
+
   return {
     structures,
     selectedStructureId,
@@ -84,8 +94,8 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     isLoading,
     error,
     handleStructureChange,
-    updateBeatCompletion,
-    saveBeatCompletion,
+    updateBeatCompletion: updateBeatCompletionHandler,
+    saveBeatCompletion: saveBeatCompletionHandler,
     fetchStructures
   };
 };

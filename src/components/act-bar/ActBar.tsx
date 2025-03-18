@@ -88,6 +88,13 @@ const ActBar: React.FC<ActBarProps> = ({
   
   const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 5);
   
+  // Create an array of StructureBarButtonProps objects
+  const structureBarButtons = visibleActs.map(act => ({
+    ...act,
+    isActive: activeAct === act.id as ActType,
+    onClick: () => onSelectAct(act.id as ActType)
+  }));
+  
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-3">
@@ -131,13 +138,9 @@ const ActBar: React.FC<ActBarProps> = ({
           </Button>
         </div>
         
-        {/* Structure Bar - Fixed to include required props */}
+        {/* Structure Bar - Fixed with properly typed props */}
         <StructureBar
-          visibleActs={visibleActs.map(act => ({
-            ...act,
-            isActive: activeAct === act.id,
-            onClick: () => onSelectAct(act.id as ActType)
-          }))}
+          visibleActs={structureBarButtons}
           activeAct={activeAct}
           onSelectAct={onSelectAct}
         />
