@@ -27,14 +27,14 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       formatState.isStrikethrough ? 'line-through' : ''
     ].filter(Boolean).join(' '),
     color: formatState.textColor || '#000000',
-    backgroundColor: formatState.highlightColor || 'transparent',
+    backgroundColor: 'transparent', // Fixed: removed duplicate backgroundColor
     textAlign: formatState.alignment || 'left',
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
     width: '100%',
-    maxWidth: '8.5in',
+    maxWidth: '8.5in', // Standard screenplay width
     height: forPrint || forExport ? 'auto' : 'auto',
-    minHeight: forPrint || forExport ? 'auto' : '11in',
+    minHeight: forPrint || forExport ? 'auto' : '11in', // Standard screenplay height
     margin: '0 auto',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
@@ -42,7 +42,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     position: 'relative',
     direction: 'ltr',
     unicodeBidi: 'plaintext',
-    padding: forPrint || forExport ? '0' : '1in',
+    padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
     boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
   };
 

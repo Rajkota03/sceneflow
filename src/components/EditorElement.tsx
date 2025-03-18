@@ -162,6 +162,42 @@ const EditorElement: React.FC<EditorElementProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Keyboard shortcuts for screenplay formatting
+    if (e.metaKey || e.ctrlKey) {
+      switch (e.key) {
+        case '1':
+          e.preventDefault();
+          onFormatChange(element.id, 'scene-heading');
+          return;
+        case '2':
+          e.preventDefault();
+          onFormatChange(element.id, 'action');
+          return;
+        case '3':
+          e.preventDefault();
+          onFormatChange(element.id, 'character');
+          return;
+        case '4':
+          e.preventDefault();
+          onFormatChange(element.id, 'dialogue');
+          return;
+        case '5':
+          e.preventDefault();
+          onFormatChange(element.id, 'parenthetical');
+          return;
+        case 'r':
+          if (e.shiftKey) {
+            e.preventDefault();
+            onFormatChange(element.id, 'transition');
+            setText('CUT TO:');
+            onChange(element.id, 'CUT TO:', 'transition');
+          }
+          return;
+        default:
+          break;
+      }
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault();
       onEnterKey(element.id, e.shiftKey);
@@ -183,22 +219,33 @@ const EditorElement: React.FC<EditorElementProps> = ({
       e.preventDefault();
       handleSelectCharacter(filteredSuggestions[focusIndex]);
     } else if (e.key === 'Tab') {
-      // Cycle through element types when Tab is pressed
+      // Convert dialogue to parenthetical or cycle through element types
       e.preventDefault();
       
-      const elementTypes: ElementType[] = [
-        'scene-heading',
-        'action',
-        'character',
-        'dialogue',
-        'parenthetical',
-        'transition'
-      ];
-      
-      const currentIndex = elementTypes.indexOf(element.type);
-      const nextIndex = (currentIndex + 1) % elementTypes.length;
-      
-      onFormatChange(element.id, elementTypes[nextIndex]);
+      if (element.type === 'dialogue') {
+        onFormatChange(element.id, 'parenthetical');
+        // Add parentheses if not already present
+        if (!text.startsWith('(') && !text.endsWith(')')) {
+          const newText = `(${text})`;
+          setText(newText);
+          onChange(element.id, newText, 'parenthetical');
+        }
+      } else {
+        // Cycle through element types for other elements
+        const elementTypes: ElementType[] = [
+          'scene-heading',
+          'action',
+          'character',
+          'dialogue',
+          'parenthetical',
+          'transition'
+        ];
+        
+        const currentIndex = elementTypes.indexOf(element.type);
+        const nextIndex = (currentIndex + 1) % elementTypes.length;
+        
+        onFormatChange(element.id, elementTypes[nextIndex]);
+      }
     }
   };
 
@@ -300,6 +347,14 @@ const EditorElement: React.FC<EditorElementProps> = ({
                   onClick={() => handleElementTypeChange(type as ElementType)}
                 >
                   {formatType(type as ElementType)}
+                  <span className="text-xs text-gray-500 ml-2">
+                    {type === 'scene-heading' && '⌘1'}
+                    {type === 'action' && '⌘2'}
+                    {type === 'character' && '⌘3'}
+                    {type === 'dialogue' && '⌘4'}
+                    {type === 'parenthetical' && '⌘5'}
+                    {type === 'transition' && '⇧⌘R'}
+                  </span>
                 </div>
               ))}
             </div>

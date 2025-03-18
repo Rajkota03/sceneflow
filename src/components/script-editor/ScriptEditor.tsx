@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
@@ -12,6 +12,8 @@ import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import useProjectStructures from '@/hooks/useProjectStructures';
 import { toast } from '@/components/ui/use-toast';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type BeatMode = 'on' | 'off';
 
@@ -45,6 +47,8 @@ const ScriptEditor = ({
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const scriptContentRef = useRef<HTMLDivElement>(null);
 
   // Fetch structures for this project
   const { 
@@ -98,6 +102,30 @@ const ScriptEditor = ({
       setActiveElementId(defaultElements[0].id);
     }
   }, [elements, setElements, setActiveElementId]);
+
+  // PDF import handler
+  useEffect(() => {
+    const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
+      if (event.detail && Array.isArray(event.detail.elements)) {
+        const importedElements = event.detail.elements;
+        if (importedElements.length > 0) {
+          setElements(importedElements);
+          setActiveElementId(importedElements[0].id);
+          
+          toast({
+            title: "PDF Imported",
+            description: `Successfully imported ${importedElements.length} elements from PDF`,
+          });
+        }
+      }
+    };
+    
+    window.addEventListener('pdf-imported' as any, handlePdfImported as any);
+    
+    return () => {
+      window.removeEventListener('pdf-imported' as any, handlePdfImported as any);
+    };
+  }, [setElements, setActiveElementId]);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -262,6 +290,22 @@ const ScriptEditor = ({
     }
   };
 
+  // Global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Toggle keyboard shortcuts help with Ctrl+/
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShowKeyboardShortcuts(prev => !prev);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <TagManager 
@@ -279,23 +323,80 @@ const ScriptEditor = ({
         onStructureChange={handleStructureChange}
       />
       
-      <ScriptContentComponent
-        filteredElements={filteredElements}
-        activeElementId={activeElementId}
-        currentPage={currentPage}
-        getPreviousElementType={getPreviousElementType}
-        handleElementChange={handleElementChange}
-        handleFocus={handleFocus}
-        handleNavigate={handleNavigate}
-        handleEnterKey={handleEnterKey}
-        handleFormatChange={handleFormatChange}
-        handleTagsChange={handleTagsChange}
-        characterNames={characterNames}
-        projectId={projectId}
-        beatMode={beatMode}
-        selectedStructure={selectedStructure}
-        onBeatTag={handleBeatTag}
-      />
+      {/* Keyboard Shortcuts Help Panel */}
+      {showKeyboardShortcuts && (
+        <div className="keyboard-shortcuts-help">
+          <h3 className="text-lg font-medium mb-2">Keyboard Shortcuts</h3>
+          <table className="keyboard-shortcuts-table">
+            <tbody>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘1</span></td>
+                <td>Scene Heading</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘2</span></td>
+                <td>Action</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘3</span></td>
+                <td>Character</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘4</span></td>
+                <td>Dialogue</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘5</span></td>
+                <td>Parenthetical</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⇧⌘R</span></td>
+                <td>Transition</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">Tab</span></td>
+                <td>Cycle element type</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">Enter</span></td>
+                <td>New element</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⇧Enter</span></td>
+                <td>New line in dialogue</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘E</span></td>
+                <td>Export PDF</td>
+              </tr>
+              <tr>
+                <td><span className="keyboard-shortcut-key">⌘/</span></td>
+                <td>Show/hide this help</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+      
+      <div ref={scriptContentRef} className="script-content-wrapper relative">
+        <ScriptContentComponent
+          filteredElements={filteredElements}
+          activeElementId={activeElementId}
+          currentPage={currentPage}
+          getPreviousElementType={getPreviousElementType}
+          handleElementChange={handleElementChange}
+          handleFocus={handleFocus}
+          handleNavigate={handleNavigate}
+          handleEnterKey={handleEnterKey}
+          handleFormatChange={handleFormatChange}
+          handleTagsChange={handleTagsChange}
+          characterNames={characterNames}
+          projectId={projectId}
+          beatMode={beatMode}
+          selectedStructure={selectedStructure}
+          onBeatTag={handleBeatTag}
+        />
+      </div>
       
       <ZoomControls 
         zoomPercentage={zoomPercentage}

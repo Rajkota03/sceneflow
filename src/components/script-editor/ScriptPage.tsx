@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
@@ -41,14 +41,51 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   formatState = { zoomLevel: 1 },
   currentPage = 1
 }) => {
+  // Listen for custom PDF import events
+  useEffect(() => {
+    const handlePdfImport = (event: CustomEvent) => {
+      console.log('PDF import event received', event.detail);
+      // You would handle the PDF import here by updating elements
+      // This would need to be connected to your state management
+    };
+
+    // Add event listener for PDF imports
+    window.addEventListener('pdf-imported' as any, handlePdfImport as any);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('pdf-imported' as any, handlePdfImport as any);
+    };
+  }, []);
+
+  // Handle keyboard shortcuts at the script level for commands that affect the whole script
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'p') {
+          e.preventDefault();
+          // Trigger print/export functionality
+          document.querySelector('.menubar-trigger')?.dispatchEvent(
+            new MouseEvent('click', { bubbles: true })
+          );
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleGlobalShortcuts);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalShortcuts);
+    };
+  }, []);
+
   return (
     <div className="script-page" style={{ 
       transform: `scale(${formatState.zoomLevel})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
       fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-      width: '8.5in',
-      minHeight: '11in',
+      width: '8.5in', // Standard screenplay width
+      minHeight: '11in', // Standard screenplay height
       margin: '0 auto',
       position: 'relative',
       backgroundColor: 'white',
@@ -62,7 +99,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
         boxSizing: 'border-box',
         height: '100%',
-        lineHeight: '1.2',
+        lineHeight: '1.2', // Standard screenplay line spacing
         direction: 'ltr',
         unicodeBidi: 'plaintext'
       }}>

@@ -249,7 +249,7 @@ textarea.auto-resize {
   }
   
   .script-page-content {
-    padding: 1in 1in 1in 1.5in;
+    padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
   }
   
   /* Ensure proper text formatting in print */
@@ -277,4 +277,63 @@ textarea.auto-resize {
 [contenteditable="true"] {
   direction: ltr;
   unicode-bidi: plaintext;
+}
+
+/* Keyboard shortcut information */
+.keyboard-shortcuts-help {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 1rem;
+  width: 320px;
+  position: absolute;
+  right: 20px;
+  top: 60px;
+  z-index: 100;
+}
+
+.keyboard-shortcuts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.keyboard-shortcuts-table th,
+.keyboard-shortcuts-table td {
+  padding: 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.keyboard-shortcuts-table tr:last-child td {
+  border-bottom: none;
+}
+
+.keyboard-shortcut-key {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 0.15rem 0.35rem;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+/* Screenplay element formatting help */
+.element-format-indicator {
+  position: absolute;
+  left: -24px;
+  top: 2px;
+  font-size: 0.7rem;
+  color: #666;
+  border-radius: 2px;
+  padding: 1px 2px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.element-container:hover .element-format-indicator {
+  opacity: 1;
 }
