@@ -1,211 +1,71 @@
 import { useEffect, useState, useRef } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
-import { useFormat } from '@/lib/formatContext';
-import { shouldAddContd } from '@/lib/characterUtils';
 import TagManager from '../TagManager';
-import ZoomControls from './ZoomControls';
+import { useLockBodyScroll } from '@/hooks/useLockBodyScroll';
+import { BeatMode } from '@/types/scriptTypes';
+import Draggable from 'react-draggable';
 import ScriptContentComponent from './ScriptContent';
-import useScriptElements from '@/hooks/useScriptElements';
-import useFilteredElements from '@/hooks/useFilteredElements';
-import useCharacterNames from '@/hooks/useCharacterNames';
-import useProjectStructures from '@/hooks/useProjectStructures';
-import { toast } from '@/components/ui/use-toast';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-
-type BeatMode = 'on' | 'off';
+import { PanelResizeHandle, Panel, PanelGroup } from 'react-resizable-panels';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ChevronLeftIcon, ChevronRightIcon, ZoomInIcon, ZoomOutIcon } from 'lucide-react';
+import { ActBar } from '@/components/ActBar';
+import ZoomControls from './ZoomControls';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContent;
-  onChange: (content: ScriptContent) => void;
-  notes?: Note[];
-  onNoteCreate?: (note: Note) => void;
-  className?: string;
-  projectName?: string;
-  structureName?: string;
+  content: ScriptContent;
+  onContentChange: (content: ScriptContent) => void;
   projectId?: string;
-  onStructureChange?: (structureId: string) => void;
+  structures?: Structure[];
   selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
 }
 
-const ScriptEditor = ({ 
-  initialContent, 
-  onChange, 
-  notes, 
-  onNoteCreate, 
-  className = '',
-  projectName = "Untitled Project",
-  structureName = "Three Act Structure",
+interface DraggableData {
+  node: HTMLElement;
+  x: number;
+  y: number;
+  deltaX: number;
+  deltaY: number;
+  lastX: number;
+  lastY: number;
+}
+
+const ScriptEditor = ({
+  content,
+  onContentChange,
   projectId,
-  onStructureChange,
-  selectedStructureId: externalSelectedStructureId,
+  structures,
+  selectedStructureId,
+  onStructureChange
 }: ScriptEditorProps) => {
-  const { formatState } = useFormat();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [elements, setElements] = useState<ScriptElement[]>(content.elements);
+  const [activeElementId, setActiveElementId] = useState<string | null>(null);
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
-  const [beatMode, setBeatMode] = useState<BeatMode>('on');
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const scriptContentRef = useRef<HTMLDivElement>(null);
+  const [beatMode, setBeatMode] = useState<BeatMode>('off');
+  const [zoomLevel, setZoomLevel] = useState(1);
 
-  const { 
-    structures = [], 
-    selectedStructureId = null, 
-    selectedStructure = null,
-    handleStructureChange: changeSelectedStructure,
-    updateBeatCompletion,
-    saveBeatCompletion
-  } = useProjectStructures(projectId || '');
+  const panelGroupRef = useRef(null);
+
+  useLockBodyScroll(isTagManagerOpen);
 
   useEffect(() => {
-    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId && changeSelectedStructure) {
-      changeSelectedStructure(externalSelectedStructureId);
-    }
-  }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
+    setElements(content.elements);
+  }, [content]);
 
-  const {
-    elements,
-    setElements,
-    activeElementId,
-    setActiveElementId,
-    handleElementChange,
-    getPreviousElementType,
-    addNewElement,
-    changeElementType
-  } = useScriptElements(initialContent, onChange);
-
-  const characterNames = useCharacterNames(elements);
-  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
-
-  useEffect(() => {
-    if (!elements || elements.length === 0) {
-      console.log("No elements found, creating default elements");
-      const defaultElements: ScriptElement[] = [
-        {
-          id: generateUniqueId(),
-          type: 'scene-heading',
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: generateUniqueId(),
-          type: 'action',
-          text: 'Type your action here...'
-        }
-      ];
-      const newElements: ScriptElement[] = defaultElements;
-      setElements(newElements);
-      setActiveElementId(defaultElements[0].id);
-    }
-  }, [elements, setElements, setActiveElementId]);
-
-  const zoomPercentage = Math.round(formatState.zoomLevel * 100);
-
-  const handleZoomChange = (value: number[]) => {
-    const newZoomLevel = value[0] / 100;
-    const { setZoomLevel } = useFormat();
-    if (setZoomLevel) {
-      setZoomLevel(newZoomLevel);
-    }
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.1, 2));
   };
 
-  const handleFormatChange = (id: string, newType: ElementType) => {
-    changeElementType(id, newType);
-  };
-
-  const handleEnterKey = (id: string, shiftKey: boolean) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    const currentElement = elements[currentIndex];
-    
-    if (shiftKey && currentElement.type === 'dialogue') {
-      const updatedElements: ScriptElement[] = [...elements];
-      updatedElements[currentIndex] = {
-        ...currentElement,
-        text: currentElement.text + '\n'
-      };
-      setElements(updatedElements);
-      return;
-    }
-    
-    let nextType: ElementType;
-    if (currentElement.type === 'scene-heading') {
-      nextType = 'action';
-    } else if (currentElement.type === 'character') {
-      nextType = 'dialogue';
-    } else if (currentElement.type === 'dialogue') {
-      nextType = 'action';
-    } else if (currentElement.type === 'parenthetical') {
-      nextType = 'dialogue';
-    } else if (currentElement.type === 'transition') {
-      nextType = 'scene-heading';
-    } else {
-      nextType = 'action';
-    }
-    
-    const newElement: ScriptElement = {
-      id: generateUniqueId(),
-      type: nextType,
-      text: ''
-    };
-    
-    if (nextType === 'character') {
-      let prevCharIndex = -1;
-      for (let i = currentIndex - 1; i >= 0; i--) {
-        if (elements[i].type === 'character') {
-          prevCharIndex = i;
-          break;
-        }
-      }
-      
-      if (prevCharIndex !== -1) {
-        const charName = elements[prevCharIndex].text.replace(/\s*\(CONT'D\)\s*$/, '');
-        if (shouldAddContd(charName, currentIndex + 1, [...elements, newElement])) {
-          newElement.text = `${charName} (CONT'D)`;
-        } else {
-          newElement.text = charName;
-        }
-      }
-    }
-    
-    const updatedElements: ScriptElement[] = [
-      ...elements.slice(0, currentIndex + 1),
-      newElement,
-      ...elements.slice(currentIndex + 1)
-    ];
-    
-    setElements(updatedElements);
-    setActiveElementId(newElement.id);
-  };
-
-  const handleNavigate = (direction: 'up' | 'down', id: string) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    if (direction === 'up' && currentIndex > 0) {
-      setActiveElementId(elements[currentIndex - 1].id);
-    } else if (direction === 'down' && currentIndex < elements.length - 1) {
-      setActiveElementId(elements[currentIndex + 1].id);
-    }
-  };
-
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
-  };
-
-  const handleTagsChange = (elementId: string, tags: string[]) => {
-    const newElements: ScriptElement[] = elements.map(element =>
-      element.id === elementId ? { ...element, tags } : element
-    );
-    setElements(newElements);
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
   };
 
   const handleFilterByTag = (tag: string | null) => {
-    setActiveTagFilter(tag);
-    if (tag !== null) {
-      setActiveActFilter(null);
-    }
+    setActiveFilter(tag);
   };
 
   const handleFilterByAct = (act: ActType | null) => {
@@ -216,153 +76,223 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
-  const handleStructureChange = (structureId: string) => {
-    if (changeSelectedStructure) {
-      changeSelectedStructure(structureId);
-    }
-    
-    if (onStructureChange) {
-      onStructureChange(structureId);
+  const handleElementChange = (id: string, text: string, type: string) => {
+    const updatedElements = elements.map(element =>
+      element.id === id ? { ...element, text, type } : element
+    );
+    setElements(updatedElements);
+
+    const newContent: ScriptContent = {
+      ...content,
+      elements: updatedElements
+    };
+    onContentChange(newContent);
+  };
+
+  const handleElementFocus = () => {
+    setIsTagManagerOpen(false);
+  };
+
+  const handleElementNavigate = (direction: 'up' | 'down', id: string) => {
+    const currentIndex = elements.findIndex(element => element.id === id);
+
+    if (direction === 'up' && currentIndex > 0) {
+      setActiveElementId(elements[currentIndex - 1].id);
+    } else if (direction === 'down' && currentIndex < elements.length - 1) {
+      setActiveElementId(elements[currentIndex + 1].id);
     }
   };
 
-  const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
-    if (!selectedStructure || !selectedStructureId) return;
-    
-    const newElements: ScriptElement[] = elements.map(element =>
+  const handleElementEnterKey = (id: string, shiftKey: boolean) => {
+    const currentIndex = elements.findIndex(element => element.id === id);
+
+    if (shiftKey) {
+      handleCreateNewElement(currentIndex, 'action');
+    } else {
+      const currentType = elements[currentIndex].type;
+      let nextType: ElementType = 'action';
+
+      switch (currentType) {
+        case 'scene-heading':
+          nextType = 'action';
+          break;
+        case 'action':
+          nextType = 'character';
+          break;
+        case 'character':
+          nextType = 'dialogue';
+          break;
+        case 'dialogue':
+          nextType = 'action';
+          break;
+        case 'parenthetical':
+          nextType = 'dialogue';
+          break;
+        case 'transition':
+          nextType = 'scene-heading';
+          break;
+        default:
+          nextType = 'action';
+      }
+
+      handleCreateNewElement(currentIndex, nextType, currentType);
+    }
+  };
+
+  const handleFormatChange = (id: string, newType: string) => {
+    const updatedElements = elements.map(element =>
+      element.id === id ? { ...element, type: newType } : element
+    );
+    setElements(updatedElements);
+
+    const newContent: ScriptContent = {
+      ...content,
+      elements: updatedElements
+    };
+    onContentChange(newContent);
+  };
+
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    const updatedElements = elements.map(element =>
+      element.id === elementId ? { ...element, tags: tags } : element
+    );
+    setElements(updatedElements);
+
+    const newContent: ScriptContent = {
+      ...content,
+      elements: updatedElements
+    };
+    onContentChange(newContent);
+  };
+
+  const handleBeatTag = (elementId: string, beatId: string, actId: string) => {
+    const updatedElements = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
-    setElements(newElements);
-    
-    if (updateBeatCompletion && saveBeatCompletion) {
-      const updatedStructure = updateBeatCompletion(beatId, actId, true);
-      if (updatedStructure) {
-        const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
-        if (success) {
-          toast({
-            title: "Beat tagged",
-            description: "The scene has been tagged and structure progress updated.",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: "Failed to update the structure progress.",
-            variant: "destructive",
-          });
-        }
-      }
-    }
+    setElements(updatedElements);
+
+    const newContent: ScriptContent = {
+      ...content,
+      elements: updatedElements
+    };
+    onContentChange(newContent);
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        e.preventDefault();
-        setShowKeyboardShortcuts(prev => !prev);
+  const handleCreateNewElement = (currentIndex: number, nextType: ElementType, prevElementType?: string) => {
+    const uniqueId = generateUniqueId();
+    const newElement: ScriptElement = {
+      id: uniqueId,
+      type: nextType,
+      text: ''
+    };
+
+    // Use strict equality for string literal type comparison
+    if (nextType === 'character') {
+      let prevCharIndex = -1;
+      for (let i = currentIndex - 1; i >= 0; i--) {
+        if (elements[i].type === 'character') {
+          prevCharIndex = i;
+          break;
+        }
       }
+
+      if (prevCharIndex !== -1 && elements[prevCharIndex].text) {
+        newElement.text = elements[prevCharIndex].text;
+      }
+    }
+
+    const updatedElements = [
+      ...elements.slice(0, currentIndex + 1),
+      newElement,
+      ...elements.slice(currentIndex + 1)
+    ];
+
+    setElements(updatedElements);
+
+    const newContent: ScriptContent = {
+      ...content,
+      elements: updatedElements
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+
+    onContentChange(newContent);
+
+    // Set active element to the newly created element
+    setTimeout(() => {
+      setActiveElementId(uniqueId);
+    }, 0);
+  };
+
+  const characterNames = Array.from(new Set(elements
+    .filter(element => element.type === 'character')
+    .map(element => element.text)
+    .filter(text => text.trim() !== '')));
+
+  const selectedStructure = structures?.find(structure => structure.id === selectedStructureId) || null;
 
   return (
-    <div className={`flex flex-col w-full h-full relative ${className}`}>
-      <TagManager 
-        scriptContent={{ elements }} 
-        onFilterByTag={handleFilterByTag}
-        onFilterByAct={handleFilterByAct}
-        activeFilter={activeTagFilter}
-        activeActFilter={activeActFilter}
-        projectName={projectName}
-        structureName={structureName}
-        beatMode={beatMode}
-        onToggleBeatMode={handleToggleBeatMode}
-        structures={structures}
-        selectedStructureId={selectedStructureId || undefined}
-        onStructureChange={handleStructureChange}
-      />
-      
-      {showKeyboardShortcuts && (
-        <div className="keyboard-shortcuts-help">
-          <h3 className="text-lg font-medium mb-2">Keyboard Shortcuts</h3>
-          <table className="keyboard-shortcuts-table">
-            <tbody>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘1</span></td>
-                <td>Scene Heading</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘2</span></td>
-                <td>Action</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘3</span></td>
-                <td>Character</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘4</span></td>
-                <td>Dialogue</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘5</span></td>
-                <td>Parenthetical</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘6</span></td>
-                <td>Transition</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">Tab</span></td>
-                <td>Cycle element type</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">Enter</span></td>
-                <td>New element</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⇧Enter</span></td>
-                <td>New line in dialogue</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘E</span></td>
-                <td>Export PDF</td>
-              </tr>
-              <tr>
-                <td><span className="keyboard-shortcut-key">⌘/</span></td>
-                <td>Show/hide this help</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-      
-      <div ref={scriptContentRef} className="script-content-wrapper">
-        <ScriptContentComponent
-          filteredElements={filteredElements}
-          activeElementId={activeElementId}
-          currentPage={currentPage}
-          getPreviousElementType={getPreviousElementType}
-          handleElementChange={handleElementChange}
-          handleFocus={handleFocus}
-          handleNavigate={handleNavigate}
-          handleEnterKey={handleEnterKey}
-          handleFormatChange={handleFormatChange}
-          handleTagsChange={handleTagsChange}
-          characterNames={characterNames}
-          projectId={projectId}
-          beatMode={beatMode}
-          selectedStructure={selectedStructure}
-          onBeatTag={handleBeatTag}
-        />
-      </div>
-      
-      <ZoomControls 
-        zoomPercentage={zoomPercentage}
-        onZoomChange={handleZoomChange}
-      />
+    <div className="flex h-full">
+      <PanelGroup direction="horizontal" className="flex-grow">
+        <Panel minSize={20} defaultSize={70}>
+          <div className="h-full flex flex-col">
+            <div className="flex items-center justify-between p-2 bg-gray-100 border-b">
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="icon" onClick={handleZoomIn}>
+                  <ZoomInIcon className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" onClick={handleZoomOut}>
+                  <ZoomOutIcon className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsTagManagerOpen(true)}
+                >
+                  Tags
+                </Button>
+              </div>
+            </div>
+            <div
+              className="flex-grow overflow-y-auto p-4"
+              style={{ zoom: zoomLevel }}
+            >
+              <ScriptContentComponent
+                elements={elements}
+                activeElementId={activeElementId}
+                characterNames={characterNames}
+                projectId={projectId}
+                beatMode={beatMode}
+                selectedStructure={selectedStructure}
+                onElementChange={handleElementChange}
+                onElementFocus={handleElementFocus}
+                onElementNavigate={handleElementNavigate}
+                onElementEnterKey={handleElementEnterKey}
+                onFormatChange={handleFormatChange}
+                onTagsChange={handleTagsChange}
+                onBeatTag={handleBeatTag}
+              />
+            </div>
+          </div>
+        </Panel>
+        <PanelResizeHandle className="bg-gray-200 hover:bg-gray-300" />
+        <Panel defaultSize={30} minSize={20}>
+          {isTagManagerOpen && (
+            <TagManager
+              scriptContent={content}
+              onFilterByTag={handleFilterByTag}
+              onFilterByAct={handleFilterByAct}
+              activeFilter={activeFilter}
+              activeActFilter={activeActFilter}
+              projectName={content.title}
+              beatMode={beatMode}
+              onToggleBeatMode={handleToggleBeatMode}
+              structures={structures}
+              selectedStructureId={selectedStructureId}
+              onStructureChange={onStructureChange}
+            />
+          )}
+        </Panel>
+      </PanelGroup>
     </div>
   );
 };
