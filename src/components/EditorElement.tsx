@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -294,7 +293,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         className={`
           element-text 
           ${renderStyle(element.type, previousElementType)}
-          ${isActive ? 'active' : ''}
+          ${isActive ? 'active-element' : ''}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
