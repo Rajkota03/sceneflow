@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,7 +69,7 @@
   }
 }
 
-/* Screenplay formatting styles */
+/* Screenplay formatting styles - Based on Final Draft industry standards */
 .script-page {
   width: 8.5in;
   height: 11in;
@@ -76,7 +77,7 @@
   margin: 0 auto;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt;
-  line-height: 1;
+  line-height: 1.2;
   color: #000;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -86,7 +87,7 @@
 }
 
 .script-page-content {
-  padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left */
+  padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left - standard screenplay margins */
   height: 100%;
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
@@ -95,7 +96,7 @@
   unicode-bidi: plaintext;
 }
 
-/* Element-specific formatting */
+/* Element-specific formatting - Following Final Draft standards */
 .scene-heading {
   text-transform: uppercase;
   font-weight: bold;
@@ -120,6 +121,7 @@
   width: 30%;
   margin: 1em auto 0.1em;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-weight: bold;
 }
 
 .dialogue {
@@ -136,6 +138,7 @@
   text-align: left;
   padding-left: 1.5em;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-style: italic;
 }
 
 .transition {
@@ -144,6 +147,7 @@
   margin: 1em 0;
   width: 100%;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-weight: bold;
 }
 
 .element-container {
@@ -151,6 +155,7 @@
   width: 100%;
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  margin-bottom: 0.25em;
 }
 
 /* Remove all scrollbars from editor elements */
@@ -178,7 +183,7 @@ textarea.auto-resize {
   padding: 0;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
-  line-height: 1 !important;
+  line-height: 1.2 !important;
 }
 
 /* Make sure all textareas use the correct font */
@@ -222,7 +227,7 @@ textarea.auto-resize {
   background-color: rgba(59, 130, 246, 0.05);
 }
 
-/* Final Draft specific page numbering */
+/* Final Draft specific page numbering - Standard screenplay format */
 .page-number {
   position: absolute;
   top: 0.5in;
@@ -232,7 +237,7 @@ textarea.auto-resize {
   color: #666;
 }
 
-/* Print-specific styles */
+/* Print-specific styles - To ensure proper printing/PDF export */
 @media print {
   .script-page {
     box-shadow: none;
@@ -251,7 +256,20 @@ textarea.auto-resize {
   .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
     font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
     font-size: 12pt !important;
-    line-height: 1 !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Hide editing UI elements in print */
+  .character-suggestions, .element-menu, button, .zoom-control {
+    display: none !important;
+  }
+  
+  /* Page break handling */
+  .page-break {
+    page-break-after: always;
+    height: 0;
+    margin: 0;
+    padding: 0;
   }
 }
 

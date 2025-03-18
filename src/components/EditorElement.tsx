@@ -6,7 +6,6 @@ import { detectCharacter } from '@/lib/characterUtils';
 import SceneTags from './SceneTags';
 import { BeatMode } from '@/types/scriptTypes';
 import { formatType } from '@/lib/formatScript';
-import { Tag } from 'lucide-react';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -28,21 +27,73 @@ interface EditorElementProps {
 const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   switch (type) {
     case 'scene-heading':
-      return 'font-bold uppercase tracking-wider my-2';
+      return 'font-bold uppercase tracking-wider mb-4';
     case 'action':
-      return 'my-1';
+      return 'mb-4';
     case 'character':
-      return 'text-center font-bold my-1';
+      return 'text-center font-bold mb-1 mx-auto';
     case 'dialogue':
-      return 'my-1';
+      return 'mb-4 mx-auto';
     case 'parenthetical':
-      return 'text-center italic text-sm text-gray-600 my-1';
+      return 'text-center italic mb-1 mx-auto';
     case 'transition':
-      return 'text-right font-bold uppercase tracking-wider my-2';
+      return 'text-right font-bold uppercase tracking-wider mb-4';
     case 'note':
-      return 'text-sm italic text-gray-500 my-1';
+      return 'text-sm italic text-gray-500 mb-2';
     default:
-      return 'my-1';
+      return 'mb-4';
+  }
+};
+
+// Define element-specific CSS based on Final Draft standards
+const getElementStyles = (type: ElementType): React.CSSProperties => {
+  switch (type) {
+    case 'scene-heading':
+      return {
+        width: '100%',
+        textTransform: 'uppercase',
+        fontWeight: 'bold'
+      };
+    case 'action':
+      return {
+        width: '100%'
+      };
+    case 'character':
+      return {
+        width: '30%', // Centered with specific width
+        textTransform: 'uppercase',
+        fontWeight: 'bold',
+        marginLeft: 'auto',
+        marginRight: 'auto'
+      };
+    case 'dialogue':
+      return {
+        width: '65%', // Standard dialogue width
+        marginLeft: 'auto',
+        marginRight: 'auto'
+      };
+    case 'parenthetical':
+      return {
+        width: '40%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        fontStyle: 'italic'
+      };
+    case 'transition':
+      return {
+        width: '100%',
+        textAlign: 'right',
+        textTransform: 'uppercase',
+        fontWeight: 'bold'
+      };
+    case 'note':
+      return {
+        width: '100%',
+        fontStyle: 'italic',
+        color: '#666'
+      };
+    default:
+      return { width: '100%' };
   }
 };
 
@@ -84,6 +135,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       range.collapse(true);
       sel?.removeAllRanges();
       sel?.addRange(range);
+      editorRef.current.focus();
     }
   }, [element.text, isActive]);
 
@@ -169,8 +221,14 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setShowElementMenu(false);
   };
 
+  // Get appropriate styles for this element type
+  const elementStyles = getElementStyles(element.type);
+
   return (
-    <div className={`editor-element ${element.type} ${isActive ? 'active' : ''} relative group`} onContextMenu={handleRightClick}>
+    <div 
+      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
+      onContextMenu={handleRightClick}
+    >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -203,7 +261,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           wordBreak: 'break-word',
           direction: 'ltr',
           unicodeBidi: 'plaintext',
-          fontFamily: '"Courier Final Draft", "Courier Prime", monospace'
+          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+          ...elementStyles
         }}
         dir="ltr"
       >
@@ -233,7 +292,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           )}
           
           {showElementMenu && (
-            <div className="absolute top-full left-0 w-40 bg-white border border-gray-300 shadow-md rounded-md z-50">
+            <div className="absolute top-full left-0 w-48 bg-white border border-gray-300 shadow-md rounded-md z-50">
               {['scene-heading', 'action', 'character', 'dialogue', 'parenthetical', 'transition'].map((type) => (
                 <div 
                   key={type}

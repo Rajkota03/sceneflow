@@ -43,7 +43,6 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     direction: 'ltr',
     unicodeBidi: 'plaintext',
     padding: forPrint || forExport ? '0' : '1in',
-    backgroundColor: 'white',
     boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
   };
 

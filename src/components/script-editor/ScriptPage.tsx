@@ -47,21 +47,27 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
       fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-      padding: '1in',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)', 
       width: '8.5in',
       minHeight: '11in',
       margin: '0 auto',
-      position: 'relative'
+      position: 'relative',
+      backgroundColor: 'white',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      border: '1px solid #ddd'
     }}>
       <div className="script-page-content" style={{
         fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
         fontSize: '12pt',
-        position: 'relative'
+        position: 'relative',
+        padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
+        boxSizing: 'border-box',
+        height: '100%',
+        lineHeight: '1.2',
+        direction: 'ltr',
+        unicodeBidi: 'plaintext'
       }}>
         {/* Page number positioned inside the page */}
-        <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
+        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           fontSize: "12pt",
         }}>
