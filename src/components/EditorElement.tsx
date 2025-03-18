@@ -269,8 +269,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setShowElementMenu(false);
   };
 
-  const elementStyles = getElementStyles(element.type);
-
   return (
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
@@ -309,7 +307,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          ...elementStyles
+          ...getElementStyles(element.type)
         }}
         dir="ltr"
       >
@@ -329,8 +327,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
           {element.type === 'scene-heading' && beatMode === 'on' && (
             <div className="absolute right-0 top-0">
               <SceneTags 
-                element={element} 
-                onTagsChange={onTagsChange} 
+                elementId={element.id}
+                tags={element.tags}
+                onTagsChange={onTagsChange}
                 projectId={projectId}
                 selectedStructure={selectedStructure}
                 onBeatTag={onBeatTag}

@@ -9,7 +9,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { BeatMode } from '@/types/scriptTypes';
 
 interface ActCountsRecord {
-  [key in ActType]: number;
+  [key: string]: number;
 }
 
 // Map structure types to their respective act types

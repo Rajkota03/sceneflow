@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Act, Beat } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -90,7 +89,7 @@ const BeatItem: React.FC<BeatItemProps> = ({
       className={cn(
         "p-4 border-l-4 rounded-md mb-3 bg-white shadow-sm transition-all hover:shadow-md group",
         getBorderColor(),
-        beat.complete ? "opacity-85 bg-gray-50" : "opacity-100",
+        beat.completed ? "opacity-85 bg-gray-50" : "opacity-100",
         isMidpoint ? "border-l-[6px] font-medium" : ""
       )}
     >
@@ -107,7 +106,7 @@ const BeatItem: React.FC<BeatItemProps> = ({
           )}
           <Milestone className={cn(
             "h-4 w-4 flex-shrink-0",
-            beat.complete ? "text-green-500" : "text-gray-400"
+            beat.completed ? "text-green-500" : "text-gray-400"
           )} />
           
           {isEditing && editingTitle ? (
@@ -170,16 +169,16 @@ const BeatItem: React.FC<BeatItemProps> = ({
                       variant="ghost"
                       size="sm"
                       className="h-6 w-6 p-0"
-                      onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.complete)}
+                      onClick={() => onBeatToggleComplete(act.id, beat.id, !beat.completed)}
                     >
                       <Check className={cn(
                         "h-4 w-4",
-                        beat.complete ? "text-green-500" : "text-gray-300"
+                        beat.completed ? "text-green-500" : "text-gray-300"
                       )} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">Mark as {beat.complete ? "incomplete" : "complete"}</p>
+                    <p className="text-xs">Mark as {beat.completed ? "incomplete" : "complete"}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

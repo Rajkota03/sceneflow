@@ -40,3 +40,16 @@ export interface ScriptElementProps {
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
+
+export interface SceneTagsProps {
+  elementId: string;
+  tags?: string[];
+  onTagsChange: (elementId: string, tags: string[]) => void;
+  projectId?: string;
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+}
+
+export interface TagInputProps {
+  onTagSubmit: (tag: string) => void;
+}
