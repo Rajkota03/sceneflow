@@ -70,7 +70,12 @@ const ActBar: React.FC<ActBarProps> = ({
   
   const handleStructureChange = (value: string) => {
     if (onStructureChange) {
+      console.log("ActBar: Structure changed to:", value);
       onStructureChange(value);
+      toast({
+        title: "Structure Changed",
+        description: "The story structure has been updated."
+      });
     } else {
       toast({
         title: "Structure Selection",

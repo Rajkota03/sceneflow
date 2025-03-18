@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
+
+import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
@@ -86,7 +87,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     saveBeatCompletion
   } = useProjectStructures(projectId);
 
-  React.useEffect(() => {
+  // Use effect to sync external structure ID with internal state
+  useEffect(() => {
     if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
       changeSelectedStructure(externalSelectedStructureId);
     }
@@ -106,7 +108,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const characterNames = useCharacterNames(elements);
   const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
 
-  React.useEffect(() => {
+  // Handle PDF import
+  useEffect(() => {
     const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
       if (event.detail && Array.isArray(event.detail.elements)) {
         const importedElements = event.detail.elements;
@@ -171,6 +174,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   };
 
   const handleStructureChange = (structureId: string) => {
+    console.log("Structure changing to:", structureId);
     changeSelectedStructure(structureId);
     if (onStructureChange) {
       onStructureChange(structureId);
