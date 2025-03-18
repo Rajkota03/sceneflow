@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
@@ -6,8 +5,7 @@ import { Pencil } from 'lucide-react';
 import ScriptEditor from '../script-editor/ScriptEditor';
 import TitlePageView from '@/components/TitlePageView';
 import NoteWindow from '@/components/notes/NoteWindow';
-import { Note, ScriptContent } from '@/lib/types';
-import { TitlePageData } from '@/components/TitlePageEditor';
+import { Note, ScriptContent, TitlePageData } from '@/lib/types';
 
 interface EditorMainAreaProps {
   showTitlePage: boolean;

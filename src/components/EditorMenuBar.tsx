@@ -11,7 +11,7 @@ import ProductionMenu from '@/components/menus/ProductionMenu';
 import HelpMenu from '@/components/menus/HelpMenu';
 import InsertMenu from '@/components/menus/InsertMenu';
 import NotesMenu from '@/components/menus/NotesMenu';
-import { TitlePageData } from './TitlePageEditor';
+import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
 import { Note } from '@/lib/types';
 
 interface EditorMenuBarProps {

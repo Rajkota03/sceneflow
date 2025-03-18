@@ -129,11 +129,13 @@ export interface Project {
   author_id?: string;
 }
 
+// Update TitlePageData to match the one in TitlePageEditor.tsx
 export interface TitlePageData {
   title: string;
   author: string;
-  contact: string;
+  contact?: string;
   basedOn?: string;
+  [key: string]: string | undefined; // Add index signature for Json compatibility
 }
 
 // Helper functions for converting between formats

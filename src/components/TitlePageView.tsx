@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TitlePageData } from './TitlePageEditor';
+import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
 import FormatStyler from './FormatStyler';
 
 interface TitlePageViewProps {

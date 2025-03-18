@@ -13,6 +13,7 @@ import { useEditorState } from '@/components/editor/useEditorState';
 import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
+import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -84,7 +85,7 @@ const Editor = () => {
             onSave={() => handleSave()} 
             onSaveAs={handleSaveAs} 
             onTitlePage={() => toggleTitlePage()}
-            onEditTitlePage={(data) => handleTitlePageUpdate(data)}
+            onEditTitlePage={handleTitlePageUpdate}
             titlePageData={titlePageData}
             showTitlePage={showTitlePage}
             onToggleTitlePage={toggleTitlePage}
