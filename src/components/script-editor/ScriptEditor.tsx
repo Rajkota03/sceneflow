@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useRef } from 'react';
-import { ScriptContent as ScriptContentType, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
+import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
 import { shouldAddContd } from '@/lib/characterUtils';
@@ -18,8 +18,8 @@ import html2canvas from 'html2canvas';
 type BeatMode = 'on' | 'off';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContentType;
-  onChange: (content: ScriptContentType) => void;
+  initialContent: ScriptContent;
+  onChange: (content: ScriptContent) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
@@ -306,22 +306,36 @@ const ScriptEditor = ({
     };
   }, []);
 
+  // Add error handling to prevent white screen
+  if (!structures) {
+    console.error("No structures available");
+  }
+
+  if (selectedStructure) {
+    console.log("Selected structure:", selectedStructure);
+  } else {
+    console.log("No structure selected");
+  }
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <TagManager 
-        scriptContent={{ elements }} 
-        onFilterByTag={handleFilterByTag}
-        onFilterByAct={handleFilterByAct}
-        activeFilter={activeTagFilter}
-        activeActFilter={activeActFilter}
-        projectName={projectName}
-        structureName={structureName}
-        beatMode={beatMode}
-        onToggleBeatMode={handleToggleBeatMode}
-        structures={structures}
-        selectedStructureId={selectedStructureId || undefined}
-        onStructureChange={handleStructureChange}
-      />
+      {/* Add error boundary for TagManager */}
+      <div className="tag-manager-container">
+        <TagManager 
+          scriptContent={{ elements }} 
+          onFilterByTag={handleFilterByTag}
+          onFilterByAct={handleFilterByAct}
+          activeFilter={activeTagFilter}
+          activeActFilter={activeActFilter}
+          projectName={projectName}
+          structureName={structureName}
+          beatMode={beatMode}
+          onToggleBeatMode={handleToggleBeatMode}
+          structures={structures || []}
+          selectedStructureId={selectedStructureId || undefined}
+          onStructureChange={handleStructureChange}
+        />
+      </div>
       
       {/* Keyboard Shortcuts Help Panel */}
       {showKeyboardShortcuts && (

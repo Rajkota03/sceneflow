@@ -1,9 +1,14 @@
 
-import React, { useState } from 'react';
-import { MoreHorizontal, Tag, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScriptElement, Structure } from '@/lib/types';
-import { PopoverTrigger, PopoverContent, Popover } from './ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from './ui/command';
+import { Button } from '@/components/ui/button';
+import { CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, Command } from '@/components/ui/command';
+import { Check, ChevronDown, Pencil, Plus, Tag } from 'lucide-react';
+import TagInput from './TagInput';
+import SceneTag from './SceneTag';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/use-toast';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -15,206 +20,161 @@ interface SceneTagsProps {
 
 const SceneTags: React.FC<SceneTagsProps> = ({ 
   element, 
-  onTagsChange,
-  projectId,
+  onTagsChange, 
+  projectId, 
   selectedStructure,
   onBeatTag
 }) => {
-  const [open, setOpen] = useState(false);
-  const [customTag, setCustomTag] = useState('');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedBeats, setSelectedBeats] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>(element.tags || []);
   
-  const handleAddTag = (tag: string) => {
-    const updatedTags = [...(element.tags || [])];
-    if (!updatedTags.includes(tag)) {
-      updatedTags.push(tag);
-      onTagsChange(element.id, updatedTags);
+  useEffect(() => {
+    setTags(element.tags || []);
+  }, [element.tags]);
+  
+  const handleTagBeats = (beatId: string, actId: string, beatTitle: string, actTitle: string) => {
+    if (!selectedStructure) {
+      toast({
+        title: "No structure selected",
+        description: "Please select a story structure first",
+        variant: "destructive",
+      });
+      return;
     }
-    setOpen(false);
-  };
-  
-  const handleRemoveTag = (tag: string) => {
-    const updatedTags = (element.tags || []).filter(t => t !== tag);
-    onTagsChange(element.id, updatedTags);
-  };
-  
-  const handleAddCustomTag = () => {
-    if (customTag.trim()) {
-      handleAddTag(customTag.trim());
-      setCustomTag('');
-    }
-  };
-  
-  const handleTagBeat = (beatId: string, actId: string, beatTitle: string, actTitle: string) => {
-    // Create a formatted tag like "Act 1: Inciting Incident"
+    
+    // Create the tag with format: "Act X: Beat Name"
     const tagText = `${actTitle}: ${beatTitle}`;
     
-    // Add the tag to the element
-    const updatedTags = [...(element.tags || [])];
+    // Check if tag already exists
+    if (tags.includes(tagText)) {
+      toast({
+        title: "Beat already tagged",
+        description: `This scene is already tagged with "${tagText}"`,
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // Remove any existing tags from the same act
-    const filteredTags = updatedTags.filter(tag => !tag.startsWith(`${actTitle}:`));
+    // Add new tag
+    const newTags = [...tags, tagText];
+    setTags(newTags);
+    onTagsChange(element.id, newTags);
     
-    // Add the new tag
-    filteredTags.push(tagText);
-    onTagsChange(element.id, filteredTags);
-    
-    // Mark the beat as complete in the structure
+    // Call the onBeatTag handler if provided
     if (onBeatTag) {
       onBeatTag(element.id, beatId, actId);
     }
     
-    setMenuOpen(false);
+    setIsOpen(false);
   };
   
-  // Style function for tag colors based on content
-  const getTagStyle = (tag: string) => {
-    // Three Act Structure
-    if (tag.startsWith('Act 1:')) {
-      return "bg-[#D3E4FD] text-[#2171D2]";
-    } else if (tag.startsWith('Act 2A:')) {
-      return "bg-[#FEF7CD] text-[#D28A21]";
-    } else if (tag.startsWith('Midpoint:')) {
-      return "bg-[#FFCCCB] text-[#D24E4D]";
-    } else if (tag.startsWith('Act 2B:')) {
-      return "bg-[#FDE1D3] text-[#D26600]";
-    } else if (tag.startsWith('Act 3:')) {
-      return "bg-[#F2FCE2] text-[#007F73]";
+  const handleAddTag = (tag: string) => {
+    if (tag && !tags.includes(tag)) {
+      const newTags = [...tags, tag];
+      setTags(newTags);
+      onTagsChange(element.id, newTags);
     }
-    
-    // Save The Cat
-    else if (tag.startsWith('Opening Image:') || tag.startsWith('Setup:')) {
-      return "bg-[#D3E4FD] text-[#2171D2]";
-    } else if (tag.startsWith('Catalyst:') || tag.startsWith('Debate:') || tag.startsWith('Break Into 2:')) {
-      return "bg-[#E6F7FF] text-[#0066CC]";
-    } else if (tag.startsWith('B Story:') || tag.startsWith('Fun & Games:')) {
-      return "bg-[#FEF7CD] text-[#D28A21]";
-    } else if (tag.startsWith('Bad Guys Close In:') || tag.startsWith('All Is Lost:') || tag.startsWith('Dark Night of Soul:')) {
-      return "bg-[#FDE1D3] text-[#D26600]";
-    } else if (tag.startsWith('Break Into 3:') || tag.startsWith('Finale:')) {
-      return "bg-[#F2FCE2] text-[#007F73]";
-    }
-    
-    // Hero's Journey
-    else if (tag.startsWith('Ordinary World:') || tag.startsWith('Call to Adventure:') || tag.startsWith('Refusal:')) {
-      return "bg-[#D3E4FD] text-[#2171D2]";
-    } else if (tag.startsWith('Mentor:') || tag.startsWith('Crossing Threshold:')) {
-      return "bg-[#E6F7FF] text-[#0066CC]";
-    } else if (tag.startsWith('Tests, Allies, Enemies:') || tag.startsWith('Approach:')) {
-      return "bg-[#FEF7CD] text-[#D28A21]";
-    } else if (tag.startsWith('Ordeal:') || tag.startsWith('Reward:')) {
-      return "bg-[#FFCCCB] text-[#D24E4D]";
-    } else if (tag.startsWith('Road Back:') || tag.startsWith('Resurrection:')) {
-      return "bg-[#FDE1D3] text-[#D26600]";
-    } else if (tag.startsWith('Return:')) {
-      return "bg-[#F2FCE2] text-[#007F73]";
-    }
-    
-    // Story Circle
-    else if (tag.startsWith('You:') || tag.startsWith('Need:')) {
-      return "bg-[#D3E4FD] text-[#2171D2]";
-    } else if (tag.startsWith('Go:') || tag.startsWith('Search:')) {
-      return "bg-[#FEF7CD] text-[#D28A21]";
-    } else if (tag.startsWith('Find:') || tag.startsWith('Take:')) {
-      return "bg-[#FDE1D3] text-[#D26600]";
-    } else if (tag.startsWith('Return:') || tag.startsWith('Change:')) {
-      return "bg-[#F2FCE2] text-[#007F73]";
-    }
-    
-    // Default for custom tags
-    return "bg-gray-100 text-gray-700";
   };
+  
+  const handleRemoveTag = (tag: string) => {
+    const newTags = tags.filter(t => t !== tag);
+    setTags(newTags);
+    onTagsChange(element.id, newTags);
+  };
+  
+  // Function to safely get the acts array or return an empty array
+  const getStructureActs = () => {
+    try {
+      if (!selectedStructure) return [];
+      return selectedStructure.acts || [];
+    } catch (error) {
+      console.error("Error accessing structure acts:", error);
+      return [];
+    }
+  };
+  
+  const structureActs = getStructureActs();
 
   return (
-    <div className="scene-tags-container flex items-center gap-1">
-      {element.tags && element.tags.map((tag, index) => (
-        <div 
-          key={index} 
-          className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${getTagStyle(tag)}`}
-        >
-          <span className="truncate max-w-[100px]">{tag}</span>
-          <button 
-            onClick={() => handleRemoveTag(tag)} 
-            className="hover:bg-white hover:bg-opacity-20 rounded-full p-0.5"
-          >
-            <X size={10} />
-          </button>
-        </div>
+    <div className="flex flex-wrap gap-1">
+      {tags.map((tag, index) => (
+        <SceneTag 
+          key={`${tag}-${index}`} 
+          tag={tag} 
+          onRemove={() => handleRemoveTag(tag)} 
+        />
       ))}
       
-      {selectedStructure ? (
-        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-          <PopoverTrigger asChild>
-            <button className="p-1 rounded-full hover:bg-gray-100">
-              <Tag size={16} className="text-gray-500" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-0" side="bottom" align="start">
-            <Command>
-              <CommandInput placeholder="Search beat..." />
-              <CommandList>
-                <CommandEmpty>No beats found.</CommandEmpty>
-                {selectedStructure.acts.map((act) => (
-                  <CommandGroup key={act.id} heading={act.title}>
-                    {act.beats.map((beat) => (
-                      <CommandItem 
-                        key={beat.id}
-                        onSelect={() => handleTagBeat(beat.id, act.id, beat.title, act.title)}
-                        className="cursor-pointer"
-                      >
-                        <span>{beat.title}</span>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                ))}
-              </CommandList>
-            </Command>
-          </PopoverContent>
-        </Popover>
-      ) : (
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <button className="p-1 rounded-full hover:bg-gray-100">
-              <Tag size={16} className="text-gray-500" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[300px] p-3" side="bottom" align="start">
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Add Tag</h3>
-              <div className="flex">
-                <input 
-                  type="text" 
-                  value={customTag}
-                  onChange={(e) => setCustomTag(e.target.value)}
-                  className="flex-1 p-2 text-sm border rounded-l-md focus:outline-none"
-                  placeholder="Enter custom tag"
-                  onKeyDown={(e) => e.key === 'Enter' && handleAddCustomTag()}
-                />
-                <button 
-                  onClick={handleAddCustomTag}
-                  className="px-3 py-2 text-sm bg-blue-500 text-white rounded-r-md hover:bg-blue-600"
-                >
-                  Add
-                </button>
-              </div>
-              <div className="mt-2">
-                <h4 className="text-xs text-gray-500 mb-1">Common Tags</h4>
-                <div className="flex flex-wrap gap-1">
-                  {['Character', 'Location', 'Plot Point', 'Subplot'].map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => handleAddTag(tag)}
-                      className="text-xs px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
-                    >
-                      {tag}
-                    </button>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button 
+            variant="outline" 
+            className="h-6 px-2 rounded-full text-xs bg-white" 
+            onClick={() => setIsOpen(true)}
+          >
+            <Plus size={12} className="mr-1" />
+            Add Tag
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="p-0 w-72" align="end">
+          <Command>
+            <CommandInput 
+              placeholder="Search beats or type a custom tag" 
+              value={searchValue}
+              onValueChange={setSearchValue}
+            />
+            <CommandList className="max-h-[300px]">
+              <CommandEmpty>No results found.</CommandEmpty>
+              
+              {/* Story Structure Beats */}
+              {selectedStructure && Array.isArray(structureActs) && structureActs.length > 0 ? (
+                <div className="border-b border-gray-200 pb-2">
+                  <div className="px-3 py-2 text-xs font-semibold text-gray-500">
+                    Story Beats from {selectedStructure.name}
+                  </div>
+                  
+                  {structureActs.map(act => (
+                    <CommandGroup key={act.id} heading={act.title}>
+                      {Array.isArray(act.beats) && act.beats.map(beat => (
+                        <CommandItem 
+                          key={beat.id}
+                          onSelect={() => handleTagBeats(beat.id, act.id, beat.title, act.title)}
+                          className="cursor-pointer"
+                        >
+                          <span>{beat.title}</span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
                   ))}
                 </div>
+              ) : (
+                <div className="px-3 py-6 text-center text-sm text-gray-500">
+                  <Tag className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p>No story structure selected.</p>
+                  <p className="mt-1 text-xs">
+                    Select a story structure from the dropdown above to tag scenes with beats.
+                  </p>
+                </div>
+              )}
+              
+              {/* Custom Tag Input */}
+              <div className="p-3 border-t border-gray-200">
+                <TagInput 
+                  value={searchValue} 
+                  onChange={setSearchValue} 
+                  onSubmit={(tag) => {
+                    handleAddTag(tag);
+                    setSearchValue('');
+                    setIsOpen(false);
+                  }}
+                />
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      )}
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };

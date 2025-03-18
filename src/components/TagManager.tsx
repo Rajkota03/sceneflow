@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActType, Structure, StructureType } from '@/lib/types';
+import { ActType, Structure } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
@@ -23,11 +23,11 @@ const TagManager: React.FC<TagManagerProps> = ({
   const { availableTags, actCounts } = useActCounts(scriptContent);
   
   // Determine the structure type based on the selected structure
-  const getStructureType = (): StructureType => {
+  const getStructureType = (): string => {
     if (!selectedStructureId || !structures.length) return 'three_act';
     
     const selectedStructure = structures.find(s => s.id === selectedStructureId);
-    return (selectedStructure?.structure_type as StructureType) || 'three_act';
+    return (selectedStructure?.structure_type || 'three_act');
   };
   
   const structureType = getStructureType();
@@ -41,6 +41,12 @@ const TagManager: React.FC<TagManagerProps> = ({
       }
     }
   };
+
+  // Handle error cases
+  if (!scriptContent || !scriptContent.elements) {
+    console.error("Missing script content in TagManager");
+    return <div>Loading script content...</div>;
+  }
 
   return (
     <div className="mb-4 overflow-visible">
