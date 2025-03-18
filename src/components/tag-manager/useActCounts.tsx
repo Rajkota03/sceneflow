@@ -1,12 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { ScriptContent, ActType } from '@/lib/types';
-import { ActCountsRecord } from '@/types/scriptTypes';
+import { ScriptContent, ActType, ActCountsRecord } from '@/lib/types';
 
 const useActCounts = (scriptContent: ScriptContent) => {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
-  
-  // Initialize with the correct ActType enum values
   const [actCounts, setActCounts] = useState<ActCountsRecord>({
     [ActType.ACT_1]: 0,
     [ActType.ACT_2A]: 0,
@@ -16,11 +13,10 @@ const useActCounts = (scriptContent: ScriptContent) => {
   });
 
   useEffect(() => {
-    // Collect all unique tags from scene headings
-    const tags = new Set<string>();
-    
-    // Create a concrete object of the exact interface shape
-    const actTagCounts: ActCountsRecord = {
+    if (!scriptContent.elements) return;
+
+    const tags: string[] = [];
+    const actCountsTemp: ActCountsRecord = {
       [ActType.ACT_1]: 0,
       [ActType.ACT_2A]: 0,
       [ActType.MIDPOINT]: 0,
@@ -29,28 +25,31 @@ const useActCounts = (scriptContent: ScriptContent) => {
     };
 
     scriptContent.elements.forEach(element => {
-      if (element.type === 'scene-heading' && element.tags) {
+      if (element.type === 'scene-heading' && element.tags && element.tags.length > 0) {
+        // Add unique tags to the availableTags array
         element.tags.forEach(tag => {
-          tags.add(tag);
+          if (!tags.includes(tag)) {
+            tags.push(tag);
+          }
           
-          // Count scenes by act tag
+          // Count the scenes by act type based on tags
           if (tag.startsWith('Act 1:')) {
-            actTagCounts[ActType.ACT_1]++;
+            actCountsTemp[ActType.ACT_1]++;
           } else if (tag.startsWith('Act 2A:')) {
-            actTagCounts[ActType.ACT_2A]++;
+            actCountsTemp[ActType.ACT_2A]++;
           } else if (tag.startsWith('Midpoint:')) {
-            actTagCounts[ActType.MIDPOINT]++;
+            actCountsTemp[ActType.MIDPOINT]++;
           } else if (tag.startsWith('Act 2B:')) {
-            actTagCounts[ActType.ACT_2B]++;
+            actCountsTemp[ActType.ACT_2B]++;
           } else if (tag.startsWith('Act 3:')) {
-            actTagCounts[ActType.ACT_3]++;
+            actCountsTemp[ActType.ACT_3]++;
           }
         });
       }
     });
-    
-    setAvailableTags(Array.from(tags));
-    setActCounts(actTagCounts);
+
+    setAvailableTags(tags);
+    setActCounts(actCountsTemp);
   }, [scriptContent]);
 
   return { availableTags, actCounts };

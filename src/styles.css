@@ -1,0 +1,15 @@
+
+@media print {
+  .scene-tags-container {
+    display: none !important;
+  }
+  
+  .export-version .scene-tags-container {
+    display: none !important;
+  }
+}
+
+/* Hide scene tags when exporting */
+.export-version .scene-tags-container {
+  display: none !important;
+}

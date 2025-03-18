@@ -49,7 +49,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   return (
     <div 
       style={style} 
-      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
+      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version export-version' : 'overflow-visible'}`}
       data-font="courier-final-draft"
       dir="ltr"
     >
