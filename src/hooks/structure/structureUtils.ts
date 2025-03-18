@@ -6,7 +6,7 @@ export const fetchStructuresFromSupabase = async (projectId: string) => {
   try {
     // Fetch all structures
     const { data: allStructures, error: fetchError } = await supabase
-      .from('story_structures')
+      .from('structures')
       .select('*');
       
     if (fetchError) {
@@ -126,7 +126,7 @@ export const saveStructureBeatCompletion = async (
 ): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('story_structures')
+      .from('structures')
       .update({ 
         content: { acts: updatedStructure.acts },
         updated_at: new Date().toISOString()

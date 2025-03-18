@@ -131,9 +131,13 @@ const ActBar: React.FC<ActBarProps> = ({
           </Button>
         </div>
         
-        {/* Structure Bar */}
+        {/* Structure Bar - Fixed to include required props */}
         <StructureBar
-          visibleActs={visibleActs}
+          visibleActs={visibleActs.map(act => ({
+            ...act,
+            isActive: activeAct === act.id,
+            onClick: () => onSelectAct(act.id as ActType)
+          }))}
           activeAct={activeAct}
           onSelectAct={onSelectAct}
         />

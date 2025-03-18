@@ -25,16 +25,11 @@ const StructureBar: React.FC<StructureBarProps> = ({
   return (
     <div className="rounded-lg overflow-hidden w-full mb-2 border border-gray-200 dark:border-gray-700 flex">
       {visibleActs.map((actBtn) => {
-        const isActive = activeAct === actBtn.id;
-        const handleActClick = () => {
-          onSelectAct(actBtn.id as ActType);
-        };
-        
         return (
           <div 
             key={actBtn.id}
-            onClick={handleActClick}
-            className={`${actBtn.bgColor} ${isActive ? 'ring-2 ring-inset ring-blue-500' : ''} flex-grow text-center py-2 cursor-pointer transition-all hover:brightness-95 active:brightness-90`}
+            onClick={actBtn.onClick}
+            className={`${actBtn.bgColor} ${actBtn.isActive ? 'ring-2 ring-inset ring-blue-500' : ''} flex-grow text-center py-2 cursor-pointer transition-all hover:brightness-95 active:brightness-90`}
             style={{ flex: 1 }}
           >
             <span className={`text-sm font-medium ${actBtn.color}`}>
