@@ -36,8 +36,14 @@ const Dashboard = () => {
     isLoading: isStructuresLoading,
     handleCreateStructure,
     handleUpdateStructure: handleEditStructure,
-    handleDeleteStructure
+    handleDeleteStructure: originalHandleDeleteStructure
   } = useDashboardStructures();
+
+  // Create a wrapper function to convert Promise<boolean> to Promise<void>
+  const handleDeleteStructure = async (id: string): Promise<void> => {
+    await originalHandleDeleteStructure(id);
+    // No return value needed for Promise<void>
+  };
 
   const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
   

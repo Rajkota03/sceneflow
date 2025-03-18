@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
@@ -51,14 +50,10 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
         return;
       }
       
-      // Transform the data to match the Structure type
       const formattedStructures: Structure[] = data.map(structure => {
-        // Parse beats from JSON to convert to acts array
-        // Use a type assertion to handle the Json to Act[] conversion
         const beatsData = structure.beats as unknown as Act[];
         let acts: Act[] = [];
         
-        // Try to convert the beats data to acts structure
         if (Array.isArray(beatsData)) {
           acts = beatsData;
         }
@@ -93,7 +88,6 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
     try {
       setIsCreating(true);
       
-      // Get template based on structure type
       let template;
       switch (structureType) {
         case 'three_act':
@@ -112,8 +106,6 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
           template = structureTemplates.createThreeActStructure('temp-id');
       }
       
-      // Create the new structure in the database
-      // Important: Fix the structure of the insert data to match the database schema
       const { data, error } = await supabase
         .from('structures')
         .insert({
@@ -137,11 +129,9 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
       if (data && data.length > 0) {
         const newStructureData = data[0];
         
-        // Convert the database structure to the application structure
         const beatsData = newStructureData.beats as unknown as Act[];
         let acts: Act[] = [];
         
-        // Try to convert the beats data to acts structure
         if (Array.isArray(beatsData)) {
           acts = beatsData;
         }
@@ -156,7 +146,6 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
           structure_type: newStructureData.structure_type as StructureType
         };
         
-        // Update the local state
         setStructures([...structures, newStructure]);
         
         toast({
@@ -206,7 +195,6 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
         return false;
       }
       
-      // Update the local state
       setStructures(
         structures.map(s => (s.id === structure.id ? structure : s))
       );
@@ -247,7 +235,6 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
         return false;
       }
       
-      // Update the local state
       setStructures(structures.filter(s => s.id !== id));
       
       toast({
