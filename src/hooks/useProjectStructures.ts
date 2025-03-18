@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
 
@@ -10,87 +9,87 @@ const useProjectStructures = (projectId?: string) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchStructures = useCallback(async () => {
     if (!projectId) return;
     
-    const fetchStructures = async () => {
-      setIsLoading(true);
-      setError(null);
-      
-      try {
-        // First check if the project has any linked structures
-        const { data: linkData, error: linkError } = await supabase
-          .from('project_structures')
-          .select('structure_id')
-          .eq('project_id', projectId);
-        
-        if (linkError) throw linkError;
-        
-        // Get all available structures
-        const { data: structuresData, error: structuresError } = await supabase
-          .from('structures')
-          .select('*');
-        
-        if (structuresError) throw structuresError;
-        
-        if (structuresData) {
-          // Convert timestamps to strings if needed
-          const formattedStructures: Structure[] = structuresData.map(structureData => {
-            // Parse the beats JSON field to get acts and beats
-            let acts: Act[] = [];
-            
-            // Convert the structure data to our Structure type
-            const structure: Structure = {
-              id: structureData.id,
-              name: structureData.name,
-              description: structureData.description,
-              createdAt: new Date(structureData.created_at).toISOString(),
-              updatedAt: new Date(structureData.updated_at).toISOString(),
-              structure_type: structureData.structure_type,
-              acts: acts
-            };
-            
-            try {
-              if (typeof structureData.beats === 'string') {
-                acts = JSON.parse(structureData.beats);
-              } else if (structureData.beats && typeof structureData.beats === 'object') {
-                acts = structureData.beats as unknown as Act[];
-              }
-              structure.acts = acts;
-            } catch (e) {
-              console.error('Error parsing beats:', e);
-            }
-            
-            return structure;
-          });
-          
-          setStructures(formattedStructures);
-          
-          // Set the selected structure if this project has a linked structure
-          if (linkData && linkData.length > 0) {
-            const linkedStructureId = linkData[0].structure_id;
-            setSelectedStructureId(linkedStructureId);
-            
-            const linkedStructure = formattedStructures.find(s => s.id === linkedStructureId);
-            if (linkedStructure) {
-              setSelectedStructure(linkedStructure);
-            }
-          } else if (formattedStructures.length > 0) {
-            // Default to the first structure if no link exists
-            setSelectedStructureId(formattedStructures[0].id);
-            setSelectedStructure(formattedStructures[0]);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching structures:', err);
-        setError('Failed to load structures');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setIsLoading(true);
+    setError(null);
     
-    fetchStructures();
+    try {
+      // First check if the project has any linked structures
+      const { data: linkData, error: linkError } = await supabase
+        .from('project_structures')
+        .select('structure_id')
+        .eq('project_id', projectId);
+      
+      if (linkError) throw linkError;
+      
+      // Get all available structures
+      const { data: structuresData, error: structuresError } = await supabase
+        .from('structures')
+        .select('*');
+      
+      if (structuresError) throw structuresError;
+      
+      if (structuresData) {
+        // Convert timestamps to strings if needed
+        const formattedStructures: Structure[] = structuresData.map(structureData => {
+          // Parse the beats JSON field to get acts and beats
+          let acts: Act[] = [];
+          
+          // Convert the structure data to our Structure type
+          const structure: Structure = {
+            id: structureData.id,
+            name: structureData.name,
+            description: structureData.description,
+            createdAt: new Date(structureData.created_at).toISOString(),
+            updatedAt: new Date(structureData.updated_at).toISOString(),
+            structure_type: structureData.structure_type,
+            acts: acts
+          };
+          
+          try {
+            if (typeof structureData.beats === 'string') {
+              acts = JSON.parse(structureData.beats);
+            } else if (structureData.beats && typeof structureData.beats === 'object') {
+              acts = structureData.beats as unknown as Act[];
+            }
+            structure.acts = acts;
+          } catch (e) {
+            console.error('Error parsing beats:', e);
+          }
+          
+          return structure;
+        });
+        
+        setStructures(formattedStructures);
+        
+        // Set the selected structure if this project has a linked structure
+        if (linkData && linkData.length > 0) {
+          const linkedStructureId = linkData[0].structure_id;
+          setSelectedStructureId(linkedStructureId);
+          
+          const linkedStructure = formattedStructures.find(s => s.id === linkedStructureId);
+          if (linkedStructure) {
+            setSelectedStructure(linkedStructure);
+          }
+        } else if (formattedStructures.length > 0) {
+          // Default to the first structure if no link exists
+          setSelectedStructureId(formattedStructures[0].id);
+          setSelectedStructure(formattedStructures[0]);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching structures:', err);
+      setError('Failed to load structures');
+    } finally {
+      setIsLoading(false);
+    }
   }, [projectId]);
+
+  useEffect(() => {
+    fetchStructures();
+  }, [fetchStructures]);
   
   const handleStructureChange = (structureId: string) => {
     setSelectedStructureId(structureId);
@@ -171,7 +170,8 @@ const useProjectStructures = (projectId?: string) => {
     error,
     handleStructureChange,
     updateBeatCompletion,
-    saveBeatCompletion
+    saveBeatCompletion,
+    fetchStructures
   };
 };
 
