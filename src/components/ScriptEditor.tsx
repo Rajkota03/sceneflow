@@ -1,14 +1,18 @@
 
-import { useEffect, useRef, useState, KeyboardEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
 import { generateUniqueId } from '../lib/formatScript';
 import FormatStyler from './FormatStyler';
 import { useFormat } from '@/lib/formatContext';
-import { addContdToCharacter, shouldAddContd } from '@/lib/characterUtils';
-import { Slider } from '@/components/ui/slider';
-import { ZoomIn, ZoomOut } from 'lucide-react';
 import TagManager from './TagManager';
+import useScriptElements from '@/hooks/useScriptElements';
+import useFilteredElements from '@/hooks/useFilteredElements';
+import useCharacterNames from '@/hooks/useCharacterNames';
+import useScriptNavigation from '@/hooks/useScriptNavigation';
+import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+import KeyboardShortcutsHelp from './script-editor/KeyboardShortcutsHelp';
+import ZoomControls from './script-editor/ZoomControls';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -31,96 +35,33 @@ const ScriptEditor = ({
   structureName = "Three Act Structure",
   projectId
 }: ScriptEditorProps) => {
-  const { formatState, zoomIn, zoomOut, resetZoom } = useFormat();
-  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
-  const [activeElementId, setActiveElementId] = useState<string | null>(
-    elements.length > 0 ? elements[0].id : null
-  );
-  const [characterNames, setCharacterNames] = useState<string[]>([]);
+  const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
-  const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
   const [beatMode, setBeatMode] = useState<'on' | 'off'>('on');
   const editorRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    onChange({ elements });
-  }, [elements, onChange]);
+  const {
+    elements,
+    setElements,
+    activeElementId,
+    setActiveElementId,
+    handleElementChange,
+    getPreviousElementType,
+    changeElementType
+  } = useScriptElements(initialContent, onChange);
 
-  useEffect(() => {
-    if (!activeTagFilter && !activeActFilter) {
-      setFilteredElements(elements);
-      return;
-    }
+  const { handleNavigate, handleEnterKey } = useScriptNavigation({
+    elements,
+    setElements,
+    activeElementId,
+    setActiveElementId
+  });
 
-    let filtered = [...elements];
-    
-    // Tag-based filtering
-    if (activeTagFilter) {
-      const filteredIds = new Set<string>();
-      let includeNext = false;
-      
-      elements.forEach((element) => {
-        if (element.type === 'scene-heading') {
-          if (element.tags?.includes(activeTagFilter)) {
-            filteredIds.add(element.id);
-            includeNext = true;
-          } else {
-            includeNext = false;
-          }
-        } else if (includeNext) {
-          filteredIds.add(element.id);
-        }
-      });
-      
-      filtered = elements.filter(element => filteredIds.has(element.id));
-    }
-    
-    // Act-based filtering
-    if (activeActFilter) {
-      const filteredIds = new Set<string>();
-      let includeNext = false;
-      
-      elements.forEach((element) => {
-        if (element.type === 'scene-heading') {
-          // Check if any tag in this scene matches the selected act
-          const matchesAct = element.tags?.some(tag => {
-            if (activeActFilter === ActType.ACT_1) return tag.startsWith('Act 1:');
-            if (activeActFilter === ActType.ACT_2A) return tag.startsWith('Act 2A:');
-            if (activeActFilter === ActType.MIDPOINT) return tag.startsWith('Midpoint:');
-            if (activeActFilter === ActType.ACT_2B) return tag.startsWith('Act 2B:');
-            if (activeActFilter === ActType.ACT_3) return tag.startsWith('Act 3:');
-            return false;
-          });
-          
-          if (matchesAct) {
-            filteredIds.add(element.id);
-            includeNext = true;
-          } else {
-            includeNext = false;
-          }
-        } else if (includeNext) {
-          filteredIds.add(element.id);
-        }
-      });
-      
-      filtered = elements.filter(element => filteredIds.has(element.id));
-    }
-    
-    setFilteredElements(filtered);
-  }, [elements, activeTagFilter, activeActFilter]);
-
-  useEffect(() => {
-    const names = elements
-      .filter(el => el.type === 'character')
-      .map(el => el.text.replace(/\s*\(CONT'D\)\s*$/, '').trim())
-      .filter((name, index, self) => 
-        name && self.indexOf(name) === index
-      );
-    
-    setCharacterNames(names);
-  }, [elements]);
+  const characterNames = useCharacterNames(elements);
+  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
+  const { showKeyboardShortcuts } = useKeyboardShortcuts();
 
   useEffect(() => {
     if (!elements || elements.length === 0) {
@@ -140,129 +81,12 @@ const ScriptEditor = ({
       setElements(defaultElements);
       setActiveElementId(defaultElements[0].id);
     }
-  }, [elements]);
+  }, [elements.length, setElements, setActiveElementId]);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
-  const handleZoomChange = (value: number[]) => {
-    const newZoomLevel = value[0] / 100;
-    const { formatState: currentState, setZoomLevel } = useFormat();
-    if (setZoomLevel) {
-      setZoomLevel(newZoomLevel);
-    }
-  };
-
-  const getPreviousElementType = (index: number): ElementType | undefined => {
-    if (index <= 0) return undefined;
-    return elements[index - 1].type;
-  };
-
-  const handleElementChange = (id: string, text: string, type: ElementType) => {
-    setElements(prevElements => 
-      prevElements.map(element => 
-        element.id === id ? { ...element, text, type } : element
-      )
-    );
-  };
-
   const handleFormatChange = (id: string, newType: ElementType) => {
-    setElements(prevElements => {
-      const index = prevElements.findIndex(el => el.id === id);
-      if (index === -1) return prevElements;
-      
-      let updatedElements = [...prevElements];
-      let updatedElement = { ...updatedElements[index], type: newType };
-      
-      if (newType === 'character') {
-        updatedElement.text = addContdToCharacter(updatedElement.text, index, prevElements);
-      }
-      
-      updatedElements[index] = updatedElement;
-      return updatedElements;
-    });
-  };
-
-  const handleEnterKey = (id: string, shiftKey: boolean) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    const currentElement = elements[currentIndex];
-    
-    if (shiftKey && currentElement.type === 'dialogue') {
-      const updatedElements = [...elements];
-      updatedElements[currentIndex] = {
-        ...currentElement,
-        text: currentElement.text + '\n'
-      };
-      setElements(updatedElements);
-      return;
-    }
-    
-    let nextType: ElementType;
-    switch (currentElement.type) {
-      case 'scene-heading':
-        nextType = 'action';
-        break;
-      case 'character':
-        nextType = 'dialogue';
-        break;
-      case 'dialogue':
-        nextType = 'action';
-        break;
-      case 'parenthetical':
-        nextType = 'dialogue';
-        break;
-      case 'transition':
-        nextType = 'scene-heading';
-        break;
-      default:
-        nextType = 'action';
-    }
-    
-    const newElement: ScriptElement = {
-      id: generateUniqueId(),
-      type: nextType,
-      text: ''
-    };
-    
-    if (nextType === 'character' as ElementType) {
-      let prevCharIndex = -1;
-      for (let i = currentIndex - 1; i >= 0; i--) {
-        if (elements[i].type === 'character') {
-          prevCharIndex = i;
-          break;
-        }
-      }
-      
-      if (prevCharIndex !== -1) {
-        const charName = elements[prevCharIndex].text.replace(/\s*\(CONT'D\)\s*$/, '');
-        if (shouldAddContd(charName, currentIndex + 1, [...elements, newElement])) {
-          newElement.text = `${charName} (CONT'D)`;
-        } else {
-          newElement.text = charName;
-        }
-      }
-    }
-    
-    const updatedElements = [
-      ...elements.slice(0, currentIndex + 1),
-      newElement,
-      ...elements.slice(currentIndex + 1)
-    ];
-    
-    setElements(updatedElements);
-    setActiveElementId(newElement.id);
-  };
-
-  const handleNavigate = (direction: 'up' | 'down', id: string) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    if (direction === 'up' && currentIndex > 0) {
-      setActiveElementId(elements[currentIndex - 1].id);
-    } else if (direction === 'down' && currentIndex < elements.length - 1) {
-      setActiveElementId(elements[currentIndex + 1].id);
-    }
+    changeElementType(id, newType);
   };
 
   const handleFocus = (id: string) => {
@@ -292,6 +116,14 @@ const ScriptEditor = ({
     setBeatMode(mode);
   };
 
+  const handleZoomChange = (value: number[]) => {
+    const newZoomLevel = value[0] / 100;
+    const { setZoomLevel } = useFormat();
+    if (setZoomLevel) {
+      setZoomLevel(newZoomLevel);
+    }
+  };
+
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       <div 
@@ -311,6 +143,8 @@ const ScriptEditor = ({
             beatMode={beatMode}
             onToggleBeatMode={handleToggleBeatMode}
           />
+          
+          {showKeyboardShortcuts && <KeyboardShortcutsHelp />}
           
           <FormatStyler currentPage={currentPage}>
             <div className="script-page" style={{ 
@@ -359,33 +193,10 @@ const ScriptEditor = ({
         </div>
       </div>
       
-      {/* Zoom slider control */}
-      <div className="zoom-control flex items-center justify-center space-x-4 py-2 px-4 bg-gray-100 border-t border-gray-200 absolute bottom-0 left-0 right-0">
-        <ZoomOut 
-          size={18} 
-          className="text-gray-600 cursor-pointer" 
-          onClick={zoomOut}
-        />
-        <div className="w-64">
-          <Slider
-            defaultValue={[formatState.zoomLevel * 100]}
-            min={50}
-            max={150}
-            step={5}
-            value={[zoomPercentage]}
-            onValueChange={handleZoomChange}
-            className="w-full"
-          />
-        </div>
-        <ZoomIn 
-          size={18} 
-          className="text-gray-600 cursor-pointer" 
-          onClick={zoomIn}
-        />
-        <span className="text-xs text-gray-600 min-w-[40px] text-center">
-          {zoomPercentage}%
-        </span>
-      </div>
+      <ZoomControls 
+        zoomPercentage={zoomPercentage}
+        onZoomChange={handleZoomChange}
+      />
     </div>
   );
 };
