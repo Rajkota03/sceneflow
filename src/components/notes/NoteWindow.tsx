@@ -9,11 +9,21 @@ interface NoteWindowProps {
   note: Note;
   onClose: () => void;
   onSplitScreen: (note: Note) => void;
-  isFloating: boolean;
-  onEditNote?: (note: Note) => void;
+  onEdit?: (note: Note) => void;
+  className?: string;
+  isFloating?: boolean;
+  isSplitScreen?: boolean;
 }
 
-const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: NoteWindowProps) => {
+const NoteWindow = ({ 
+  note, 
+  onClose, 
+  onSplitScreen, 
+  onEdit,
+  className = '', 
+  isFloating = true,
+  isSplitScreen = false
+}: NoteWindowProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 400 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -91,13 +101,13 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
   const windowContent = (
     <div 
       ref={noteRef}
-      className={`flex flex-col bg-white border border-gray-200 shadow-md rounded-md overflow-hidden ${isFloating ? '' : 'h-full'}`}
+      className={`flex flex-col bg-white border border-gray-200 shadow-md rounded-md overflow-hidden ${isFloating ? '' : 'h-full'} ${className}`}
       style={isFloating ? { width: windowSize.width, height: isCollapsed ? 'auto' : windowSize.height } : undefined}
     >
       <div className="flex items-center justify-between p-2 bg-gray-100 border-b">
         <h3 className="text-sm font-medium truncate">{note.title}</h3>
         <div className="flex items-center space-x-1">
-          {isFloating && (
+          {isFloating && !isSplitScreen && (
             <>
               <Button 
                 variant="ghost" 
@@ -117,12 +127,12 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
               </Button>
             </>
           )}
-          {onEditNote && (
+          {onEdit && (
             <Button 
               variant="ghost" 
               size="icon" 
               className="h-6 w-6" 
-              onClick={() => onEditNote(note)}
+              onClick={() => onEdit(note)}
             >
               <Pencil size={12} />
             </Button>
@@ -184,7 +194,7 @@ const NoteWindow = ({ note, onClose, onSplitScreen, isFloating, onEditNote }: No
     </div>
   );
 
-  return isFloating ? (
+  return isFloating && !isSplitScreen ? (
     <Draggable handle=".bg-gray-100" bounds="parent">
       <div className="absolute z-40 top-24 right-8">
         {windowContent}

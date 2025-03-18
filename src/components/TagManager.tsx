@@ -45,8 +45,14 @@ const TagManager: React.FC<TagManagerProps> = ({
     return Array.from(tagSet).sort();
   }, [scriptContent]);
 
-  // Get act counts
-  const actCounts = useActCounts(scriptContent);
+  // Get act counts - now properly converting to array format
+  const { actCounts: actCountsRecord } = useActCounts(scriptContent);
+  
+  // Convert the ActCountsRecord to an array of ActCount objects
+  const actCounts = Object.entries(actCountsRecord).map(([act, count]) => ({
+    act: act as ActType,
+    count
+  }));
   
   // Get structure data if a projectId is provided
   const { selectedStructure } = useProjectStructures(projectId);

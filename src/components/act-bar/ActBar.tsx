@@ -11,9 +11,10 @@ import {
 import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
+import { ActCountsRecord } from '@/types/scriptTypes';
 
 interface ActCount {
-  act: ActType | null;
+  act: ActType;
   count: number;
 }
 
@@ -146,7 +147,7 @@ const ActBar: React.FC<ActBarProps> = ({
 
         {visibleActs.map((actBtn) => {
           const actCount = actCounts.find(
-            count => count.act === actBtn.id
+            count => count.act === actBtn.id as ActType
           );
           const count = actCount ? actCount.count : 0;
           
@@ -157,7 +158,7 @@ const ActBar: React.FC<ActBarProps> = ({
               label={actBtn.label}
               color={actBtn.color}
               bgColor={actBtn.bgColor}
-              isActive={activeAct === actBtn.id}
+              isActive={activeAct === actBtn.id as ActType}
               count={count}
               onClick={() => onSelectAct(actBtn.id as ActType)}
             />
