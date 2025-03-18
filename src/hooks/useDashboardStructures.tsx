@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
 import { StructureType } from '@/types/scriptTypes';
 import { Json } from '@/integrations/supabase/types';
-import getStructureTemplate from '@/lib/structureTemplates';
+import * as structureTemplates from '@/lib/structureTemplates';
 import { useAuth } from '@/App';
 import { toast } from '@/components/ui/use-toast';
 
@@ -22,6 +22,7 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
   const [structures, setStructures] = useState<Structure[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const { session } = useAuth();
 
   useEffect(() => {
@@ -54,13 +55,12 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
       // Transform the data to match the Structure type
       const formattedStructures: Structure[] = data.map(structure => {
         // Parse beats from JSON to convert to acts array
-        const beatsData = structure.beats as Json;
+        const beatsData = structure.beats as unknown as Act[];
         let acts: Act[] = [];
         
         // Try to convert the beats data to acts structure
         if (Array.isArray(beatsData)) {
-          // Type assertion to convert from Json[] to Act[]
-          acts = beatsData as unknown as Act[];
+          acts = beatsData;
         }
         
         return {
@@ -93,21 +93,34 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
     try {
       setIsCreating(true);
       
-      // Get template for the specified structure type
-      const template = getStructureTemplate(structureType);
-      
-      // Create default acts based on the template
-      const defaultActs = template.acts;
+      // Get template based on structure type
+      let template;
+      switch (structureType) {
+        case 'three_act':
+          template = structureTemplates.createThreeActStructure('temp-id');
+          break;
+        case 'save_the_cat':
+          template = structureTemplates.createSaveTheCatStructure('temp-id');
+          break;
+        case 'heroes_journey':
+          template = structureTemplates.createHeroJourneyStructure('temp-id');
+          break;
+        case 'story_circle':
+          template = structureTemplates.createStoryCircleStructure('temp-id');
+          break;
+        default:
+          template = structureTemplates.createThreeActStructure('temp-id');
+      }
       
       // Create the new structure in the database
       const { data, error } = await supabase
         .from('structures')
         .insert([{
           name: template.name,
-          description: 'A new story structure',
+          description: template.description,
           user_id: session.user.id,
           structure_type: structureType,
-          beats: defaultActs as unknown as Json
+          beats: template.acts as unknown as Json
         }])
         .select('*');
       
@@ -125,12 +138,12 @@ const useDashboardStructures = (): UseDashboardStructuresResult => {
         const newStructureData = data[0];
         
         // Convert the database structure to the application structure
-        const beatsData = newStructureData.beats as Json;
+        const beatsData = newStructureData.beats as unknown as Act[];
         let acts: Act[] = [];
         
         // Try to convert the beats data to acts structure
         if (Array.isArray(beatsData)) {
-          acts = beatsData as unknown as Act[];
+          acts = beatsData;
         }
         
         const newStructure: Structure = {

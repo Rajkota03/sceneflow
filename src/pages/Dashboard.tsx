@@ -7,7 +7,7 @@ import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
-import { useDashboardStructures } from '@/hooks/useDashboardStructures';
+import useDashboardStructures from '@/hooks/useDashboardStructures';
 import { Note, Structure } from '@/lib/types';
 import Navbar from '@/components/Navbar';
 
@@ -33,13 +33,13 @@ const Dashboard = () => {
   // Structures state
   const {
     structures,
-    searchQuery: structuresSearchQuery,
-    setSearchQuery: setStructuresSearchQuery,
     isLoading: isStructuresLoading,
     handleCreateStructure,
-    handleEditStructure,
+    handleUpdateStructure: handleEditStructure,
     handleDeleteStructure
   } = useDashboardStructures();
+
+  const [structuresSearchQuery, setStructuresSearchQuery] = useState("");
   
   // Notes editor state
   const [isNoteEditorOpen, setIsNoteEditorOpen] = useState(false);

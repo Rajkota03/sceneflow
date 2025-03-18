@@ -44,12 +44,12 @@ const useProjectStructures = (projectId: string): UseProjectStructuresResult => 
         // Transform to match Structure type
         const formattedStructures: Structure[] = structuresData.map(structure => {
           // Parse beats from JSON to convert to acts array
-          const beatsData = structure.beats as Json;
+          const beatsData = structure.beats as unknown as Act[];
           let acts: Act[] = [];
           
           // Try to convert the beats data to acts structure
           if (Array.isArray(beatsData)) {
-            acts = beatsData as unknown as Act[];
+            acts = beatsData;
           }
           
           return {
