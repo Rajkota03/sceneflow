@@ -1,7 +1,11 @@
 
 import React from 'react';
 
-const KeyboardShortcutsHelp: React.FC = () => {
+interface KeyboardShortcutsHelpProps {
+  onClose?: () => void;
+}
+
+const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = ({ onClose }) => {
   return (
     <div className="keyboard-shortcuts-help fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-md shadow-md z-50 border border-gray-200">
       <h3 className="text-lg font-medium mb-2">Keyboard Shortcuts</h3>
@@ -53,6 +57,17 @@ const KeyboardShortcutsHelp: React.FC = () => {
           </tr>
         </tbody>
       </table>
+      
+      {onClose && (
+        <div className="mt-4 text-right">
+          <button 
+            onClick={onClose}
+            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </div>
   );
 };
