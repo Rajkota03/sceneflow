@@ -43,8 +43,11 @@ const ScriptContent: React.FC<ScriptContentProps> = ({
 }) => {
   const { formatState } = useFormat();
 
+  // Add a class to the main container based on beat mode
+  const beatModeClass = beatMode === 'off' ? 'beat-mode-off' : 'beat-mode-on';
+
   return (
-    <div className="flex justify-center w-full h-full overflow-auto">
+    <div className={`flex justify-center w-full h-full overflow-auto ${beatModeClass}`}>
       <div className="w-full max-w-4xl mx-auto pt-8 pb-20">
         <ScriptPage
           elements={filteredElements}

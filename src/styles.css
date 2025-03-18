@@ -13,3 +13,23 @@
 .export-version .scene-tags-container {
   display: none !important;
 }
+
+/* Fix for scrolling issues */
+.script-content-wrapper {
+  position: relative;
+  overflow: auto;
+  height: calc(100% - 40px); /* Adjust for the zoom control height */
+}
+
+.script-page {
+  margin-bottom: 60px; /* Provide space at the bottom for zoom controls */
+}
+
+/* Beat mode styles */
+.beat-mode-off .scene-tags-container {
+  display: none !important;
+}
+
+.beat-mode-on .scene-tags-container {
+  display: flex !important;
+}

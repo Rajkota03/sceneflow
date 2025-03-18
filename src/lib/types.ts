@@ -1,4 +1,3 @@
-
 // Define all types with proper exports
 import { Json } from '@/integrations/supabase/types';
 
@@ -13,29 +12,52 @@ export type ElementType =
   'note';
 
 export enum ActType {
-  ACT_1 = 'act1',
-  ACT_2A = 'act2a',
-  MIDPOINT = 'midpoint',
-  ACT_2B = 'act2b',
-  ACT_3 = 'act3'
+  // Three Act Structure
+  ACT_1 = 'ACT_1',
+  ACT_2A = 'ACT_2A',
+  MIDPOINT = 'MIDPOINT',
+  ACT_2B = 'ACT_2B',
+  ACT_3 = 'ACT_3',
+  
+  // Save The Cat
+  OPENING_IMAGE = 'OPENING_IMAGE',
+  SETUP = 'SETUP',
+  CATALYST = 'CATALYST',
+  DEBATE = 'DEBATE',
+  BREAK_INTO_2 = 'BREAK_INTO_2',
+  B_STORY = 'B_STORY',
+  FUN_AND_GAMES = 'FUN_AND_GAMES',
+  BAD_GUYS_CLOSE_IN = 'BAD_GUYS_CLOSE_IN',
+  ALL_IS_LOST = 'ALL_IS_LOST',
+  DARK_NIGHT_OF_SOUL = 'DARK_NIGHT_OF_SOUL',
+  BREAK_INTO_3 = 'BREAK_INTO_3',
+  FINALE = 'FINALE',
+  
+  // Hero's Journey
+  ORDINARY_WORLD = 'ORDINARY_WORLD',
+  CALL_TO_ADVENTURE = 'CALL_TO_ADVENTURE',
+  REFUSAL = 'REFUSAL',
+  MENTOR = 'MENTOR',
+  CROSSING_THRESHOLD = 'CROSSING_THRESHOLD',
+  TESTS_ALLIES_ENEMIES = 'TESTS_ALLIES_ENEMIES',
+  APPROACH = 'APPROACH',
+  ORDEAL = 'ORDEAL',
+  REWARD = 'REWARD',
+  ROAD_BACK = 'ROAD_BACK',
+  RESURRECTION = 'RESURRECTION',
+  RETURN = 'RETURN',
+  
+  // Story Circle
+  YOU = 'YOU',
+  NEED = 'NEED',
+  GO = 'GO',
+  SEARCH = 'SEARCH',
+  FIND = 'FIND',
+  TAKE = 'TAKE',
+  CHANGE = 'CHANGE'
 }
 
-export interface ScriptElement {
-  id: string;
-  type: ElementType;
-  text: string;
-  tags?: string[];
-  act?: ActType;
-  beat?: string; // Add beat identifier
-}
-
-export interface ScriptContent {
-  elements: ScriptElement[];
-}
-
-export type ActCountsRecord = {
-  [key in ActType]: number;
-};
+export type ActCountsRecord = Record<ActType, number>;
 
 export type BeatMode = 'on' | 'off';
 

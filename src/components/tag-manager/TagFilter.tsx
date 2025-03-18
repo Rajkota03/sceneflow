@@ -18,7 +18,7 @@ const TagFilter: React.FC<TagFilterProps> = ({
   if (!availableTags.length) return null;
   
   return (
-    <div className="mb-2 flex flex-wrap gap-1">
+    <div className="mb-2 flex flex-wrap gap-1 scene-tags-container">
       {availableTags.map((tag) => (
         <SceneTag
           key={tag}

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActType, Structure } from '@/lib/types';
+import { ActType, Structure, StructureType } from '@/lib/types';
 import ActBar from './ActBar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
@@ -21,6 +21,16 @@ const TagManager: React.FC<TagManagerProps> = ({
   structures = []
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
+  
+  // Determine the structure type based on the selected structure
+  const getStructureType = (): StructureType => {
+    if (!selectedStructureId || !structures.length) return 'three_act';
+    
+    const selectedStructure = structures.find(s => s.id === selectedStructureId);
+    return selectedStructure?.structure_type as StructureType || 'three_act';
+  };
+  
+  const structureType = getStructureType();
   
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
@@ -46,6 +56,7 @@ const TagManager: React.FC<TagManagerProps> = ({
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
             onStructureChange={onStructureChange}
             selectedStructureId={selectedStructureId}
+            selectedStructureType={structureType}
           />
         )}
       </div>
