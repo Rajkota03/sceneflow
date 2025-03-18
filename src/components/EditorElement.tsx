@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import SceneTags from './SceneTags';
@@ -66,6 +66,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
     isActive,
     characterNames
   });
+
+  useEffect(() => {
+    if (element.type === 'scene-heading' && element.beat && selectedStructure) {
+      console.log(`Scene ${element.id} has beat tag: ${element.beat}`);
+    }
+  }, [element, selectedStructure]);
 
   const elementStyles = getElementStyles(element.type);
 

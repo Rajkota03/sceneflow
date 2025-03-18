@@ -22,17 +22,18 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   
+  // This effect will run when the structure prop changes (e.g., when a new structure is selected)
   useEffect(() => {
+    console.log("Structure changed in useStructureState", structure.id);
+    setLocalStructure(structure);
+    setHasChanges(false);
+    
+    // Reset expanded acts when structure changes
     const initialExpandedState: Record<string, boolean> = {};
     structure.acts.forEach(act => {
       initialExpandedState[act.id] = true;
     });
     setExpandedActs(initialExpandedState);
-  }, [structure.acts]);
-
-  useEffect(() => {
-    setLocalStructure(structure);
-    setHasChanges(false);
   }, [structure]);
   
   const toggleAct = (actId: string) => {

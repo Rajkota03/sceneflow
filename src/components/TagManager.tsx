@@ -31,6 +31,9 @@ const TagManager: React.FC<TagManagerProps> = ({
       }
     }
   };
+  
+  console.log('TagManager - Available structures:', structures.length);
+  console.log('TagManager - Selected structure ID:', selectedStructureId);
 
   return (
     <div className="mb-4">
@@ -41,6 +44,7 @@ const TagManager: React.FC<TagManagerProps> = ({
             onSelectAct={handleActFilter} 
             actCounts={actCounts}
             projectName={projectName}
+            structureName={structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Structure } from '@/lib/types';
 import { useStructureState } from './useStructureState';
 import StructureHeader from './StructureHeader';
@@ -36,6 +36,14 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
     cancelEditing
   } = useStructureState({ structure, onStructureUpdate });
 
+  useEffect(() => {
+    console.log(`StructurePanel rendering with structure ${structure.id}: ${structure.name}`);
+    console.log(`Number of acts: ${structure.acts.length}`);
+    structure.acts.forEach(act => {
+      console.log(`Act ${act.title || act.id} has ${act.beats.length} beats`);
+    });
+  }, [structure]);
+
   return (
     <div className="w-full">
       <StructureHeader
@@ -57,7 +65,7 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
       <div className="space-y-3">
         {localStructure.acts.map((act) => (
           <ActSection
-            key={act.id}
+            key={`${localStructure.id}-${act.id}`}
             act={act}
             isExpanded={expandedActs[act.id]}
             toggleAct={toggleAct}

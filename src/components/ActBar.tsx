@@ -78,6 +78,14 @@ const ActBar: React.FC<ActBarProps> = ({
       });
     }
   };
+
+  // Log available structures for debugging
+  useEffect(() => {
+    if (availableStructures.length > 0) {
+      console.log('Available structures:', availableStructures);
+      console.log('Selected structure ID:', selectedStructureId);
+    }
+  }, [availableStructures, selectedStructureId]);
   
   return (
     <Collapsible 
