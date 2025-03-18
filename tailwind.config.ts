@@ -55,7 +55,11 @@ export default {
         },
         editor: {
           paper: '#FCFCFA',
-          text: '#1A1A1A'
+          text: '#1A1A1A',
+          dark: {
+            paper: '#1A1F2C',
+            text: '#F6F6F7'
+          }
         },
         slate: {
           50: '#f8fafc',

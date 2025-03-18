@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useFormat } from '@/lib/formatContext';
+import { useTheme } from '@/lib/themeContext';
 
 interface FormatStylerProps {
   children: React.ReactNode;
@@ -16,6 +17,9 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   currentPage = 1
 }) => {
   const { formatState } = useFormat();
+  const { theme } = useTheme();
+  
+  const isDarkMode = theme === 'dark';
   
   const style: React.CSSProperties = {
     fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
@@ -26,8 +30,8 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       formatState.isUnderline ? 'underline' : '',
       formatState.isStrikethrough ? 'line-through' : ''
     ].filter(Boolean).join(' '),
-    color: formatState.textColor || '#000000',
-    backgroundColor: 'transparent', // Fixed: removed duplicate backgroundColor
+    color: isDarkMode ? '#F6F6F7' : formatState.textColor || '#000000',
+    backgroundColor: isDarkMode ? '#1A1F2C' : 'white',
     textAlign: formatState.alignment || 'left',
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
@@ -43,7 +47,9 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     direction: 'ltr',
     unicodeBidi: 'plaintext',
     padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    boxShadow: isDarkMode 
+      ? '0 2px 10px rgba(0,0,0,0.3)' 
+      : '0 2px 10px rgba(0,0,0,0.1)',
   };
 
   return (

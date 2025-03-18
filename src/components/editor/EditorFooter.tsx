@@ -15,7 +15,7 @@ const EditorFooter: React.FC<EditorFooterProps> = ({
   characterCount
 }) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] border-t border-[#DDDDDD] py-1 px-4 flex items-center justify-between text-xs text-[#555555] z-10">
+    <div className="fixed bottom-0 left-0 right-0 bg-[#F1F1F1] dark:bg-slate-800 border-t border-[#DDDDDD] dark:border-slate-700 py-1 px-4 flex items-center justify-between text-xs text-[#555555] dark:text-slate-300 z-10 transition-colors duration-200">
       <div>{showTitlePage ? "Title Page" : "Page 1"}</div>
       <div className="flex items-center space-x-4">
         {!showTitlePage && (

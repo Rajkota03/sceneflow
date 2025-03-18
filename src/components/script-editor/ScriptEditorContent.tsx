@@ -5,6 +5,7 @@ import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import ScriptContent from './ScriptContent';
 import ZoomControls from './ZoomControls';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+import { useTheme } from '@/lib/themeContext';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -18,6 +19,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   onZoomChange
 }) => {
   const { showKeyboardShortcuts } = useKeyboardShortcuts();
+  const { theme } = useTheme();
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
@@ -32,6 +34,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       <ZoomControls 
         zoomPercentage={zoomPercentage}
         onZoomChange={onZoomChange}
+        theme={theme}
       />
     </div>
   );
