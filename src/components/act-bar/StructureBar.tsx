@@ -23,8 +23,8 @@ const StructureBar: React.FC<StructureBarProps> = ({
   onSelectAct
 }) => {
   return (
-    <div className="rounded-lg overflow-hidden w-full mb-2 border border-gray-200 dark:border-gray-700 flex">
-      {visibleActs.map((actBtn) => {
+    <div className="rounded-lg overflow-hidden w-full border border-gray-200 dark:border-gray-700 flex">
+      {visibleActs.map((actBtn, index) => {
         return (
           <div 
             key={actBtn.id}

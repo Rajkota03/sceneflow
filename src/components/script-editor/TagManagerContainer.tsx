@@ -11,7 +11,9 @@ const TagManagerContainer: React.FC = () => {
     activeActFilter,
     setActiveActFilter,
     beatMode,
-    projectId
+    onToggleBeatMode,
+    projectId,
+    projectTitle
   } = useScriptEditor();
 
   return (
@@ -21,10 +23,11 @@ const TagManagerContainer: React.FC = () => {
       onFilterByAct={setActiveActFilter}
       activeFilter={activeTagFilter}
       activeActFilter={activeActFilter}
-      projectName={projectId ? undefined : "Untitled Project"}
+      projectName={projectTitle || (projectId ? undefined : "Untitled Screenplay")}
       structureName={"Three Act Structure"}
       projectId={projectId}
       beatMode={beatMode}
+      onToggleBeatMode={onToggleBeatMode}
     />
   );
 };

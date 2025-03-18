@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import TitlePageView from '@/components/TitlePageView';
 import { Note, ScriptContent, TitlePageData } from '@/lib/types';
 import NoteWindow from '@/components/notes/NoteWindow';
-import ScriptEditor from '@/components/ScriptEditor';
+import ScriptEditor from '@/components/script-editor/ScriptEditor';
 import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorMainAreaProps {
@@ -112,7 +113,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
             onSplitScreen={() => {}}
             onEdit={() => onEditNote(splitScreenNote)}
             className="h-full"
-            isSplitScreen
+            isSplitScreen={true}
           />
         </div>
       </div>

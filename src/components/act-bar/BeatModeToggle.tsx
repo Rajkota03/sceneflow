@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
-import { BookText, FileText } from 'lucide-react';
+import { BookText, FileText, Zap } from 'lucide-react';
 
 interface BeatModeToggleProps {
   beatMode: BeatMode;
@@ -31,10 +31,10 @@ const BeatModeToggle: React.FC<BeatModeToggleProps> = ({
             variant="outline"
             size="sm"
             onClick={handleToggle}
-            className={`h-8 px-2 ${beatMode === 'on' ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' : 'text-gray-600 dark:text-gray-400'}`}
+            className={`h-8 px-3 ${beatMode === 'on' ? 'bg-purple-500 text-white border-purple-500 hover:bg-purple-600' : 'text-gray-600 dark:text-gray-400'}`}
           >
             {beatMode === 'on' ? (
-              <BookText size={16} className="mr-1" />
+              <Zap size={16} className="mr-1" />
             ) : (
               <FileText size={16} className="mr-1" />
             )}

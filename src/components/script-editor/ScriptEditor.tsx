@@ -17,6 +17,8 @@ interface ScriptEditorProps {
   projectId?: string;
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
+  beatMode?: string;
+  onToggleBeatMode?: (mode: string) => void;
 }
 
 const ScriptEditor = ({ 
@@ -30,6 +32,8 @@ const ScriptEditor = ({
   projectId,
   onStructureChange,
   selectedStructureId: externalSelectedStructureId,
+  beatMode,
+  onToggleBeatMode
 }: ScriptEditorProps) => {
   const { formatState, setZoomLevel } = useFormat();
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
@@ -48,6 +52,7 @@ const ScriptEditor = ({
       projectId={projectId}
       selectedStructureId={externalSelectedStructureId}
       onStructureChange={onStructureChange}
+      projectTitle={projectName}
     >
       <ScriptEditorContent
         className={className}

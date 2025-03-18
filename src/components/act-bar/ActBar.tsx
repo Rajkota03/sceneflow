@@ -45,18 +45,15 @@ const ActBar: React.FC<ActBarProps> = ({
   
   // Default structure colors
   const defaultActColors = [
-    { id: 'act1', label: 'ACT 1', color: 'text-blue-800', bgColor: 'bg-blue-100' },
-    { id: 'act2a', label: 'ACT 2A', color: 'text-amber-800', bgColor: 'bg-amber-100' },
-    { id: 'midpoint', label: 'MIDPOINT', color: 'text-pink-800', bgColor: 'bg-pink-100' },
-    { id: 'act2b', label: 'ACT 2B', color: 'text-orange-800', bgColor: 'bg-orange-100' },
-    { id: 'act3', label: 'ACT 3', color: 'text-green-800', bgColor: 'bg-green-100' }
+    { id: 'act1', label: 'Act 1', color: 'text-blue-800', bgColor: 'bg-blue-100' },
+    { id: 'act2a', label: 'Act 2A', color: 'text-amber-800', bgColor: 'bg-amber-200' },
+    { id: 'midpoint', label: 'Midpoint', color: 'text-pink-800', bgColor: 'bg-pink-200' },
+    { id: 'act2b', label: 'Act 2B', color: 'text-orange-800', bgColor: 'bg-orange-200' },
+    { id: 'act3', label: 'Act 3', color: 'text-green-800', bgColor: 'bg-green-100' }
   ];
   
   useEffect(() => {
     if (selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
-      console.log("Selected structure in ActBar:", selectedStructure.name);
-      console.log("Number of acts:", selectedStructure.acts.length);
-      
       const buttons = selectedStructure.acts.map((act, index) => {
         const defaultColor = defaultActColors[index] || defaultActColors[0];
         return {
@@ -69,7 +66,6 @@ const ActBar: React.FC<ActBarProps> = ({
       
       setActButtons(buttons);
     } else {
-      console.log("No valid structure acts found, using default");
       setActButtons(defaultActColors);
     }
   }, [selectedStructure]);
@@ -85,48 +81,14 @@ const ActBar: React.FC<ActBarProps> = ({
   
   return (
     <div className="w-full">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center">
-          <h3 className="text-sm font-medium mr-3 text-gray-700 dark:text-gray-300">
-            {projectName}
-          </h3>
-          
-          {selectedStructure && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Structure: {selectedStructure.name}
-            </span>
-          )}
-        </div>
-      </div>
-      
-      {/* Story Structure Bar */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center">
-            <h3 className="text-sm font-medium mr-2 text-gray-700 dark:text-gray-300">
-              Story Structure
-            </h3>
-          </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs text-gray-600 dark:text-gray-400"
-          >
-            Free Mode
-          </Button>
-        </div>
-        
-        {/* Structure Bar - Fixed with properly typed props */}
-        <StructureBar
-          visibleActs={structureBarButtons}
-          activeAct={activeAct}
-          onSelectAct={onSelectAct}
-        />
-      </div>
+      <StructureBar
+        visibleActs={structureBarButtons}
+        activeAct={activeAct}
+        onSelectAct={onSelectAct}
+      />
       
       {/* Button filters for quick navigation */}
-      <div className="flex flex-wrap items-center space-x-2 mb-1">
+      <div className="flex flex-wrap items-center space-x-2 mb-2 mt-3">
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
