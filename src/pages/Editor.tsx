@@ -61,6 +61,9 @@ const Editor = () => {
     setBeatMode(mode);
   };
 
+  // Convert the Date to string for the EditorFooter component
+  const lastSavedString = lastSaved ? (typeof lastSaved === 'string' ? lastSaved : lastSaved.toLocaleString()) : null;
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
@@ -143,7 +146,7 @@ const Editor = () => {
           
           <EditorFooter
             showTitlePage={showTitlePage}
-            lastSaved={lastSaved}
+            lastSaved={lastSavedString}
             elementCount={content.elements.length}
             characterCount={content.elements.filter(e => e.type === 'character').length}
           />

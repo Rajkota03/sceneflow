@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { ActType, Structure } from '@/lib/types';
 import { Button } from '../ui/button';
 import { 
@@ -12,6 +12,8 @@ import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
 import BeatSection from './BeatSection';
+import StructureHeader from './StructureHeader';
+import ActButtonList from './ActButtonList';
 import { cn } from '@/lib/utils';
 
 interface ActCount {
@@ -42,8 +44,8 @@ const ActBar: React.FC<ActBarProps> = ({
   activeBeatId,
   onBeatClick
 }) => {
-  const [showAllActs, setShowAllActs] = useState(false);
-  const [actButtons, setActButtons] = useState<Array<{
+  const [showAllActs, setShowAllActs] = React.useState(false);
+  const [actButtons, setActButtons] = React.useState<Array<{
     id: string;
     label: string;
     color: string;
@@ -60,7 +62,7 @@ const ActBar: React.FC<ActBarProps> = ({
     { id: 'act3', label: 'Act 3', color: 'text-green-800', bgColor: 'bg-green-100' }
   ];
   
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedStructure?.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
       const buttons = selectedStructure.acts.map((act, index) => {
         const defaultColor = defaultActColors[index] || defaultActColors[0];
@@ -87,6 +89,10 @@ const ActBar: React.FC<ActBarProps> = ({
     isActive: activeAct === act.id as ActType,
     onClick: () => onSelectAct(act.id as ActType)
   }));
+  
+  const handleToggleMoreActs = () => {
+    setShowAllActs(!showAllActs);
+  };
   
   return (
     <div className="w-full space-y-3">
@@ -122,55 +128,15 @@ const ActBar: React.FC<ActBarProps> = ({
         "flex flex-wrap items-center gap-2",
         beatMode === 'on' ? "mt-3" : "mt-2"
       )}>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={activeAct === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => onSelectAct(null)}
-                className="h-7 px-3 text-xs bg-gray-800 hover:bg-gray-700 text-white"
-              >
-                ALL
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Show all scenes</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {visibleActs.map((actBtn) => {
-          const actCount = actCounts.find(
-            count => count.act === actBtn.id as ActType
-          );
-          const count = actCount ? actCount.count : 0;
-          
-          return (
-            <ActButton
-              key={actBtn.id}
-              id={actBtn.id}
-              label={actBtn.label}
-              color={actBtn.color}
-              bgColor={actBtn.bgColor}
-              isActive={activeAct === actBtn.id as ActType}
-              count={count}
-              onClick={() => onSelectAct(actBtn.id as ActType)}
-            />
-          );
-        })}
-        
-        {actButtons.length > 5 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAllActs(!showAllActs)}
-            className="h-7 px-2 text-xs text-gray-600 dark:text-gray-400"
-          >
-            <List size={16} />
-            <span className="ml-1">{showAllActs ? 'Less' : 'More'}</span>
-          </Button>
-        )}
+        <ActButtonList 
+          activeAct={activeAct}
+          onSelectAct={onSelectAct}
+          visibleActs={visibleActs}
+          actCounts={actCounts}
+          showAllActs={showAllActs}
+          onToggleMoreActs={handleToggleMoreActs}
+          actButtons={actButtons}
+        />
       </div>
     </div>
   );
