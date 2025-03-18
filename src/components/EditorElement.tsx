@@ -50,11 +50,13 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
       return {
         width: '100%',
         textTransform: 'uppercase',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'action':
       return {
-        width: '100%'
+        width: '100%',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'character':
       return {
@@ -62,36 +64,44 @@ const getElementStyles = (type: ElementType): React.CSSProperties => {
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: 'auto',
-        marginRight: 'auto'
+        marginRight: 'auto',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'dialogue':
       return {
         width: '65%',
         marginLeft: 'auto',
-        marginRight: 'auto'
+        marginRight: 'auto',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'parenthetical':
       return {
         width: '40%',
         marginLeft: 'auto',
         marginRight: 'auto',
-        fontStyle: 'italic'
+        fontStyle: 'italic',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'transition':
       return {
         width: '100%',
         textAlign: 'right',
         textTransform: 'uppercase',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     case 'note':
       return {
         width: '100%',
         fontStyle: 'italic',
-        color: '#666'
+        color: '#666',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
       };
     default:
-      return { width: '100%' };
+      return { 
+        width: '100%',
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+      };
   }
 };
 

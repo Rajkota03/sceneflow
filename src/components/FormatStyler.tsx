@@ -27,7 +27,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       formatState.isStrikethrough ? 'line-through' : ''
     ].filter(Boolean).join(' '),
     color: formatState.textColor || '#000000',
-    backgroundColor: 'transparent', // Fixed: removed duplicate backgroundColor
+    backgroundColor: 'transparent',
     textAlign: formatState.alignment || 'left',
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',

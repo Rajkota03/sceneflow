@@ -74,7 +74,8 @@ export default {
       fontFamily: {
         'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'serif': ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
-        'mono': ['Courier Prime', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'mono': ['"Courier Final Draft"', 'Courier Prime', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'screenplay': ['"Courier Final Draft"', 'Courier Prime', 'monospace'],
       },
       borderRadius: {
         lg: 'var(--radius)',
