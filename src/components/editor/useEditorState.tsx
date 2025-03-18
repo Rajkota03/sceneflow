@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, TitlePageData } from '@/lib/types';
+import { Project, ScriptContent, jsonToScriptContent, scriptContentToJson, Note, TitlePageData, Structure, Act } from '@/lib/types';
 import { emptyProject } from '@/lib/mockData';
 import { Json } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,6 +37,7 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
   const [currentEditNote, setCurrentEditNote] = useState<Note | null>(null);
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(null);
+  const [structures, setStructures] = useState<Structure[]>([]);
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -186,6 +186,68 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
     
     fetchProject();
   }, [projectId, session, navigate]);
+
+  const fetchStructures = async () => {
+    if (!projectId) return;
+    
+    try {
+      const { data: linkData, error: linkError } = await supabase
+        .from('project_structures')
+        .select('structure_id')
+        .eq('project_id', projectId);
+      
+      if (linkError) throw linkError;
+      
+      const { data: structuresData, error: structuresError } = await supabase
+        .from('structures')
+        .select('*');
+      
+      if (structuresError) throw structuresError;
+      
+      if (structuresData) {
+        const formattedStructures: Structure[] = structuresData.map(structureData => {
+          let acts: Act[] = [];
+          
+          try {
+            if (typeof structureData.beats === 'string') {
+              acts = JSON.parse(structureData.beats);
+            } else if (structureData.beats && typeof structureData.beats === 'object') {
+              acts = structureData.beats as unknown as Act[];
+            }
+          } catch (e) {
+            console.error('Error parsing beats:', e);
+          }
+          
+          return {
+            id: structureData.id,
+            name: structureData.name,
+            description: structureData.description,
+            createdAt: new Date(structureData.created_at).toISOString(),
+            updatedAt: new Date(structureData.updated_at).toISOString(),
+            structure_type: structureData.structure_type,
+            acts: acts
+          };
+        });
+        
+        setStructures(formattedStructures);
+        
+        if (linkData && linkData.length > 0) {
+          const linkedStructureId = linkData[0].structure_id;
+          setSelectedStructureId(linkedStructureId);
+        } else if (formattedStructures.length > 0) {
+          setSelectedStructureId(formattedStructures[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching structures:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (projectId) {
+      fetchStructures();
+    }
+  }, [projectId]);
 
   const handleContentChange = useCallback((newContent: ScriptContent) => {
     setContent(newContent);
@@ -489,6 +551,7 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
     noteEditorOpen,
     currentEditNote,
     selectedStructureId,
+    structures,
     mainContainerRef,
     setCreateNoteDialogOpen,
     setNoteEditorOpen,
@@ -508,5 +571,6 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
     handleEditNote,
     handleSaveNote,
     handleStructureChange,
+    fetchStructures,
   };
 };

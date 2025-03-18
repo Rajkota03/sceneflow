@@ -3,7 +3,6 @@ import { useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
 import EditorMenuBar from '../components/EditorMenuBar';
 import { FormatProvider } from '@/lib/formatContext';
 import { ThemeProvider } from '@/lib/themeContext';
@@ -13,12 +12,10 @@ import { useEditorState } from '@/components/editor/useEditorState';
 import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
-import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const { session } = useAuth();
-  const mainContainerRef = useRef<HTMLDivElement>(null);
   
   const {
     project,
@@ -84,7 +81,7 @@ const Editor = () => {
   return (
     <ThemeProvider>
       <FormatProvider>
-        <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200" ref={mainContainerRef}>
+        <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200">
           <EditorMenuBar 
             onSave={() => handleSave()} 
             onSaveAs={handleSaveAs} 
