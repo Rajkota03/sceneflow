@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef } from 'react';
 import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
@@ -78,7 +77,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     scriptContentRef
   });
 
-  // Fetch structures for this project
   const { 
     structures, 
     selectedStructureId, 
@@ -88,7 +86,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     saveBeatCompletion
   } = useProjectStructures(projectId);
 
-  // Sync the external selectedStructureId with our local state if provided
   React.useEffect(() => {
     if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
       changeSelectedStructure(externalSelectedStructureId);
@@ -109,7 +106,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const characterNames = useCharacterNames(elements);
   const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
 
-  // PDF import handler
   React.useEffect(() => {
     const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
       if (event.detail && Array.isArray(event.detail.elements)) {
@@ -140,7 +136,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     const currentElement = elements[currentIndex];
     
     if (shiftKey && currentElement.type === 'dialogue') {
-      // Direct assignment instead of using a function to avoid type errors
       const updatedElements: ScriptElement[] = [...elements];
       updatedElements[currentIndex] = {
         ...currentElement,
@@ -169,7 +164,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   };
 
   const handleTagsChange = (elementId: string, tags: string[]) => {
-    // Direct assignment instead of using a function to avoid type errors
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, tags } : element
     );
@@ -186,17 +180,13 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
-    // Update the element with the beat tag
-    // Direct assignment instead of using a function to avoid type errors
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
     setElements(newElements);
     
-    // Update the beat's completion status in the structure
     const updatedStructure = updateBeatCompletion(beatId, actId, true);
     if (updatedStructure) {
-      // Save the updated structure to the database
       const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
       if (success) {
         toast({
