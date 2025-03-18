@@ -12,6 +12,21 @@ export type ElementType =
   'transition' | 
   'note';
 
+// Script element related types
+export interface ScriptElement {
+  id: string;
+  type: ElementType;
+  text: string;
+  tags?: string[];
+  beat?: string;
+}
+
+export interface ScriptContent {
+  elements: ScriptElement[];
+  title?: string;
+  author?: string;
+}
+
 export enum ActType {
   // Three Act Structure
   ACT_1 = 'ACT_1',
@@ -61,20 +76,6 @@ export enum ActType {
 export type ActCountsRecord = Record<ActType, number>;
 
 export type BeatMode = 'on' | 'off';
-
-export interface ScriptElement {
-  id: string;
-  type: ElementType;
-  text: string;
-  tags?: string[];
-  beat?: string;
-}
-
-export interface ScriptContent {
-  elements: ScriptElement[];
-  title?: string;
-  author?: string;
-}
 
 export type StructureType = 'three_act' | 'save_the_cat' | 'hero_journey' | 'story_circle';
 

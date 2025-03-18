@@ -66,7 +66,7 @@ export default function useActCounts(scriptContent: ScriptContent) {
         element.tags.forEach(tag => {
           allTags.add(tag);
           
-          // Count by act
+          // Count by act - Three Act Structure
           if (tag.startsWith('Act 1:')) counts[ActType.ACT_1]++;
           else if (tag.startsWith('Act 2A:')) counts[ActType.ACT_2A]++;
           else if (tag.startsWith('Midpoint:')) counts[ActType.MIDPOINT]++;
@@ -90,16 +90,16 @@ export default function useActCounts(scriptContent: ScriptContent) {
           // Hero's Journey
           else if (tag.startsWith('Ordinary World:')) counts[ActType.ORDINARY_WORLD]++;
           else if (tag.startsWith('Call to Adventure:')) counts[ActType.CALL_TO_ADVENTURE]++;
-          else if (tag.startsWith('Refusal:')) counts[ActType.REFUSAL]++;
-          else if (tag.startsWith('Mentor:')) counts[ActType.MENTOR]++;
-          else if (tag.startsWith('Crossing Threshold:')) counts[ActType.CROSSING_THRESHOLD]++;
+          else if (tag.startsWith('Refusal of the Call:') || tag.startsWith('Refusal:')) counts[ActType.REFUSAL]++;
+          else if (tag.startsWith('Meeting the Mentor:') || tag.startsWith('Mentor:')) counts[ActType.MENTOR]++;
+          else if (tag.startsWith('Crossing the Threshold:') || tag.startsWith('Crossing Threshold:')) counts[ActType.CROSSING_THRESHOLD]++;
           else if (tag.startsWith('Tests, Allies, Enemies:')) counts[ActType.TESTS_ALLIES_ENEMIES]++;
-          else if (tag.startsWith('Approach:')) counts[ActType.APPROACH]++;
+          else if (tag.startsWith('Approach to Inmost Cave:') || tag.startsWith('Approach:')) counts[ActType.APPROACH]++;
           else if (tag.startsWith('Ordeal:')) counts[ActType.ORDEAL]++;
           else if (tag.startsWith('Reward:')) counts[ActType.REWARD]++;
           else if (tag.startsWith('Road Back:')) counts[ActType.ROAD_BACK]++;
           else if (tag.startsWith('Resurrection:')) counts[ActType.RESURRECTION]++;
-          else if (tag.startsWith('Return:')) counts[ActType.RETURN]++;
+          else if (tag.startsWith('Return with Elixir:') || tag.startsWith('Return:')) counts[ActType.RETURN]++;
           
           // Story Circle
           else if (tag.startsWith('You:')) counts[ActType.YOU]++;

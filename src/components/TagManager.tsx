@@ -27,7 +27,7 @@ const TagManager: React.FC<TagManagerProps> = ({
     if (!selectedStructureId || !structures.length) return 'three_act';
     
     const selectedStructure = structures.find(s => s.id === selectedStructureId);
-    return selectedStructure?.structure_type as StructureType || 'three_act';
+    return (selectedStructure?.structure_type as StructureType) || 'three_act';
   };
   
   const structureType = getStructureType();
@@ -43,8 +43,8 @@ const TagManager: React.FC<TagManagerProps> = ({
   };
 
   return (
-    <div className="mb-4">
-      <div className="flex justify-between items-center mb-2">
+    <div className="mb-4 overflow-visible">
+      <div className="mb-2">
         {onFilterByAct && (
           <ActBar 
             activeAct={activeActFilter || null} 
