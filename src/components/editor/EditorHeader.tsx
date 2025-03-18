@@ -8,6 +8,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import NotesMenu from '@/components/notes/NotesMenu';
 import { Note } from '@/lib/types';
 import ThemeToggleButton from './ThemeToggleButton';
+import BeatModeToggle from '../act-bar/BeatModeToggle';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorHeaderProps {
   title: string;
@@ -24,6 +26,8 @@ interface EditorHeaderProps {
   availableStructures?: Array<{ id: string; name: string }>;
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const EditorHeader: React.FC<EditorHeaderProps> = ({
@@ -40,7 +44,9 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
   onEditNote,
   availableStructures,
   selectedStructureId,
-  onStructureChange
+  onStructureChange,
+  beatMode = 'on',
+  onToggleBeatMode
 }) => {
   const navigate = useNavigate();
 
@@ -78,6 +84,13 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
       
       <div className="flex items-center space-x-2">
         <ThemeToggleButton />
+        
+        {beatMode && onToggleBeatMode && (
+          <BeatModeToggle
+            beatMode={beatMode}
+            onToggleBeatMode={onToggleBeatMode}
+          />
+        )}
         
         <NotesMenu 
           notes={notes}

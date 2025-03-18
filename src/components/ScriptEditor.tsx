@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
@@ -13,6 +12,7 @@ import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import KeyboardShortcutsHelp from './script-editor/KeyboardShortcutsHelp';
 import ZoomControls from './script-editor/ZoomControls';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -23,6 +23,7 @@ interface ScriptEditorProps {
   projectName?: string;
   structureName?: string;
   projectId?: string;
+  beatMode?: BeatMode;
 }
 
 const ScriptEditor = ({ 
@@ -33,13 +34,13 @@ const ScriptEditor = ({
   className,
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
-  projectId
+  projectId,
+  beatMode = 'on'
 }: ScriptEditorProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
-  const [beatMode, setBeatMode] = useState<'on' | 'off'>('on');
   const editorRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -141,7 +142,6 @@ const ScriptEditor = ({
             projectName={projectName}
             structureName={structureName}
             beatMode={beatMode}
-            onToggleBeatMode={handleToggleBeatMode}
           />
           
           {showKeyboardShortcuts && <KeyboardShortcutsHelp />}

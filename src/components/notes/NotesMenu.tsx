@@ -80,7 +80,7 @@ const NotesMenu = ({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="text-[#333333] hover:bg-[#DDDDDD]">
+          <Button variant="ghost" size="sm" className="text-[#333333] dark:text-slate-200 hover:bg-[#DDDDDD] dark:hover:bg-slate-700">
             <NotebookPen size={16} className="mr-1" />
             <span>Notes</span>
           </Button>
@@ -123,7 +123,7 @@ const NotesMenu = ({
                   className="cursor-pointer flex justify-between"
                 >
                   <div className="flex items-center">
-                    <NotebookPen size={14} className="mr-2 text-muted-foreground" />
+                    <BookText size={14} className="mr-2 text-muted-foreground" />
                     <span className="truncate">{note.title}</span>
                   </div>
                   {onEditNote && (

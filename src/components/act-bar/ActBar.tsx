@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { ActType, Structure } from '@/lib/types';
 import { Button } from '../ui/button';
-import { BeatMode } from '@/types/scriptTypes';
 import { 
   TooltipProvider,
   Tooltip,
@@ -12,7 +11,6 @@ import {
 import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
-import BeatModeToggle from './BeatModeToggle';
 
 interface ActCount {
   act: ActType | null;
@@ -25,8 +23,6 @@ interface ActBarProps {
   actCounts: ActCount[];
   projectName?: string;
   structureName?: string;
-  beatMode?: BeatMode;
-  onToggleBeatMode?: (mode: BeatMode) => void;
   selectedStructure?: Structure | null;
 }
 
@@ -36,8 +32,6 @@ const ActBar: React.FC<ActBarProps> = ({
   actCounts,
   projectName,
   structureName,
-  beatMode = 'on',
-  onToggleBeatMode,
   selectedStructure
 }) => {
   const [showAllActs, setShowAllActs] = useState(false);
@@ -102,13 +96,6 @@ const ActBar: React.FC<ActBarProps> = ({
             </span>
           )}
         </div>
-        
-        {onToggleBeatMode && (
-          <BeatModeToggle
-            beatMode={beatMode}
-            onToggleBeatMode={onToggleBeatMode}
-          />
-        )}
       </div>
       
       {/* Story Structure Bar */}

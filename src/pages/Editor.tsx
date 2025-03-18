@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { useEditorState } from '@/components/editor/useEditorState';
 import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
+import { BeatMode } from '@/types/scriptTypes';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -52,6 +53,13 @@ const Editor = () => {
     handleSaveNote,
     handleStructureChange,
   } = useEditorState({ projectId, session });
+
+  // State for beat mode (to be passed to both Header and MainArea)
+  const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  
+  const handleToggleBeatMode = (mode: BeatMode) => {
+    setBeatMode(mode);
+  };
 
   if (isLoading) {
     return (
@@ -111,6 +119,8 @@ const Editor = () => {
             availableStructures={availableStructures}
             selectedStructureId={selectedStructureId}
             onStructureChange={handleStructureChange}
+            beatMode={beatMode}
+            onToggleBeatMode={handleToggleBeatMode}
           />
           
           <EditorMainArea
@@ -128,6 +138,7 @@ const Editor = () => {
             projectTitle={title}
             onStructureChange={handleStructureChange}
             selectedStructureId={selectedStructureId}
+            beatMode={beatMode}
           />
           
           <EditorFooter
