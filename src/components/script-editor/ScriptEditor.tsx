@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../../lib/types';
 import { generateUniqueId } from '../../lib/formatScript';

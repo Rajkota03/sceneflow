@@ -1,10 +1,10 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Structure, Act, Beat } from '@/lib/types';
 import { StructureType } from '@/types/scriptTypes';
 import { Json } from '@/integrations/supabase/types';
 import * as structureTemplates from '@/lib/structureTemplates';
 import { toast } from '@/components/ui/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 // Convert database structure to application structure
 export const formatDatabaseStructure = (dbStructure: any): Structure => {
@@ -58,27 +58,31 @@ export const fetchStructures = async (): Promise<Structure[]> => {
 // Create a new structure
 export const createStructure = async (structureType: StructureType): Promise<Structure | null> => {
   try {
+    // Generate a unique ID for the new structure
+    const structureId = `structure_${uuidv4().slice(0, 8)}`;
+    
     let template;
     switch (structureType) {
       case 'three_act':
-        template = structureTemplates.createThreeActStructure('temp-id');
+        template = structureTemplates.createThreeActStructure(structureId);
         break;
       case 'save_the_cat':
-        template = structureTemplates.createSaveTheCatStructure('temp-id');
+        template = structureTemplates.createSaveTheCatStructure(structureId);
         break;
       case 'heroes_journey':
-        template = structureTemplates.createHeroJourneyStructure('temp-id');
+        template = structureTemplates.createHeroJourneyStructure(structureId);
         break;
       case 'story_circle':
-        template = structureTemplates.createStoryCircleStructure('temp-id');
+        template = structureTemplates.createStoryCircleStructure(structureId);
         break;
       default:
-        template = structureTemplates.createThreeActStructure('temp-id');
+        template = structureTemplates.createThreeActStructure(structureId);
     }
     
     const { data, error } = await supabase
       .from('structures')
       .insert({
+        id: structureId,
         name: template.name,
         description: template.description,
         structure_type: structureType,
