@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ActType } from '@/lib/types';
+import { ActType, Structure } from '@/lib/types';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Zap, ZapOff, Check, Film } from 'lucide-react';
@@ -25,6 +25,7 @@ interface ActBarProps {
   }[];
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
+  selectedStructure?: Structure | null;
 }
 
 const ActBar: React.FC<ActBarProps> = ({
@@ -37,10 +38,18 @@ const ActBar: React.FC<ActBarProps> = ({
   onToggleBeatMode,
   availableStructures = [],
   onStructureChange,
-  selectedStructureId
+  selectedStructureId,
+  selectedStructure
 }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const acts = [{
+  const [structureActs, setStructureActs] = useState<{
+    id: string,
+    label: string,
+    color: string
+  }[]>([]);
+  
+  // Default acts for the standard Three Act Structure
+  const defaultActs = [{
     id: ActType.ACT_1,
     label: 'Act 1',
     color: 'bg-[#D3E4FD] hover:bg-[#B8D2F8] border-[#4A90E2]'
@@ -61,6 +70,50 @@ const ActBar: React.FC<ActBarProps> = ({
     label: 'Act 3',
     color: 'bg-[#F2FCE2] hover:bg-[#E5F8C8] border-[#009688]'
   }];
+
+  // Generate colors for each act based on the act index
+  const generateColorForIndex = (index: number, total: number) => {
+    const colorPalettes = [
+      // Blue shades
+      {bg: 'bg-[#D3E4FD]', hover: 'hover:bg-[#B8D2F8]', border: 'border-[#4A90E2]'},
+      // Yellow shades
+      {bg: 'bg-[#FEF7CD]', hover: 'hover:bg-[#FDF0B0]', border: 'border-[#F5A623]'},
+      // Red/pink shades
+      {bg: 'bg-[#FFCCCB]', hover: 'hover:bg-[#FFB9B8]', border: 'border-[#FF9E9D]'},
+      // Orange shades
+      {bg: 'bg-[#FDE1D3]', hover: 'hover:bg-[#FCCEB8]', border: 'border-[#F57C00]'},
+      // Green shades
+      {bg: 'bg-[#F2FCE2]', hover: 'hover:bg-[#E5F8C8]', border: 'border-[#009688]'},
+      // Purple shades
+      {bg: 'bg-[#E6E0F8]', hover: 'hover:bg-[#D1C4F4]', border: 'border-[#9C7CF4]'},
+      // Teal shades
+      {bg: 'bg-[#D9F2F4]', hover: 'hover:bg-[#B7E8EC]', border: 'border-[#5BC0C5]'},
+    ];
+    
+    // Calculate distribution for larger act counts
+    const paletteIndex = Math.min(Math.floor((index / total) * colorPalettes.length), colorPalettes.length - 1);
+    return `${colorPalettes[paletteIndex].bg} ${colorPalettes[paletteIndex].hover} ${colorPalettes[paletteIndex].border}`;
+  };
+
+  // Update acts when selected structure changes
+  useEffect(() => {
+    if (selectedStructure && selectedStructure.acts) {
+      console.log("Selected structure in ActBar:", selectedStructure.name);
+      console.log("Number of acts:", selectedStructure.acts.length);
+      
+      // Map the structure's acts to our display format
+      const customActs = selectedStructure.acts.map((act, index) => ({
+        id: act.id,
+        label: act.title || `Act ${index + 1}`,
+        color: generateColorForIndex(index, selectedStructure.acts.length)
+      }));
+      
+      setStructureActs(customActs);
+    } else {
+      // Fall back to default acts if no structure or acts available
+      setStructureActs(defaultActs);
+    }
+  }, [selectedStructure]);
   
   const handleBeatModeToggle = (value: BeatMode) => {
     if (onToggleBeatMode) {
@@ -168,7 +221,7 @@ const ActBar: React.FC<ActBarProps> = ({
         <CollapsibleContent>
           {beatMode === 'on' && (
             <div className="grid grid-cols-5 gap-1 mt-2">
-              {acts.map(act => (
+              {structureActs.map(act => (
                 <button
                   key={act.id}
                   onClick={() => onSelectAct(activeAct === act.id ? null : act.id)}
@@ -180,9 +233,9 @@ const ActBar: React.FC<ActBarProps> = ({
                   )}
                 >
                   {act.label}
-                  {actCounts[act.id] > 0 && (
+                  {actCounts[act.id as ActType] > 0 && (
                     <span className="ml-1 bg-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">
-                      {actCounts[act.id]}
+                      {actCounts[act.id as ActType]}
                     </span>
                   )}
                 </button>

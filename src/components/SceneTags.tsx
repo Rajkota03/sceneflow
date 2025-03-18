@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from './ui/button';
+import { toast } from './ui/use-toast';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -40,6 +41,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({
       console.log('Tagging beat:', beatId, 'in act:', actId);
       onBeatTag(element.id, beatId, actId);
       setIsOpen(false);
+      
+      toast({
+        title: "Beat Tag Applied",
+        description: "The scene has been tagged with the selected beat.",
+      });
     }
   };
 

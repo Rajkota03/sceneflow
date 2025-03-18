@@ -98,18 +98,22 @@ const useProjectStructures = (projectId?: string) => {
   }, [fetchStructures]);
   
   // Handle structure change
-  const handleStructureChange = useCallback((structureId: string) => {
+  const handleStructureChange = useCallback(async (structureId: string) => {
     console.log("Structure ID changing to:", structureId);
     setSelectedStructureId(structureId);
     
     const structure = structures.find(s => s.id === structureId);
     if (structure) {
       console.log("Found structure:", structure.name);
-      setSelectedStructure(structure);
+      console.log("Structure acts:", structure.acts.length);
+      
+      // Deep clone the structure to avoid reference issues
+      const clonedStructure = JSON.parse(JSON.stringify(structure));
+      setSelectedStructure(clonedStructure);
       
       // Link the structure to the project in the database
       if (projectId) {
-        linkStructureToProject(projectId, structureId);
+        await linkStructureToProject(projectId, structureId);
       }
     } else {
       console.error("Could not find structure with ID:", structureId);

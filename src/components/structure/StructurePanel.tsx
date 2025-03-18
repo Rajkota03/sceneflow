@@ -38,11 +38,21 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
 
   useEffect(() => {
     console.log(`StructurePanel rendering with structure ${structure.id}: ${structure.name}`);
-    console.log(`Number of acts: ${structure.acts.length}`);
-    structure.acts.forEach(act => {
-      console.log(`Act ${act.title || act.id} has ${act.beats.length} beats`);
-    });
+    console.log(`Number of acts: ${structure.acts?.length || 0}`);
+    
+    if (structure.acts && Array.isArray(structure.acts)) {
+      structure.acts.forEach(act => {
+        if (act && act.beats) {
+          console.log(`Act ${act.title || act.id} has ${act.beats.length} beats`);
+        }
+      });
+    } else {
+      console.log("Structure has no acts or not in the expected format");
+    }
   }, [structure]);
+
+  // Check if structure has valid acts
+  const hasValidActs = localStructure.acts && Array.isArray(localStructure.acts) && localStructure.acts.length > 0;
 
   return (
     <div className="w-full">
@@ -62,20 +72,26 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
         canEdit={!!onStructureUpdate}
       />
       
-      <div className="space-y-3">
-        {localStructure.acts.map((act) => (
-          <ActSection
-            key={`${localStructure.id}-${act.id}`}
-            act={act}
-            isExpanded={expandedActs[act.id]}
-            toggleAct={toggleAct}
-            onBeatToggleComplete={handleBeatToggleComplete}
-            onBeatsReorder={handleBeatsReorder}
-            onBeatUpdate={handleBeatUpdate}
-            isEditing={isEditing}
-          />
-        ))}
-      </div>
+      {!hasValidActs ? (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 text-sm">
+          This structure doesn't have any acts or beats defined. You may need to reset it to the default template.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {localStructure.acts.map((act) => (
+            <ActSection
+              key={`${localStructure.id}-${act.id}`}
+              act={act}
+              isExpanded={expandedActs[act.id]}
+              toggleAct={toggleAct}
+              onBeatToggleComplete={handleBeatToggleComplete}
+              onBeatsReorder={handleBeatsReorder}
+              onBeatUpdate={handleBeatUpdate}
+              isEditing={isEditing}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

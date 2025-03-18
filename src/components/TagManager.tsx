@@ -22,6 +22,9 @@ const TagManager: React.FC<TagManagerProps> = ({
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
   
+  // Find the selected structure from the list
+  const selectedStructure = structures.find(s => s.id === selectedStructureId) || null;
+  
   const handleActFilter = (act: ActType | null) => {
     if (onFilterByAct) {
       onFilterByAct(act);
@@ -34,6 +37,11 @@ const TagManager: React.FC<TagManagerProps> = ({
   
   console.log('TagManager - Available structures:', structures.length);
   console.log('TagManager - Selected structure ID:', selectedStructureId);
+  
+  if (selectedStructure) {
+    console.log('TagManager - Selected structure name:', selectedStructure.name);
+    console.log('TagManager - Selected structure acts:', selectedStructure.acts?.length || 0);
+  }
 
   return (
     <div className="mb-4">
@@ -44,12 +52,13 @@ const TagManager: React.FC<TagManagerProps> = ({
             onSelectAct={handleActFilter} 
             actCounts={actCounts}
             projectName={projectName}
-            structureName={structureName}
+            structureName={selectedStructure?.name || structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
             onStructureChange={onStructureChange}
             selectedStructureId={selectedStructureId}
+            selectedStructure={selectedStructure}
           />
         )}
       </div>

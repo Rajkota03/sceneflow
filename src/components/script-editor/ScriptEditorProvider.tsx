@@ -84,12 +84,14 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     selectedStructure,
     handleStructureChange: changeSelectedStructure,
     updateBeatCompletion,
-    saveBeatCompletion
+    saveBeatCompletion,
+    fetchStructures
   } = useProjectStructures(projectId);
 
   // Use effect to sync external structure ID with internal state
   useEffect(() => {
     if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
+      console.log("External structure ID changed, updating:", externalSelectedStructureId);
       changeSelectedStructure(externalSelectedStructureId);
     }
   }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
@@ -173,39 +175,46 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setElements(newElements);
   };
 
-  const handleStructureChange = (structureId: string) => {
+  const handleStructureChange = async (structureId: string) => {
     console.log("Structure changing to:", structureId);
-    changeSelectedStructure(structureId);
+    await changeSelectedStructure(structureId);
+    
     if (onStructureChange) {
       onStructureChange(structureId);
     }
+    
+    // Re-fetch structures to ensure we have the updated data
+    await fetchStructures();
   };
 
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
+    // Update the element with the beat tag
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
     setElements(newElements);
     
+    // Update structure progress
     const updatedStructure = updateBeatCompletion(beatId, actId, true);
     if (updatedStructure) {
       const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
       if (success) {
-        toast({
-          title: "Beat tagged",
-          description: "The scene has been tagged and structure progress updated.",
-        });
+        console.log("Beat tagged and structure progress updated");
       } else {
-        toast({
-          title: "Error",
-          description: "Failed to update the structure progress.",
-          variant: "destructive",
-        });
+        console.error("Failed to update structure progress");
       }
     }
   };
+
+  // Log selected structure changes for debugging
+  useEffect(() => {
+    if (selectedStructure) {
+      console.log("Selected structure in context:", selectedStructure.name);
+      console.log("Number of acts:", selectedStructure.acts?.length || 0);
+    }
+  }, [selectedStructure]);
 
   const value = {
     elements,

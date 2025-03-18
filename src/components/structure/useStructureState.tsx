@@ -25,14 +25,23 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   // This effect will run when the structure prop changes (e.g., when a new structure is selected)
   useEffect(() => {
     console.log("Structure changed in useStructureState", structure.id);
-    setLocalStructure(structure);
+    
+    // Create a deep copy to avoid reference issues
+    const structureCopy = JSON.parse(JSON.stringify(structure));
+    setLocalStructure(structureCopy);
     setHasChanges(false);
     
     // Reset expanded acts when structure changes
     const initialExpandedState: Record<string, boolean> = {};
-    structure.acts.forEach(act => {
-      initialExpandedState[act.id] = true;
-    });
+    
+    if (structure.acts && Array.isArray(structure.acts)) {
+      structure.acts.forEach(act => {
+        if (act && act.id) {
+          initialExpandedState[act.id] = true;
+        }
+      });
+    }
+    
     setExpandedActs(initialExpandedState);
   }, [structure]);
   
@@ -44,15 +53,35 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   };
   
   const calculateProgress = () => {
-    const totalBeats = localStructure.acts.reduce((sum, act) => sum + act.beats.length, 0);
-    const completeBeats = localStructure.acts.reduce((sum, act) => 
-      sum + act.beats.filter(beat => beat.complete).length, 0);
+    if (!localStructure.acts || !Array.isArray(localStructure.acts)) {
+      return 0;
+    }
+    
+    const totalBeats = localStructure.acts.reduce((sum, act) => {
+      if (act && act.beats && Array.isArray(act.beats)) {
+        return sum + act.beats.length;
+      }
+      return sum;
+    }, 0);
+    
+    const completeBeats = localStructure.acts.reduce((sum, act) => {
+      if (act && act.beats && Array.isArray(act.beats)) {
+        return sum + act.beats.filter(beat => beat.complete).length;
+      }
+      return sum;
+    }, 0);
+    
     return totalBeats > 0 ? (completeBeats / totalBeats) * 100 : 0;
   };
 
   const progressPercentage = calculateProgress();
   
   const handleBeatsReorder = (actId: string, reorderedBeats: Beat[]) => {
+    if (!localStructure.acts || !Array.isArray(localStructure.acts)) {
+      console.error("No valid acts array found in structure");
+      return;
+    }
+    
     const updatedActs = localStructure.acts.map(act => 
       act.id === actId ? { ...act, beats: reorderedBeats } : act
     );
@@ -65,8 +94,13 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
   };
   
   const handleBeatUpdate = (actId: string, beatId: string, updatedBeatFields: Partial<Beat>) => {
+    if (!localStructure.acts || !Array.isArray(localStructure.acts)) {
+      console.error("No valid acts array found in structure");
+      return;
+    }
+    
     const updatedActs = localStructure.acts.map(act => {
-      if (act.id === actId) {
+      if (act.id === actId && act.beats && Array.isArray(act.beats)) {
         const updatedBeats = act.beats.map(beat => 
           beat.id === beatId ? { ...beat, ...updatedBeatFields } : beat
         );
@@ -136,8 +170,11 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
         break;
     }
     
-    // Preserve the structure name
+    // Preserve the structure name and description
     updatedStructure.name = localStructure.name;
+    if (localStructure.description) {
+      updatedStructure.description = localStructure.description;
+    }
     
     setLocalStructure(updatedStructure);
     setHasChanges(true);
@@ -147,6 +184,11 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
       allOpen[act.id] = true;
     });
     setExpandedActs(allOpen);
+    
+    toast({
+      title: "Structure Reset",
+      description: "The structure has been reset to the default template."
+    });
   };
   
   const cancelEditing = () => {
