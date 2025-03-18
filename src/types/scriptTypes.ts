@@ -53,3 +53,6 @@ export interface SceneTagsProps {
 export interface TagInputProps {
   onTagSubmit: (tag: string) => void;
 }
+
+// Add the export of StructureType to ensure consistent usage
+export type StructureType = 'three_act' | 'save_the_cat' | 'heroes_journey' | 'story_circle';

@@ -1,241 +1,180 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
-import { Structure, Act } from '@/lib/types';
+import { Structure } from '@/lib/types';
 import { useAuth } from '@/App';
-import { useNavigate } from 'react-router-dom';
-import { 
-  createThreeActStructure, 
-  createSaveTheCatStructure, 
-  createHeroJourneyStructure, 
-  createStoryCircleStructure 
-} from '@/lib/structureTemplates';
 
 export type StructureType = 'three_act' | 'save_the_cat' | 'hero_journey' | 'story_circle';
 
-export const useDashboardStructures = () => {
+interface UseDashboardStructuresResult {
+  structures: Structure[];
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  isLoading: boolean;
+  handleCreateStructure: (structureType?: StructureType) => void;
+  handleEditStructure: (structure: Structure) => void;
+  handleDeleteStructure: (id: string) => Promise<void>;
+}
+
+export const useDashboardStructures = (): UseDashboardStructuresResult => {
   const [structures, setStructures] = useState<Structure[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { session } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchStructures = async () => {
+      try {
+        setIsLoading(true);
+        
+        const { data: structuresData, error } = await supabase
+          .from('structures')
+          .select('*')
+          .eq('user_id', session?.user.id);
+        
+        if (error) {
+          console.error('Error fetching structures:', error);
+          return;
+        }
+        
+        // Transform the data to match the Structure type
+        const formattedStructures: Structure[] = structuresData.map(structure => ({
+          id: structure.id,
+          name: structure.name,
+          description: structure.description,
+          acts: structure.acts,
+          created_at: structure.createdAt || new Date().toISOString(),
+          updated_at: structure.updatedAt || new Date().toISOString(),
+          structure_type: structure.structure_type as StructureType
+        }));
+        
+        setStructures(formattedStructures);
+      } catch (error) {
+        console.error('Error in fetchStructures:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     if (session) {
       fetchStructures();
-    } else {
-      setIsLoading(false);
     }
   }, [session]);
 
-  const fetchStructures = async () => {
+  const handleCreateStructure = async (structureType: StructureType = 'three_act') => {
+    if (!session) return;
+
     setIsLoading(true);
     try {
+      const defaultStructure = {
+        name: 'Untitled Structure',
+        description: 'A new story structure',
+        user_id: session.user.id,
+        structure_type: structureType,
+        acts: [
+          {
+            id: 'act-1',
+            title: 'Act 1',
+            beats: [
+              { id: 'beat-1', title: 'Opening Image', completed: false },
+              { id: 'beat-2', title: 'Theme Stated', completed: false },
+              { id: 'beat-3', title: 'Set-up', completed: false },
+            ],
+          },
+          {
+            id: 'act-2',
+            title: 'Act 2',
+            beats: [
+              { id: 'beat-4', title: 'Catalyst', completed: false },
+              { id: 'beat-5', title: 'Debate', completed: false },
+              { id: 'beat-6', title: 'Break into Two', completed: false },
+            ],
+          },
+          {
+            id: 'act-3',
+            title: 'Act 3',
+            beats: [
+              { id: 'beat-7', title: 'B Story', completed: false },
+              { id: 'beat-8', title: 'Fun and Games', completed: false },
+              { id: 'beat-9', title: 'Midpoint', completed: false },
+            ],
+          },
+        ],
+      };
+
       const { data, error } = await supabase
         .from('structures')
-        .select('*')
-        .order('updated_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      if (data) {
-        const formattedStructures: Structure[] = data.map(structure => {
-          let actsData: Act[] = [];
-          try {
-            if (typeof structure.beats === 'string') {
-              const parsed = JSON.parse(structure.beats);
-              actsData = parsed.acts || [];
-            } else if (structure.beats && typeof structure.beats === 'object') {
-              const beatsObj = structure.beats as any;
-              actsData = beatsObj.acts || [];
-            }
-          } catch (e) {
-            console.error('Error parsing beats data:', e);
-            actsData = [];
-          }
-          
-          return {
-            id: structure.id,
-            name: structure.name,
-            description: structure.description || undefined,
-            acts: actsData,
-            createdAt: new Date(structure.created_at).toISOString(), // Convert to string
-            updatedAt: new Date(structure.updated_at).toISOString(), // Convert to string
-            structure_type: structure.structure_type || 'three_act'
-          };
-        });
-        
-        setStructures(formattedStructures);
+        .insert([defaultStructure])
+        .select('*');
+
+      if (error) {
+        console.error('Error creating structure:', error);
+        return;
       }
+
+      const newStructure = data[0] as Structure;
+      setStructures(prevStructures => [...prevStructures, newStructure]);
     } catch (error) {
-      console.error('Error fetching structures:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load structures. Please try again.',
-        variant: 'destructive',
-      });
-      setStructures([]);
+      console.error('Error creating structure:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreateStructure = async (structureType: StructureType = 'three_act') => {
-    if (!session) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to create a new structure',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    try {
-      const structureId = `structure-${Date.now()}`;
-      let newStructure: Structure;
-      
-      // Create the appropriate structure based on type
-      switch (structureType) {
-        case 'save_the_cat':
-          newStructure = createSaveTheCatStructure(structureId);
-          break;
-        case 'hero_journey':
-          newStructure = createHeroJourneyStructure(structureId);
-          break;
-        case 'story_circle':
-          newStructure = createStoryCircleStructure(structureId);
-          break;
-        case 'three_act':
-        default:
-          newStructure = createThreeActStructure(structureId);
-          break;
-      }
-      
-      const beatsData = JSON.stringify({ acts: newStructure.acts });
-      
-      const { error } = await supabase
-        .from('structures')
-        .insert({
-          id: newStructure.id,
-          name: newStructure.name,
-          description: newStructure.description,
-          beats: beatsData,
-          structure_type: structureType
-        });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Structure created",
-        description: `Your ${newStructure.name} has been created successfully.`
-      });
-      
-      setStructures(prev => [newStructure, ...prev]);
-      
-      // Navigate to the new structure
-      navigate(`/structure/${newStructure.id}`);
-    } catch (error) {
-      console.error('Error creating structure:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to create a new structure. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
+  const handleEditStructure = async (structure: Structure) => {
+    if (!session) return;
 
-  const handleUpdateStructure = async (updatedStructure: Structure) => {
-    if (!session) {
-      toast({
-        title: 'Authentication required',
-        description: 'Please sign in to update this structure',
-        variant: 'destructive',
-      });
-      throw new Error('Authentication required');
-    }
-    
+    setIsLoading(true);
     try {
-      const beatsData = JSON.stringify({ acts: updatedStructure.acts });
-      
       const { error } = await supabase
         .from('structures')
-        .update({
-          name: updatedStructure.name,
-          description: updatedStructure.description,
-          beats: beatsData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', updatedStructure.id);
-      
-      if (error) throw error;
-      
-      setStructures(prev => 
-        prev.map(structure => 
-          structure.id === updatedStructure.id 
-            ? { ...updatedStructure, updatedAt: new Date().toISOString() } 
-            : structure
-        )
+        .update(structure)
+        .eq('id', structure.id);
+
+      if (error) {
+        console.error('Error updating structure:', error);
+        return;
+      }
+
+      setStructures(prevStructures =>
+        prevStructures.map(s => (s.id === structure.id ? structure : s))
       );
-      
-      return;
     } catch (error) {
       console.error('Error updating structure:', error);
-      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleEditStructure = (structure: Structure) => {
-    navigate(`/structure/${structure.id}`);
   };
 
   const handleDeleteStructure = async (id: string) => {
+    if (!session) return;
+
+    setIsLoading(true);
     try {
-      const { error: linkError } = await supabase
-        .from('project_structures')
-        .delete()
-        .eq('structure_id', id);
-      
-      if (linkError) throw linkError;
-      
       const { error } = await supabase
         .from('structures')
         .delete()
         .eq('id', id);
-      
-      if (error) throw error;
-      
-      setStructures(prev => prev.filter(structure => structure.id !== id));
-      
-      toast({
-        title: "Structure deleted",
-        description: "The structure has been deleted successfully."
-      });
+
+      if (error) {
+        console.error('Error deleting structure:', error);
+        return;
+      }
+
+      setStructures(prevStructures => prevStructures.filter(s => s.id !== id));
     } catch (error) {
       console.error('Error deleting structure:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete the structure. Please try again.',
-        variant: 'destructive',
-      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const filteredStructures = structures.filter(structure =>
-    structure.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (structure.description && structure.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
   return {
-    structures: filteredStructures,
+    structures,
     searchQuery,
     setSearchQuery,
     isLoading,
     handleCreateStructure,
     handleEditStructure,
     handleDeleteStructure,
-    handleUpdateStructure
   };
 };
-
-export default useDashboardStructures;

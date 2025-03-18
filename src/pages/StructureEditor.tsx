@@ -1,239 +1,181 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import StructurePanel from '@/components/structure/StructurePanel';
-import { Structure, Act } from '@/lib/types';
-import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Edit, Save, Check } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import LoadingState from '@/components/dashboard/LoadingState';
-import Logo from '@/components/Logo';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/App';
+import { supabase } from '@/integrations/supabase/client';
+import { Structure } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
-const StructureEditor = () => {
+// Import the StructureType from the scriptTypes to ensure consistency
+import { StructureType } from '@/types/scriptTypes';
+
+interface StructureEditorProps {}
+
+const StructureEditor: React.FC<StructureEditorProps> = () => {
   const { structureId } = useParams<{ structureId: string }>();
-  const [structure, setStructure] = useState<Structure | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [structureName, setStructureName] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const nameInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { session } = useAuth();
+  const [structure, setStructure] = useState<Structure | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
 
   useEffect(() => {
-    fetchStructure();
-  }, [structureId]);
-
-  useEffect(() => {
-    if (isEditingName && nameInputRef.current) {
-      nameInputRef.current.focus();
+    if (!session) {
+      navigate('/signin');
+      return;
     }
-  }, [isEditingName]);
+    
+    loadStructure();
+  }, [session, structureId, navigate]);
 
-  const fetchStructure = async () => {
+  useEffect(() => {
+    if (structure) {
+      setName(structure.name);
+      setDescription(structure.description);
+    }
+  }, [structure]);
+
+  const handleSave = async () => {
+    if (!structureId || !structure) return;
+    
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase
+        .from('structures')
+        .update({
+          name: name,
+          description: description,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', structureId);
+      
+      if (error) {
+        console.error('Error updating structure:', error);
+        toast({
+          title: "Error",
+          description: "Could not update structure. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Success",
+        description: "Structure updated successfully.",
+      });
+      
+      // Optimistically update the local state
+      setStructure({ ...structure, name: name, description: description });
+    } catch (error) {
+      console.error('Error in handleSave:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update structure.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // When retrieving and mapping structure data, ensure proper type conversion
+  const loadStructure = async () => {
     if (!structureId) return;
     
-    setLoading(true);
     try {
+      setIsLoading(true);
+      
       const { data, error } = await supabase
         .from('structures')
         .select('*')
         .eq('id', structureId)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading structure:', error);
+        toast({
+          title: "Error",
+          description: "Could not load structure. Please try again later.",
+          variant: "destructive",
+        });
+        return;
+      }
       
+      // Ensure we convert structure_type to the correct StructureType
       if (data) {
-        let actsData: Act[] = [];
-        try {
-          if (typeof data.beats === 'string') {
-            const parsed = JSON.parse(data.beats);
-            actsData = parsed.acts || [];
-          } else if (data.beats && typeof data.beats === 'object') {
-            const beatsObj = data.beats as any;
-            actsData = beatsObj.acts || [];
-          }
-        } catch (e) {
-          console.error('Error parsing beats data:', e);
-          actsData = [];
-        }
-        
-        const formattedStructure: Structure = {
-          id: data.id,
-          name: data.name,
-          description: data.description || undefined,
-          acts: actsData,
-          createdAt: new Date(data.created_at).toISOString(), // Convert Date to string
-          updatedAt: new Date(data.updated_at).toISOString(), // Convert Date to string
-          structure_type: data.structure_type || 'three_act'
-        };
-        
-        setStructure(formattedStructure);
-        setStructureName(formattedStructure.name);
+        setStructure({
+          ...data,
+          structure_type: data.structure_type as StructureType,
+          created_at: data.created_at || data.createdAt || new Date().toISOString(),
+          updated_at: data.updated_at || data.updatedAt || new Date().toISOString()
+        });
       }
     } catch (error) {
-      console.error('Error fetching structure:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load structure. Please try again.',
-        variant: 'destructive',
-      });
+      console.error('Error in loadStructure:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSaveStructureName = async () => {
-    if (!structure || !structureName.trim()) return;
-    
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('structures')
-        .update({ 
-          name: structureName,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', structure.id);
-      
-      if (error) throw error;
-      
-      setStructure({
-        ...structure,
-        name: structureName
-      });
-      
-      setIsEditingName(false);
-      toast({
-        title: 'Success',
-        description: 'Structure name updated successfully',
-      });
-    } catch (error) {
-      console.error('Error updating structure name:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update structure name',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="animate-spin h-8 w-8 text-primary" />
+      </div>
+    );
+  }
 
-  const handleUpdateStructure = async (updatedStructure: Structure) => {
-    try {
-      updatedStructure.structure_type = structure?.structure_type || 'three_act';
-      
-      const beatsData = JSON.stringify({ acts: updatedStructure.acts });
-      
-      const { error } = await supabase
-        .from('structures')
-        .update({
-          name: updatedStructure.name,
-          description: updatedStructure.description,
-          beats: beatsData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', updatedStructure.id);
-      
-      if (error) throw error;
-      
-      setStructure(updatedStructure);
-      setStructureName(updatedStructure.name);
-      
-      return;
-    } catch (error) {
-      console.error('Error updating structure:', error);
-      throw error;
-    }
-  };
+  if (!structure) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg">Structure not found.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Modern minimalist header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => navigate('/dashboard')}
-              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <div className="h-5 w-px bg-gray-200"></div>
-            <Logo size="sm" />
-          </div>
-
-          <div className="flex-1 max-w-md mx-4">
-            {isEditingName ? (
-              <div className="flex items-center gap-2">
-                <Input 
-                  ref={nameInputRef}
-                  value={structureName}
-                  onChange={(e) => setStructureName(e.target.value)}
-                  className="border-gray-300 focus-visible:ring-indigo-500"
-                  placeholder="Structure name"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSaveStructureName();
-                    } else if (e.key === 'Escape') {
-                      setIsEditingName(false);
-                      setStructureName(structure?.name || '');
-                    }
-                  }}
-                />
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleSaveStructureName}
-                  disabled={isSaving}
-                  className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
-              <div 
-                className="group flex items-center cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100" 
-                onClick={() => setIsEditingName(true)}
-              >
-                <h1 className="text-lg font-medium text-gray-800">
-                  {structure?.name || 'Loading...'}
-                </h1>
-                <Edit className="h-3.5 w-3.5 ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-500" />
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto py-8 px-4">
-        {loading ? (
-          <LoadingState />
-        ) : structure ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <StructurePanel 
-              structure={structure} 
-              onStructureUpdate={handleUpdateStructure}
+    <div className="container mx-auto py-10">
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Edit Structure</CardTitle>
+          <CardDescription>Modify the structure details here.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="name">Name</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Structure not found</p>
-            <Button 
-              onClick={() => navigate('/dashboard')}
-              className="mt-4"
-            >
-              Return to Dashboard
-            </Button>
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
-        )}
-      </main>
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

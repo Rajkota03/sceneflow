@@ -49,7 +49,6 @@ const ScriptEditor = ({
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const scriptContentRef = useRef<HTMLDivElement>(null);
 
-  // Fetch structures for this project with error handling
   const { 
     structures = [], 
     selectedStructureId = null, 
@@ -59,7 +58,6 @@ const ScriptEditor = ({
     saveBeatCompletion
   } = useProjectStructures(projectId || '');
 
-  // Sync the external selectedStructureId with our local state if provided
   useEffect(() => {
     if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId && changeSelectedStructure) {
       changeSelectedStructure(externalSelectedStructureId);
@@ -95,7 +93,6 @@ const ScriptEditor = ({
           text: 'Type your action here...'
         }
       ];
-      // Direct assignment instead of using a function to avoid type errors
       const newElements: ScriptElement[] = defaultElements;
       setElements(newElements);
       setActiveElementId(defaultElements[0].id);
@@ -123,7 +120,6 @@ const ScriptEditor = ({
     const currentElement = elements[currentIndex];
     
     if (shiftKey && currentElement.type === 'dialogue') {
-      // Direct assignment instead of using a function to avoid type errors
       const updatedElements: ScriptElement[] = [...elements];
       updatedElements[currentIndex] = {
         ...currentElement,
@@ -179,7 +175,6 @@ const ScriptEditor = ({
       }
     }
     
-    // Direct assignment instead of using a function to avoid type errors
     const updatedElements: ScriptElement[] = [
       ...elements.slice(0, currentIndex + 1),
       newElement,
@@ -206,7 +201,6 @@ const ScriptEditor = ({
   };
 
   const handleTagsChange = (elementId: string, tags: string[]) => {
-    // Direct assignment instead of using a function to avoid type errors
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, tags } : element
     );
@@ -241,18 +235,14 @@ const ScriptEditor = ({
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
-    // Update the element with the beat tag
-    // Direct assignment instead of using a function to avoid type errors
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
     setElements(newElements);
     
-    // Update the beat's completion status in the structure
     if (updateBeatCompletion && saveBeatCompletion) {
       const updatedStructure = updateBeatCompletion(beatId, actId, true);
       if (updatedStructure) {
-        // Save the updated structure to the database
         const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
         if (success) {
           toast({
@@ -270,10 +260,8 @@ const ScriptEditor = ({
     }
   };
 
-  // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle keyboard shortcuts help with Ctrl+/
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
         setShowKeyboardShortcuts(prev => !prev);
@@ -303,7 +291,6 @@ const ScriptEditor = ({
         onStructureChange={handleStructureChange}
       />
       
-      {/* Keyboard Shortcuts Help Panel */}
       {showKeyboardShortcuts && (
         <div className="keyboard-shortcuts-help">
           <h3 className="text-lg font-medium mb-2">Keyboard Shortcuts</h3>
