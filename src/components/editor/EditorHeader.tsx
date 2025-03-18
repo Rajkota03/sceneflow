@@ -21,6 +21,9 @@ interface EditorHeaderProps {
   onCreateNote: () => void;
   onDeleteNote: (noteId: string) => void;
   onEditNote: (note: Note) => void;
+  availableStructures?: Array<{ id: string; name: string }>;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
 }
 
 const EditorHeader: React.FC<EditorHeaderProps> = ({
@@ -34,7 +37,10 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
   onOpenNote,
   onCreateNote,
   onDeleteNote,
-  onEditNote
+  onEditNote,
+  availableStructures,
+  selectedStructureId,
+  onStructureChange
 }) => {
   const navigate = useNavigate();
 
@@ -79,6 +85,9 @@ const EditorHeader: React.FC<EditorHeaderProps> = ({
           onCreateNote={onCreateNote}
           onDeleteNote={onDeleteNote}
           onEditNote={onEditNote}
+          availableStructures={availableStructures}
+          selectedStructureId={selectedStructureId}
+          onStructureChange={onStructureChange}
         />
         
         <Button

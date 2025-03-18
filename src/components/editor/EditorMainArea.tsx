@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,6 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
                   onChange={onContentChange} 
                   className="overflow-auto"
                   projectName={projectTitle}
-                  structureName="Three Act Structure"
                   projectId={projectId}
                   onStructureChange={onStructureChange}
                   selectedStructureId={selectedStructureId || undefined}
@@ -114,7 +114,6 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
               initialContent={content} 
               onChange={onContentChange}
               projectName={projectTitle}
-              structureName="Three Act Structure" 
               projectId={projectId}
               onStructureChange={onStructureChange}
               selectedStructureId={selectedStructureId || undefined}

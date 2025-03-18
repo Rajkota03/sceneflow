@@ -1,10 +1,12 @@
+
 import { useState } from 'react';
-import { NotebookPen, Plus, Trash2, Edit } from 'lucide-react';
+import { NotebookPen, Plus, Trash2, Edit, BookText } from 'lucide-react';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -12,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { Note } from '@/lib/types';
+import StructureSelector from '../act-bar/StructureSelector';
 
 interface NotesMenuProps {
   notes: Note[];
@@ -19,9 +22,21 @@ interface NotesMenuProps {
   onCreateNote: (note: Note) => void;
   onDeleteNote: (noteId: string) => void;
   onEditNote?: (note: Note) => void;
+  availableStructures?: Array<{ id: string; name: string }>;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
 }
 
-const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }: NotesMenuProps) => {
+const NotesMenu = ({ 
+  notes, 
+  onOpenNote, 
+  onCreateNote, 
+  onDeleteNote, 
+  onEditNote,
+  availableStructures = [],
+  selectedStructureId,
+  onStructureChange
+}: NotesMenuProps) => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newNoteTitle, setNewNoteTitle] = useState('');
@@ -71,8 +86,33 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
+          {availableStructures && availableStructures.length > 0 && onStructureChange && (
+            <>
+              <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
+                Story Structure
+              </div>
+              <div className="px-2 pb-2">
+                <StructureSelector
+                  availableStructures={availableStructures}
+                  selectedStructureId={selectedStructureId}
+                  onStructureChange={onStructureChange}
+                />
+              </div>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          
+          <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
+            Notes
+          </div>
+          <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)} className="cursor-pointer">
+            <Plus size={14} className="mr-2" />
+            Create New Note
+          </DropdownMenuItem>
+          
           {safeNotes && safeNotes.length > 0 ? (
             <>
+              <DropdownMenuSeparator />
               <div className="py-2 px-2 text-xs font-medium text-muted-foreground">
                 Open Notes
               </div>
@@ -101,22 +141,17 @@ const NotesMenu = ({ notes, onOpenNote, onCreateNote, onDeleteNote, onEditNote }
                   )}
                 </DropdownMenuItem>
               ))}
-              <div className="h-px bg-muted my-1" />
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="cursor-pointer">
+                <Trash2 size={14} className="mr-2" />
+                Delete Note
+              </DropdownMenuItem>
             </>
           ) : (
             <div className="py-2 px-2 text-xs text-center text-muted-foreground">
               No notes yet
             </div>
-          )}
-          <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)} className="cursor-pointer">
-            <Plus size={14} className="mr-2" />
-            Create New Note
-          </DropdownMenuItem>
-          {safeNotes && safeNotes.length > 0 && (
-            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="cursor-pointer">
-              <Trash2 size={14} className="mr-2" />
-              Delete Note
-            </DropdownMenuItem>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

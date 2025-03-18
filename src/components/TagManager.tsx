@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ActType, Structure } from '@/lib/types';
 import ActBar from './act-bar';
@@ -63,9 +64,6 @@ const TagManager: React.FC<TagManagerProps> = ({
             structureName={selectedStructure?.name || structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
-            availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
-            onStructureChange={onStructureChange}
-            selectedStructureId={selectedStructureId}
             selectedStructure={selectedStructure}
           />
         )}

@@ -12,7 +12,6 @@ import {
 import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
-import StructureSelector from './StructureSelector';
 import BeatModeToggle from './BeatModeToggle';
 
 interface ActCount {
@@ -28,9 +27,6 @@ interface ActBarProps {
   structureName?: string;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
-  availableStructures?: Array<{ id: string; name: string }>;
-  onStructureChange?: (structureId: string) => void;
-  selectedStructureId?: string;
   selectedStructure?: Structure | null;
 }
 
@@ -42,9 +38,6 @@ const ActBar: React.FC<ActBarProps> = ({
   structureName,
   beatMode = 'on',
   onToggleBeatMode,
-  availableStructures = [],
-  onStructureChange,
-  selectedStructureId,
   selectedStructure
 }) => {
   const [showAllActs, setShowAllActs] = useState(false);
@@ -103,12 +96,10 @@ const ActBar: React.FC<ActBarProps> = ({
             {projectName}
           </h3>
           
-          {availableStructures && availableStructures.length > 0 && onStructureChange && (
-            <StructureSelector
-              availableStructures={availableStructures}
-              selectedStructureId={selectedStructureId}
-              onStructureChange={onStructureChange}
-            />
+          {selectedStructure && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Structure: {selectedStructure.name}
+            </span>
           )}
         </div>
         

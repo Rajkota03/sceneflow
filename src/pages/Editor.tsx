@@ -37,6 +37,7 @@ const Editor = () => {
     noteEditorOpen,
     currentEditNote,
     selectedStructureId,
+    structures,
     setNoteEditorOpen,
     handleContentChange,
     handleTitleChange,
@@ -77,6 +78,9 @@ const Editor = () => {
     );
   }
 
+  // Create a simple array for structure selection
+  const availableStructures = structures ? structures.map(s => ({ id: s.id, name: s.name })) : [];
+
   return (
     <ThemeProvider>
       <FormatProvider>
@@ -107,6 +111,9 @@ const Editor = () => {
             onCreateNote={handleCreateNoteClick}
             onDeleteNote={handleDeleteNote}
             onEditNote={handleEditNote}
+            availableStructures={availableStructures}
+            selectedStructureId={selectedStructureId}
+            onStructureChange={handleStructureChange}
           />
           
           <EditorMainArea
