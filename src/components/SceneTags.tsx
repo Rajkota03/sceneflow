@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ScriptElement, Structure } from '@/lib/types';
 import TagInput from './TagInput';
-import { SceneTag } from './SceneTag';
+import SceneTag from './SceneTag';
 import {
   Popover,
   PopoverContent,
@@ -189,13 +189,24 @@ const SceneTags: React.FC<SceneTagsProps> = ({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-3" align="end">
-            <TagInput
-              value={inputValue}
-              onChange={handleInputChange}
-              onKeyDown={handleInputKeyDown}
-              onTagAdd={handleTagAdd}
-              placeholder="Add tags..."
-            />
+            <div className="text-xs font-medium mb-1 text-gray-500">Add Tag</div>
+            <div className="flex">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => handleInputChange(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="Add tags..."
+                className="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-xs ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <Button 
+                size="sm" 
+                className="ml-2 h-8" 
+                onClick={() => handleTagAdd(inputValue.trim())}
+              >
+                Add
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
       </div>

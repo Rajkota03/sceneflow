@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
@@ -39,6 +38,7 @@ interface ScriptEditorContextType {
   showKeyboardShortcuts: boolean;
   setShowKeyboardShortcuts: (show: boolean) => void;
   currentPage: number;
+  fetchStructures: () => Promise<void>;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | null>(null);
@@ -88,7 +88,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     fetchStructures
   } = useProjectStructures(projectId);
 
-  // Use effect to sync external structure ID with internal state
   useEffect(() => {
     if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
       console.log("External structure ID changed, updating:", externalSelectedStructureId);
@@ -110,7 +109,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const characterNames = useCharacterNames(elements);
   const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
 
-  // Handle PDF import
   useEffect(() => {
     const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
       if (event.detail && Array.isArray(event.detail.elements)) {
@@ -183,20 +181,17 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       onStructureChange(structureId);
     }
     
-    // Re-fetch structures to ensure we have the updated data
     await fetchStructures();
   };
 
   const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
     if (!selectedStructure || !selectedStructureId) return;
     
-    // Update the element with the beat tag
     const newElements: ScriptElement[] = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
     setElements(newElements);
     
-    // Update structure progress
     const updatedStructure = updateBeatCompletion(beatId, actId, true);
     if (updatedStructure) {
       const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
@@ -208,7 +203,6 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     }
   };
 
-  // Log selected structure changes for debugging
   useEffect(() => {
     if (selectedStructure) {
       console.log("Selected structure in context:", selectedStructure.name);
@@ -245,7 +239,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     scriptContentRef,
     showKeyboardShortcuts,
     setShowKeyboardShortcuts,
-    currentPage
+    currentPage,
+    fetchStructures
   };
 
   return (
