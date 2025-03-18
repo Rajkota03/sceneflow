@@ -1,4 +1,5 @@
-import { ActType, ScriptContent, Structure } from "@/lib/types";
+
+import { ActType, ScriptContent, Structure as LibStructure } from "@/lib/types";
 
 export type BeatMode = 'on' | 'off';
 

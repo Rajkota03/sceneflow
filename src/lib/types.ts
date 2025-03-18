@@ -1,3 +1,4 @@
+
 // Define all types with proper exports
 import { Json } from '@/integrations/supabase/types';
 
@@ -61,6 +62,22 @@ export type ActCountsRecord = Record<ActType, number>;
 
 export type BeatMode = 'on' | 'off';
 
+export interface ScriptElement {
+  id: string;
+  type: ElementType;
+  text: string;
+  tags?: string[];
+  beat?: string;
+}
+
+export interface ScriptContent {
+  elements: ScriptElement[];
+  title?: string;
+  author?: string;
+}
+
+export type StructureType = 'three_act' | 'save_the_cat' | 'hero_journey' | 'story_circle';
+
 export interface TagManagerProps {
   scriptContent: ScriptContent;
   onFilterByTag?: (tag: string | null) => void;
@@ -76,28 +93,31 @@ export interface TagManagerProps {
   structures?: Structure[];
 }
 
-export interface ScriptElementProps {
-  element: {
-    id: string;
-    type: string;
-    text: string;
-    tags?: string[];
-    beat?: string;
-  };
-  previousElementType?: string;
-  onChange: (id: string, text: string, type: string) => void;
-  onFocus: () => void;
-  isActive: boolean;
-  onNavigate: (direction: 'up' | 'down', id: string) => void;
-  onEnterKey: (id: string, shiftKey: boolean) => void;
-  onFormatChange: (id: string, newType: string) => void;
-  onTagsChange: (elementId: string, tags: string[]) => void;
-  characterNames: string[];
-  projectId?: string;
-  beatMode?: BeatMode;
-  structures?: Structure[];
-  selectedStructure?: Structure | null;
-  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+// Note-related types
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string | Date; // Support both string and Date
+  updatedAt: string | Date; // Support both string and Date
+}
+
+// Project-related types
+export interface Project {
+  id: string;
+  title: string;
+  content: ScriptContent;
+  updated_at: string; 
+  created_at: string;
+  user_id?: string;
+  author_id?: string;
+}
+
+export interface TitlePageData {
+  title: string;
+  author: string;
+  contact: string;
+  basedOn?: string;
 }
 
 // Structure-related types
@@ -129,33 +149,6 @@ export interface Beat {
   pageRange?: string;
   complete?: boolean;
   notes?: string;
-}
-
-// Note-related types
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string | Date; // Support both string and Date
-  updatedAt: string | Date; // Support both string and Date
-}
-
-// Project-related types
-export interface Project {
-  id: string;
-  title: string;
-  content: ScriptContent;
-  updated_at: string; 
-  created_at: string;
-  user_id?: string;
-  author_id?: string;
-}
-
-export interface TitlePageData {
-  title: string;
-  author: string;
-  contact: string;
-  basedOn?: string;
 }
 
 // Helper functions for converting between formats
