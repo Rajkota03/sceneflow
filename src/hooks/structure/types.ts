@@ -14,5 +14,5 @@ export interface StructureHookReturn {
   handleStructureChange: (structureId: string) => Promise<void>;
   updateBeatCompletion: (beatId: string, actId: string, complete: boolean) => Structure | null;
   saveBeatCompletion: (structureId: string, updatedStructure: Structure) => Promise<boolean>;
-  fetchStructures: () => Promise<void>;
+  fetchStructures: () => Promise<void>; // Add fetchStructures to the return type
 }

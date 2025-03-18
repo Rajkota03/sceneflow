@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchStructuresFromSupabase = async (projectId: string) => {
   try {
-    // Fetch all structures
+    // Fetch all structures - using 'structures' table, not 'story_structures'
     const { data: allStructures, error: fetchError } = await supabase
       .from('structures')
       .select('*');
@@ -70,6 +70,7 @@ export const parseStructureData = (data: any): Structure => {
 
 export const linkStructureToProject = async (projectId: string, structureId: string): Promise<boolean> => {
   try {
+    // Updated to use 'project_structures' table, not 'story_structures'
     const { error } = await supabase
       .from('project_structures')
       .upsert({ 
