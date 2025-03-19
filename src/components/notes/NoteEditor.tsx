@@ -1,114 +1,258 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/use-toast';
 import { Note } from '@/lib/types';
-import { Textarea } from '../ui/textarea';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { X } from 'lucide-react';
+import { Pencil, Save, X, MinusSquare, PlusSquare } from 'lucide-react';
+import Draggable from 'react-draggable';
 
-export interface NoteEditorProps {
-  note: Note;
+interface NoteEditorProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  note: Note | null;
   onSaveNote: (note: Note) => void;
-  isPopup?: boolean;
-  onClose?: () => void;
-  onCancel?: () => void; // Add the missing property
 }
 
-const NoteEditor: React.FC<NoteEditorProps> = ({ 
-  note, 
-  onSaveNote, 
-  isPopup = false,
-  onClose,
-  onCancel // Include the new property in destructuring
-}) => {
-  const [title, setTitle] = useState(note.title || '');
-  const [content, setContent] = useState(note.content || '');
-  const [isNoteSaved, setIsNoteSaved] = useState(true);
+const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) => {
+  const [noteTitle, setNoteTitle] = useState('');
+  const [noteContent, setNoteContent] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pages, setPages] = useState<string[]>(['']);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [editorHeight, setEditorHeight] = useState(300);
+  const nodeRef = useRef(null);
+
+  const isNewNote = !note?.id;
 
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isNoteSaved) {
-        e.preventDefault();
-        e.returnValue = '';
-        return '';
+    if (note) {
+      setNoteTitle(note.title);
+      
+      if (note.content.includes('---PAGE_BREAK---')) {
+        const contentPages = note.content.split('---PAGE_BREAK---');
+        setPages(contentPages);
+        setNoteContent(contentPages[0]);
+      } else {
+        setPages([note.content]);
+        setNoteContent(note.content);
       }
-    };
+      
+      setCurrentPage(1);
+    } else {
+      setNoteTitle('');
+      setNoteContent('');
+      setPages(['']);
+      setCurrentPage(1);
+    }
+  }, [note, open]);
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+  const handleSaveNote = () => {
+    if (!noteTitle.trim()) {
+      toast({
+        title: "Title required",
+        description: "Please enter a title for your note",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const fullContent = pages.join('---PAGE_BREAK---');
+    
+    const updatedNote: Note = {
+      id: note?.id || '', // Pass empty string for new notes, keep existing ID for edits
+      title: noteTitle,
+      content: fullContent,
+      createdAt: note?.createdAt || new Date(),
+      updatedAt: new Date()
     };
-  }, [isNoteSaved]);
+    
+    console.log(isNewNote ? 'Creating new note:' : 'Updating note:', updatedNote);
+    onSaveNote(updatedNote);
+    
+    if (isNewNote) {
+      onOpenChange(false);
+    } else {
+      toast({
+        title: "Note updated",
+        description: `"${noteTitle}" has been updated successfully.`
+      });
+    }
+  };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTitle(e.target.value);
-    setIsNoteSaved(false);
+  const handleClose = () => {
+    onOpenChange(false);
+  };
+
+  const handlePageChange = (pageNum: number) => {
+    const updatedPages = [...pages];
+    updatedPages[currentPage - 1] = noteContent;
+    setPages(updatedPages);
+    
+    setCurrentPage(pageNum);
+    setNoteContent(pages[pageNum - 1]);
+  };
+
+  const addNewPage = () => {
+    const updatedPages = [...pages];
+    updatedPages[currentPage - 1] = noteContent;
+    
+    updatedPages.push('');
+    setPages(updatedPages);
+    
+    const newPageNumber = updatedPages.length;
+    setCurrentPage(newPageNumber);
+    setNoteContent('');
+  };
+
+  const deletePage = () => {
+    if (pages.length <= 1) {
+      toast({
+        title: "Cannot delete page",
+        description: "You must have at least one page",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const updatedPages = [...pages];
+    updatedPages.splice(currentPage - 1, 1);
+    setPages(updatedPages);
+    
+    const newPageNumber = currentPage > 1 ? currentPage - 1 : 1;
+    setCurrentPage(newPageNumber);
+    setNoteContent(updatedPages[newPageNumber - 1]);
+  };
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+    setEditorHeight(isFullScreen ? 300 : 600);
   };
 
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setContent(e.target.value);
-    setIsNoteSaved(false);
-  };
-
-  const handleSave = () => {
-    const updatedNote = {
-      ...note,
-      title,
-      content,
-      lastModified: new Date()
-    };
-    onSaveNote(updatedNote);
-    setIsNoteSaved(true);
+    setNoteContent(e.target.value);
     
-    if (onClose) {
-      onClose();
-    }
+    const updatedPages = [...pages];
+    updatedPages[currentPage - 1] = e.target.value;
+    setPages(updatedPages);
   };
 
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else if (onClose) {
-      onClose();
-    }
-  };
+  const dialogContent = (
+    <DialogContent 
+      className={`${isFullScreen ? 'sm:max-w-3xl h-[80vh]' : 'sm:max-w-md'} overflow-hidden`}
+      onInteractOutside={(e) => e.preventDefault()}
+    >
+      <DialogHeader>
+        <DialogTitle>{isNewNote ? 'Create New Note' : 'Edit Note'}</DialogTitle>
+        <DialogDescription>
+          {isNewNote ? 'Add a note for your screenplay' : 'Edit your note'}
+        </DialogDescription>
+      </DialogHeader>
+      <div className="space-y-4 py-4 flex-grow overflow-hidden">
+        <div className="space-y-2">
+          <label htmlFor="title" className="text-sm font-medium">Title</label>
+          <Input
+            id="title"
+            value={noteTitle}
+            onChange={(e) => setNoteTitle(e.target.value)}
+            placeholder="Enter note title"
+            autoFocus
+          />
+        </div>
+        <div className="space-y-2 flex-grow overflow-hidden">
+          <div className="flex justify-between items-center">
+            <label htmlFor="content" className="text-sm font-medium">Content</label>
+            <div className="flex space-x-2 items-center">
+              <span className="text-xs text-muted-foreground">
+                Page {currentPage} of {pages.length}
+              </span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                Prev
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => handlePageChange(Math.min(pages.length, currentPage + 1))}
+                disabled={currentPage === pages.length}
+              >
+                Next
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={addNewPage}
+                title="Add new page"
+              >
+                <PlusSquare size={16} />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={deletePage}
+                disabled={pages.length <= 1}
+                title="Delete current page"
+              >
+                <MinusSquare size={16} />
+              </Button>
+            </div>
+          </div>
+          <Textarea
+            id="content"
+            value={noteContent}
+            onChange={handleContentChange}
+            placeholder="Enter note content"
+            className="resize-none overflow-hidden flex-grow min-h-[200px]"
+          />
+        </div>
+      </div>
+      <DialogFooter className="flex justify-between items-center">
+        <div>
+          <Button variant="outline" onClick={toggleFullScreen} className="mr-2">
+            {isFullScreen ? 'Minimize' : 'Expand'}
+          </Button>
+        </div>
+        <div>
+          <Button variant="outline" onClick={handleClose} className="mr-2">
+            Cancel
+          </Button>
+          <Button onClick={handleSaveNote}>
+            <Save size={16} className="mr-2" />
+            {isNewNote ? 'Create Note' : 'Save Changes'}
+          </Button>
+        </div>
+      </DialogFooter>
+    </DialogContent>
+  );
+
+  if (!isFullScreen) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        {dialogContent}
+      </Dialog>
+    );
+  }
 
   return (
-    <div className={`flex flex-col ${isPopup ? 'bg-white dark:bg-slate-800 rounded-lg shadow-lg p-4 border border-slate-200 dark:border-slate-700' : 'h-full'}`}>
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          value={title}
-          onChange={handleTitleChange}
-          placeholder="Note title"
-          className="text-lg font-medium border-none focus:ring-0 px-0 h-auto"
-        />
-        
-        {isPopup && onClose && (
-          <button 
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-500 dark:text-slate-500 dark:hover:text-slate-400"
-          >
-            <X size={20} />
-          </button>
-        )}
-      </div>
-      
-      <Textarea
-        value={content}
-        onChange={handleContentChange}
-        placeholder="Write your note here..."
-        className={`flex-grow resize-none border-none focus:ring-0 px-0 ${isPopup ? 'min-h-[200px]' : ''}`}
-      />
-      
-      <div className="flex justify-end mt-4 space-x-2">
-        <Button variant="secondary" onClick={handleCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          Save Note
-        </Button>
-      </div>
-    </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <Draggable nodeRef={nodeRef} handle=".dialog-header" bounds="parent">
+        <div ref={nodeRef}>
+          {dialogContent}
+        </div>
+      </Draggable>
+    </Dialog>
   );
 };
 

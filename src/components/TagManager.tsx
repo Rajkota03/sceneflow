@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { ActType, Structure, BeatSceneCount } from '@/lib/types';
+import { ActType, Structure } from '@/lib/types';
 import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
@@ -21,11 +21,8 @@ interface TagManagerProps {
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
   selectedStructure?: Structure | null;
-  selectedStructureId?: string;
-  onStructureChange?: (structureId: string) => void;
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
-  beatSceneCounts?: BeatSceneCount[];
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -36,16 +33,14 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeActFilter,
   beatMode = 'on',
   onToggleBeatMode,
-  selectedStructureId,
-  onStructureChange,
   activeBeatId,
-  onBeatClick,
-  beatSceneCounts = []
+  onBeatClick
 }) => {
   // Get scene counts for beats and structure information from context
   const { 
-    onStructureChange: contextStructureChange, 
-    selectedStructureId: contextStructureId, 
+    beatSceneCounts, 
+    onStructureChange, 
+    selectedStructureId, 
     availableStructures,
     selectedStructure
   } = useScriptEditor();
@@ -74,10 +69,6 @@ const TagManager: React.FC<TagManagerProps> = ({
     count
   }));
   
-  // Use either the prop values or the context values
-  const handleStructureChange = onStructureChange || contextStructureChange;
-  const structureId = selectedStructureId || contextStructureId;
-  
   return (
     <div className="bg-white dark:bg-slate-850 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="px-3 py-2">
@@ -92,8 +83,8 @@ const TagManager: React.FC<TagManagerProps> = ({
             {availableStructures && availableStructures.length > 0 && (
               <StructureSelector
                 availableStructures={availableStructures}
-                selectedStructureId={structureId}
-                onStructureChange={handleStructureChange}
+                selectedStructureId={selectedStructureId}
+                onStructureChange={onStructureChange}
               />
             )}
           </div>
@@ -117,7 +108,6 @@ const TagManager: React.FC<TagManagerProps> = ({
           activeBeatId={activeBeatId}
           onBeatClick={onBeatClick}
           beatSceneCounts={beatSceneCounts}
-          actCounts={actCounts}
         />
         
         {allTags.length > 0 && (

@@ -86,63 +86,61 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-7xl pt-20 pb-6 px-4 sm:px-6 lg:px-8">
-          <Tabs 
-            defaultValue="screenplays" 
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="screenplays">Screenplays</TabsTrigger>
-              <TabsTrigger value="notes">Notes</TabsTrigger>
-              <TabsTrigger value="structures">Structures</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="screenplays">
-              <ScreenplaysTab 
-                projects={projects}
-                searchQuery={projectsSearchQuery}
-                setSearchQuery={setProjectsSearchQuery}
-                isLoading={isProjectsLoading}
-                handleCreateNewProject={handleCreateNewProject}
-                handleDeleteProject={handleDeleteProject}
-              />
-            </TabsContent>
-            
-            <TabsContent value="notes">
-              <NotesTab 
-                notes={notes}
-                searchQuery={projectsSearchQuery}
-                setSearchQuery={setProjectsSearchQuery}
-                isLoading={isProjectsLoading}
-                handleCreateNote={handleOpenNewNote}
-                handleDeleteNote={handleDeleteNote}
-                handleViewNote={handleViewNote}
-                handleEditNote={handleEditNote}
-                isNoteEditorOpen={isNoteEditorOpen}
-                setIsNoteEditorOpen={setIsNoteEditorOpen}
-                currentNote={currentNote}
-                handleSaveNote={handleSaveNote}
-              />
-            </TabsContent>
-            
-            <TabsContent value="structures">
-              <StructuresTab 
-                structures={structures}
-                searchQuery={structuresSearchQuery}
-                setSearchQuery={setStructuresSearchQuery}
-                isLoading={isStructuresLoading}
-                handleCreateStructure={handleCreateStructure}
-                handleEditStructure={handleEditStructure}
-                handleDeleteStructure={handleDeleteStructure}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
+      <div className="mx-auto max-w-7xl pt-20 pb-6 px-4 sm:px-6 lg:px-8">
+        <Tabs 
+          defaultValue="screenplays" 
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsTrigger value="screenplays">Screenplays</TabsTrigger>
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="structures">Structures</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="screenplays">
+            <ScreenplaysTab 
+              projects={projects}
+              searchQuery={projectsSearchQuery}
+              setSearchQuery={setProjectsSearchQuery}
+              isLoading={isProjectsLoading}
+              handleCreateNewProject={handleCreateNewProject}
+              handleDeleteProject={handleDeleteProject}
+            />
+          </TabsContent>
+          
+          <TabsContent value="notes">
+            <NotesTab 
+              notes={notes}
+              searchQuery={projectsSearchQuery}
+              setSearchQuery={setProjectsSearchQuery}
+              isLoading={isProjectsLoading}
+              handleCreateNote={handleOpenNewNote}
+              handleDeleteNote={handleDeleteNote}
+              handleViewNote={handleViewNote}
+              handleEditNote={handleEditNote}
+              isNoteEditorOpen={isNoteEditorOpen}
+              setIsNoteEditorOpen={setIsNoteEditorOpen}
+              currentNote={currentNote}
+              handleSaveNote={handleSaveNote}
+            />
+          </TabsContent>
+          
+          <TabsContent value="structures">
+            <StructuresTab 
+              structures={structures}
+              searchQuery={structuresSearchQuery}
+              setSearchQuery={setStructuresSearchQuery}
+              isLoading={isStructuresLoading}
+              handleCreateStructure={handleCreateStructure}
+              handleEditStructure={handleEditStructure}
+              handleDeleteStructure={handleDeleteStructure}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

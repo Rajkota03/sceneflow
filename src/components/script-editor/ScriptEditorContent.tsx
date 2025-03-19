@@ -42,33 +42,6 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     setActiveElementId(id);
   };
 
-  // Handle click on empty areas of the editor
-  const handleEditorAreaClick = (e: React.MouseEvent) => {
-    // Only handle clicks directly on the container element, not its children
-    if (e.target === e.currentTarget) {
-      console.log("Editor area clicked");
-      
-      // Focus the active element or the first element if none is active
-      if (activeElementId) {
-        const activeEl = document.getElementById(activeElementId);
-        if (activeEl) {
-          console.log("Focusing active element:", activeElementId);
-          activeEl.focus();
-        }
-      } else if (elements && elements.length > 0) {
-        console.log("Focusing first element:", elements[0].id);
-        setActiveElementId(elements[0].id);
-        
-        setTimeout(() => {
-          const firstEl = document.getElementById(elements[0].id);
-          if (firstEl) {
-            firstEl.focus();
-          }
-        }, 0);
-      }
-    }
-  };
-
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
       {/* Tag Manager container to filter elements by tag/act/beat */}
@@ -76,11 +49,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       
       <ScrollArea className="h-full w-full overflow-auto">
         <div 
-          className="flex justify-center w-full pt-8 pb-20 cursor-text" 
+          className="flex justify-center w-full pt-8 pb-20"
           ref={scriptContentRef}
-          onClick={handleEditorAreaClick}
         >
-          <div className="w-full max-w-4xl mx-auto cursor-text">
+          <div className="w-full max-w-4xl mx-auto">
             <ScriptPage
               elements={elements || []}
               activeElementId={activeElementId}

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import SceneTags from './SceneTags';
@@ -46,9 +46,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Access global context for beat tagging and structure
   const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
   
-  // Create a ref for the editor element
-  const editorDivRef = useRef<HTMLDivElement>(null);
-  
   // Use the structure from props or context
   const structure = selectedStructure || contextStructure;
   
@@ -67,8 +64,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu,
-    focusAndPlaceCursor
+    setShowElementMenu
   } = useElementInteraction({
     elementId: element.id,
     text: element.text,
@@ -86,44 +82,16 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Only show beat tagging controls for scene headings
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
-  // Ensure cursor positioning works correctly
   useEffect(() => {
-    if (isActive && editorRef.current) {
-      focusAndPlaceCursor();
+    if (isActive && element.type === 'scene-heading' && beatMode === 'on') {
+      console.log('Scene heading element active with structure:', structure?.id);
     }
-  }, [isActive, focusAndPlaceCursor]);
-
-  // Handle click on the element
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onFocus();
-    
-    if (editorRef.current) {
-      // Ensure the element gets focus
-      editorRef.current.focus();
-      
-      // Attempt to set the cursor at the click position
-      const selection = window.getSelection();
-      if (selection) {
-        try {
-          const range = document.createRange();
-          range.setStart(e.target as Node, 0);
-          selection.removeAllRanges();
-          selection.addRange(range);
-        } catch (err) {
-          console.error("Error setting cursor position:", err);
-        }
-      }
-    }
-  };
+  }, [isActive, element.type, beatMode, structure]);
 
   return (
     <div 
-      id={`element-container-${element.id}`}
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
-      onClick={handleClick}
-      ref={editorDivRef}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && showKeyboardShortcuts && (
@@ -139,7 +107,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
       </div>
       
       <div
-        id={element.id}
         ref={editorRef}
         className={`
           element-text 
@@ -159,13 +126,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          caretColor: 'black', // Explicitly set caret color
-          cursor: 'text', // Add explicit cursor style
           ...elementStyles
         }}
         dir="ltr"
-        tabIndex={0} // Ensure element is focusable
-        data-element-type={element.type} // Add data attribute for element type
       >
         {text}
       </div>

@@ -1,12 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Map, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 import BeatPopoverContent from './BeatPopoverContent';
-import { toast } from '@/components/ui/use-toast';
 
 interface BeatPopoverProps {
   elementId: string;
@@ -29,8 +28,7 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
       if (beat) {
         return {
           beatTitle: beat.title,
-          actId: act.id,
-          complete: beat.complete || false
+          actId: act.id
         };
       }
     }
@@ -40,25 +38,7 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
   const beatDetails = findBeatDetails();
   
   const handleBeatSelect = (beatId: string, actId: string) => {
-    handleBeatTag(elementId, beatId, actId);
-    
-    // When a beat is selected, mark it as complete in the structure
-    if (selectedStructure) {
-      const updatedStructure = { ...selectedStructure };
-      const act = updatedStructure.acts.find(a => a.id === actId);
-      if (act) {
-        const beat = act.beats.find(b => b.id === beatId);
-        if (beat) {
-          beat.complete = true;
-        }
-      }
-    }
-    
-    toast({
-      description: "Scene tagged with beat successfully",
-      duration: 2000,
-    });
-    
+    handleBeatTag(elementId, beatId);
     setIsOpen(false);
   };
   

@@ -1,285 +1,188 @@
 
 import { Structure, Act, Beat } from '@/lib/types';
-import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 
-// Create a new structure with the given name and template
-export function createStructure(name: string, template?: Structure): Structure {
-  const id = `structure-${Date.now()}`;
-  const currentTime = new Date().toISOString();
-  
-  if (template) {
+export const fetchStructuresFromSupabase = async (projectId: string) => {
+  try {
+    console.log('Fetching structures for project ID:', projectId);
+    
+    // Fetch all structures - using 'structures' table, not 'story_structures'
+    const { data: allStructures, error: fetchError } = await supabase
+      .from('structures')
+      .select('*');
+      
+    if (fetchError) {
+      console.error('Error fetching structures:', fetchError);
+      return { error: 'Failed to fetch structures' };
+    }
+
+    console.log('Fetched structures:', allStructures?.length || 0);
+
+    // Fetch the linked structure ID for this project
+    const { data: projectLink, error: linkError } = await supabase
+      .from('project_structures')
+      .select('structure_id')
+      .eq('project_id', projectId)
+      .maybeSingle();
+      
+    if (linkError) {
+      console.error('Error fetching project structure link:', linkError);
+    }
+    
+    const linkedStructureId = projectLink?.structure_id || null;
+    console.log('Linked structure ID:', linkedStructureId);
+    
+    return { allStructures, linkedStructureId };
+    
+  } catch (error) {
+    console.error('Error in fetchStructuresFromSupabase:', error);
+    return { error: 'Failed to fetch structures from database' };
+  }
+};
+
+export const parseStructureData = (data: any): Structure => {
+  try {
+    console.log('Parsing structure data:', data.id, data.name);
+    
+    let acts = [];
+    
+    // Try to parse acts from different possible locations in the data
+    if (Array.isArray(data.acts)) {
+      acts = data.acts;
+    } else if (data.content && Array.isArray(data.content.acts)) {
+      acts = data.content.acts;
+    } else if (typeof data.beats === 'string') {
+      try {
+        const parsedBeats = JSON.parse(data.beats);
+        if (Array.isArray(parsedBeats)) {
+          acts = parsedBeats;
+        } else if (parsedBeats && Array.isArray(parsedBeats.acts)) {
+          acts = parsedBeats.acts;
+        }
+      } catch (e) {
+        console.error('Error parsing beats JSON:', e);
+      }
+    } else if (data.beats && typeof data.beats === 'object') {
+      if (Array.isArray(data.beats)) {
+        acts = data.beats;
+      } else if (data.beats.acts && Array.isArray(data.beats.acts)) {
+        acts = data.beats.acts;
+      }
+    }
+    
+    console.log(`Structure ${data.id} has ${acts.length} acts`);
+    
+    const structure: Structure = {
+      id: data.id,
+      name: data.name || 'Untitled Structure',
+      description: data.description || '',
+      acts: acts,
+      createdAt: data.created_at || new Date().toISOString(),
+      updatedAt: data.updated_at || new Date().toISOString(),
+      structure_type: data.structure_type || 'three_act'
+    };
+    
+    // Ensure each act has an id and beats array
+    structure.acts = structure.acts.map(act => ({
+      ...act,
+      id: act.id || `act-${Math.random().toString(36).substr(2, 9)}`,
+      beats: Array.isArray(act.beats) ? act.beats : []
+    }));
+    
+    return structure;
+  } catch (error) {
+    console.error('Error parsing structure data:', error);
     return {
-      ...template,
-      id,
-      name,
-      acts: template.acts?.map(act => ({
-        ...act,
-        id: `act-${uuidv4()}`,
-        beats: act.beats?.map(beat => ({
-          ...beat,
-          id: `beat-${uuidv4()}`,
-          complete: false
-        }))
-      }))
+      id: data.id || `structure-${Date.now()}`,
+      name: 'Error Loading Structure',
+      description: 'There was an error loading this structure',
+      acts: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
   }
-  
-  return {
-    id,
-    name,
-    acts: [],
-    createdAt: currentTime,
-    updatedAt: currentTime
-  };
-}
+};
 
-// Update a beat in a structure
-export function updateBeat(structure: Structure, beatId: string, actId: string, updatedBeat: Partial<Beat>): Structure {
-  return {
-    ...structure,
-    acts: structure.acts?.map(act => {
-      if (act.id === actId) {
-        return {
-          ...act,
-          beats: act.beats?.map(beat => {
-            if (beat.id === beatId) {
-              return {
-                ...beat,
-                ...updatedBeat
-              };
-            }
-            return beat;
-          })
-        };
-      }
-      return act;
-    })
-  };
-}
-
-// Update an act in a structure
-export function updateAct(structure: Structure, actId: string, updatedAct: Partial<Act>): Structure {
-  return {
-    ...structure,
-    acts: structure.acts?.map(act => {
-      if (act.id === actId) {
-        return {
-          ...act,
-          ...updatedAct
-        };
-      }
-      return act;
-    })
-  };
-}
-
-// Add a new beat to an act
-export function addBeatToAct(structure: Structure, actId: string, beat: Partial<Beat>): Structure {
-  const newBeat: Beat = {
-    id: `beat-${uuidv4()}`,
-    title: beat.title || 'New Beat',
-    description: beat.description || '',
-    timePosition: beat.timePosition || 0, // Make sure timePosition is always provided
-    complete: beat.complete || false,
-    notes: beat.notes || '',
-    ...beat
-  };
-  
-  return {
-    ...structure,
-    acts: structure.acts?.map(act => {
-      if (act.id === actId) {
-        return {
-          ...act,
-          beats: [...(act.beats || []), newBeat]
-        };
-      }
-      return act;
-    })
-  };
-}
-
-// Add a new act to a structure
-export function addActToStructure(structure: Structure, act: Partial<Act>): Structure {
-  const newAct: Act = {
-    id: `act-${uuidv4()}`,
-    title: act.title || 'New Act',
-    colorHex: act.colorHex || '#cccccc', // Default color if not provided
-    startPosition: act.startPosition || 0, // Default start position
-    endPosition: act.endPosition || 100, // Default end position
-    beats: act.beats || []
-  };
-  
-  return {
-    ...structure,
-    acts: [...(structure.acts || []), newAct]
-  };
-}
-
-// Remove a beat from an act
-export function removeBeatFromAct(structure: Structure, beatId: string, actId: string): Structure {
-  return {
-    ...structure,
-    acts: structure.acts?.map(act => {
-      if (act.id === actId) {
-        return {
-          ...act,
-          beats: act.beats?.filter(beat => beat.id !== beatId)
-        };
-      }
-      return act;
-    })
-  };
-}
-
-// Remove an act from a structure
-export function removeActFromStructure(structure: Structure, actId: string): Structure {
-  return {
-    ...structure,
-    acts: structure.acts?.filter(act => act.id !== actId)
-  };
-}
-
-// Update a structure
-export function updateStructure(structure: Structure, updates: Partial<Structure>): Structure {
-  return {
-    ...structure,
-    ...updates
-  };
-}
-
-// Check if a structure is complete (all beats marked as complete)
-export function isStructureComplete(structure: Structure): boolean {
-  if (!structure.acts || structure.acts.length === 0) {
-    return false;
-  }
-  
-  for (const act of structure.acts) {
-    if (!act.beats || act.beats.length === 0) {
+export const linkStructureToProject = async (projectId: string, structureId: string): Promise<boolean> => {
+  try {
+    console.log('Linking structure to project:', structureId, projectId);
+    
+    // Updated to use 'project_structures' table, not 'story_structures'
+    const { error } = await supabase
+      .from('project_structures')
+      .upsert({ 
+        project_id: projectId, 
+        structure_id: structureId,
+        updated_at: new Date().toISOString()
+      });
+      
+    if (error) {
+      console.error('Error linking structure to project:', error);
       return false;
     }
     
-    for (const beat of act.beats) {
-      if (!beat.complete) {
-        return false;
-      }
-    }
-  }
-  
-  return true;
-}
-
-// Calculate completion percentage of a structure
-export function getStructureCompletionPercentage(structure: Structure): number {
-  if (!structure.acts || structure.acts.length === 0) {
-    return 0;
-  }
-  
-  let totalBeats = 0;
-  let completeBeats = 0;
-  
-  for (const act of structure.acts) {
-    if (act.beats && act.beats.length > 0) {
-      totalBeats += act.beats.length;
-      completeBeats += act.beats.filter(beat => beat.complete).length;
-    }
-  }
-  
-  return totalBeats > 0 ? Math.round((completeBeats / totalBeats) * 100) : 0;
-}
-
-// Update a beat's completion status
-export function updateStructureBeatCompletion(structure: Structure | null, beatId: string, actId: string, complete: boolean): Structure | null {
-  if (!structure || !structure.acts) return null;
-  
-  return {
-    ...structure,
-    acts: structure.acts.map(act => {
-      if (act.id === actId) {
-        return {
-          ...act,
-          beats: act.beats?.map(beat => {
-            if (beat.id === beatId) {
-              return {
-                ...beat,
-                complete
-              };
-            }
-            return beat;
-          })
-        };
-      }
-      return act;
-    })
-  };
-}
-
-// Save beat completion status to the database
-export async function saveStructureBeatCompletion(structureId: string, structure: Structure): Promise<boolean> {
-  try {
-    console.log('Saving structure beat completion', structureId, structure);
-    // Simulate a successful update for now
+    console.log('Successfully linked structure to project');
     return true;
   } catch (error) {
-    console.error('Error saving beat completion', error);
+    console.error('Error in linkStructureToProject:', error);
     return false;
   }
-}
+};
 
-// Find a beat by its ID in a structure
-export function findBeatById(structure: Structure, beatId: string): { beat: Beat | null; act: Act | null } {
-  if (!structure.acts) return { beat: null, act: null };
+export const updateStructureBeatCompletion = (
+  structure: Structure | null, 
+  beatId: string, 
+  actId: string, 
+  complete: boolean
+): Structure | null => {
+  if (!structure) return null;
   
-  for (const act of structure.acts) {
-    if (!act.beats) continue;
+  try {
+    // Deep clone the structure to avoid modifying the original object
+    const updatedStructure = JSON.parse(JSON.stringify(structure)) as Structure;
     
-    const beat = act.beats.find(b => b.id === beatId);
-    if (beat) {
-      return { beat, act };
-    }
+    // Find the specified act
+    const actIndex = updatedStructure.acts.findIndex(act => act.id === actId);
+    if (actIndex === -1) return null;
+    
+    // Find the beat within the act
+    const beatIndex = updatedStructure.acts[actIndex].beats.findIndex(beat => beat.id === beatId);
+    if (beatIndex === -1) return null;
+    
+    // Update the beat's completion status
+    updatedStructure.acts[actIndex].beats[beatIndex].complete = complete;
+    
+    return updatedStructure;
+  } catch (error) {
+    console.error('Error updating beat completion:', error);
+    return null;
   }
-  
-  return { beat: null, act: null };
-}
+};
 
-// Get all beats from a structure as a flat array
-export function getAllBeatsFlat(structure: Structure): Beat[] {
-  if (!structure.acts) return [];
-  
-  return structure.acts.flatMap(act => act.beats || []);
-}
-
-// Calculate the structure progress
-export function calculateStructureProgress(structure: Structure): number {
-  return getStructureCompletionPercentage(structure);
-}
-
-// Add the required missing functions for useStructures.ts
-export async function fetchStructuresFromSupabase(projectId: string) {
-  console.log('Fetching structures for project:', projectId);
-  
-  // For now, return a mock implementation
-  return {
-    allStructures: [],
-    linkedStructureId: null,
-    error: null
-  };
-}
-
-export function parseStructureData(structureData: any): Structure {
-  // Basic implementation to parse structure data
-  const currentTime = new Date().toISOString();
-  
-  return {
-    id: structureData.id || '',
-    name: structureData.name || 'Unnamed Structure',
-    acts: structureData.acts || [],
-    createdAt: structureData.createdAt || currentTime,
-    updatedAt: structureData.updatedAt || currentTime
-  };
-}
-
-export async function linkStructureToProject(projectId: string, structureId: string): Promise<void> {
-  console.log(`Linking structure ${structureId} to project ${projectId}`);
-  // Implement the actual linking logic
-}
+export const saveStructureBeatCompletion = async (
+  structureId: string, 
+  updatedStructure: Structure
+): Promise<boolean> => {
+  try {
+    console.log('Saving beat completion for structure:', structureId);
+    
+    const { error } = await supabase
+      .from('structures')
+      .update({ 
+        content: { acts: updatedStructure.acts },
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', structureId);
+      
+    if (error) {
+      console.error('Error saving structure updates:', error);
+      return false;
+    }
+    
+    console.log('Successfully saved beat completion');
+    return true;
+  } catch (error) {
+    console.error('Error in saveStructureBeatCompletion:', error);
+    return false;
+  }
+};
