@@ -19,6 +19,7 @@ const BeatTagButton: React.FC<BeatTagButtonProps> = ({
     <BeatPopover 
       elementId={elementId}
       elementBeatId={beatId}
+      onRemoveTag={onRemoveTag}
     />
   );
 };
