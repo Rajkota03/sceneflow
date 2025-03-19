@@ -71,8 +71,9 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="p-0 w-[300px] max-h-[400px] overflow-hidden" 
+        className="p-0 w-[360px] max-h-[400px] overflow-hidden" 
         align="start"
+        side="bottom"
         sideOffset={5}
       >
         {selectedStructure ? (

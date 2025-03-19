@@ -1,14 +1,14 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
-import { Button } from '../ui/button';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '../ui/tooltip';
+import { Button } from '../ui/button';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface HorizontalBeatsBarProps {
   actId: string;
@@ -34,55 +34,14 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
   onBeatClick,
   activeBeatId
 }) => {
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  
   // Skip rendering if no beats
   if (!beats || beats.length === 0) {
     return null;
   }
 
-  const handleScroll = (direction: 'left' | 'right') => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    const scrollAmount = 200; // Adjust as needed
-    
-    if (direction === 'left') {
-      container.scrollLeft -= scrollAmount;
-      setScrollPosition(container.scrollLeft);
-    } else {
-      container.scrollLeft += scrollAmount;
-      setScrollPosition(container.scrollLeft);
-    }
-  };
-
-  const canScrollLeft = scrollPosition > 0;
-  const canScrollRight = containerRef.current 
-    ? containerRef.current.scrollWidth > containerRef.current.clientWidth + scrollPosition
-    : false;
-
   return (
-    <div className="w-full flex items-center">
-      {/* Left scroll button */}
-      {beats.length > 3 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleScroll('left')}
-          disabled={!canScrollLeft}
-          className="px-1 h-6 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-        >
-          <ChevronLeft size={14} />
-        </Button>
-      )}
-      
-      {/* Scrollable beats container */}
-      <div
-        ref={containerRef}
-        className="flex-1 overflow-x-auto scrollbar-hide flex gap-1 py-1 px-1"
-        style={{ scrollBehavior: 'smooth' }}
-      >
+    <ScrollArea className="w-full">
+      <div className="flex flex-wrap gap-1 py-1 px-1">
         <TooltipProvider>
           {beats.map((beat) => (
             <Tooltip key={beat.id}>
@@ -101,7 +60,7 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
                 >
                   <div className="flex items-center gap-1">
                     <span className={cn(
-                      "font-medium",
+                      "font-medium truncate max-w-[100px]",
                       activeBeatId === beat.id ? "text-orange-700 dark:text-orange-400" : "",
                       beat.complete ? "text-green-700" : ""
                     )}>
@@ -129,20 +88,7 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
           ))}
         </TooltipProvider>
       </div>
-      
-      {/* Right scroll button */}
-      {beats.length > 3 && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleScroll('right')}
-          disabled={!canScrollRight}
-          className="px-1 h-6 text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-        >
-          <ChevronRight size={14} />
-        </Button>
-      )}
-    </div>
+    </ScrollArea>
   );
 };
 

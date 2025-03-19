@@ -3,6 +3,8 @@ import React from 'react';
 import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Structure } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface BeatPopoverContentProps {
   selectedStructure: Structure;
@@ -66,45 +68,35 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
             )}>
               {act.title || "Act"}
             </div>
-            <div className="p-1">
-              {act.beats && Array.isArray(act.beats) ? (
-                act.beats.map(beat => {
-                  const isSelected = elementBeatId === beat.id;
-                  
-                  return (
-                    <button 
-                      key={beat.id}
-                      onClick={() => onBeatSelect(beat.id, act.id)}
-                      className={cn(
-                        "w-full text-left px-2 py-1.5 text-xs rounded",
-                        isSelected 
-                          ? "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300" 
-                          : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{beat.title}</span>
-                        {beat.sceneCount && beat.sceneCount > 0 && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            ({beat.sceneCount})
-                          </span>
+            <ScrollArea className="h-full max-h-48 w-full">
+              <div className="p-2 flex flex-wrap gap-1.5">
+                {act.beats && Array.isArray(act.beats) ? (
+                  act.beats.map(beat => {
+                    const isSelected = elementBeatId === beat.id;
+                    
+                    return (
+                      <Badge 
+                        key={beat.id}
+                        onClick={() => onBeatSelect(beat.id, act.id)}
+                        className={cn(
+                          "cursor-pointer flex items-center gap-1 px-2 py-1 text-xs whitespace-nowrap",
+                          isSelected 
+                            ? "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/20 dark:text-orange-300" 
+                            : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                         )}
-                      </div>
-                      {isSelected && (
-                        <div className="flex items-center mt-0.5 text-xs text-orange-600 dark:text-orange-400">
-                          <Flame size={10} className="mr-1" />
-                          <span>Tagged</span>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="px-2 py-1 text-xs text-gray-500">
-                  No beats defined for this act
-                </div>
-              )}
-            </div>
+                      >
+                        {isSelected && <Flame size={10} className="h-3 w-3" />}
+                        <span className="truncate max-w-[120px]">{beat.title}</span>
+                      </Badge>
+                    );
+                  })
+                ) : (
+                  <div className="px-2 py-1 text-xs text-gray-500">
+                    No beats defined for this act
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </React.Fragment>
         );
       })}
