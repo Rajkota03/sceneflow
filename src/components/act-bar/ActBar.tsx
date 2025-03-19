@@ -3,7 +3,7 @@ import React from 'react';
 import { ActType, Structure, BeatSceneCount } from '@/lib/types';
 import StructureBar from './StructureBar';
 import { cn } from '@/lib/utils';
-import BeatsRow from './BeatsRow';
+import HorizontalBeatsBar from './HorizontalBeatsBar';
 
 interface ActBarProps {
   activeAct: ActType | null;
@@ -92,6 +92,36 @@ const ActBar: React.FC<ActBarProps> = ({
     onClick: () => onSelectAct(act.id as ActType)
   }));
   
+  // Combine all beats into a single array for the horizontal beats bar
+  const allBeats = React.useMemo(() => {
+    const beats: Array<{
+      id: string;
+      title: string;
+      description?: string;
+      complete?: boolean;
+      sceneCount?: number;
+      pageRange?: string;
+      actId: string;
+      actColor: string;
+      actBgColor: string;
+    }> = [];
+    
+    actButtons.forEach(act => {
+      if (act.beats && act.beats.length > 0) {
+        act.beats.forEach(beat => {
+          beats.push({
+            ...beat,
+            actId: act.id,
+            actColor: act.color,
+            actBgColor: act.bgColor
+          });
+        });
+      }
+    });
+    
+    return beats;
+  }, [actButtons]);
+  
   return (
     <div className="w-full space-y-2">
       <StructureBar
@@ -102,21 +132,17 @@ const ActBar: React.FC<ActBarProps> = ({
         onBeatClick={onBeatClick}
       />
       
-      {/* Show horizontal beats sections if beatMode is 'on' */}
-      {beatMode === 'on' && (
-        <div className="space-y-1 mt-1">
-          {actButtons.map((act) => (
-            <BeatsRow
-              key={`beats-${act.id}`}
-              actId={act.id}
-              actLabel={act.label}
-              actColor={act.color}
-              actBgColor={act.bgColor}
-              beats={act.beats || []}
-              onBeatClick={onBeatClick}
-              activeBeatId={activeBeatId}
-            />
-          ))}
+      {/* Show single horizontal beats bar if beatMode is 'on' */}
+      {beatMode === 'on' && allBeats.length > 0 && (
+        <div className="border rounded-md p-2 bg-white dark:bg-gray-800">
+          <HorizontalBeatsBar
+            actId="all"
+            actColor=""
+            actBgColor=""
+            beats={allBeats}
+            onBeatClick={onBeatClick}
+            activeBeatId={activeBeatId}
+          />
         </div>
       )}
     </div>

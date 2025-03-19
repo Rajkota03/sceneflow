@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Map, Check, X } from 'lucide-react';
+import { Map, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 import BeatPopoverContent from './BeatPopoverContent';
@@ -87,7 +87,7 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
                   onClick={handleRemoveBeat}
                   className="h-7 w-7 p-0"
                 >
-                  <X size={14} />
+                  <Check size={14} className="text-green-500" />
                 </Button>
               )}
             </div>
