@@ -37,6 +37,17 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isStructureMenuOpen, setIsStructureMenuOpen] = useState(false);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  
+  // Wrapper for delete handler to track local deletion state
+  const handleDelete = async (id: string) => {
+    try {
+      setIsDeletingId(id);
+      await handleDeleteStructure(id);
+    } finally {
+      setIsDeletingId(null);
+    }
+  };
 
   return (
     <>
@@ -96,8 +107,8 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               key={structure.id}
               structure={structure}
               onEdit={handleEditStructure}
-              onDelete={handleDeleteStructure}
-              isLoading={isLoading}
+              onDelete={handleDelete}
+              isLoading={isLoading || (isDeletingId === structure.id)}
             />
           ))}
         </div>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Structure } from '@/lib/types';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/App';
@@ -17,18 +17,17 @@ export const useDashboardStructures = () => {
   const [structures, setStructures] = useState<Structure[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(new Set());
   const { session } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (session) {
-      fetchStructures();
-    } else {
+  const fetchStructures = useCallback(async () => {
+    if (!session) {
+      setStructures([]);
       setIsLoading(false);
+      return;
     }
-  }, [session]);
-
-  const fetchStructures = async () => {
+    
     setIsLoading(true);
     try {
       const { structures: fetchedStructures, error } = await fetchStructuresFromSupabase();
@@ -43,10 +42,22 @@ export const useDashboardStructures = () => {
       } else {
         setStructures(fetchedStructures);
       }
+    } catch (error) {
+      console.error('Error fetching structures:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load structures. Please refresh the page.',
+        variant: 'destructive',
+      });
+      setStructures([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    fetchStructures();
+  }, [fetchStructures]);
 
   const handleCreateStructure = async (structureType: StructureType = 'three_act') => {
     if (!session) {
@@ -58,12 +69,22 @@ export const useDashboardStructures = () => {
       return;
     }
     
-    const newStructure = await createStructureInSupabase(structureType);
-    
-    if (newStructure) {
-      setStructures(prev => [newStructure, ...prev]);
-      // Navigate to the new structure
-      navigate(`/structure/${newStructure.id}`);
+    try {
+      const newStructure = await createStructureInSupabase(structureType);
+      
+      if (newStructure) {
+        // Update local state first for immediate UI feedback
+        setStructures(prev => [newStructure, ...prev]);
+        // Navigate to the new structure
+        navigate(`/structure/${newStructure.id}`);
+      }
+    } catch (error) {
+      console.error('Error creating structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create structure. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -80,6 +101,7 @@ export const useDashboardStructures = () => {
     try {
       const result = await updateStructureInSupabase(updatedStructure);
       
+      // Update local state
       setStructures(prev => 
         prev.map(structure => 
           structure.id === updatedStructure.id ? result : structure
@@ -88,6 +110,12 @@ export const useDashboardStructures = () => {
       
       return;
     } catch (error) {
+      console.error('Error updating structure:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update structure. Please try again.',
+        variant: 'destructive',
+      });
       throw error;
     }
   };
@@ -97,20 +125,22 @@ export const useDashboardStructures = () => {
   };
 
   const handleDeleteStructure = async (id: string) => {
-    setIsLoading(true);
+    // Prevent multiple deletion attempts
+    if (pendingDeletions.has(id)) return;
+    
+    // Immediately remove from UI for responsive feel
+    setStructures(prev => prev.filter(structure => structure.id !== id));
+    setPendingDeletions(prev => new Set(prev).add(id));
+    
     try {
       const { success, linkedProjectsMessage, error } = await deleteStructureFromSupabase(id);
       
       if (success) {
-        // Update local state first to maintain UI responsiveness
-        setStructures(prev => prev.filter(structure => structure.id !== id));
-        
         toast({
           title: "Structure deleted",
           description: "The structure has been deleted successfully."
         });
         
-        // If any projects were linked to this structure, let the user know
         if (linkedProjectsMessage) {
           toast({
             title: "Links removed",
@@ -118,14 +148,32 @@ export const useDashboardStructures = () => {
           });
         }
       } else if (error) {
+        // If deletion failed, add the structure back to the list
+        fetchStructures(); // Refresh the full list to ensure consistency
+        
         toast({
           title: 'Error',
           description: error,
           variant: 'destructive',
         });
       }
+    } catch (error) {
+      console.error('Unexpected error during structure deletion:', error);
+      // Refresh the list on unexpected errors
+      fetchStructures();
+      
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-      setIsLoading(false);
+      // Remove from pending deletions
+      setPendingDeletions(prev => {
+        const updated = new Set(prev);
+        updated.delete(id);
+        return updated;
+      });
     }
   };
 

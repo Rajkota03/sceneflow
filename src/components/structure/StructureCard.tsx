@@ -19,16 +19,20 @@ interface StructureCardProps {
 
 // Helper function to calculate beat completion as a percentage
 const calculateProgress = (acts: Act[]): number => {
+  if (!acts || !Array.isArray(acts)) return 0;
+  
   let completedBeats = 0;
   let totalBeats = 0;
   
   acts.forEach(act => {
-    act.beats.forEach(beat => {
-      totalBeats++;
-      if (beat.complete) {
-        completedBeats++;
-      }
-    });
+    if (act.beats && Array.isArray(act.beats)) {
+      act.beats.forEach(beat => {
+        totalBeats++;
+        if (beat.complete) {
+          completedBeats++;
+        }
+      });
+    }
   });
   
   return totalBeats > 0 ? (completedBeats / totalBeats) * 100 : 0;
@@ -55,12 +59,15 @@ const StructureCard: React.FC<StructureCardProps> = ({
   };
   
   const handleDeleteConfirm = async () => {
+    if (isDeleting) return; // Prevent multiple clicks
+    
     try {
       setIsDeleting(true);
       await onDelete(structure.id);
     } catch (error) {
       console.error('Error deleting structure:', error);
     } finally {
+      // Only close if we're still mounted
       setIsDeleting(false);
       setDeleteAlertOpen(false);
     }
