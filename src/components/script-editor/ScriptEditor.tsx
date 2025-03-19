@@ -5,6 +5,7 @@ import { useFormat } from '@/lib/formatContext';
 import ScriptEditorProvider from './ScriptEditorProvider';
 import ScriptEditorContent from './ScriptEditorContent';
 import { Note } from '@/lib/types';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptEditorProps {
   initialContent: ScriptContentType;
@@ -17,8 +18,8 @@ interface ScriptEditorProps {
   projectId?: string;
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
-  beatMode?: string;
-  onToggleBeatMode?: (mode: string) => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const ScriptEditor = ({ 
@@ -32,7 +33,7 @@ const ScriptEditor = ({
   projectId,
   onStructureChange,
   selectedStructureId: externalSelectedStructureId,
-  beatMode,
+  beatMode = 'on',
   onToggleBeatMode
 }: ScriptEditorProps) => {
   const { formatState, setZoomLevel } = useFormat();

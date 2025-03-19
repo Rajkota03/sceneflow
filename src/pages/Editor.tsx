@@ -13,6 +13,7 @@ import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
 import { BeatMode } from '@/types/scriptTypes';
+import ScriptEditorProvider from '@/components/script-editor/ScriptEditorProvider';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -92,72 +93,81 @@ const Editor = () => {
   return (
     <ThemeProvider>
       <FormatProvider>
-        <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200">
-          <EditorMenuBar 
-            onSave={() => handleSave()} 
-            onSaveAs={handleSaveAs} 
-            onTitlePage={() => toggleTitlePage()}
-            onEditTitlePage={handleTitlePageUpdate}
-            titlePageData={titlePageData}
-            showTitlePage={showTitlePage}
-            onToggleTitlePage={toggleTitlePage}
-            notes={notes}
-            onCreateNote={handleCreateNoteClick}
-            onOpenNote={handleOpenNote}
-            onEditNote={handleEditNote}
-          />
-          
-          <EditorHeader
-            title={title}
-            onTitleChange={handleTitleChange}
-            isSaving={isSaving}
-            saveButtonText={saveButtonText}
-            saveButtonIcon={saveButtonIcon}
-            onSave={() => handleSave()}
-            notes={notes}
-            onOpenNote={handleOpenNote}
-            onCreateNote={handleCreateNoteClick}
-            onDeleteNote={handleDeleteNote}
-            onEditNote={handleEditNote}
-            availableStructures={availableStructures}
-            selectedStructureId={selectedStructureId}
-            onStructureChange={handleStructureChange}
-            beatMode={beatMode}
-            onToggleBeatMode={handleToggleBeatMode}
-          />
-          
-          <EditorMainArea
-            showTitlePage={showTitlePage}
-            titlePageData={titlePageData}
-            content={content}
-            onContentChange={handleContentChange}
-            splitScreenNote={splitScreenNote}
-            openNotes={openNotes}
-            onNoteClose={handleCloseNote}
-            onSplitScreen={handleSplitScreen}
-            exitSplitScreen={exitSplitScreen}
-            onEditNote={handleEditNote}
-            projectId={projectId}
-            projectTitle={title}
-            onStructureChange={handleStructureChange}
-            selectedStructureId={selectedStructureId}
-            beatMode={beatMode}
-          />
-          
-          <EditorFooter
-            showTitlePage={showTitlePage}
-            lastSaved={lastSavedString}
-            elementCount={content.elements.length}
-            characterCount={content.elements.filter(e => e.type === 'character').length}
-          />
-          
-          <NoteEditor 
-            open={noteEditorOpen} 
-            onOpenChange={setNoteEditorOpen} 
-            note={currentEditNote}
-            onSaveNote={handleSaveNote}
-          />
-        </div>
+        <ScriptEditorProvider
+          initialContent={content}
+          onChange={handleContentChange}
+          projectId={projectId}
+          selectedStructureId={selectedStructureId}
+          onStructureChange={handleStructureChange}
+          projectTitle={title}
+        >
+          <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200">
+            <EditorMenuBar 
+              onSave={() => handleSave()} 
+              onSaveAs={handleSaveAs} 
+              onTitlePage={() => toggleTitlePage()}
+              onEditTitlePage={handleTitlePageUpdate}
+              titlePageData={titlePageData}
+              showTitlePage={showTitlePage}
+              onToggleTitlePage={toggleTitlePage}
+              notes={notes}
+              onCreateNote={handleCreateNoteClick}
+              onOpenNote={handleOpenNote}
+              onEditNote={handleEditNote}
+            />
+            
+            <EditorHeader
+              title={title}
+              onTitleChange={handleTitleChange}
+              isSaving={isSaving}
+              saveButtonText={saveButtonText}
+              saveButtonIcon={saveButtonIcon}
+              onSave={() => handleSave()}
+              notes={notes}
+              onOpenNote={handleOpenNote}
+              onCreateNote={handleCreateNoteClick}
+              onDeleteNote={handleDeleteNote}
+              onEditNote={handleEditNote}
+              availableStructures={availableStructures}
+              selectedStructureId={selectedStructureId}
+              onStructureChange={handleStructureChange}
+              beatMode={beatMode}
+              onToggleBeatMode={handleToggleBeatMode}
+            />
+            
+            <EditorMainArea
+              showTitlePage={showTitlePage}
+              titlePageData={titlePageData}
+              content={content}
+              onContentChange={handleContentChange}
+              splitScreenNote={splitScreenNote}
+              openNotes={openNotes}
+              onNoteClose={handleCloseNote}
+              onSplitScreen={handleSplitScreen}
+              exitSplitScreen={exitSplitScreen}
+              onEditNote={handleEditNote}
+              projectId={projectId}
+              projectTitle={title}
+              onStructureChange={handleStructureChange}
+              selectedStructureId={selectedStructureId}
+              beatMode={beatMode}
+            />
+            
+            <EditorFooter
+              showTitlePage={showTitlePage}
+              lastSaved={lastSavedString}
+              elementCount={content.elements.length}
+              characterCount={content.elements.filter(e => e.type === 'character').length}
+            />
+            
+            <NoteEditor 
+              open={noteEditorOpen} 
+              onOpenChange={setNoteEditorOpen} 
+              note={currentEditNote}
+              onSaveNote={handleSaveNote}
+            />
+          </div>
+        </ScriptEditorProvider>
       </FormatProvider>
     </ThemeProvider>
   );

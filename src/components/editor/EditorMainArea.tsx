@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
-import TitlePageView from '@/components/TitlePageView';
-import { Note, ScriptContent, TitlePageData } from '@/lib/types';
-import NoteWindow from '@/components/notes/NoteWindow';
-import ScriptEditor from '@/components/script-editor/ScriptEditor';
+import React from 'react';
+import { ScriptContent, TitlePageData, Note } from '@/lib/types';
+import TitlePageView from '../TitlePageView';
+import NoteWindow from '../notes/NoteWindow';
+import ScriptEditor from '../script-editor/ScriptEditor';
 import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorMainAreaProps {
@@ -11,8 +11,8 @@ interface EditorMainAreaProps {
   titlePageData: TitlePageData;
   content: ScriptContent;
   onContentChange: (content: ScriptContent) => void;
-  openNotes: Note[];
   splitScreenNote: Note | null;
+  openNotes: Note[];
   onNoteClose: (noteId: string) => void;
   onSplitScreen: (note: Note) => void;
   exitSplitScreen: () => void;
@@ -21,7 +21,7 @@ interface EditorMainAreaProps {
   projectTitle?: string;
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
-  beatMode?: BeatMode;
+  beatMode: BeatMode;
 }
 
 const EditorMainArea: React.FC<EditorMainAreaProps> = ({
@@ -29,8 +29,8 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   titlePageData,
   content,
   onContentChange,
-  openNotes,
   splitScreenNote,
+  openNotes,
   onNoteClose,
   onSplitScreen,
   exitSplitScreen,
@@ -39,109 +39,55 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   projectTitle,
   selectedStructureId,
   onStructureChange,
-  beatMode = 'on'
+  beatMode
 }) => {
-  const [resizing, setResizing] = useState(false);
-  const [splitSize, setSplitSize] = useState(50);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setResizing(true);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!resizing) return;
-    const container = document.getElementById('split-container');
-    if (!container) return;
-    
-    const containerRect = container.getBoundingClientRect();
-    const percentX = ((e.clientX - containerRect.left) / containerRect.width) * 100;
-    
-    if (percentX > 20 && percentX < 80) {
-      setSplitSize(percentX);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setResizing(false);
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  // If showing the title page, that's all we show
-  if (showTitlePage) {
-    return (
-      <div className="flex-grow overflow-auto bg-white dark:bg-slate-850 py-8">
-        <TitlePageView data={titlePageData} />
-      </div>
-    );
-  }
-
-  // If we have a split screen note, show the split view
-  if (splitScreenNote) {
-    return (
-      <div id="split-container" className="flex-grow flex overflow-hidden relative">
-        <div 
-          className="h-full overflow-auto" 
-          style={{ width: `${splitSize}%` }}
-        >
-          <ScriptEditor 
-            initialContent={content} 
-            onChange={onContentChange} 
+  return (
+    <div className="flex-grow flex overflow-hidden">
+      {/* Main editor area */}
+      <div className={`flex-grow ${splitScreenNote ? 'w-1/2' : 'w-full'} overflow-hidden`}>
+        {showTitlePage ? (
+          <div className="h-full overflow-auto bg-white dark:bg-slate-800 p-6">
+            <TitlePageView titlePageData={titlePageData} />
+          </div>
+        ) : (
+          <ScriptEditor
+            initialContent={content}
+            onChange={onContentChange}
             className="h-full"
             projectName={projectTitle}
             projectId={projectId}
+            selectedStructureId={selectedStructureId}
+            onStructureChange={onStructureChange}
             beatMode={beatMode}
           />
-        </div>
-        
-        {/* Resizer handle */}
-        <div 
-          className="w-1 h-full bg-gray-300 dark:bg-gray-700 cursor-col-resize z-10 hover:bg-blue-400 dark:hover:bg-blue-600 active:bg-blue-400 dark:active:bg-blue-600"
-          onMouseDown={handleMouseDown}
-        ></div>
-        
-        <div 
-          className="h-full overflow-auto" 
-          style={{ width: `${100 - splitSize}%` }}
-        >
-          <NoteWindow 
-            note={splitScreenNote} 
-            onClose={exitSplitScreen}
-            onSplitScreen={() => {}}
+        )}
+      </div>
+
+      {/* Split screen for note */}
+      {splitScreenNote && (
+        <div className="w-1/2 border-l border-slate-200 dark:border-slate-700">
+          <NoteWindow
+            note={splitScreenNote}
+            onClose={() => exitSplitScreen()}
             onEdit={() => onEditNote(splitScreenNote)}
-            className="h-full"
-            isSplitScreen={true}
+            fullHeight
+            hideSplitButton
           />
         </div>
-      </div>
-    );
-  }
+      )}
 
-  // Otherwise show the regular editor with floating notes
-  return (
-    <div className="flex-grow relative overflow-hidden">
-      <ScriptEditor 
-        initialContent={content} 
-        onChange={onContentChange}
-        projectName={projectTitle}
-        projectId={projectId}
-        beatMode={beatMode}
-      />
-      
-      {/* Floating notes */}
-      {openNotes.map(note => (
-        <NoteWindow 
-          key={note.id} 
-          note={note} 
-          onClose={() => onNoteClose(note.id)}
-          onSplitScreen={() => onSplitScreen(note)}
-          onEdit={() => onEditNote(note)}
-          className="absolute top-4 right-4 w-80 h-72"
-        />
-      ))}
+      {/* Floating note windows */}
+      <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2 z-50">
+        {openNotes.map(note => (
+          <NoteWindow
+            key={note.id}
+            note={note}
+            onClose={() => onNoteClose(note.id)}
+            onSplitScreen={() => onSplitScreen(note)}
+            onEdit={() => onEditNote(note)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
