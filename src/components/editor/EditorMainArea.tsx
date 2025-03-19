@@ -47,7 +47,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
       <div className={`flex-grow ${splitScreenNote ? 'w-1/2' : 'w-full'} overflow-hidden`}>
         {showTitlePage ? (
           <div className="h-full overflow-auto bg-white dark:bg-slate-800 p-6">
-            <TitlePageView titlePageData={titlePageData} />
+            <TitlePageView data={titlePageData} />
           </div>
         ) : (
           <ScriptEditor
@@ -70,7 +70,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
             note={splitScreenNote}
             onClose={() => exitSplitScreen()}
             onEdit={() => onEditNote(splitScreenNote)}
-            fullHeight
+            isFullHeight
             hideSplitButton
           />
         </div>
