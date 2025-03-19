@@ -26,8 +26,13 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
     } 
     
     // Handle case where acts might be in a nested object
-    if (selectedStructure.acts && typeof selectedStructure.acts === 'object' && 'acts' in selectedStructure.acts) {
-      return Array.isArray(selectedStructure.acts.acts) ? selectedStructure.acts.acts : [];
+    // First check if acts exists and is an object
+    if (selectedStructure.acts && typeof selectedStructure.acts === 'object') {
+      // Then check if it has an 'acts' property using type assertion
+      const actsObj = selectedStructure.acts as { acts?: any };
+      if (actsObj.acts && Array.isArray(actsObj.acts)) {
+        return actsObj.acts;
+      }
     }
     
     return [];

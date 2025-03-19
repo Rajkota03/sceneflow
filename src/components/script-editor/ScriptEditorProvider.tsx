@@ -157,8 +157,11 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
         return selectedStructure.acts;
       } 
       
-      if (selectedStructure.acts && typeof selectedStructure.acts === 'object' && 'acts' in selectedStructure.acts) {
-        return Array.isArray(selectedStructure.acts.acts) ? selectedStructure.acts.acts : [];
+      if (selectedStructure.acts && typeof selectedStructure.acts === 'object') {
+        const actsObj = selectedStructure.acts as { acts?: any };
+        if (actsObj.acts && Array.isArray(actsObj.acts)) {
+          return actsObj.acts;
+        }
       }
       
       return [];
