@@ -16,9 +16,11 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
   onBeatSelect
 }) => {
   // Ensure acts is an array before rendering
-  const acts = Array.isArray(selectedStructure?.acts) 
+  const acts = selectedStructure?.acts && Array.isArray(selectedStructure.acts) 
     ? selectedStructure.acts 
-    : (selectedStructure?.acts?.acts || []);
+    : (selectedStructure?.acts && typeof selectedStructure.acts === 'object' && 'acts' in selectedStructure.acts 
+        ? (selectedStructure.acts as any).acts || []
+        : []);
 
   console.log('BeatPopoverContent render:', { 
     structureId: selectedStructure?.id,
