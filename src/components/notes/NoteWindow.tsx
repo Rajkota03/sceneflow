@@ -8,11 +8,13 @@ import Draggable from 'react-draggable';
 interface NoteWindowProps {
   note: Note;
   onClose: () => void;
-  onSplitScreen: (note: Note) => void;
+  onSplitScreen?: (note: Note) => void;
   onEdit?: (note: Note) => void;
   className?: string;
   isFloating?: boolean;
   isSplitScreen?: boolean;
+  isFullHeight?: boolean;
+  hideSplitButton?: boolean;
 }
 
 const NoteWindow = ({ 
@@ -22,7 +24,9 @@ const NoteWindow = ({
   onEdit,
   className = '', 
   isFloating = true,
-  isSplitScreen = false
+  isSplitScreen = false,
+  isFullHeight = false,
+  hideSplitButton = false
 }: NoteWindowProps) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 300, height: 400 });
@@ -101,7 +105,7 @@ const NoteWindow = ({
   const windowContent = (
     <div 
       ref={noteRef}
-      className={`flex flex-col bg-white border border-gray-200 shadow-md rounded-md overflow-hidden ${isFloating ? '' : 'h-full'} ${className}`}
+      className={`flex flex-col bg-white border border-gray-200 shadow-md rounded-md overflow-hidden ${isFloating ? '' : 'h-full'} ${isFullHeight ? 'h-full' : ''} ${className}`}
       style={isFloating ? { width: windowSize.width, height: isCollapsed ? 'auto' : windowSize.height } : undefined}
     >
       <div className="flex items-center justify-between p-2 bg-gray-100 border-b">
@@ -117,14 +121,16 @@ const NoteWindow = ({
               >
                 {isCollapsed ? <Maximize size={12} /> : <Minimize size={12} />}
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6" 
-                onClick={() => onSplitScreen(note)}
-              >
-                <ExternalLink size={12} />
-              </Button>
+              {!hideSplitButton && onSplitScreen && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6" 
+                  onClick={() => onSplitScreen(note)}
+                >
+                  <ExternalLink size={12} />
+                </Button>
+              )}
             </>
           )}
           {onEdit && (
