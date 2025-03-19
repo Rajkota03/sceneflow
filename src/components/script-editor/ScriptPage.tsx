@@ -1,9 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
+import { FormatState } from '@/lib/formatContext';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
-import { useScriptEditor } from './ScriptEditorProvider';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -19,13 +19,14 @@ interface ScriptPageProps {
   projectId?: string;
   beatMode: BeatMode;
   selectedStructure?: Structure | null;
-  formatState?: { zoomLevel: number };
-  currentPage?: number;
+  formatState?: FormatState;
+  currentPage: number;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const ScriptPage: React.FC<ScriptPageProps> = ({
+const ScriptPage: React.FC<ScriptPageProps> = ({ 
   elements,
-  activeElementId,
+  activeElementId, 
   getPreviousElementType,
   handleElementChange,
   handleFocus,
@@ -37,77 +38,25 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   projectId,
   beatMode,
   selectedStructure,
-  formatState = { zoomLevel: 1 },
-  currentPage = 1
+  formatState,
+  currentPage,
+  onBeatTag
 }) => {
-  const { handleBeatTag, updatePageNumbers } = useScriptEditor();
-  
-  // Update page numbers when elements change
-  useEffect(() => {
-    updatePageNumbers();
-  }, [elements.length, updatePageNumbers]);
-
-  // Listen for custom PDF import events
-  useEffect(() => {
-    const handlePdfImport = (event: CustomEvent) => {
-      console.log('PDF import event received', event.detail);
-      // You would handle the PDF import here by updating elements
-    };
-
-    window.addEventListener('pdf-imported' as any, handlePdfImport as any);
-    
-    return () => {
-      window.removeEventListener('pdf-imported' as any, handlePdfImport as any);
-    };
-  }, []);
-
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 'p') {
-          e.preventDefault();
-          document.querySelector('.menubar-trigger')?.dispatchEvent(
-            new MouseEvent('click', { bubbles: true })
-          );
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleGlobalShortcuts);
-    return () => {
-      window.removeEventListener('keydown', handleGlobalShortcuts);
-    };
-  }, []);
-
   return (
     <div className="script-page" style={{ 
-      transform: `scale(${formatState.zoomLevel})`,
+      transform: `scale(${formatState?.zoomLevel || 1})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-      width: '8.5in', // Standard screenplay width
-      minHeight: '11in', // Standard screenplay height
-      margin: '0 auto',
-      position: 'relative',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-      border: '1px solid #ddd'
+      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
     }}>
       <div className="script-page-content" style={{
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        position: 'relative',
-        padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
-        boxSizing: 'border-box',
-        height: '100%',
-        lineHeight: '1.2', // Standard screenplay line spacing
-        direction: 'ltr',
-        unicodeBidi: 'plaintext'
+        position: 'relative'
       }}>
-        {/* Page number positioned inside the page */}
-        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        {/* Page number now positioned inside the page */}
+        <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
+          fontFamily: "Courier Final Draft, Courier Prime, monospace",
           fontSize: "12pt",
         }}>
           {currentPage}
@@ -117,7 +66,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           <EditorElement
             key={element.id}
             element={element}
-            previousElementType={getPreviousElementType(index)}
+            previousElementType={getPreviousElementType(index - 1)}
             onChange={handleElementChange}
             onFocus={() => handleFocus(element.id)}
             isActive={activeElementId === element.id}
@@ -129,6 +78,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
             projectId={projectId}
             beatMode={beatMode}
             selectedStructure={selectedStructure}
+            onBeatTag={onBeatTag}
           />
         ))}
       </div>

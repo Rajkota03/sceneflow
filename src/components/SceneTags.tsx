@@ -18,6 +18,7 @@ interface SceneTagsProps {
   onTagsChange: (elementId: string, tags: string[]) => void;
   projectId?: string;
   selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
 const SceneTags: React.FC<SceneTagsProps> = ({ 
@@ -25,6 +26,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   onTagsChange,
   projectId,
   selectedStructure,
+  onBeatTag
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -32,7 +34,10 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const [beatPopupOpen, setBeatPopupOpen] = useState(false);
   
   // Get the handleBeatTag function from the ScriptEditor context
-  const { handleBeatTag, selectedStructure: contextStructure } = useScriptEditor();
+  const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure } = useScriptEditor();
+  
+  // Use the onBeatTag from props or context
+  const handleBeatTagging = onBeatTag || contextHandleBeatTag;
   
   // Use the structure from context if not provided via props
   const structure = selectedStructure || contextStructure;
@@ -107,8 +112,8 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   
   const handleBeatSelect = (beatId: string, actId: string) => {
     console.log('Beat selected:', beatId, actId, element.id);
-    if (handleBeatTag) {
-      handleBeatTag(element.id, beatId, actId);
+    if (handleBeatTagging) {
+      handleBeatTagging(element.id, beatId, actId);
       // Close the popup immediately after selection
       setBeatPopupOpen(false);
     }

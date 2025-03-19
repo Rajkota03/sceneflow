@@ -40,13 +40,17 @@ const EditorElement: React.FC<EditorElementProps> = ({
   characterNames,
   projectId,
   beatMode = 'on',
-  selectedStructure
+  selectedStructure,
+  onBeatTag
 }) => {
   // Access global context for beat tagging and structure
-  const { handleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
+  const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
   
   // Use the structure from props or context
   const structure = selectedStructure || contextStructure;
+  
+  // Use onBeatTag from props or context
+  const handleBeatTagging = onBeatTag || contextHandleBeatTag;
   
   const {
     text,
@@ -140,6 +144,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
                 onTagsChange={onTagsChange} 
                 projectId={projectId}
                 selectedStructure={structure}
+                onBeatTag={handleBeatTagging}
               />
             </div>
           )}

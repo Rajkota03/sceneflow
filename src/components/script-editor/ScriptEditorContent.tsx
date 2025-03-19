@@ -5,6 +5,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
 import ZoomControls from './ZoomControls';
+import TagManagerContainer from './TagManagerContainer';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -33,7 +34,8 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     projectId,
     beatMode,
     selectedStructure,
-    scriptContentRef
+    scriptContentRef,
+    handleBeatTag
   } = useScriptEditor();
 
   const handleFocus = (id: string) => {
@@ -42,6 +44,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
+      {/* Tag Manager container to filter elements by tag/act/beat */}
+      <TagManagerContainer />
+      
       <ScrollArea className="h-full w-full overflow-auto">
         <div 
           className="flex justify-center w-full pt-8 pb-20"
@@ -64,6 +69,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
               selectedStructure={selectedStructure}
               formatState={formatState}
               currentPage={currentPage}
+              onBeatTag={handleBeatTag}
             />
           </div>
         </div>
