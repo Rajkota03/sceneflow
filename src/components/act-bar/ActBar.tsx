@@ -15,6 +15,12 @@ import BeatSection from './BeatSection';
 import StructureHeader from './StructureHeader';
 import ActButtonList from './ActButtonList';
 import { cn } from '@/lib/utils';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface ActCount {
   act: ActType;
@@ -125,21 +131,45 @@ const ActBar: React.FC<ActBarProps> = ({
       
       {/* Show beats sections if beatMode is 'on' */}
       {beatMode === 'on' && (
-        <div className="space-y-0.5">
-          {visibleActs.map((act) => {
-            return activeAct === act.id as ActType ? (
-              <BeatSection
-                key={`beats-${act.id}`}
-                actId={act.id}
-                actColor={act.color}
-                actBgColor={act.bgColor}
-                beats={act.beats || []}
-                onBeatClick={onBeatClick}
-                activeBeatId={activeBeatId}
-              />
-            ) : null;
-          })}
-        </div>
+        <Accordion type="multiple" className="w-full space-y-2">
+          {visibleActs.map((act) => (
+            <AccordionItem 
+              key={`beats-${act.id}`} 
+              value={act.id}
+              className={cn(
+                "border rounded-md overflow-hidden",
+                act.bgColor.replace('bg-', 'border-').replace('100', '200').replace('200', '300')
+              )}
+            >
+              <AccordionTrigger className={cn(
+                "px-3 py-2 text-sm font-medium", 
+                act.bgColor, 
+                act.color
+              )}>
+                {act.label} Beats
+                {act.beats && act.beats.length > 0 && (
+                  <span className="text-xs font-normal ml-2 opacity-70">
+                    ({act.beats.length})
+                  </span>
+                )}
+              </AccordionTrigger>
+              <AccordionContent className="px-3 py-2">
+                {act.beats && act.beats.length > 0 ? (
+                  <BeatSection
+                    actId={act.id}
+                    actColor={act.color}
+                    actBgColor={act.bgColor}
+                    beats={act.beats}
+                    onBeatClick={onBeatClick}
+                    activeBeatId={activeBeatId}
+                  />
+                ) : (
+                  <div className="text-sm text-gray-500">No beats defined for this act</div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       )}
       
       {/* Button filters for quick navigation */}

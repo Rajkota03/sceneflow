@@ -9,6 +9,13 @@ import { Button } from './ui/button';
 import BeatModeToggle from './act-bar/BeatModeToggle';
 import { cn } from '@/lib/utils';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import StructureSelector from './act-bar/StructureSelector';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -42,7 +49,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   onBeatClick
 }) => {
   // Get scene counts for beats from context
-  const { beatSceneCounts } = useScriptEditor();
+  const { beatSceneCounts, onStructureChange, selectedStructureId, structures } = useScriptEditor();
   
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
@@ -68,12 +75,15 @@ const TagManager: React.FC<TagManagerProps> = ({
     count
   }));
   
+  // Create structure options array for dropdown
+  const availableStructures = structures ? 
+    structures.map(s => ({ id: s.id, name: s.name })) : 
+    [];
+  
   return (
     <div className="bg-white dark:bg-slate-850 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      {/* Removed the first header bar with project name */}
-      
       <div className="px-4 py-3">
-        <div className="flex items-center mb-2">
+        <div className="flex items-center mb-3">
           <div className="flex items-center">
             <div className="flex items-center space-x-2">
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
@@ -103,6 +113,17 @@ const TagManager: React.FC<TagManagerProps> = ({
             )}
           </div>
         </div>
+        
+        {/* Structure Selector */}
+        {availableStructures.length > 0 && (
+          <div className="mb-3">
+            <StructureSelector
+              availableStructures={availableStructures}
+              selectedStructureId={selectedStructureId}
+              onStructureChange={onStructureChange}
+            />
+          </div>
+        )}
         
         {/* Structure Bar - Enhanced with beat scene counts */}
         <ActBar 

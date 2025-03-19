@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
+import { FileText } from 'lucide-react';
 
 interface StructureSelectorProps {
   availableStructures: Array<{ id: string; name: string }>;
@@ -24,13 +25,19 @@ const StructureSelector: React.FC<StructureSelectorProps> = ({
   }
   
   return (
-    <div className="relative flex-shrink-0 w-64">
+    <div className="flex items-center w-full">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
+        Structure:
+      </label>
       <Select 
         value={selectedStructureId} 
         onValueChange={onStructureChange}
       >
-        <SelectTrigger className="h-8 text-xs bg-white dark:bg-gray-800">
-          <SelectValue placeholder="Select structure" />
+        <SelectTrigger className="h-8 text-xs bg-white dark:bg-gray-800 w-72">
+          <div className="flex items-center">
+            <FileText className="w-3.5 h-3.5 mr-2" />
+            <SelectValue placeholder="Select structure" />
+          </div>
         </SelectTrigger>
         <SelectContent>
           {availableStructures.map(structure => (

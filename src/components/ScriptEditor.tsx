@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType } from '../lib/types';
 import EditorElement from './EditorElement';
