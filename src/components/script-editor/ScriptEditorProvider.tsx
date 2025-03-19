@@ -39,6 +39,8 @@ interface ScriptEditorContextType {
   handleBeatTag: (elementId: string, beatId: string, actId: string) => void;
   beatSceneCounts: BeatSceneCount[];
   updatePageNumbers: () => void;
+  showKeyboardShortcuts: boolean;
+  toggleKeyboardShortcuts: () => void;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
@@ -68,6 +70,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [activeBeatId, setActiveBeatId] = useState<string | null>(null);
   const [beatSceneCounts, setBeatSceneCounts] = useState<BeatSceneCount[]>([]);
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState<boolean>(false);
   const scriptContentRef = useRef<HTMLDivElement>(null);
   
   const { selectedStructure } = useProjectStructures(projectId);
@@ -94,6 +97,10 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   
   const onToggleBeatMode = (mode: BeatMode) => {
     setBeatMode(mode);
+  };
+
+  const toggleKeyboardShortcuts = () => {
+    setShowKeyboardShortcuts(prev => !prev);
   };
 
   const handleTagsChange = (elementId: string, tags: string[]) => {
@@ -240,7 +247,9 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setActiveBeatId,
     handleBeatTag,
     beatSceneCounts,
-    updatePageNumbers
+    updatePageNumbers,
+    showKeyboardShortcuts,
+    toggleKeyboardShortcuts
   };
 
   return (

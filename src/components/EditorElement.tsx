@@ -43,7 +43,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   selectedStructure
 }) => {
   // Access global context for beat tagging and structure
-  const { handleBeatTag, selectedStructure: contextStructure } = useScriptEditor();
+  const { handleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
   
   // Use the structure from props or context
   const structure = selectedStructure || contextStructure;
@@ -84,7 +84,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       onContextMenu={handleRightClick}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {isActive && (
+        {isActive && showKeyboardShortcuts && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <button
               onClick={() => setShowElementMenu(!showElementMenu)}
