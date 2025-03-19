@@ -178,7 +178,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
                           <span>{beat.title}</span>
                           {sceneCount > 0 && (
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              ({sceneCount} Scene{sceneCount !== 1 ? 's' : ''})
+                              ({sceneCount} Scene{sceneCount !== 1 && 's'})
                             </span>
                           )}
                         </div>
