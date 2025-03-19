@@ -16,7 +16,8 @@ const useProjectStructures = (projectId?: string) => {
     handleStructureChange: structureHookResult.handleStructureChange,
     updateBeatCompletion: structureHookResult.updateBeatCompletion,
     saveBeatCompletion: structureHookResult.saveBeatCompletion,
-    fetchStructures: structureHookResult.fetchStructures
+    fetchStructures: structureHookResult.fetchStructures,
+    calculateStructureProgress: structureHookResult.calculateStructureProgress
   };
 };
 

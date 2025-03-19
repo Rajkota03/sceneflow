@@ -1,6 +1,7 @@
 
 import { Project } from '@/lib/types';
 import ProjectCard from '@/components/ProjectCard';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ProjectGridProps {
   projects: Project[];

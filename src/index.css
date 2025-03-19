@@ -63,9 +63,36 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
-    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+  
+  #root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Make sure scrollbars are enabled and working properly */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-600;
   }
 }
 
@@ -386,4 +413,15 @@ textarea.auto-resize {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+/* Card styles for consistency */
+.glass-card {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl transition-all duration-300;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.glass-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
 }
