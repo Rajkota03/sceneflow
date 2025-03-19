@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import { ScriptContent, ScriptElement, ActType, Structure, ElementType, BeatSceneCount } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
@@ -103,15 +104,18 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     );
   };
   
+  // Handle beat tagging
   const handleBeatTag = (elementId: string, beatId: string, actId: string) => {
     console.log('handleBeatTag called:', { elementId, beatId, actId });
     
+    // First, find the element to update
     const elementToUpdate = elements.find(el => el.id === elementId);
     if (!elementToUpdate) {
       console.error('Element not found:', elementId);
       return;
     }
     
+    // Update the element with the beat tag
     setElements(prevElements =>
       prevElements.map(element =>
         element.id === elementId 
@@ -120,16 +124,22 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       )
     );
     
+    // Show success toast
     toast({
       description: "Scene tagged successfully",
       duration: 2000,
     });
     
+    // Update beat scene counts after tagging
     updateBeatSceneCounts();
   };
   
+  // Calculate page numbers for elements
   const updatePageNumbers = () => {
+    // Basic calculation - approximately 55 lines per page
+    // This is a simplified version; real pagination would consider element types
     const updatedElements = elements.map((element, index) => {
+      // Calculate approximate page number
       const estimatedPage = Math.floor(index / 15) + 1;
       return { ...element, page: estimatedPage };
     });
@@ -138,17 +148,18 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     updateBeatSceneCounts();
   };
   
+  // Update beat scene counts
   const updateBeatSceneCounts = () => {
     if (!selectedStructure) return;
     
     const counts: BeatSceneCount[] = [];
     
-    let acts: any[] = [];
+    // Check if acts exists and is an array before trying to iterate
+    let acts = selectedStructure.acts || [];
     
-    if (selectedStructure.acts && Array.isArray(selectedStructure.acts)) {
-      acts = selectedStructure.acts;
-    } else if (selectedStructure.acts && typeof selectedStructure.acts === 'object' && 'acts' in selectedStructure.acts) {
-      acts = (selectedStructure.acts as any).acts || [];
+    // Handle nested acts structure (from the console error)
+    if (!Array.isArray(acts) && acts && typeof acts === 'object' && 'acts' in acts) {
+      acts = acts.acts || [];
     }
     
     if (!Array.isArray(acts)) {
@@ -156,14 +167,17 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       return;
     }
     
+    // Go through all acts and beats
     acts.forEach(act => {
       if (!act.beats || !Array.isArray(act.beats)) return;
       
       act.beats.forEach(beat => {
+        // Find all scenes tagged with this beat
         const taggedScenes = elements.filter(
           element => element.type === 'scene-heading' && element.beat === beat.id
         );
         
+        // Calculate page range
         let minPage = Infinity;
         let maxPage = 0;
         
@@ -178,6 +192,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
           ? (minPage === maxPage ? `p.${minPage}` : `pp.${minPage}-${maxPage}`)
           : '';
         
+        // Add to counts
         counts.push({
           beatId: beat.id,
           actId: act.id,
@@ -190,6 +205,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setBeatSceneCounts(counts);
   };
   
+  // Update counts when elements or structure changes
   useEffect(() => {
     updatePageNumbers();
   }, [elements.length, selectedStructure]);
