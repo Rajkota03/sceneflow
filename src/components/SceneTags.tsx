@@ -149,14 +149,24 @@ const SceneTags: React.FC<SceneTagsProps> = ({
         {/* Beat selector popup */}
         <Popover open={beatPopupOpen} onOpenChange={setBeatPopupOpen}>
           <PopoverTrigger asChild>
-            <BeatTagButton 
-              hasBeatTag={hasBeatTag} 
-              beatTitle={beatDetails ? beatDetails.beatTitle : ''} 
-              onClick={() => {
-                console.log('Beat tag button clicked, setting popup open to', !beatPopupOpen);
-                setBeatPopupOpen(true);
-              }}
-            />
+            <button 
+              className={cn(
+                "h-6 px-2 text-xs rounded flex items-center",
+                hasBeatTag 
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                  : 'border border-dashed border-gray-300 text-gray-500 hover:bg-gray-100'
+              )}
+              onClick={() => setBeatPopupOpen(true)}
+            >
+              {hasBeatTag ? (
+                <>
+                  <Check size={14} className="mr-1" />
+                  {beatDetails?.beatTitle || 'Beat'}
+                </>
+              ) : (
+                <Map size={14} />
+              )}
+            </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0 w-72 max-h-80 overflow-auto">
             {structure && (

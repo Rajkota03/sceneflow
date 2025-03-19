@@ -35,9 +35,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     beatMode,
     selectedStructure,
     scriptContentRef,
-    handleBeatTag,
-    activeBeatId,
-    setActiveBeatId
+    handleBeatTag
   } = useScriptEditor();
 
   const handleFocus = (id: string) => {
@@ -72,8 +70,6 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
               formatState={formatState}
               currentPage={currentPage}
               onBeatTag={handleBeatTag}
-              activeBeatId={activeBeatId}
-              onBeatClick={setActiveBeatId}
             />
           </div>
         </div>
