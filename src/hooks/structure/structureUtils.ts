@@ -1,5 +1,5 @@
 import { Structure } from '@/lib/types';
-import { createClient } from '@/integrations/supabase/client'; // Fix the import path
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Calculate the overall progress of a structure based on beat completion
@@ -37,10 +37,8 @@ export const updateStructureBeatCompletion = (
   }
 
   try {
-    // Create a deep copy to avoid mutating the original
     const updatedStructure = JSON.parse(JSON.stringify(structure)) as Structure;
     
-    // Find the act and beat within the structure
     const act = updatedStructure.acts.find(a => a.id === actId);
     if (!act) {
       console.error(`Act with ID ${actId} not found`);
@@ -53,7 +51,6 @@ export const updateStructureBeatCompletion = (
       return null;
     }
     
-    // Update the beat completion status
     beat.complete = complete;
     
     return updatedStructure;
@@ -71,19 +68,13 @@ export const saveStructureBeatCompletion = async (
   updatedStructure: Structure
 ): Promise<boolean> => {
   try {
-    const supabase = createClient();
-    
-    // Prepare the structure data for update (ensure it matches the database schema)
     const structureData = {
       id: updatedStructure.id,
       name: updatedStructure.name,
       structure_type: updatedStructure.structure_type,
       acts: updatedStructure.acts,
-      // Add any other fields that might be required by your database schema
-      // Note: Don't include description since it doesn't exist on the Act type
     };
     
-    // Update the structure in Supabase
     const { error } = await supabase
       .from('structures')
       .update(structureData)
@@ -105,13 +96,11 @@ export const saveStructureBeatCompletion = async (
  * Fetches structures from Supabase for a given project
  */
 export const fetchStructuresFromSupabase = async (projectId: string) => {
-  const supabase = createClient();
   let error = '';
   let allStructures = null;
   let linkedStructureId = null;
   
   try {
-    // First fetch structures linked to this project
     const { data: linkData, error: linkError } = await supabase
       .from('project_structures')
       .select('structure_id')
@@ -123,12 +112,10 @@ export const fetchStructuresFromSupabase = async (projectId: string) => {
       return { allStructures, linkedStructureId, error };
     }
     
-    // Get the linked structure ID if any
     if (linkData && linkData.length > 0) {
       linkedStructureId = linkData[0].structure_id;
     }
     
-    // Fetch all available structures
     const { data: structuresData, error: structuresError } = await supabase
       .from('structures')
       .select('*');
@@ -155,7 +142,6 @@ export const parseStructureData = (structureData: any): Structure => {
   let acts = [];
   
   try {
-    // Parse the beats JSON field if it exists
     if (typeof structureData.beats === 'string') {
       acts = JSON.parse(structureData.beats);
     } else if (structureData.beats && Array.isArray(structureData.beats)) {
@@ -166,7 +152,6 @@ export const parseStructureData = (structureData: any): Structure => {
     acts = [];
   }
   
-  // Convert to the app's Structure format
   return {
     id: structureData.id,
     name: structureData.name,
@@ -182,10 +167,7 @@ export const parseStructureData = (structureData: any): Structure => {
  * Link a structure to a project in Supabase
  */
 export const linkStructureToProject = async (projectId: string, structureId: string): Promise<boolean> => {
-  const supabase = createClient();
-  
   try {
-    // First check if there's an existing link
     const { data: existingLinks, error: checkError } = await supabase
       .from('project_structures')
       .select('*')
@@ -196,7 +178,6 @@ export const linkStructureToProject = async (projectId: string, structureId: str
       return false;
     }
     
-    // If links exist, update the existing one
     if (existingLinks && existingLinks.length > 0) {
       const { error: updateError } = await supabase
         .from('project_structures')
@@ -208,7 +189,6 @@ export const linkStructureToProject = async (projectId: string, structureId: str
         return false;
       }
     } else {
-      // Otherwise, create a new link
       const { error: insertError } = await supabase
         .from('project_structures')
         .insert([{ project_id: projectId, structure_id: structureId }]);

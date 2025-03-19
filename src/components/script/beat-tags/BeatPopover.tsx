@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -11,11 +10,13 @@ import { toast } from '@/components/ui/use-toast';
 interface BeatPopoverProps {
   elementId: string;
   elementBeatId?: string;
+  onRemoveTag?: () => void;
 }
 
 const BeatPopover: React.FC<BeatPopoverProps> = ({ 
   elementId,
-  elementBeatId
+  elementBeatId,
+  onRemoveTag
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { selectedStructure, handleBeatTag } = useScriptEditor();
@@ -46,6 +47,11 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
   
   const handleRemoveBeat = () => {
     handleBeatTag(elementId, '', '');
+    
+    // Call the onRemoveTag prop if provided
+    if (onRemoveTag) {
+      onRemoveTag();
+    }
     
     toast({
       description: "Scene tag removed successfully",
