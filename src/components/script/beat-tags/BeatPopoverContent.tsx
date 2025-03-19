@@ -15,10 +15,25 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
   elementBeatId,
   onBeatSelect
 }) => {
-  // Ensure acts is an array before rendering
-  const acts = Array.isArray(selectedStructure?.acts) 
-    ? selectedStructure.acts 
-    : (selectedStructure?.acts?.acts || []);
+  // Handle different structure of the acts prop
+  // Check if selectedStructure exists and has acts
+  const getActs = () => {
+    if (!selectedStructure) return [];
+    
+    // Handle case where acts might be nested or an array
+    if (Array.isArray(selectedStructure.acts)) {
+      return selectedStructure.acts;
+    } 
+    
+    // Handle case where acts might be in a nested object
+    if (selectedStructure.acts && typeof selectedStructure.acts === 'object' && 'acts' in selectedStructure.acts) {
+      return Array.isArray(selectedStructure.acts.acts) ? selectedStructure.acts.acts : [];
+    }
+    
+    return [];
+  };
+  
+  const acts = getActs();
 
   console.log('BeatPopoverContent render:', { 
     structureId: selectedStructure?.id,
