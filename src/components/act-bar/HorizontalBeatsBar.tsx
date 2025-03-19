@@ -43,9 +43,9 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-1 py-1">
-        <TooltipProvider>
+    <div className="w-full py-1">
+      <TooltipProvider>
+        <div className="flex flex-wrap gap-1">
           {beats.map((beat) => {
             // Use beat's act color if available (for combined view)
             const beatBgColor = beat.actBgColor || actBgColor;
@@ -105,9 +105,9 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
               </Tooltip>
             );
           })}
-        </TooltipProvider>
-      </div>
-    </ScrollArea>
+        </div>
+      </TooltipProvider>
+    </div>
   );
 };
 
