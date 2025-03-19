@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ScriptElement, Structure } from '@/lib/types';
 import SceneTag from './SceneTag';
@@ -13,6 +12,8 @@ import BeatPopoverContent from './script/beat-tags/BeatPopoverContent';
 import TagInputPopover from './script/beat-tags/TagInputPopover';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 import { toast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
+import { Map, Check } from 'lucide-react';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -34,17 +35,14 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const [tags, setTags] = useState<string[]>(element.tags || []);
   const [beatPopupOpen, setBeatPopupOpen] = useState(false);
   
-  // Get the handleBeatTag function from the ScriptEditor context
   const { 
     handleBeatTag: contextHandleBeatTag, 
     selectedStructure: contextStructure,
     beatSceneCounts
   } = useScriptEditor();
   
-  // Use the onBeatTag from props or context
   const handleBeatTagging = onBeatTag || contextHandleBeatTag;
   
-  // Use the structure from context if not provided via props
   const structure = selectedStructure || contextStructure;
   
   useEffect(() => {
@@ -85,15 +83,12 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     }
   };
   
-  // Check if we have a selected structure with acts
   const hasStructure = !!(structure && structure.acts && Array.isArray(structure.acts) && structure.acts.length > 0);
   
-  // If we don't have a valid structure selected, show a message
   if (!hasStructure) {
     return <StructureUnavailableMessage />;
   }
   
-  // Get all available beats from the structure
   const availableBeats = structure?.acts?.flatMap(act => 
     act.beats?.map(beat => ({
       beatId: beat.id,
@@ -106,10 +101,8 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     })) || []
   ) || [];
   
-  // Check if this scene has a beat tag
   const hasBeatTag = !!element.beat;
   
-  // Find the beat details if this scene has a beat tag
   const beatDetails = hasBeatTag 
     ? availableBeats.find(b => b.beatId === element.beat)
     : null;
@@ -118,12 +111,10 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     console.log('Beat selected:', beatId, actId, element.id);
     if (handleBeatTagging) {
       handleBeatTagging(element.id, beatId, actId);
-      // Show a toast for user feedback
       toast({
         description: "Scene tagged successfully",
         duration: 2000,
       });
-      // Close the popup immediately after selection
       setBeatPopupOpen(false);
     } else {
       console.error('Beat tagging handler not available');
@@ -146,7 +137,6 @@ const SceneTags: React.FC<SceneTagsProps> = ({
       ))}
       
       <div className="flex items-center space-x-1">
-        {/* Beat selector popup */}
         <Popover open={beatPopupOpen} onOpenChange={setBeatPopupOpen}>
           <PopoverTrigger asChild>
             <button 
@@ -179,7 +169,6 @@ const SceneTags: React.FC<SceneTagsProps> = ({
           </PopoverContent>
         </Popover>
         
-        {/* Tag input popover */}
         <TagInputPopover 
           open={open}
           onOpenChange={setOpen}
