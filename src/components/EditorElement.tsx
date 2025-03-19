@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import SceneTags from './SceneTags';
@@ -82,11 +82,35 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Only show beat tagging controls for scene headings
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
+  // If this element is active, force focus to the editor element
   useEffect(() => {
-    if (isActive && element.type === 'scene-heading' && beatMode === 'on') {
-      console.log('Scene heading element active with structure:', structure?.id);
+    if (isActive && editorRef.current) {
+      // Set a timeout to ensure the focus happens after rendering
+      setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.focus();
+          
+          // Position cursor at the end
+          const range = document.createRange();
+          const selection = window.getSelection();
+          
+          if (editorRef.current.childNodes.length > 0) {
+            const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+            range.setStartAfter(lastNode);
+            range.collapse(true);
+          } else {
+            range.setStart(editorRef.current, 0);
+            range.collapse(true);
+          }
+          
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
+        }
+      }, 0);
     }
-  }, [isActive, element.type, beatMode, structure]);
+  }, [isActive]);
 
   return (
     <div 
@@ -127,9 +151,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           pointerEvents: 'auto', // Ensure the element can receive pointer events
+          minHeight: '1.2em', // Ensure empty elements have height
           ...elementStyles
         }}
         dir="ltr"
+        data-element-type={element.type}
       >
         {text}
       </div>

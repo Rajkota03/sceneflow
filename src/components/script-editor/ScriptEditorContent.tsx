@@ -46,9 +46,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       {/* Tag Manager container to filter elements by tag/act/beat */}
       <TagManagerContainer />
       
-      <ScrollArea className="h-full w-full overflow-auto">
+      {/* This is the main content area where the script is displayed */}
+      <div className="flex-grow overflow-auto relative">
         <ScriptContent />
-      </ScrollArea>
+      </div>
       
       {onZoomChange && <ZoomControls zoomPercentage={zoomPercentage} onZoomChange={onZoomChange} />}
     </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
@@ -29,13 +29,31 @@ const ScriptContent: React.FC = () => {
     setActiveElementId(id);
   };
 
+  // If there are no elements, create initial elements with placeholder text
+  useEffect(() => {
+    if (elements.length === 0) {
+      // The provider should handle this, but we can add a check here too
+      console.log("Script content: No elements found");
+    }
+  }, [elements]);
+
   return (
-    <ScrollArea className="h-full w-full overflow-auto" style={{ cursor: 'text' }}>
+    <div 
+      className="w-full h-full overflow-auto bg-white dark:bg-slate-800 cursor-text"
+      style={{ position: 'relative' }}
+    >
       <div 
-        className="flex justify-center w-full pt-8 pb-20"
         ref={scriptContentRef}
+        className="min-h-full flex flex-col items-center pt-8 pb-20"
       >
-        <div className="w-full max-w-4xl mx-auto" style={{ pointerEvents: 'auto' }}>
+        <div 
+          className="w-full max-w-4xl mx-auto px-4"
+          style={{ 
+            transform: `scale(${formatState.zoomLevel})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease-out',
+          }}
+        >
           <ScriptPage
             elements={elements || []}
             activeElementId={activeElementId}
@@ -55,7 +73,7 @@ const ScriptContent: React.FC = () => {
           />
         </div>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
