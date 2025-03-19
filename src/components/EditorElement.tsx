@@ -82,6 +82,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Only show beat tagging controls for scene headings
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
+  useEffect(() => {
+    if (isActive && element.type === 'scene-heading' && beatMode === 'on') {
+      console.log('Scene heading element active with structure:', structure?.id);
+    }
+  }, [isActive, element.type, beatMode, structure]);
+
   return (
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 

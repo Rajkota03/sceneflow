@@ -70,7 +70,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
             note={splitScreenNote}
             onClose={() => exitSplitScreen()}
             onEdit={() => onEditNote(splitScreenNote)}
-            isFullHeight={true}
+            fullHeight={true}
             hideSplitButton={true}
           />
         </div>

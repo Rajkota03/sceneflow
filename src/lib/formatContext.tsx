@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface FormatState {
+export interface FormatState {
   font: string;
   fontSize: number;
   isBold: boolean;
