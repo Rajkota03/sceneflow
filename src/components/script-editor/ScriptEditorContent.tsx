@@ -49,10 +49,22 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       
       <ScrollArea className="h-full w-full overflow-auto">
         <div 
-          className="flex justify-center w-full pt-8 pb-20"
+          className="flex justify-center w-full pt-8 pb-20 cursor-text" 
           ref={scriptContentRef}
+          onClick={() => {
+            // Handle clicks on empty areas by focusing the active element
+            if (activeElementId) {
+              const activeEl = document.getElementById(activeElementId);
+              if (activeEl) {
+                activeEl.focus();
+              }
+            } else if (elements.length > 0) {
+              // If no active element, focus the first one
+              setActiveElementId(elements[0].id);
+            }
+          }}
         >
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto cursor-text">
             <ScriptPage
               elements={elements || []}
               activeElementId={activeElementId}

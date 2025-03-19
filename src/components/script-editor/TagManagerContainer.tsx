@@ -39,7 +39,8 @@ const TagManagerContainer: React.FC = () => {
       selectedStructure={selectedStructure}
       activeBeatId={activeBeatId}
       onBeatClick={handleBeatClick}
-      beatSceneCounts={beatSceneCounts}
+      // Pass beatSceneCounts as a properly typed prop that exists in TagManager
+      beatSceneCounts={beatSceneCounts || []}
     />
   );
 };

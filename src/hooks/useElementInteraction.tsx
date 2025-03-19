@@ -46,30 +46,35 @@ export function useElementInteraction({
         editorRef.current.innerText = initialText;
       }
 
-      // Focus the element and position cursor at end
-      const range = document.createRange();
-      const sel = window.getSelection();
-      
-      try {
-        // Position cursor at end of text
-        if (editorRef.current.childNodes.length > 0) {
-          range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
-        } else {
-          range.setStart(editorRef.current, 0);
-        }
-        
-        range.collapse(true);
-        
-        if (sel) {
-          sel.removeAllRanges();
-          sel.addRange(range);
-        }
-        
+      // Focus the element with a slight delay to ensure UI is ready
+      setTimeout(() => {
         // Apply focus
-        editorRef.current.focus();
-      } catch (err) {
-        console.error('Error setting cursor position:', err);
-      }
+        if (editorRef.current) {
+          editorRef.current.focus();
+        
+          // Position cursor at end of text
+          const range = document.createRange();
+          const sel = window.getSelection();
+          
+          try {
+            // Position cursor at end of text
+            if (editorRef.current.childNodes.length > 0) {
+              range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+            } else {
+              range.setStart(editorRef.current, 0);
+            }
+            
+            range.collapse(true);
+            
+            if (sel) {
+              sel.removeAllRanges();
+              sel.addRange(range);
+            }
+          } catch (err) {
+            console.error('Error setting cursor position:', err);
+          }
+        }
+      }, 10);
     }
   }, [isActive, initialText]);
 

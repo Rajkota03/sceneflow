@@ -1,52 +1,64 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Note } from '@/lib/types';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Save, X } from 'lucide-react';
+import { Textarea } from '../ui/textarea';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { X } from 'lucide-react';
 
 export interface NoteEditorProps {
-  note: Note | null;
-  onSaveNote: (updatedNote: Note) => void;
+  note: Note;
+  onSaveNote: (note: Note) => void;
   isPopup?: boolean;
   onClose?: () => void;
+  onCancel?: () => void; // Add the missing property
 }
 
 const NoteEditor: React.FC<NoteEditorProps> = ({ 
   note, 
-  onSaveNote,
+  onSaveNote, 
   isPopup = false,
-  onClose 
+  onClose,
+  onCancel // Include the new property in destructuring
 }) => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isValid, setIsValid] = useState(false);
+  const [title, setTitle] = useState(note.title || '');
+  const [content, setContent] = useState(note.content || '');
+  const [isNoteSaved, setIsNoteSaved] = useState(true);
 
   useEffect(() => {
-    if (note) {
-      setTitle(note.title || '');
-      setContent(note.content || '');
-    } else {
-      setTitle('');
-      setContent('');
-    }
-  }, [note]);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isNoteSaved) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
 
-  useEffect(() => {
-    setIsValid(title.trim().length > 0);
-  }, [title]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isNoteSaved]);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+    setIsNoteSaved(false);
+  };
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+    setIsNoteSaved(false);
+  };
 
   const handleSave = () => {
-    if (!note || !isValid) return;
-
-    onSaveNote({
+    const updatedNote = {
       ...note,
       title,
       content,
-      updatedAt: new Date().toISOString(),
-    });
+      lastModified: new Date()
+    };
+    onSaveNote(updatedNote);
+    setIsNoteSaved(true);
     
     if (onClose) {
       onClose();
@@ -54,55 +66,47 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
   };
 
   const handleCancel = () => {
-    if (onClose) {
+    if (onCancel) {
+      onCancel();
+    } else if (onClose) {
       onClose();
     }
   };
 
-  if (!note) return null;
-
   return (
-    <div className={`flex flex-col ${isPopup ? 'h-full' : 'h-[calc(100vh-200px)]'} bg-white dark:bg-slate-900 rounded-md`}>
-      <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+    <div className={`flex flex-col ${isPopup ? 'bg-white dark:bg-slate-800 rounded-lg shadow-lg p-4 border border-slate-200 dark:border-slate-700' : 'h-full'}`}>
+      <div className="flex justify-between items-center mb-4">
         <Input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Note Title"
-          className="text-lg font-semibold w-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 dark:text-white"
+          onChange={handleTitleChange}
+          placeholder="Note title"
+          className="text-lg font-medium border-none focus:ring-0 px-0 h-auto"
         />
-      </div>
-
-      <ScrollArea className="flex-grow">
-        <div className="p-4">
-          <Textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your note content here..."
-            className="min-h-[300px] w-full resize-none bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-white"
-          />
-        </div>
-      </ScrollArea>
-
-      <div className="flex justify-between items-center p-4 border-t border-slate-200 dark:border-slate-700">
-        <div className="text-xs text-slate-500">
-          Last updated: {new Date(note.updatedAt || note.createdAt).toLocaleString()}
-        </div>
-        <div className="flex space-x-2">
-          {onClose && (
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-          )}
-          <Button 
-            onClick={handleSave} 
-            size="sm" 
-            disabled={!isValid}
+        
+        {isPopup && onClose && (
+          <button 
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-500 dark:text-slate-500 dark:hover:text-slate-400"
           >
-            <Save className="w-4 h-4 mr-1" />
-            Save
-          </Button>
-        </div>
+            <X size={20} />
+          </button>
+        )}
+      </div>
+      
+      <Textarea
+        value={content}
+        onChange={handleContentChange}
+        placeholder="Write your note here..."
+        className={`flex-grow resize-none border-none focus:ring-0 px-0 ${isPopup ? 'min-h-[200px]' : ''}`}
+      />
+      
+      <div className="flex justify-end mt-4 space-x-2">
+        <Button variant="secondary" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleSave}>
+          Save Note
+        </Button>
       </div>
     </div>
   );

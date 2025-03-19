@@ -1,5 +1,5 @@
 
-import { ScriptContent, ActType, BeatMode } from './elementTypes';
+import { ScriptContent, ActType, BeatMode, BeatSceneCount } from './elementTypes';
 import { Structure } from './structureTypes';
 
 export interface TagManagerProps {
@@ -15,6 +15,10 @@ export interface TagManagerProps {
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
   structures?: Structure[];
+  selectedStructure?: Structure | null;
+  activeBeatId?: string | null;
+  onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
 }
 
 export interface ScriptElementProps {

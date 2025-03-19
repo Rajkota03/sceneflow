@@ -1,4 +1,3 @@
-
 import { Structure, Act, Beat } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -130,33 +129,53 @@ export const linkStructureToProject = async (projectId: string, structureId: str
 };
 
 export const updateStructureBeatCompletion = (
-  structure: Structure | null, 
-  beatId: string, 
-  actId: string, 
-  complete: boolean
-): Structure | null => {
-  if (!structure) return null;
-  
-  try {
-    // Deep clone the structure to avoid modifying the original object
-    const updatedStructure = JSON.parse(JSON.stringify(structure)) as Structure;
-    
-    // Find the specified act
-    const actIndex = updatedStructure.acts.findIndex(act => act.id === actId);
-    if (actIndex === -1) return null;
-    
-    // Find the beat within the act
-    const beatIndex = updatedStructure.acts[actIndex].beats.findIndex(beat => beat.id === beatId);
-    if (beatIndex === -1) return null;
-    
-    // Update the beat's completion status
-    updatedStructure.acts[actIndex].beats[beatIndex].complete = complete;
-    
-    return updatedStructure;
-  } catch (error) {
-    console.error('Error updating beat completion:', error);
+  structure: any,
+  beatId: string,
+  actId: string,
+  isComplete: boolean
+): any => {
+  if (!structure || !structure.acts) {
     return null;
   }
+
+  // Create a deep copy of the structure
+  const updatedStructure = JSON.parse(JSON.stringify(structure));
+
+  // Find the act and beat to update
+  let actFound = false;
+  let beatFound = false;
+
+  // Ensure acts is treated as an array
+  const acts = Array.isArray(updatedStructure.acts) 
+    ? updatedStructure.acts 
+    : updatedStructure.acts.acts || [];
+
+  // Update the completion status
+  for (let i = 0; i < acts.length; i++) {
+    // Handle both possible shapes of act (with or without description)
+    const act = acts[i];
+    
+    if (act.id === actId) {
+      actFound = true;
+      const beats = act.beats || [];
+      for (let j = 0; j < beats.length; j++) {
+        if (beats[j].id === beatId) {
+          beats[j].complete = isComplete;
+          beatFound = true;
+          break;
+        }
+      }
+      break;
+    }
+  }
+
+  if (!actFound || !beatFound) {
+    console.error('Act or beat not found', { actId, beatId });
+    return null;
+  }
+
+  // Return the updated structure
+  return updatedStructure;
 };
 
 export const saveStructureBeatCompletion = async (

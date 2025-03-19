@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import SceneTags from './SceneTags';
@@ -45,6 +45,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
 }) => {
   // Access global context for beat tagging and structure
   const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
+  
+  // Create a ref for the editor element
+  const editorDivRef = useRef<HTMLDivElement>(null);
   
   // Use the structure from props or context
   const structure = selectedStructure || contextStructure;
@@ -112,6 +115,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
+      ref={editorDivRef}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && showKeyboardShortcuts && (
@@ -147,6 +151,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black', // Explicitly set caret color
+          cursor: 'text', // Add explicit cursor style
           ...elementStyles
         }}
         dir="ltr"
