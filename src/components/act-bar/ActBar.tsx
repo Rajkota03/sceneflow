@@ -126,20 +126,19 @@ const ActBar: React.FC<ActBarProps> = ({
       {/* Show beats sections if beatMode is 'on' */}
       {beatMode === 'on' && (
         <div className="space-y-0.5">
-          {visibleActs.map((act) => (
-            <React.Fragment key={`beats-${act.id}`}>
-              {activeAct === act.id as ActType && (
-                <BeatSection
-                  actId={act.id}
-                  actColor={act.color}
-                  actBgColor={act.bgColor}
-                  beats={act.beats || []}
-                  onBeatClick={onBeatClick}
-                  activeBeatId={activeBeatId}
-                />
-              )}
-            </React.Fragment>
-          ))}
+          {visibleActs.map((act) => {
+            return activeAct === act.id as ActType ? (
+              <BeatSection
+                key={`beats-${act.id}`}
+                actId={act.id}
+                actColor={act.color}
+                actBgColor={act.bgColor}
+                beats={act.beats || []}
+                onBeatClick={onBeatClick}
+                activeBeatId={activeBeatId}
+              />
+            ) : null;
+          })}
         </div>
       )}
       

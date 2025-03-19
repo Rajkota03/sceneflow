@@ -35,7 +35,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const [beatPopupOpen, setBeatPopupOpen] = useState(false);
   
   // Get the handleBeatTag function from the ScriptEditor context
-  const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure } = useScriptEditor();
+  const { 
+    handleBeatTag: contextHandleBeatTag, 
+    selectedStructure: contextStructure,
+    beatSceneCounts
+  } = useScriptEditor();
   
   // Use the onBeatTag from props or context
   const handleBeatTagging = onBeatTag || contextHandleBeatTag;
@@ -46,6 +50,14 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   useEffect(() => {
     setTags(element.tags || []);
   }, [element.tags]);
+  
+  useEffect(() => {
+    console.log('SceneTags rendering for element:', element.id, {
+      beat: element.beat,
+      selectedStructure: structure?.id,
+      handleBeatTagging: !!handleBeatTagging
+    });
+  }, [element.id, element.beat, structure?.id, handleBeatTagging]);
   
   const handleTagAdd = (tag: string) => {
     if (tag && !tags.includes(tag)) {
@@ -147,11 +159,13 @@ const SceneTags: React.FC<SceneTagsProps> = ({
             />
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0 w-72 max-h-80 overflow-auto">
-            <BeatPopoverContent 
-              selectedStructure={structure}
-              elementBeatId={element.beat}
-              onBeatSelect={handleBeatSelect}
-            />
+            {structure && (
+              <BeatPopoverContent 
+                selectedStructure={structure}
+                elementBeatId={element.beat}
+                onBeatSelect={handleBeatSelect}
+              />
+            )}
           </PopoverContent>
         </Popover>
         

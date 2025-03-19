@@ -27,13 +27,14 @@ export const useBeatTagging = ({
     }
     
     // Update the beat ID in the element
-    setElements(prevElements =>
-      prevElements.map(element =>
-        element.id === elementId 
-          ? { ...element, beat: beatId } 
-          : element
-      )
+    const updatedElements = elements.map(element =>
+      element.id === elementId 
+        ? { ...element, beat: beatId } 
+        : element
     );
+    
+    // Update elements state
+    setElements(updatedElements);
     
     // Show success toast
     toast({
@@ -41,13 +42,11 @@ export const useBeatTagging = ({
       duration: 2000,
     });
     
-    // Update counts after tagging
-    setTimeout(() => {
-      updateBeatSceneCounts();
-    }, 10);
+    // Immediately update counts after tagging
+    updateBeatSceneCounts(updatedElements);
   };
 
-  const updateBeatSceneCounts = () => {
+  const updateBeatSceneCounts = (currentElements = elements) => {
     if (!selectedStructure) return;
     
     const counts: BeatSceneCount[] = [];
@@ -75,7 +74,7 @@ export const useBeatTagging = ({
       if (!act.beats || !Array.isArray(act.beats)) return;
       
       act.beats.forEach(beat => {
-        const taggedScenes = elements.filter(
+        const taggedScenes = currentElements.filter(
           element => element.type === 'scene-heading' && element.beat === beat.id
         );
         
@@ -113,7 +112,7 @@ export const useBeatTagging = ({
     });
     
     setElements(updatedElements);
-    updateBeatSceneCounts();
+    updateBeatSceneCounts(updatedElements);
   };
 
   // Update scene counts whenever elements or structure changes
