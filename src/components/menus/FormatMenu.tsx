@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { 
   MenubarMenu, 
   MenubarTrigger, 
@@ -14,11 +15,16 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { ElementType } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
+import { convertToFDX, importFromFDX } from '@/lib/fdxUtils';
+import { generatePDF } from '@/lib/pdfExport';
+import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
 
 const FormatMenu = () => {
-  const { formatState, setFont, setFontSize, setLineSpacing, setZoomLevel } = useFormat();
+  const { formatState, setFont, setFontSize, setLineSpacing } = useFormat();
   const [showSceneNumbers, setShowSceneNumbers] = useState(false);
   const [showPageNumbers, setShowPageNumbers] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { elements, setElements } = useScriptEditor();
   
   const handleElementChange = (elementType: ElementType) => {
     toast({
@@ -76,6 +82,122 @@ const FormatMenu = () => {
       toast({
         title: "Line Spacing Changed",
         description: `Line spacing changed to ${spacing}`,
+      });
+    }
+  };
+
+  const handleExportFDX = () => {
+    try {
+      const scriptContent = { elements };
+      const fdxContent = convertToFDX(scriptContent);
+      
+      // Create a blob and trigger download
+      const blob = new Blob([fdxContent], { type: 'application/xml' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'screenplay.fdx';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast({
+        title: "Export Successful",
+        description: "Screenplay exported to Final Draft format (.fdx)",
+      });
+    } catch (error) {
+      console.error('Error exporting to FDX:', error);
+      toast({
+        title: "Export Failed",
+        description: "There was an error exporting to Final Draft format.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleImportFDX = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const { scriptContent } = importFromFDX(content);
+        
+        if (scriptContent && scriptContent.elements) {
+          setElements(scriptContent.elements);
+          
+          toast({
+            title: "Import Successful",
+            description: `Imported ${scriptContent.elements.length} elements from Final Draft file.`,
+          });
+        }
+      } catch (error) {
+        console.error('Error importing FDX:', error);
+        toast({
+          title: "Import Failed",
+          description: "There was an error importing the Final Draft file.",
+          variant: "destructive"
+        });
+      }
+      
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      const scriptContent = { elements };
+      
+      // Generate the PDF
+      const pdfBlob = await generatePDF(scriptContent, undefined, {
+        includePageNumbers: showPageNumbers,
+        includeSceneNumbers: showSceneNumbers
+      });
+      
+      // Trigger download
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'screenplay.pdf';
+      document.body.appendChild(a);
+      a.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+      
+      toast({
+        title: "PDF Export Successful",
+        description: "Screenplay exported to PDF format.",
+      });
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+      toast({
+        title: "PDF Export Failed",
+        description: "There was an error generating the PDF.",
+        variant: "destructive"
       });
     }
   };
@@ -167,7 +289,30 @@ const FormatMenu = () => {
             <MenubarItem onClick={() => handleLineSpacingChange('double')}>Double</MenubarItem>
           </MenubarSubContent>
         </MenubarSub>
+        
+        <MenubarSeparator />
+        
+        <MenubarItem onClick={handleExportFDX}>
+          Export to Final Draft (.fdx)
+        </MenubarItem>
+        
+        <MenubarItem onClick={handleImportFDX}>
+          Import from Final Draft (.fdx)
+        </MenubarItem>
+        
+        <MenubarItem onClick={handleExportPDF}>
+          Export to PDF
+        </MenubarItem>
       </MenubarContent>
+      
+      {/* Hidden file input for FDX import */}
+      <input 
+        type="file" 
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        accept=".fdx"
+        onChange={handleFileSelected}
+      />
     </MenubarMenu>
   );
 };
