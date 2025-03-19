@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -152,13 +151,27 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   }, [projectId, fetchStructures]);
 
   useEffect(() => {
-    if (!selectedStructure || !selectedStructure.acts) return;
+    if (!selectedStructure) return;
     
     const counts: BeatSceneCount[] = [];
     
-    const allBeats = selectedStructure.acts.flatMap(act => 
-      act.beats ? act.beats.map(beat => ({ ...beat, actId: act.id })) : []
-    );
+    if (!selectedStructure.acts || !Array.isArray(selectedStructure.acts)) {
+      console.warn('No valid acts array found in structure');
+      setBeatSceneCounts(counts);
+      return;
+    }
+    
+    const allBeats = [];
+    for (const act of selectedStructure.acts) {
+      if (act.beats && Array.isArray(act.beats)) {
+        for (const beat of act.beats) {
+          allBeats.push({
+            ...beat,
+            actId: act.id
+          });
+        }
+      }
+    }
     
     allBeats.forEach(beat => {
       const scenesWithBeat = elements.filter(element => 
@@ -188,7 +201,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setElements(updatedElements);
     onChange({ elements: updatedElements });
     
-    // If we have a valid structure and actId is provided, mark the beat as complete
     if (selectedStructure && selectedStructureId && actId && beatId) {
       console.log('Marking beat as complete:', { beatId, actId });
       
@@ -196,7 +208,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
         selectedStructure,
         beatId,
         actId,
-        true // Mark as complete when a scene is tagged with this beat
+        true
       );
       
       if (updatedStructure) {
@@ -207,7 +219,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
             duration: 2000,
           });
           
-          // Refresh the structures to get the updated completion status
           if (fetchStructures) {
             fetchStructures();
           }

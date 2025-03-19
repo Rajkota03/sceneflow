@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -24,8 +25,11 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
   // Find the beat in the structure
   const findBeatDetails = () => {
     if (!selectedStructure || !elementBeatId) return null;
+    if (!selectedStructure.acts || !Array.isArray(selectedStructure.acts)) return null;
     
     for (const act of selectedStructure.acts) {
+      if (!act.beats || !Array.isArray(act.beats)) continue;
+      
       const beat = act.beats.find(b => b.id === elementBeatId);
       if (beat) {
         return {
