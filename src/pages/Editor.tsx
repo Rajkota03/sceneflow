@@ -87,7 +87,7 @@ const Editor = () => {
     );
   }
 
-  // Create a simple array for structure selection
+  // Create an array for structure selection
   const availableStructures = structures ? structures.map(s => ({ id: s.id, name: s.name })) : [];
 
   return (

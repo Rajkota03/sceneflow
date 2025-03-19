@@ -61,8 +61,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   initialContent,
   onChange,
   projectId,
-  selectedStructureId,
-  onStructureChange,
+  selectedStructureId: externalSelectedStructureId,
+  onStructureChange: externalStructureChange,
   projectTitle
 }) => {
   // Use our custom hooks to organize functionality
@@ -80,7 +80,24 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   
   const scriptContentRef = useRef<HTMLDivElement>(null);
   
-  const { selectedStructure } = useProjectStructures(projectId);
+  // Get structure data from the project
+  const { 
+    selectedStructure,
+    selectedStructureId: hookSelectedStructureId,
+    handleStructureChange: hookStructureChange,
+    structures
+  } = useProjectStructures(projectId);
+
+  // Use either the external or hook values, prioritizing external
+  const selectedStructureId = externalSelectedStructureId || hookSelectedStructureId;
+  
+  const handleStructureChange = (structureId: string) => {
+    if (externalStructureChange) {
+      externalStructureChange(structureId);
+    } else if (hookStructureChange) {
+      hookStructureChange(structureId);
+    }
+  };
 
   const {
     elements,
@@ -140,7 +157,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setActiveActFilter,
     projectId,
     selectedStructureId,
-    onStructureChange,
+    onStructureChange: handleStructureChange,
     selectedStructure,
     beatMode,
     onToggleBeatMode,

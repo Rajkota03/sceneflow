@@ -1,41 +1,80 @@
 
 import React from 'react';
-import TagManagerContainer from './TagManagerContainer';
-import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
-import ScriptContent from './ScriptContent';
+import { useFormat } from '@/lib/formatContext';
+import { ScrollArea } from '../ui/scroll-area';
+import { useScriptEditor } from './ScriptEditorProvider';
+import ScriptPage from './ScriptPage';
 import ZoomControls from './ZoomControls';
-import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
-import { useTheme } from '@/lib/themeContext';
 
 interface ScriptEditorContentProps {
   className?: string;
-  zoomPercentage: number;
-  onZoomChange: (value: number[]) => void;
+  zoomPercentage?: number;
+  onZoomChange?: (value: number[]) => void;
 }
 
 const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   className,
-  zoomPercentage,
+  zoomPercentage = 100,
   onZoomChange
 }) => {
-  const { showKeyboardShortcuts } = useKeyboardShortcuts();
-  const { theme } = useTheme();
+  const { formatState } = useFormat();
+  const {
+    elements,
+    activeElementId,
+    currentPage,
+    getPreviousElementType,
+    handleElementChange,
+    setActiveElementId,
+    handleNavigate,
+    handleEnterKey,
+    changeElementType,
+    handleTagsChange,
+    characterNames,
+    projectId,
+    beatMode,
+    selectedStructure,
+    scriptContentRef
+  } = useScriptEditor();
+
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <TagManagerContainer />
+      <ScrollArea className="h-full w-full overflow-auto">
+        <div 
+          className="flex justify-center w-full pt-8 pb-20"
+          ref={scriptContentRef}
+        >
+          <div className="w-full max-w-4xl mx-auto">
+            <ScriptPage
+              elements={elements || []}
+              activeElementId={activeElementId}
+              getPreviousElementType={getPreviousElementType}
+              handleElementChange={handleElementChange}
+              handleFocus={handleFocus}
+              handleNavigate={handleNavigate}
+              handleEnterKey={handleEnterKey}
+              handleFormatChange={changeElementType}
+              handleTagsChange={handleTagsChange}
+              characterNames={characterNames}
+              projectId={projectId}
+              beatMode={beatMode}
+              selectedStructure={selectedStructure}
+              formatState={formatState}
+              currentPage={currentPage}
+            />
+          </div>
+        </div>
+      </ScrollArea>
       
-      {showKeyboardShortcuts && <KeyboardShortcutsHelp />}
-      
-      <div className="script-content-wrapper relative flex-grow h-full overflow-hidden">
-        <ScriptContent />
-      </div>
-      
-      <ZoomControls 
-        zoomPercentage={zoomPercentage}
-        onZoomChange={onZoomChange}
-        theme={theme}
-      />
+      {onZoomChange && (
+        <ZoomControls 
+          zoomPercentage={zoomPercentage}
+          onZoomChange={onZoomChange}
+        />
+      )}
     </div>
   );
 };

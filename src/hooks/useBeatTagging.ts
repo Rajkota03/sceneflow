@@ -39,7 +39,10 @@ export const useBeatTagging = ({
       duration: 2000,
     });
     
-    updateBeatSceneCounts();
+    // Update counts after tagging
+    setTimeout(() => {
+      updateBeatSceneCounts();
+    }, 10);
   };
 
   const updateBeatSceneCounts = () => {

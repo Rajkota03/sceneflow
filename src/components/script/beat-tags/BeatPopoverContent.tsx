@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Structure } from '@/lib/types';
@@ -40,11 +40,14 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
   
   const acts = getActs();
 
-  console.log('BeatPopoverContent render:', { 
-    structureId: selectedStructure?.id,
-    elementBeatId,
-    actsCount: acts.length
-  });
+  useEffect(() => {
+    console.log('BeatPopoverContent render:', { 
+      structureId: selectedStructure?.id,
+      elementBeatId,
+      actsCount: acts.length,
+      acts: acts
+    });
+  }, [selectedStructure, elementBeatId, acts]);
 
   return (
     <div className="w-full max-h-80 overflow-auto p-0">
