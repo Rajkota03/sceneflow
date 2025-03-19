@@ -24,6 +24,13 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
       return selectedStructure.acts;
     } 
     
+    if (selectedStructure.acts && typeof selectedStructure.acts === 'object') {
+      const actsObj = selectedStructure.acts as any;
+      if (Array.isArray(actsObj)) {
+        return actsObj;
+      }
+    }
+    
     return [];
   };
   

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -54,7 +53,7 @@ export interface ScriptEditorContextType {
   availableStructures?: Array<{ id: string; name: string }>;
   activeBeatId: string | null;
   setActiveBeatId: (beatId: string | null) => void;
-  handleBeatTag: (elementId: string, beatId: string) => void;
+  handleBeatTag: (elementId: string, beatId: string, actId?: string) => void;
   scriptContentRef: React.RefObject<HTMLDivElement>;
   beatSceneCounts: BeatSceneCount[];
 }
@@ -82,7 +81,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [activeBeatId, setActiveBeatId] = useState<string | null>(null);
   const [beatSceneCounts, setBeatSceneCounts] = useState<BeatSceneCount[]>([]);
 
-  // UI state management
   const {
     activeTagFilter,
     setActiveTagFilter,
@@ -95,22 +93,20 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     toggleKeyboardShortcuts
   } = useEditorUIState();
 
-  // Load structures if project ID is available
   const { 
     structures, 
     selectedStructureId, 
     selectedStructure,
-    handleStructureChange
+    handleStructureChange,
+    fetchStructures
   } = useStructures({
     projectId
   });
 
-  // Convert structures to options format for selector
   const availableStructures = structures ? 
     structures.map(s => ({ id: s.id, name: s.name })) : 
     [];
 
-  // Use the script elements hook
   const {
     elements,
     setElements,
@@ -121,10 +117,8 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     changeElementType
   } = useScriptElements(initialContent, onChange);
 
-  // Character names for auto-suggestions
   const characterNames = useCharacterNames(elements);
 
-  // Navigation between elements
   const { handleNavigate, handleEnterKey } = useScriptNavigation({
     elements,
     setElements,
@@ -132,33 +126,37 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setActiveElementId
   });
 
-  // Handle structure change from parent or internal
   const onStructureChangeHandler = (structureId: string) => {
+    console.log('Structure changed to:', structureId);
     if (parentStructureChange) {
       parentStructureChange(structureId);
     }
     handleStructureChange(structureId);
   };
 
-  // Initialize with structure ID if provided
   useEffect(() => {
     if (initialStructureId && initialStructureId !== selectedStructureId) {
+      console.log('Initial structure ID provided:', initialStructureId);
       handleStructureChange(initialStructureId);
     }
   }, [initialStructureId]);
 
-  // Calculate beat scene counts when elements or selectedStructure changes
+  useEffect(() => {
+    if (projectId && fetchStructures) {
+      console.log('Fetching structures for project:', projectId);
+      fetchStructures();
+    }
+  }, [projectId, fetchStructures]);
+
   useEffect(() => {
     if (!selectedStructure || !selectedStructure.acts) return;
     
     const counts: BeatSceneCount[] = [];
     
-    // Flatten all beats from all acts
     const allBeats = selectedStructure.acts.flatMap(act => 
       act.beats ? act.beats.map(beat => ({ ...beat, actId: act.id })) : []
     );
     
-    // Count scenes for each beat
     allBeats.forEach(beat => {
       const scenesWithBeat = elements.filter(element => 
         element.beat === beat.id
@@ -169,7 +167,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
           beatId: beat.id,
           actId: beat.actId as string,
           count: scenesWithBeat.length,
-          pageRange: '1-2' // This would need proper calculation based on actual page numbers
+          pageRange: '1-2'
         });
       }
     });
@@ -177,34 +175,29 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setBeatSceneCounts(counts);
   }, [elements, selectedStructure]);
 
-  // Handle tagging an element with a beat
-  const handleBeatTag = (elementId: string, beatId: string) => {
-    // Update the element with the beat ID
-    setElements(prevElements =>
-      prevElements.map(element =>
-        element.id === elementId ? { ...element, beat: beatId } : element
-      )
-    );
-    // Update context with the new content
-    onChange({ elements: elements.map(element =>
+  const handleBeatTag = (elementId: string, beatId: string, actId?: string) => {
+    console.log('ScriptEditorProvider.handleBeatTag called:', { elementId, beatId, actId });
+    
+    const updatedElements = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
-    ) });
+    );
+    
+    setElements(updatedElements);
+    
+    onChange({ elements: updatedElements });
   };
-  
-  // Handler for updating tags on elements
+
   const handleTagsChange = (elementId: string, tags: string[]) => {
     setElements(prevElements =>
       prevElements.map(element =>
         element.id === elementId ? { ...element, tags } : element
       )
     );
-    // Update context with the new content
     onChange({ elements: elements.map(element =>
       element.id === elementId ? { ...element, tags } : element
     ) });
   };
 
-  // Create the context value
   const contextValue: ScriptEditorContextType = {
     elements,
     activeElementId,

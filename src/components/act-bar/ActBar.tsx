@@ -51,7 +51,11 @@ const ActBar: React.FC<ActBarProps> = ({
   ];
   
   React.useEffect(() => {
+    console.log('ActBar: Structure changed', selectedStructure?.id, selectedStructure?.name);
+    
     if (selectedStructure?.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
+      console.log('ActBar: Structure has acts', selectedStructure.acts.length);
+      
       const buttons = selectedStructure.acts.map((act, index) => {
         const defaultColor = defaultActColors[index] || defaultActColors[0];
         
@@ -76,6 +80,7 @@ const ActBar: React.FC<ActBarProps> = ({
       
       setActButtons(buttons);
     } else {
+      console.log('ActBar: Using default act buttons');
       setActButtons(defaultActColors);
     }
   }, [selectedStructure, beatSceneCounts]);
