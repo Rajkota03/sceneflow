@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ChevronDown } from 'lucide-react';
-import { StructureType } from '@/hooks/useDashboardStructures';
+import { StructureType } from '@/hooks/structure/useDashboardStructures';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -85,7 +85,6 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         setSearchQuery={setSearchQuery}
         onCreateNewProject={() => setIsStructureMenuOpen(true)}
         projectType="structure"
-        disabled={isLoading}
       />
       
       {isLoading && structures.length === 0 ? (
