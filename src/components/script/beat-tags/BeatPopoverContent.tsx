@@ -43,9 +43,9 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
                 >
                   <div className="flex items-center justify-between">
                     <span>{beat.title}</span>
-                    {beat.sceneCount > 0 && (
+                    {beat.sceneCount && beat.sceneCount > 0 && (
                       <span className="text-xs text-gray-500 dark:text-gray-400">
-                        ({beat.sceneCount} Scene{beat.sceneCount !== 1 && 's'})
+                        ({beat.sceneCount} Scene{beat.sceneCount !== 1 ? 's' : ''})
                       </span>
                     )}
                   </div>

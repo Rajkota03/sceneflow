@@ -30,6 +30,7 @@ export interface Beat {
   pageRange?: string;
   complete?: boolean;
   notes?: string;
+  sceneCount?: number; // Added this property to fix TypeScript errors
 }
 
 // ThreeActStructure used in some components
