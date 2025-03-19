@@ -126,6 +126,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+          pointerEvents: 'auto', // Ensure the element can receive pointer events
           ...elementStyles
         }}
         dir="ltr"

@@ -75,7 +75,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   
   return (
     <FormatStyler currentPage={currentPage}>
-      <div className="script-elements-container">
+      <div className="script-elements-container" style={{ pointerEvents: 'auto' }}>
         {elements.map((element, index) => (
           <EditorElement
             key={element.id}

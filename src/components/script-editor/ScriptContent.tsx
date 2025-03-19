@@ -30,12 +30,12 @@ const ScriptContent: React.FC = () => {
   };
 
   return (
-    <ScrollArea className="h-full w-full overflow-auto">
+    <ScrollArea className="h-full w-full overflow-auto" style={{ cursor: 'text' }}>
       <div 
         className="flex justify-center w-full pt-8 pb-20"
         ref={scriptContentRef}
       >
-        <div className="w-full max-w-4xl mx-auto">
+        <div className="w-full max-w-4xl mx-auto" style={{ pointerEvents: 'auto' }}>
           <ScriptPage
             elements={elements || []}
             activeElementId={activeElementId}

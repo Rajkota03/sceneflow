@@ -48,6 +48,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       ? '0 4px 12px rgba(0,0,0,0.4)' 
       : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
+    pointerEvents: 'auto', // Allow pointer events on the container
   };
 
   // Add a page number in Final Draft style
@@ -58,6 +59,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
     fontSize: '12pt',
     color: isDarkMode ? '#aaa' : '#666',
+    pointerEvents: 'none', // Don't block interaction with the page number
   };
 
   return (

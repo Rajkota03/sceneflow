@@ -36,17 +36,29 @@ export function useElementInteraction({
     setText(initialText);
     if (editorRef.current && isActive) {
       editorRef.current.innerText = initialText;
-      const range = document.createRange();
-      const sel = window.getSelection();
-      if (editorRef.current.childNodes.length > 0) {
-        range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
-      } else {
-        range.setStart(editorRef.current, 0);
-      }
-      range.collapse(true);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-      editorRef.current.focus();
+      
+      setTimeout(() => {
+        if (editorRef.current) {
+          editorRef.current.focus();
+          
+          const range = document.createRange();
+          const sel = window.getSelection();
+          
+          if (editorRef.current.childNodes.length > 0) {
+            const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+            range.setStartAfter(lastNode);
+          } else {
+            range.setStart(editorRef.current, 0);
+          }
+          
+          range.collapse(true);
+          
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      }, 0);
     }
   }, [initialText, isActive]);
 
