@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   MenubarMenu, 
@@ -71,7 +70,7 @@ const FormatMenu = () => {
     }
   };
 
-  const handleLineSpacingChange = (spacing: string) => {
+  const handleLineSpacingChange = (spacing: 'single' | '1.5' | 'double') => {
     if (setLineSpacing) {
       setLineSpacing(spacing);
       toast({
