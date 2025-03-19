@@ -15,13 +15,24 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
   elementBeatId,
   onBeatSelect
 }) => {
+  // Ensure acts is an array before rendering
+  const acts = Array.isArray(selectedStructure?.acts) 
+    ? selectedStructure.acts 
+    : (selectedStructure?.acts?.acts || []);
+
+  console.log('BeatPopoverContent render:', { 
+    structureId: selectedStructure?.id,
+    elementBeatId,
+    actsCount: acts.length
+  });
+
   return (
-    <div className="w-56 max-h-80 overflow-auto p-0">
+    <div className="w-full max-h-80 overflow-auto p-0">
       <div className="py-1 text-sm font-medium px-2 bg-muted">
         Select Beat
       </div>
       
-      {selectedStructure?.acts?.map(act => (
+      {acts.map(act => (
         <React.Fragment key={act.id}>
           <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-300 border-t border-gray-100 dark:border-gray-700">
             {act.title || "Act"}
@@ -33,7 +44,10 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
               return (
                 <button 
                   key={beat.id}
-                  onClick={() => onBeatSelect(beat.id, act.id)}
+                  onClick={() => {
+                    console.log('Beat clicked:', beat.id, act.id);
+                    onBeatSelect(beat.id, act.id);
+                  }}
                   className={cn(
                     "w-full text-left px-2 py-1.5 text-xs rounded",
                     isSelected 

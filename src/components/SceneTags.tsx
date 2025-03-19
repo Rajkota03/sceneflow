@@ -11,13 +11,13 @@ import StructureUnavailableMessage from './script/beat-tags/StructureUnavailable
 import BeatTagButton from './script/beat-tags/BeatTagButton';
 import BeatPopoverContent from './script/beat-tags/BeatPopoverContent';
 import TagInputPopover from './script/beat-tags/TagInputPopover';
+import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface SceneTagsProps {
   element: ScriptElement;
   onTagsChange: (elementId: string, tags: string[]) => void;
   projectId?: string;
   selectedStructure?: Structure | null;
-  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
 const SceneTags: React.FC<SceneTagsProps> = ({ 
@@ -25,12 +25,17 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   onTagsChange,
   projectId,
   selectedStructure,
-  onBeatTag
 }) => {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<string[]>(element.tags || []);
   const [beatPopupOpen, setBeatPopupOpen] = useState(false);
+  
+  // Get the handleBeatTag function from the ScriptEditor context
+  const { handleBeatTag, selectedStructure: contextStructure } = useScriptEditor();
+  
+  // Use the structure from context if not provided via props
+  const structure = selectedStructure || contextStructure;
   
   useEffect(() => {
     setTags(element.tags || []);
@@ -63,7 +68,16 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   };
   
   // Check if we have a selected structure with acts
-  const hasStructure = !!(selectedStructure && selectedStructure.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0);
+  const hasStructure = !!(structure && structure.acts && Array.isArray(structure.acts) && structure.acts.length > 0);
+  
+  // Log for debugging
+  console.log('SceneTags render:', { 
+    hasStructure, 
+    structureId: structure?.id,
+    beatPopupOpen,
+    elementId: element.id,
+    hasBeatTag: !!element.beat
+  });
   
   // If we don't have a valid structure selected, show a message
   if (!hasStructure) {
@@ -71,7 +85,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   }
   
   // Get all available beats from the structure
-  const availableBeats = selectedStructure?.acts?.flatMap(act => 
+  const availableBeats = structure?.acts?.flatMap(act => 
     act.beats?.map(beat => ({
       beatId: beat.id,
       actId: act.id,
@@ -92,8 +106,9 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     : null;
   
   const handleBeatSelect = (beatId: string, actId: string) => {
-    if (onBeatTag) {
-      onBeatTag(element.id, beatId, actId);
+    console.log('Beat selected:', beatId, actId, element.id);
+    if (handleBeatTag) {
+      handleBeatTag(element.id, beatId, actId);
       // Close the popup immediately after selection
       setBeatPopupOpen(false);
     }
@@ -116,12 +131,15 @@ const SceneTags: React.FC<SceneTagsProps> = ({
             <BeatTagButton 
               hasBeatTag={hasBeatTag} 
               beatTitle={beatDetails ? beatDetails.beatTitle : ''} 
-              onClick={() => setBeatPopupOpen(true)}
+              onClick={() => {
+                console.log('Beat tag button clicked, setting popup open to', !beatPopupOpen);
+                setBeatPopupOpen(true);
+              }}
             />
           </PopoverTrigger>
-          <PopoverContent align="start" className="p-0">
+          <PopoverContent align="start" className="p-0 w-72 max-h-80 overflow-auto">
             <BeatPopoverContent 
-              selectedStructure={selectedStructure!}
+              selectedStructure={structure}
               elementBeatId={element.beat}
               onBeatSelect={handleBeatSelect}
             />

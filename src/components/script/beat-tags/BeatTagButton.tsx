@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Flame } from 'lucide-react';
+import { Flame, Map } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BeatTagButtonProps {
@@ -19,16 +19,26 @@ const BeatTagButton: React.FC<BeatTagButtonProps> = ({
     <Button 
       variant={hasBeatTag ? "default" : "outline"} 
       size="sm" 
-      onClick={onClick}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
       className={cn(
         "h-6 px-2",
         hasBeatTag 
           ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-          : 'border-dashed border-gray-300 text-gray-500'
+          : 'border-dashed border-gray-300 text-gray-500 hover:bg-gray-100'
       )}
     >
-      <Flame size={14} className={hasBeatTag ? 'mr-1' : ''} />
-      {beatTitle}
+      {hasBeatTag ? (
+        <>
+          <Flame size={14} className="mr-1" />
+          {beatTitle}
+        </>
+      ) : (
+        <Map size={14} />
+      )}
     </Button>
   );
 };

@@ -106,6 +106,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   
   // Handle beat tagging
   const handleBeatTag = (elementId: string, beatId: string, actId: string) => {
+    console.log('handleBeatTag called:', { elementId, beatId, actId });
+    
     // First, find the element to update
     const elementToUpdate = elements.find(el => el.id === elementId);
     if (!elementToUpdate) {
@@ -153,7 +155,13 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     const counts: BeatSceneCount[] = [];
     
     // Check if acts exists and is an array before trying to iterate
-    const acts = selectedStructure.acts || [];
+    let acts = selectedStructure.acts || [];
+    
+    // Handle nested acts structure (from the console error)
+    if (!Array.isArray(acts) && acts && typeof acts === 'object' && 'acts' in acts) {
+      acts = acts.acts || [];
+    }
+    
     if (!Array.isArray(acts)) {
       console.error('Structure acts is not an array:', selectedStructure);
       return;
