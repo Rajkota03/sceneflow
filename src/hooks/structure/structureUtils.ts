@@ -166,10 +166,12 @@ export const saveStructureBeatCompletion = async (
   try {
     console.log('Saving beat completion for structure:', structureId);
     
+    // Updating the beats in the content field to ensure compatibility
     const { error } = await supabase
       .from('structures')
       .update({ 
         content: { acts: updatedStructure.acts },
+        beats: { acts: updatedStructure.acts },
         updated_at: new Date().toISOString()
       })
       .eq('id', structureId);
@@ -185,4 +187,23 @@ export const saveStructureBeatCompletion = async (
     console.error('Error in saveStructureBeatCompletion:', error);
     return false;
   }
+};
+
+// Calculate structure progress based on completed beats
+export const calculateStructureProgress = (structure: Structure | null): number => {
+  if (!structure || !structure.acts || !Array.isArray(structure.acts)) {
+    return 0;
+  }
+  
+  let totalBeats = 0;
+  let completedBeats = 0;
+  
+  structure.acts.forEach(act => {
+    if (act.beats && Array.isArray(act.beats)) {
+      totalBeats += act.beats.length;
+      completedBeats += act.beats.filter(beat => beat.complete).length;
+    }
+  });
+  
+  return totalBeats > 0 ? (completedBeats / totalBeats) * 100 : 0;
 };
