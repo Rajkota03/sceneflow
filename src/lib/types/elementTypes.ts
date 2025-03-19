@@ -23,7 +23,8 @@ export interface ScriptElement {
   text: string;
   tags?: string[];
   act?: ActType;
-  beat?: string; // Add beat identifier
+  beat?: string; // Beat identifier
+  page?: number; // Added for page tracking
 }
 
 export interface ScriptContent {
@@ -35,3 +36,10 @@ export type ActCountsRecord = {
 };
 
 export type BeatMode = 'on' | 'off';
+
+export interface BeatSceneCount {
+  beatId: string;
+  actId: string;
+  count: number;
+  pageRange?: string;
+}

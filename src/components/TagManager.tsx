@@ -9,6 +9,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import BeatModeToggle from './act-bar/BeatModeToggle';
 import { cn } from '@/lib/utils';
+import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface TagManagerProps {
   scriptContent: ScriptContent;
@@ -41,6 +42,9 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeBeatId,
   onBeatClick
 }) => {
+  // Get scene counts for beats from context
+  const { beatSceneCounts } = useScriptEditor();
+  
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
     if (!scriptContent || !scriptContent.elements) return [];
@@ -125,7 +129,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           </div>
         </div>
         
-        {/* Structure Bar - Fixed with properly typed props */}
+        {/* Structure Bar - Enhanced with beat scene counts */}
         <ActBar 
           activeAct={activeActFilter}
           onSelectAct={onFilterByAct}
@@ -136,6 +140,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           beatMode={beatMode}
           activeBeatId={activeBeatId}
           onBeatClick={onBeatClick}
+          beatSceneCounts={beatSceneCounts}
         />
         
         {allTags.length > 0 && (

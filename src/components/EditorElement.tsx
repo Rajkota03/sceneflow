@@ -8,6 +8,7 @@ import { renderStyle, getElementStyles } from '@/lib/elementStyles';
 import ElementTypeMenu from './editor/ElementTypeMenu';
 import useElementInteraction from '@/hooks/useElementInteraction';
 import { formatType } from '@/lib/formatScript';
+import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -42,6 +43,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
   selectedStructure,
   onBeatTag
 }) => {
+  // Access global context for beat tagging
+  const { handleBeatTag } = useScriptEditor();
+  
   const {
     text,
     editorRef,
@@ -67,13 +71,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
     characterNames
   });
 
-  useEffect(() => {
-    if (element.type === 'scene-heading' && element.beat && selectedStructure) {
-      console.log(`Scene ${element.id} has beat tag: ${element.beat}`);
-    }
-  }, [element, selectedStructure]);
-
   const elementStyles = getElementStyles(element.type);
+  
+  // Only show beat tagging controls for scene headings
+  const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
   return (
     <div 
@@ -130,14 +131,14 @@ const EditorElement: React.FC<EditorElementProps> = ({
             />
           )}
           
-          {element.type === 'scene-heading' && beatMode === 'on' && (
+          {showBeatTags && (
             <div className="absolute right-0 top-0">
               <SceneTags 
                 element={element} 
                 onTagsChange={onTagsChange} 
                 projectId={projectId}
                 selectedStructure={selectedStructure}
-                onBeatTag={onBeatTag}
+                onBeatTag={handleBeatTag}
               />
             </div>
           )}

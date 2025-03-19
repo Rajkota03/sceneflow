@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScriptElement, Structure } from '@/lib/types';
+import { ScriptElement, Structure, Beat } from '@/lib/types';
 import TagInput from './TagInput';
 import SceneTag from './SceneTag';
 import {
@@ -9,19 +9,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Tag, Plus, Flame } from 'lucide-react';
+import { Tag, Plus, Flame, Map } from 'lucide-react';
 import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -41,7 +36,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [tags, setTags] = useState<string[]>(element.tags || []);
-  const [beatMenuOpen, setBeatMenuOpen] = useState(false);
+  const [beatPopupOpen, setBeatPopupOpen] = useState(false);
   
   useEffect(() => {
     setTags(element.tags || []);
@@ -78,7 +73,6 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   
   // If we don't have a valid structure selected, show a message
   if (!hasStructure) {
-    console.log("SceneTags - No structure selected");
     return (
       <TooltipProvider>
         <Tooltip>
@@ -88,19 +82,16 @@ const SceneTags: React.FC<SceneTagsProps> = ({
               size="sm" 
               className="h-6 w-6 p-0 rounded-full text-gray-500"
             >
-              <Tag size={14} />
+              <Map size={14} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>No structure selected. Select a structure to tag beats.</p>
+            <p>No story structure selected. Select a structure to tag beats.</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
   }
-  
-  console.log("SceneTags - Selected structure:", selectedStructure?.name);
-  console.log("SceneTags - Structure acts:", selectedStructure?.acts?.length || 0);
   
   // Get all available beats from the structure
   const availableBeats = selectedStructure?.acts?.flatMap(act => 
@@ -108,7 +99,9 @@ const SceneTags: React.FC<SceneTagsProps> = ({
       beatId: beat.id,
       actId: act.id,
       beatTitle: beat.title,
-      actTitle: act.title
+      actTitle: act.title,
+      pageRange: beat.pageRange || '',
+      complete: beat.complete || false
     })) || []
   ) || [];
   
@@ -123,8 +116,9 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const handleBeatSelect = (beatId: string, actId: string) => {
     if (onBeatTag) {
       onBeatTag(element.id, beatId, actId);
+      // Close the popup immediately after selection
+      setBeatPopupOpen(false);
     }
-    setBeatMenuOpen(false);
   };
 
   return (
@@ -138,9 +132,9 @@ const SceneTags: React.FC<SceneTagsProps> = ({
       ))}
       
       <div className="flex items-center space-x-1">
-        {/* Beat selector dropdown */}
-        <DropdownMenu open={beatMenuOpen} onOpenChange={setBeatMenuOpen}>
-          <DropdownMenuTrigger asChild>
+        {/* Click-to-tag beat selector popup */}
+        <Popover open={beatPopupOpen} onOpenChange={setBeatPopupOpen}>
+          <PopoverTrigger asChild>
             <Button 
               variant={hasBeatTag ? "default" : "outline"} 
               size="sm" 
@@ -153,29 +147,55 @@ const SceneTags: React.FC<SceneTagsProps> = ({
               <Flame size={14} className={hasBeatTag ? 'mr-1' : ''} />
               {beatDetails ? beatDetails.beatTitle : ''}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-auto">
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 max-h-80 overflow-auto p-0">
+            <div className="py-1 text-sm font-medium px-2 bg-muted">
+              Select Beat
+            </div>
+            
             {selectedStructure?.acts?.map(act => (
               <React.Fragment key={act.id}>
-                <div className="px-2 py-1.5 text-sm font-semibold text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-300">
+                <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-gray-800 dark:text-gray-300 border-t border-gray-100 dark:border-gray-700">
                   {act.title || "Act"}
                 </div>
-                {act.beats?.map(beat => (
-                  <DropdownMenuItem 
-                    key={beat.id}
-                    onClick={() => handleBeatSelect(beat.id, act.id)}
-                    className={`text-xs cursor-pointer ${element.beat === beat.id ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : ''}`}
-                  >
-                    {beat.title}
-                    {element.beat === beat.id && (
-                      <Flame size={14} className="ml-auto text-orange-500" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
+                <div className="p-1">
+                  {act.beats?.map(beat => {
+                    const isSelected = element.beat === beat.id;
+                    const sceneCount = 0; // Will be implemented with scene counting
+                    
+                    return (
+                      <button 
+                        key={beat.id}
+                        onClick={() => handleBeatSelect(beat.id, act.id)}
+                        className={cn(
+                          "w-full text-left px-2 py-1.5 text-xs rounded",
+                          isSelected 
+                            ? "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300" 
+                            : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{beat.title}</span>
+                          {sceneCount > 0 && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              ({sceneCount} Scene{sceneCount !== 1 ? 's' : ''})
+                            </span>
+                          )}
+                        </div>
+                        {isSelected && (
+                          <div className="flex items-center mt-0.5 text-xs text-orange-600 dark:text-orange-400">
+                            <Flame size={10} className="mr-1" />
+                            <span>Tagged</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </React.Fragment>
             ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </PopoverContent>
+        </Popover>
         
         {/* Tag manager popover */}
         <Popover open={open} onOpenChange={setOpen}>

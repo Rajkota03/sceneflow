@@ -1,22 +1,21 @@
 
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
+import React from 'react';
 import { cn } from '@/lib/utils';
-
-interface Beat {
-  id: string;
-  title: string;
-  description?: string;
-  complete?: boolean;
-}
+import { Button } from '../ui/button';
+import { Flame } from 'lucide-react';
 
 interface BeatSectionProps {
   actId: string;
   actColor: string;
   actBgColor: string;
-  beats: Beat[];
+  beats: Array<{
+    id: string;
+    title: string;
+    description?: string;
+    complete?: boolean;
+    sceneCount?: number;
+    pageRange?: string;
+  }>;
   onBeatClick?: (beatId: string) => void;
   activeBeatId?: string | null;
 }
@@ -29,53 +28,57 @@ const BeatSection: React.FC<BeatSectionProps> = ({
   onBeatClick,
   activeBeatId
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Don't render anything if there are no beats
-  if (!beats || beats.length === 0) return null;
+  // Skip rendering if no beats
+  if (!beats || beats.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="ml-4 mt-1 mb-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-6 p-1 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? (
-          <ChevronDown className="h-3.5 w-3.5 mr-1" />
-        ) : (
-          <ChevronRight className="h-3.5 w-3.5 mr-1" />
-        )}
-        <span>Beats</span>
-        <Badge variant="outline" className="ml-1 text-xs h-4 px-1.5 bg-white dark:bg-gray-800">
-          {beats.length}
-        </Badge>
-      </Button>
-      
-      {isExpanded && (
-        <div className="pl-4 mt-1 space-y-1 border-l border-gray-200 dark:border-gray-700">
-          {beats.map((beat) => (
-            <Button
-              key={beat.id}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "h-6 py-0.5 px-2 text-xs justify-start",
-                activeBeatId === beat.id ? `${actBgColor}/80 ${actColor} hover:${actBgColor}/80` : "hover:bg-gray-100 dark:hover:bg-gray-800"
-              )}
-              onClick={() => onBeatClick?.(beat.id)}
-            >
-              <span className="truncate">
+    <div className="w-full flex flex-wrap gap-1 mt-2">
+      {beats.map((beat) => (
+        <Button
+          key={beat.id}
+          variant="outline"
+          size="sm"
+          onClick={() => onBeatClick && onBeatClick(beat.id)}
+          className={cn(
+            "h-auto py-1 px-2 text-xs rounded flex items-start gap-1.5",
+            activeBeatId === beat.id 
+              ? "border-orange-400 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-700"
+              : "border-gray-200 hover:bg-gray-50",
+            beat.complete && "border-green-400 bg-green-50 hover:bg-green-100"
+          )}
+        >
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1">
+              <span className={cn(
+                "font-medium",
+                activeBeatId === beat.id ? "text-orange-700 dark:text-orange-400" : "",
+                beat.complete ? "text-green-700" : ""
+              )}>
                 {beat.title}
               </span>
-              {beat.complete && (
-                <div className="ml-1.5 w-2 h-2 rounded-full bg-green-500" />
-              )}
-            </Button>
-          ))}
-        </div>
-      )}
+              
+              {(beat.sceneCount && beat.sceneCount > 0) ? (
+                <span className={cn(
+                  "rounded-full px-1.5 py-0.5 text-[10px] font-medium ml-1",
+                  activeBeatId === beat.id 
+                    ? "bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-300"
+                    : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                )}>
+                  {beat.sceneCount} {beat.sceneCount === 1 ? 'Scene' : 'Scenes'}
+                </span>
+              ) : null}
+            </div>
+            
+            {beat.pageRange && (
+              <span className="text-[10px] text-gray-500 mt-0.5">
+                {beat.pageRange}
+              </span>
+            )}
+          </div>
+        </Button>
+      ))}
     </div>
   );
 };

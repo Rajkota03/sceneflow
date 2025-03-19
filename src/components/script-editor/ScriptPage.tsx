@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
+import { useScriptEditor } from './ScriptEditorProvider';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -18,7 +19,6 @@ interface ScriptPageProps {
   projectId?: string;
   beatMode: BeatMode;
   selectedStructure?: Structure | null;
-  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
   formatState?: { zoomLevel: number };
   currentPage?: number;
 }
@@ -37,34 +37,36 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   projectId,
   beatMode,
   selectedStructure,
-  onBeatTag,
   formatState = { zoomLevel: 1 },
   currentPage = 1
 }) => {
+  const { handleBeatTag, updatePageNumbers } = useScriptEditor();
+  
+  // Update page numbers when elements change
+  useEffect(() => {
+    updatePageNumbers();
+  }, [elements.length, updatePageNumbers]);
+
   // Listen for custom PDF import events
   useEffect(() => {
     const handlePdfImport = (event: CustomEvent) => {
       console.log('PDF import event received', event.detail);
       // You would handle the PDF import here by updating elements
-      // This would need to be connected to your state management
     };
 
-    // Add event listener for PDF imports
     window.addEventListener('pdf-imported' as any, handlePdfImport as any);
     
-    // Clean up
     return () => {
       window.removeEventListener('pdf-imported' as any, handlePdfImport as any);
     };
   }, []);
 
-  // Handle keyboard shortcuts at the script level for commands that affect the whole script
+  // Handle keyboard shortcuts
   useEffect(() => {
     const handleGlobalShortcuts = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey) {
         if (e.key === 'p') {
           e.preventDefault();
-          // Trigger print/export functionality
           document.querySelector('.menubar-trigger')?.dispatchEvent(
             new MouseEvent('click', { bubbles: true })
           );
@@ -127,7 +129,6 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
             projectId={projectId}
             beatMode={beatMode}
             selectedStructure={selectedStructure}
-            onBeatTag={onBeatTag}
           />
         ))}
       </div>

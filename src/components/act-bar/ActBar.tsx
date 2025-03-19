@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ActType, Structure } from '@/lib/types';
+import { ActType, Structure, BeatSceneCount } from '@/lib/types';
 import { Button } from '../ui/button';
 import { 
   TooltipProvider,
@@ -31,6 +31,7 @@ interface ActBarProps {
   beatMode?: 'on' | 'off';
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -42,7 +43,8 @@ const ActBar: React.FC<ActBarProps> = ({
   selectedStructure,
   beatMode = 'on',
   activeBeatId,
-  onBeatClick
+  onBeatClick,
+  beatSceneCounts = []
 }) => {
   const [showAllActs, setShowAllActs] = React.useState(false);
   const [actButtons, setActButtons] = React.useState<Array<{
@@ -50,7 +52,14 @@ const ActBar: React.FC<ActBarProps> = ({
     label: string;
     color: string;
     bgColor: string;
-    beats?: Array<{id: string; title: string; description?: string; complete?: boolean;}>;
+    beats?: Array<{
+      id: string; 
+      title: string; 
+      description?: string; 
+      complete?: boolean;
+      sceneCount?: number;
+      pageRange?: string;
+    }>;
   }>>([]);
   
   // Default structure colors
@@ -66,12 +75,23 @@ const ActBar: React.FC<ActBarProps> = ({
     if (selectedStructure?.acts && Array.isArray(selectedStructure.acts) && selectedStructure.acts.length > 0) {
       const buttons = selectedStructure.acts.map((act, index) => {
         const defaultColor = defaultActColors[index] || defaultActColors[0];
+        
+        // Add scene counts to beats
+        const beatsWithCounts = act.beats ? act.beats.map(beat => {
+          const countInfo = beatSceneCounts.find(c => c.beatId === beat.id);
+          return {
+            ...beat,
+            sceneCount: countInfo?.count || 0,
+            pageRange: countInfo?.pageRange || ''
+          };
+        }) : [];
+        
         return {
           id: act.id,
           label: act.title || `Act ${index + 1}`,
           color: defaultColor.color,
           bgColor: defaultColor.bgColor,
-          beats: act.beats ? [...act.beats] : []
+          beats: beatsWithCounts
         };
       });
       
@@ -79,7 +99,7 @@ const ActBar: React.FC<ActBarProps> = ({
     } else {
       setActButtons(defaultActColors);
     }
-  }, [selectedStructure]);
+  }, [selectedStructure, beatSceneCounts]);
   
   const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 5);
   

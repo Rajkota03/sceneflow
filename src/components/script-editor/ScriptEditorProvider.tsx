@@ -1,11 +1,12 @@
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { ScriptContent, ScriptElement, ActType, Structure, ElementType } from '@/lib/types';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
+import { ScriptContent, ScriptElement, ActType, Structure, ElementType, BeatSceneCount } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
 import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import useProjectStructures from '@/hooks/useProjectStructures';
 import { BeatMode } from '@/types/scriptTypes';
+import { toast } from '@/components/ui/use-toast';
 
 interface ScriptEditorContextType {
   elements: ScriptElement[];
@@ -35,6 +36,9 @@ interface ScriptEditorContextType {
   handleTagsChange: (elementId: string, tags: string[]) => void;
   activeBeatId: string | null;
   setActiveBeatId: (beatId: string | null) => void;
+  handleBeatTag: (elementId: string, beatId: string, actId: string) => void;
+  beatSceneCounts: BeatSceneCount[];
+  updatePageNumbers: () => void;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
@@ -63,6 +67,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
   const [currentPage, setCurrentPage] = useState(1);
   const [activeBeatId, setActiveBeatId] = useState<string | null>(null);
+  const [beatSceneCounts, setBeatSceneCounts] = useState<BeatSceneCount[]>([]);
   const scriptContentRef = useRef<HTMLDivElement>(null);
   
   const { selectedStructure } = useProjectStructures(projectId);
@@ -98,39 +103,133 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       )
     );
   };
+  
+  // Handle beat tagging
+  const handleBeatTag = (elementId: string, beatId: string, actId: string) => {
+    // First, find the element to update
+    const elementToUpdate = elements.find(el => el.id === elementId);
+    if (!elementToUpdate) {
+      console.error('Element not found:', elementId);
+      return;
+    }
+    
+    // Update the element with the beat tag
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId 
+          ? { ...element, beat: beatId } 
+          : element
+      )
+    );
+    
+    // Show success toast
+    toast({
+      description: "Scene tagged successfully",
+      duration: 2000,
+    });
+    
+    // Update beat scene counts after tagging
+    updateBeatSceneCounts();
+  };
+  
+  // Calculate page numbers for elements
+  const updatePageNumbers = () => {
+    // Basic calculation - approximately 55 lines per page
+    // This is a simplified version; real pagination would consider element types
+    const updatedElements = elements.map((element, index) => {
+      // Calculate approximate page number
+      const estimatedPage = Math.floor(index / 15) + 1;
+      return { ...element, page: estimatedPage };
+    });
+    
+    setElements(updatedElements);
+    updateBeatSceneCounts();
+  };
+  
+  // Update beat scene counts
+  const updateBeatSceneCounts = () => {
+    if (!selectedStructure || !selectedStructure.acts) return;
+    
+    const counts: BeatSceneCount[] = [];
+    
+    // Go through all acts and beats
+    selectedStructure.acts.forEach(act => {
+      if (!act.beats) return;
+      
+      act.beats.forEach(beat => {
+        // Find all scenes tagged with this beat
+        const taggedScenes = elements.filter(
+          element => element.type === 'scene-heading' && element.beat === beat.id
+        );
+        
+        // Calculate page range
+        let minPage = Infinity;
+        let maxPage = 0;
+        
+        taggedScenes.forEach(scene => {
+          if (scene.page) {
+            minPage = Math.min(minPage, scene.page);
+            maxPage = Math.max(maxPage, scene.page);
+          }
+        });
+        
+        const pageRange = taggedScenes.length > 0 
+          ? (minPage === maxPage ? `p.${minPage}` : `pp.${minPage}-${maxPage}`)
+          : '';
+        
+        // Add to counts
+        counts.push({
+          beatId: beat.id,
+          actId: act.id,
+          count: taggedScenes.length,
+          pageRange
+        });
+      });
+    });
+    
+    setBeatSceneCounts(counts);
+  };
+  
+  // Update counts when elements or structure changes
+  useEffect(() => {
+    updatePageNumbers();
+  }, [elements.length, selectedStructure]);
+  
+  const contextValue = {
+    elements,
+    setElements,
+    activeElementId,
+    setActiveElementId,
+    handleElementChange,
+    getPreviousElementType,
+    addNewElement,
+    changeElementType,
+    handleNavigate,
+    handleEnterKey,
+    characterNames,
+    activeTagFilter,
+    setActiveTagFilter,
+    activeActFilter,
+    setActiveActFilter,
+    projectId,
+    selectedStructureId,
+    onStructureChange,
+    selectedStructure,
+    beatMode,
+    onToggleBeatMode,
+    projectTitle,
+    currentPage,
+    scriptContentRef,
+    handleTagsChange,
+    activeBeatId,
+    setActiveBeatId,
+    handleBeatTag,
+    beatSceneCounts,
+    updatePageNumbers
+  };
 
   return (
-    <ScriptEditorContext.Provider
-      value={{
-        elements,
-        setElements,
-        activeElementId,
-        setActiveElementId,
-        handleElementChange,
-        getPreviousElementType,
-        addNewElement,
-        changeElementType,
-        handleNavigate,
-        handleEnterKey,
-        characterNames,
-        activeTagFilter,
-        setActiveTagFilter,
-        activeActFilter,
-        setActiveActFilter,
-        projectId,
-        selectedStructureId,
-        onStructureChange,
-        selectedStructure,
-        beatMode,
-        onToggleBeatMode,
-        projectTitle,
-        currentPage,
-        scriptContentRef,
-        handleTagsChange,
-        activeBeatId,
-        setActiveBeatId
-      }}
-    >
+    <ScriptEditorContext.Provider value={contextValue}>
       {children}
     </ScriptEditorContext.Provider>
   );
