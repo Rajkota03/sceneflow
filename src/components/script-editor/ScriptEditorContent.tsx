@@ -35,7 +35,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     beatMode,
     selectedStructure,
     scriptContentRef,
-    handleBeatTag
+    handleBeatTag,
+    activeBeatId,
+    setActiveBeatId
   } = useScriptEditor();
 
   const handleFocus = (id: string) => {
@@ -57,7 +59,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
               elements={elements || []}
               activeElementId={activeElementId}
               getPreviousElementType={getPreviousElementType}
-              handleElementChange={handleElementChange}
+              handleElementChange={(id, text, type) => handleElementChange(id, text, type)}
               handleFocus={handleFocus}
               handleNavigate={handleNavigate}
               handleEnterKey={handleEnterKey}
@@ -70,6 +72,8 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
               formatState={formatState}
               currentPage={currentPage}
               onBeatTag={handleBeatTag}
+              activeBeatId={activeBeatId}
+              onBeatClick={setActiveBeatId}
             />
           </div>
         </div>

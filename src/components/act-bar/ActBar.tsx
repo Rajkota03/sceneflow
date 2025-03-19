@@ -1,25 +1,13 @@
 
 import React from 'react';
 import { ActType, Structure, BeatSceneCount } from '@/lib/types';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '../ui/accordion';
 import StructureBar from './StructureBar';
-import BeatSection from './BeatSection';
 import { cn } from '@/lib/utils';
-
-interface ActCount {
-  act: ActType;
-  count: number;
-}
+import BeatsRow from './BeatsRow';
 
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
-  actCounts: ActCount[];
   projectName?: string;
   structureName?: string;
   selectedStructure?: Structure | null;
@@ -32,7 +20,6 @@ interface ActBarProps {
 const ActBar: React.FC<ActBarProps> = ({ 
   activeAct, 
   onSelectAct, 
-  actCounts,
   selectedStructure,
   beatMode = 'on',
   activeBeatId,
@@ -106,49 +93,26 @@ const ActBar: React.FC<ActBarProps> = ({
         visibleActs={structureBarButtons}
         activeAct={activeAct}
         onSelectAct={onSelectAct}
+        activeBeatId={activeBeatId}
+        onBeatClick={onBeatClick}
       />
       
-      {/* Show beats sections if beatMode is 'on' */}
+      {/* Show horizontal beats sections if beatMode is 'on' */}
       {beatMode === 'on' && (
-        <Accordion type="multiple" className="w-full space-y-1 mt-2">
+        <div className="space-y-1 mt-1">
           {actButtons.map((act) => (
-            <AccordionItem 
-              key={`beats-${act.id}`} 
-              value={act.id}
-              className={cn(
-                "border rounded-md overflow-hidden",
-                act.bgColor.replace('bg-', 'border-').replace('100', '200').replace('200', '300')
-              )}
-            >
-              <AccordionTrigger className={cn(
-                "px-3 py-1.5 text-xs font-medium", 
-                act.bgColor, 
-                act.color
-              )}>
-                {act.label} Beats
-                {act.beats && act.beats.length > 0 && (
-                  <span className="text-xs font-normal ml-2 opacity-70">
-                    ({act.beats.length})
-                  </span>
-                )}
-              </AccordionTrigger>
-              <AccordionContent className="px-2 py-1.5">
-                {act.beats && act.beats.length > 0 ? (
-                  <BeatSection
-                    actId={act.id}
-                    actColor={act.color}
-                    actBgColor={act.bgColor}
-                    beats={act.beats}
-                    onBeatClick={onBeatClick}
-                    activeBeatId={activeBeatId}
-                  />
-                ) : (
-                  <div className="text-xs text-gray-500">No beats defined for this act</div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
+            <BeatsRow
+              key={`beats-${act.id}`}
+              actId={act.id}
+              actLabel={act.label}
+              actColor={act.color}
+              actBgColor={act.bgColor}
+              beats={act.beats || []}
+              onBeatClick={onBeatClick}
+              activeBeatId={activeBeatId}
+            />
           ))}
-        </Accordion>
+        </div>
       )}
     </div>
   );

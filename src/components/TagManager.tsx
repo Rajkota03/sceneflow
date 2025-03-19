@@ -1,24 +1,16 @@
 
-import React, { useState, useMemo } from 'react';
-import { ScriptContent, ActType, Structure } from '@/lib/types';
+import React, { useMemo } from 'react';
+import { ActType, Structure } from '@/lib/types';
 import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
 import { BeatMode } from '@/types/scriptTypes';
-import { Button } from './ui/button';
 import BeatModeToggle from './act-bar/BeatModeToggle';
-import { cn } from '@/lib/utils';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import StructureSelector from './act-bar/StructureSelector';
 
 interface TagManagerProps {
-  scriptContent: ScriptContent;
+  scriptContent: any;
   onFilterByTag: (tag: string | null) => void;
   onFilterByAct: (act: ActType | null) => void;
   activeFilter: string | null;
@@ -39,17 +31,19 @@ const TagManager: React.FC<TagManagerProps> = ({
   onFilterByAct,
   activeFilter,
   activeActFilter,
-  projectName = "Untitled Project", 
-  structureName = "Three Act Structure",
-  projectId,
   beatMode = 'on',
   onToggleBeatMode,
-  selectedStructure,
   activeBeatId,
   onBeatClick
 }) => {
-  // Get scene counts for beats from context
-  const { beatSceneCounts, onStructureChange, selectedStructureId, availableStructures } = useScriptEditor();
+  // Get scene counts for beats and structure information from context
+  const { 
+    beatSceneCounts, 
+    onStructureChange, 
+    selectedStructureId, 
+    availableStructures,
+    selectedStructure
+  } = useScriptEditor();
   
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
@@ -57,16 +51,16 @@ const TagManager: React.FC<TagManagerProps> = ({
     
     const tagSet = new Set<string>();
     
-    scriptContent.elements.forEach(element => {
+    scriptContent.elements.forEach((element: any) => {
       if (element.tags && Array.isArray(element.tags)) {
-        element.tags.forEach(tag => tagSet.add(tag));
+        element.tags.forEach((tag: string) => tagSet.add(tag));
       }
     });
     
     return Array.from(tagSet).sort();
   }, [scriptContent]);
 
-  // Get act counts - now properly converting to array format
+  // Get act counts
   const { actCounts: actCountsRecord } = useActCounts(scriptContent);
   
   // Convert the ActCountsRecord to an array of ActCount objects
@@ -105,13 +99,10 @@ const TagManager: React.FC<TagManagerProps> = ({
           </div>
         </div>
         
-        {/* Structure Bar - Enhanced with beat scene counts */}
+        {/* Structure Bar with ActBar component */}
         <ActBar 
           activeAct={activeActFilter}
           onSelectAct={onFilterByAct}
-          actCounts={actCounts}
-          projectName={projectName}
-          structureName={structureName}
           selectedStructure={selectedStructure}
           beatMode={beatMode}
           activeBeatId={activeBeatId}

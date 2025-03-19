@@ -36,10 +36,10 @@ export interface ScriptEditorContextType {
   beatMode: BeatMode;
   onToggleBeatMode: (mode: BeatMode) => void;
   currentPage: number;
-  handleElementChange: (id: string, changes: Partial<ScriptElement>) => void;
+  handleElementChange: (id: string, text: string, type: ElementType) => void;
   getPreviousElementType: (index: number) => ElementType | null;
   handleNavigate: (id: string, direction: 'up' | 'down') => void;
-  handleEnterKey: (id: string) => void;
+  handleEnterKey: (id: string, shiftKey: boolean) => void;
   showKeyboardShortcuts: boolean;
   toggleKeyboardShortcuts: () => void;
   changeElementType: (id: string, newType: ElementType) => void;
@@ -161,7 +161,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     // Count scenes for each beat
     allBeats.forEach(beat => {
       const scenesWithBeat = elements.filter(element => 
-        element.beatId === beat.id
+        element.beat === beat.id
       );
       
       if (scenesWithBeat.length > 0) {
@@ -179,12 +179,29 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   // Handle tagging an element with a beat
   const handleBeatTag = (elementId: string, beatId: string) => {
-    handleElementChange(elementId, { beatId });
+    // Update the element with the beat ID
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, beat: beatId } : element
+      )
+    );
+    // Update context with the new content
+    onChange({ elements: elements.map(element =>
+      element.id === elementId ? { ...element, beat: beatId } : element
+    ) });
   };
   
   // Handler for updating tags on elements
   const handleTagsChange = (elementId: string, tags: string[]) => {
-    handleElementChange(elementId, { tags });
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, tags } : element
+      )
+    );
+    // Update context with the new content
+    onChange({ elements: elements.map(element =>
+      element.id === elementId ? { ...element, tags } : element
+    ) });
   };
 
   // Create the context value
