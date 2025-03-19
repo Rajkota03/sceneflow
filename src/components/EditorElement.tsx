@@ -82,11 +82,31 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Only show beat tagging controls for scene headings
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
+  // Ensure cursor positioning works correctly
   useEffect(() => {
-    if (isActive && element.type === 'scene-heading' && beatMode === 'on') {
-      console.log('Scene heading element active with structure:', structure?.id);
+    if (isActive && editorRef.current) {
+      // Ensure focus and cursor visibility
+      editorRef.current.focus();
+      
+      // Position cursor at end of text
+      const range = document.createRange();
+      const selection = window.getSelection();
+      
+      if (editorRef.current.childNodes.length > 0) {
+        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+        range.setStartAfter(lastNode);
+      } else {
+        range.setStart(editorRef.current, 0);
+      }
+      
+      range.collapse(true);
+      
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
     }
-  }, [isActive, element.type, beatMode, structure]);
+  }, [isActive]);
 
   return (
     <div 
@@ -126,9 +146,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+          caretColor: 'black', // Explicitly set caret color
           ...elementStyles
         }}
         dir="ltr"
+        tabIndex={0} // Ensure element is focusable
       >
         {text}
       </div>

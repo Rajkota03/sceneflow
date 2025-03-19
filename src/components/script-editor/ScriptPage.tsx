@@ -42,6 +42,9 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   currentPage,
   onBeatTag
 }) => {
+  // Create elements if none exist
+  const displayElements = elements.length > 0 ? elements : [];
+
   return (
     <div className="script-page" style={{ 
       transform: `scale(${formatState?.zoomLevel || 1})`,
@@ -54,7 +57,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         fontSize: '12pt',
         position: 'relative'
       }}>
-        {/* Page number now positioned inside the page */}
+        {/* Page number positioned inside the page */}
         <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
           fontFamily: "Courier Final Draft, Courier Prime, monospace",
           fontSize: "12pt",
@@ -62,7 +65,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           {currentPage}
         </div>
         
-        {elements.map((element, index) => (
+        {displayElements.map((element, index) => (
           <EditorElement
             key={element.id}
             element={element}

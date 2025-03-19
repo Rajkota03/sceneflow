@@ -16,7 +16,8 @@ const TagManagerContainer: React.FC = () => {
     projectTitle,
     selectedStructure,
     activeBeatId,
-    setActiveBeatId
+    setActiveBeatId,
+    beatSceneCounts
   } = useScriptEditor();
 
   const handleBeatClick = (beatId: string) => {
@@ -31,13 +32,14 @@ const TagManagerContainer: React.FC = () => {
       activeFilter={activeTagFilter}
       activeActFilter={activeActFilter}
       projectName={projectTitle || (projectId ? undefined : "Untitled Screenplay")}
-      structureName={"Three Act Structure"}
+      structureName={selectedStructure?.name || "Three Act Structure"}
       projectId={projectId}
       beatMode={beatMode}
       onToggleBeatMode={onToggleBeatMode}
       selectedStructure={selectedStructure}
       activeBeatId={activeBeatId}
       onBeatClick={handleBeatClick}
+      beatSceneCounts={beatSceneCounts}
     />
   );
 };

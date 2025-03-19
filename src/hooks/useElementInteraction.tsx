@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
@@ -32,23 +33,45 @@ export function useElementInteraction({
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
+  // Initialize text when element changes
   useEffect(() => {
     setText(initialText);
+  }, [initialText]);
+
+  // Set up cursor and focus when element becomes active
+  useEffect(() => {
     if (editorRef.current && isActive) {
-      editorRef.current.innerText = initialText;
+      // Set the text content to ensure it's up to date
+      if (editorRef.current.innerText !== initialText) {
+        editorRef.current.innerText = initialText;
+      }
+
+      // Focus the element and position cursor at end
       const range = document.createRange();
       const sel = window.getSelection();
-      if (editorRef.current.childNodes.length > 0) {
-        range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
-      } else {
-        range.setStart(editorRef.current, 0);
+      
+      try {
+        // Position cursor at end of text
+        if (editorRef.current.childNodes.length > 0) {
+          range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+        } else {
+          range.setStart(editorRef.current, 0);
+        }
+        
+        range.collapse(true);
+        
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        
+        // Apply focus
+        editorRef.current.focus();
+      } catch (err) {
+        console.error('Error setting cursor position:', err);
       }
-      range.collapse(true);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-      editorRef.current.focus();
     }
-  }, [initialText, isActive]);
+  }, [isActive, initialText]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.innerText;
