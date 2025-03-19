@@ -1,36 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
+
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { Note } from '@/lib/types';
 import { Pencil, Save, X, MinusSquare, PlusSquare } from 'lucide-react';
-import Draggable from 'react-draggable';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NoteEditorProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   note: Note | null;
   onSaveNote: (note: Note) => void;
+  onCancel: () => void;
 }
 
-const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) => {
+const NoteEditor = ({ note, onSaveNote, onCancel }: NoteEditorProps) => {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pages, setPages] = useState<string[]>(['']);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [editorHeight, setEditorHeight] = useState(300);
-  const nodeRef = useRef(null);
-
+  
   const isNewNote = !note?.id;
 
   useEffect(() => {
@@ -53,7 +43,7 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
       setPages(['']);
       setCurrentPage(1);
     }
-  }, [note, open]);
+  }, [note]);
 
   const handleSaveNote = () => {
     if (!noteTitle.trim()) {
@@ -79,17 +69,13 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     onSaveNote(updatedNote);
     
     if (isNewNote) {
-      onOpenChange(false);
+      onCancel();
     } else {
       toast({
         title: "Note updated",
         description: `"${noteTitle}" has been updated successfully.`
       });
     }
-  };
-
-  const handleClose = () => {
-    onOpenChange(false);
   };
 
   const handlePageChange = (pageNum: number) => {
@@ -132,11 +118,6 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     setNoteContent(updatedPages[newPageNumber - 1]);
   };
 
-  const toggleFullScreen = () => {
-    setIsFullScreen(!isFullScreen);
-    setEditorHeight(isFullScreen ? 300 : 600);
-  };
-
   const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNoteContent(e.target.value);
     
@@ -145,114 +126,81 @@ const NoteEditor = ({ open, onOpenChange, note, onSaveNote }: NoteEditorProps) =
     setPages(updatedPages);
   };
 
-  const dialogContent = (
-    <DialogContent 
-      className={`${isFullScreen ? 'sm:max-w-3xl h-[80vh]' : 'sm:max-w-md'} overflow-hidden`}
-      onInteractOutside={(e) => e.preventDefault()}
-    >
-      <DialogHeader>
-        <DialogTitle>{isNewNote ? 'Create New Note' : 'Edit Note'}</DialogTitle>
-        <DialogDescription>
-          {isNewNote ? 'Add a note for your screenplay' : 'Edit your note'}
-        </DialogDescription>
-      </DialogHeader>
-      <div className="space-y-4 py-4 flex-grow overflow-hidden">
-        <div className="space-y-2">
-          <label htmlFor="title" className="text-sm font-medium">Title</label>
+  return (
+    <Card className="border shadow-md w-full">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-medium flex items-center">
           <Input
-            id="title"
             value={noteTitle}
             onChange={(e) => setNoteTitle(e.target.value)}
             placeholder="Enter note title"
+            className="text-lg font-medium"
             autoFocus
           />
-        </div>
-        <div className="space-y-2 flex-grow overflow-hidden">
-          <div className="flex justify-between items-center">
-            <label htmlFor="content" className="text-sm font-medium">Content</label>
-            <div className="flex space-x-2 items-center">
-              <span className="text-xs text-muted-foreground">
-                Page {currentPage} of {pages.length}
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-              >
-                Prev
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => handlePageChange(Math.min(pages.length, currentPage + 1))}
-                disabled={currentPage === pages.length}
-              >
-                Next
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={addNewPage}
-                title="Add new page"
-              >
-                <PlusSquare size={16} />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={deletePage}
-                disabled={pages.length <= 1}
-                title="Delete current page"
-              >
-                <MinusSquare size={16} />
-              </Button>
-            </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <div className="flex justify-between items-center">
+          <label htmlFor="content" className="text-sm font-medium">Content</label>
+          <div className="flex space-x-2 items-center">
+            <span className="text-xs text-muted-foreground">
+              Page {currentPage} of {pages.length}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+            >
+              Prev
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handlePageChange(Math.min(pages.length, currentPage + 1))}
+              disabled={currentPage === pages.length}
+            >
+              Next
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={addNewPage}
+              title="Add new page"
+            >
+              <PlusSquare size={16} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={deletePage}
+              disabled={pages.length <= 1}
+              title="Delete current page"
+            >
+              <MinusSquare size={16} />
+            </Button>
           </div>
+        </div>
+        <ScrollArea className="h-[400px] border rounded-md p-4 bg-white">
           <Textarea
-            id="content"
             value={noteContent}
             onChange={handleContentChange}
             placeholder="Enter note content"
-            className="resize-none overflow-hidden flex-grow min-h-[200px]"
+            className="min-h-[350px] border-0 focus-visible:ring-0 resize-none p-0"
           />
-        </div>
-      </div>
-      <DialogFooter className="flex justify-between items-center">
-        <div>
-          <Button variant="outline" onClick={toggleFullScreen} className="mr-2">
-            {isFullScreen ? 'Minimize' : 'Expand'}
-          </Button>
-        </div>
-        <div>
-          <Button variant="outline" onClick={handleClose} className="mr-2">
-            Cancel
-          </Button>
-          <Button onClick={handleSaveNote}>
-            <Save size={16} className="mr-2" />
-            {isNewNote ? 'Create Note' : 'Save Changes'}
-          </Button>
-        </div>
-      </DialogFooter>
-    </DialogContent>
-  );
-
-  if (!isFullScreen) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        {dialogContent}
-      </Dialog>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <Draggable nodeRef={nodeRef} handle=".dialog-header" bounds="parent">
-        <div ref={nodeRef}>
-          {dialogContent}
-        </div>
-      </Draggable>
-    </Dialog>
+        </ScrollArea>
+      </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="outline" onClick={onCancel}>
+          <X size={16} className="mr-2" />
+          Cancel
+        </Button>
+        <Button onClick={handleSaveNote}>
+          <Save size={16} className="mr-2" />
+          {isNewNote ? 'Create Note' : 'Save Changes'}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
