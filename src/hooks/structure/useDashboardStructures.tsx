@@ -99,10 +99,30 @@ export const useDashboardStructures = () => {
   const handleDeleteStructure = async (id: string) => {
     setIsLoading(true);
     try {
-      const success = await deleteStructureFromSupabase(id);
+      const { success, linkedProjectsMessage, error } = await deleteStructureFromSupabase(id);
       
       if (success) {
+        // Update local state first to maintain UI responsiveness
         setStructures(prev => prev.filter(structure => structure.id !== id));
+        
+        toast({
+          title: "Structure deleted",
+          description: "The structure has been deleted successfully."
+        });
+        
+        // If any projects were linked to this structure, let the user know
+        if (linkedProjectsMessage) {
+          toast({
+            title: "Links removed",
+            description: linkedProjectsMessage
+          });
+        }
+      } else if (error) {
+        toast({
+          title: 'Error',
+          description: error,
+          variant: 'destructive',
+        });
       }
     } finally {
       setIsLoading(false);

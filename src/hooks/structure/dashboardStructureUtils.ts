@@ -112,14 +112,16 @@ export const deleteStructureFromSupabase = async (id: string) => {
     }
     
     // Remove links between this structure and any projects
-    const { error: linkError } = await supabase
-      .from('project_structures')
-      .delete()
-      .eq('structure_id', id);
-    
-    if (linkError) {
-      console.error('Error removing structure links:', linkError);
-      throw linkError;
+    if (linkedProjects && linkedProjects.length > 0) {
+      const { error: linkError } = await supabase
+        .from('project_structures')
+        .delete()
+        .eq('structure_id', id);
+      
+      if (linkError) {
+        console.error('Error removing structure links:', linkError);
+        throw linkError;
+      }
     }
     
     // Finally delete the structure itself
@@ -133,28 +135,15 @@ export const deleteStructureFromSupabase = async (id: string) => {
       throw error;
     }
     
-    toast({
-      title: "Structure deleted",
-      description: "The structure has been deleted successfully."
-    });
-    
     // If any projects were linked to this structure, let the user know
-    if (linkedProjects && linkedProjects.length > 0) {
-      toast({
-        title: "Links removed",
-        description: `${linkedProjects.length} project(s) were unlinked from this structure.`
-      });
-    }
+    const projectLinkMessage = linkedProjects && linkedProjects.length > 0
+      ? `${linkedProjects.length} project(s) were unlinked from this structure.`
+      : null;
     
-    return true;
+    return { success: true, linkedProjectsMessage: projectLinkMessage };
   } catch (error) {
     console.error('Error deleting structure:', error);
-    toast({
-      title: 'Error',
-      description: 'Failed to delete the structure. Please try again.',
-      variant: 'destructive',
-    });
-    return false;
+    return { success: false, error: 'Failed to delete the structure. Please try again.' };
   }
 };
 

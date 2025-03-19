@@ -88,7 +88,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
       />
       
       {isLoading && structures.length === 0 ? (
-        <LoadingState />
+        <LoadingState message="Loading your structures..." />
       ) : structures.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {structures.map(structure => (

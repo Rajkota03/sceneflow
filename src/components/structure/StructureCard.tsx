@@ -160,7 +160,10 @@ const StructureCard: React.FC<StructureCardProps> = ({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteConfirm} 
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteConfirm();
+              }} 
               className="bg-red-600 hover:bg-red-700"
               disabled={isDeleting || isLoading}
             >
