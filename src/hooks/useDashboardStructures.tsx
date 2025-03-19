@@ -191,26 +191,56 @@ export const useDashboardStructures = () => {
 
   const handleDeleteStructure = async (id: string) => {
     try {
+      setIsLoading(true);
+      
+      // First, check if any projects are currently using this structure
+      const { data: linkedProjects, error: checkError } = await supabase
+        .from('project_structures')
+        .select('project_id')
+        .eq('structure_id', id);
+      
+      if (checkError) {
+        console.error('Error checking linked projects:', checkError);
+        throw checkError;
+      }
+      
+      // Remove links between this structure and any projects
       const { error: linkError } = await supabase
         .from('project_structures')
         .delete()
         .eq('structure_id', id);
       
-      if (linkError) throw linkError;
+      if (linkError) {
+        console.error('Error removing structure links:', linkError);
+        throw linkError;
+      }
       
+      // Finally delete the structure itself
       const { error } = await supabase
         .from('structures')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting structure:', error);
+        throw error;
+      }
       
+      // Update local state
       setStructures(prev => prev.filter(structure => structure.id !== id));
       
       toast({
         title: "Structure deleted",
         description: "The structure has been deleted successfully."
       });
+      
+      // If any projects were linked to this structure, let the user know
+      if (linkedProjects && linkedProjects.length > 0) {
+        toast({
+          title: "Links removed",
+          description: `${linkedProjects.length} project(s) were unlinked from this structure.`
+        });
+      }
     } catch (error) {
       console.error('Error deleting structure:', error);
       toast({
@@ -218,6 +248,8 @@ export const useDashboardStructures = () => {
         description: 'Failed to delete the structure. Please try again.',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

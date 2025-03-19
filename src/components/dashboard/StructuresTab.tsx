@@ -45,7 +45,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         
         <DropdownMenu open={isStructureMenuOpen} onOpenChange={setIsStructureMenuOpen}>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">
+            <Button className="bg-indigo-600 hover:bg-indigo-700" disabled={isLoading}>
               <PlusCircle className="h-4 w-4 mr-2" />
               Create Structure
               <ChevronDown className="h-4 w-4 ml-2" />
@@ -85,9 +85,10 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         setSearchQuery={setSearchQuery}
         onCreateNewProject={() => setIsStructureMenuOpen(true)}
         projectType="structure"
+        disabled={isLoading}
       />
       
-      {isLoading ? (
+      {isLoading && structures.length === 0 ? (
         <LoadingState />
       ) : structures.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -97,6 +98,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               structure={structure}
               onEdit={handleEditStructure}
               onDelete={handleDeleteStructure}
+              isLoading={isLoading}
             />
           ))}
         </div>
