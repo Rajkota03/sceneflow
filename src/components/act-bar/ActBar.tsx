@@ -5,6 +5,11 @@ import StructureBar from './StructureBar';
 import { cn } from '@/lib/utils';
 import HorizontalBeatsBar from './HorizontalBeatsBar';
 
+interface ActCount {
+  act: ActType;
+  count: number;
+}
+
 interface ActBarProps {
   activeAct: ActType | null;
   onSelectAct: (act: ActType | null) => void;
@@ -15,6 +20,7 @@ interface ActBarProps {
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
   beatSceneCounts?: BeatSceneCount[];
+  actCounts?: ActCount[]; // Added this property
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -24,7 +30,8 @@ const ActBar: React.FC<ActBarProps> = ({
   beatMode = 'on',
   activeBeatId,
   onBeatClick,
-  beatSceneCounts = []
+  beatSceneCounts = [],
+  actCounts = [] // Add default value
 }) => {
   const [actButtons, setActButtons] = React.useState<Array<{
     id: string;
