@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useRef } from 'react';
-import { ScriptContent, ScriptElement, ActType, Structure, ElementType } from '@/lib/types';
+import { ScriptContent, ScriptElement, ActType, Structure, ElementType, BeatSceneCount } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
 import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useCharacterNames from '@/hooks/useCharacterNames';
