@@ -1,6 +1,7 @@
 
 import { Structure } from '@/lib/types';
 import useStructures from './structure/useStructures';
+import { calculateStructureProgress } from './structure/structureUtils';
 
 const useProjectStructures = (projectId?: string) => {
   // Get all values from useStructures including fetchStructures
@@ -17,7 +18,7 @@ const useProjectStructures = (projectId?: string) => {
     updateBeatCompletion: structureHookResult.updateBeatCompletion,
     saveBeatCompletion: structureHookResult.saveBeatCompletion,
     fetchStructures: structureHookResult.fetchStructures,
-    calculateStructureProgress: structureHookResult.calculateStructureProgress
+    calculateStructureProgress
   };
 };
 

@@ -160,12 +160,14 @@ const Editor = () => {
               characterCount={content.elements.filter(e => e.type === 'character').length}
             />
             
-            <NoteEditor 
-              open={noteEditorOpen} 
-              onOpenChange={setNoteEditorOpen} 
-              note={currentEditNote}
-              onSaveNote={handleSaveNote}
-            />
+            {currentEditNote && (
+              <NoteEditor 
+                note={currentEditNote} 
+                onSaveNote={handleSaveNote}
+                isPopup={true}
+                onClose={() => setNoteEditorOpen(false)}
+              />
+            )}
           </div>
         </ScriptEditorProvider>
       </FormatProvider>

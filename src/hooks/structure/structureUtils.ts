@@ -166,12 +166,29 @@ export const saveStructureBeatCompletion = async (
   try {
     console.log('Saving beat completion for structure:', structureId);
     
+    // Make a serializable copy of the acts that will work with Supabase JSON types
+    const serializableActs: any[] = updatedStructure.acts.map(act => ({
+      id: act.id,
+      title: act.title,
+      description: act.description || "",
+      beats: act.beats.map(beat => ({
+        id: beat.id,
+        title: beat.title,
+        description: beat.description || "",
+        complete: beat.complete || false,
+        timePosition: beat.timePosition || 0,
+        pageRange: beat.pageRange || "",
+        notes: beat.notes || "",
+        sceneCount: beat.sceneCount || 0
+      }))
+    }));
+    
     // Updating the beats in the content field to ensure compatibility
     const { error } = await supabase
       .from('structures')
       .update({ 
-        content: { acts: updatedStructure.acts },
-        beats: { acts: updatedStructure.acts },
+        content: { acts: serializableActs },
+        beats: { acts: serializableActs },
         updated_at: new Date().toISOString()
       })
       .eq('id', structureId);

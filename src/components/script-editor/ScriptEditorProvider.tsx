@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -9,6 +10,8 @@ import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import useEditorUIState from '@/hooks/useEditorUIState';
 import useStructures from '@/hooks/structure/useStructures';
 import { BeatMode } from '@/types/scriptTypes';
+import { toast } from '@/components/ui/use-toast';
+import { updateStructureBeatCompletion, saveStructureBeatCompletion } from '@/hooks/structure/structureUtils';
 
 interface ScriptEditorProviderProps {
   initialContent: ScriptContent;
@@ -175,7 +178,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setBeatSceneCounts(counts);
   }, [elements, selectedStructure]);
 
-  const handleBeatTag = (elementId: string, beatId: string, actId?: string) => {
+  const handleBeatTag = async (elementId: string, beatId: string, actId?: string) => {
     console.log('ScriptEditorProvider.handleBeatTag called:', { elementId, beatId, actId });
     
     const updatedElements = elements.map(element =>
@@ -183,8 +186,36 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     );
     
     setElements(updatedElements);
-    
     onChange({ elements: updatedElements });
+    
+    // If we have a valid structure and actId is provided, mark the beat as complete
+    if (selectedStructure && selectedStructureId && actId && beatId) {
+      console.log('Marking beat as complete:', { beatId, actId });
+      
+      const updatedStructure = updateStructureBeatCompletion(
+        selectedStructure,
+        beatId,
+        actId,
+        true // Mark as complete when a scene is tagged with this beat
+      );
+      
+      if (updatedStructure) {
+        const success = await saveStructureBeatCompletion(selectedStructureId, updatedStructure);
+        if (success) {
+          toast({
+            description: "Beat marked as complete in structure",
+            duration: 2000,
+          });
+          
+          // Refresh the structures to get the updated completion status
+          if (fetchStructures) {
+            fetchStructures();
+          }
+        } else {
+          console.error('Failed to save beat completion status');
+        }
+      }
+    }
   };
 
   const handleTagsChange = (elementId: string, tags: string[]) => {
