@@ -148,13 +148,20 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   
   // Update beat scene counts
   const updateBeatSceneCounts = () => {
-    if (!selectedStructure || !selectedStructure.acts) return;
+    if (!selectedStructure) return;
     
     const counts: BeatSceneCount[] = [];
     
+    // Check if acts exists and is an array before trying to iterate
+    const acts = selectedStructure.acts || [];
+    if (!Array.isArray(acts)) {
+      console.error('Structure acts is not an array:', selectedStructure);
+      return;
+    }
+    
     // Go through all acts and beats
-    selectedStructure.acts.forEach(act => {
-      if (!act.beats) return;
+    acts.forEach(act => {
+      if (!act.beats || !Array.isArray(act.beats)) return;
       
       act.beats.forEach(beat => {
         // Find all scenes tagged with this beat
