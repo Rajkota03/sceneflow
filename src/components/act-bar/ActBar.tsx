@@ -1,26 +1,15 @@
 
 import React from 'react';
 import { ActType, Structure, BeatSceneCount } from '@/lib/types';
-import { Button } from '../ui/button';
-import { 
-  TooltipProvider,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '../ui/tooltip';
-import { List } from 'lucide-react';
-import StructureBar from './StructureBar';
-import ActButton from './ActButton';
-import BeatSection from './BeatSection';
-import StructureHeader from './StructureHeader';
-import ActButtonList from './ActButtonList';
-import { cn } from '@/lib/utils';
 import { 
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
+} from '../ui/accordion';
+import StructureBar from './StructureBar';
+import BeatSection from './BeatSection';
+import { cn } from '@/lib/utils';
 
 interface ActCount {
   act: ActType;
@@ -44,15 +33,12 @@ const ActBar: React.FC<ActBarProps> = ({
   activeAct, 
   onSelectAct, 
   actCounts,
-  projectName,
-  structureName,
   selectedStructure,
   beatMode = 'on',
   activeBeatId,
   onBeatClick,
   beatSceneCounts = []
 }) => {
-  const [showAllActs, setShowAllActs] = React.useState(false);
   const [actButtons, setActButtons] = React.useState<Array<{
     id: string;
     label: string;
@@ -107,32 +93,25 @@ const ActBar: React.FC<ActBarProps> = ({
     }
   }, [selectedStructure, beatSceneCounts]);
   
-  const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 5);
-  
   // Create an array of StructureBarButtonProps objects
-  const structureBarButtons = visibleActs.map(act => ({
+  const structureBarButtons = actButtons.map(act => ({
     ...act,
     isActive: activeAct === act.id as ActType,
     onClick: () => onSelectAct(act.id as ActType)
   }));
   
-  const handleToggleMoreActs = () => {
-    setShowAllActs(!showAllActs);
-  };
-  
   return (
-    <div className="w-full space-y-3">
+    <div className="w-full space-y-2">
       <StructureBar
         visibleActs={structureBarButtons}
         activeAct={activeAct}
         onSelectAct={onSelectAct}
-        className="mb-1"
       />
       
       {/* Show beats sections if beatMode is 'on' */}
       {beatMode === 'on' && (
-        <Accordion type="multiple" className="w-full space-y-2">
-          {visibleActs.map((act) => (
+        <Accordion type="multiple" className="w-full space-y-1 mt-2">
+          {actButtons.map((act) => (
             <AccordionItem 
               key={`beats-${act.id}`} 
               value={act.id}
@@ -142,7 +121,7 @@ const ActBar: React.FC<ActBarProps> = ({
               )}
             >
               <AccordionTrigger className={cn(
-                "px-3 py-2 text-sm font-medium", 
+                "px-3 py-1.5 text-xs font-medium", 
                 act.bgColor, 
                 act.color
               )}>
@@ -153,7 +132,7 @@ const ActBar: React.FC<ActBarProps> = ({
                   </span>
                 )}
               </AccordionTrigger>
-              <AccordionContent className="px-3 py-2">
+              <AccordionContent className="px-2 py-1.5">
                 {act.beats && act.beats.length > 0 ? (
                   <BeatSection
                     actId={act.id}
@@ -164,29 +143,13 @@ const ActBar: React.FC<ActBarProps> = ({
                     activeBeatId={activeBeatId}
                   />
                 ) : (
-                  <div className="text-sm text-gray-500">No beats defined for this act</div>
+                  <div className="text-xs text-gray-500">No beats defined for this act</div>
                 )}
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
       )}
-      
-      {/* Button filters for quick navigation */}
-      <div className={cn(
-        "flex flex-wrap items-center gap-2",
-        beatMode === 'on' ? "mt-3" : "mt-2"
-      )}>
-        <ActButtonList 
-          activeAct={activeAct}
-          onSelectAct={onSelectAct}
-          visibleActs={visibleActs}
-          actCounts={actCounts}
-          showAllActs={showAllActs}
-          onToggleMoreActs={handleToggleMoreActs}
-          actButtons={actButtons}
-        />
-      </div>
     </div>
   );
 };

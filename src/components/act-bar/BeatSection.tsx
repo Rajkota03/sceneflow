@@ -2,7 +2,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
-import { Flame } from 'lucide-react';
 
 interface BeatSectionProps {
   actId: string;
@@ -34,7 +33,7 @@ const BeatSection: React.FC<BeatSectionProps> = ({
   }
 
   return (
-    <div className="w-full flex flex-wrap gap-1 mt-2">
+    <div className="w-full flex flex-wrap gap-1">
       {beats.map((beat) => (
         <Button
           key={beat.id}
@@ -42,7 +41,7 @@ const BeatSection: React.FC<BeatSectionProps> = ({
           size="sm"
           onClick={() => onBeatClick && onBeatClick(beat.id)}
           className={cn(
-            "h-auto py-1 px-2 text-xs rounded flex items-start gap-1.5",
+            "h-auto py-0.5 px-1.5 text-xs rounded flex items-start gap-1.5",
             activeBeatId === beat.id 
               ? "border-orange-400 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:border-orange-700"
               : "border-gray-200 hover:bg-gray-50",
@@ -61,18 +60,18 @@ const BeatSection: React.FC<BeatSectionProps> = ({
               
               {(beat.sceneCount && beat.sceneCount > 0) ? (
                 <span className={cn(
-                  "rounded-full px-1.5 py-0.5 text-[10px] font-medium ml-1",
+                  "rounded-full px-1 py-0.5 text-[9px] font-medium",
                   activeBeatId === beat.id 
                     ? "bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-300"
                     : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                 )}>
-                  {beat.sceneCount} {beat.sceneCount === 1 ? 'Scene' : 'Scenes'}
+                  {beat.sceneCount}
                 </span>
               ) : null}
             </div>
             
             {beat.pageRange && (
-              <span className="text-[10px] text-gray-500 mt-0.5">
+              <span className="text-[9px] text-gray-500">
                 {beat.pageRange}
               </span>
             )}

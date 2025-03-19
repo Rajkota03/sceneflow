@@ -25,17 +25,14 @@ const StructureSelector: React.FC<StructureSelectorProps> = ({
   }
   
   return (
-    <div className="flex items-center w-full">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">
-        Structure:
-      </label>
+    <div className="flex items-center flex-grow max-w-[220px]">
       <Select 
         value={selectedStructureId} 
         onValueChange={onStructureChange}
       >
-        <SelectTrigger className="h-8 text-xs bg-white dark:bg-gray-800 w-72">
+        <SelectTrigger className="h-7 text-xs bg-white dark:bg-gray-800 w-full">
           <div className="flex items-center">
-            <FileText className="w-3.5 h-3.5 mr-2" />
+            <FileText className="w-3 h-3 mr-1.5" />
             <SelectValue placeholder="Select structure" />
           </div>
         </SelectTrigger>
