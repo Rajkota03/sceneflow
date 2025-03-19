@@ -115,9 +115,8 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   
   const hasStructure = !!(structure && structure.acts && Array.isArray(structure.acts) && structure.acts.length > 0);
   
-  if (!hasStructure) {
-    return <StructureUnavailableMessage />;
-  }
+  // Always show the beat tag button, even if structure isn't available yet
+  // This gives better UI feedback that the feature exists
   
   const availableBeats = structure?.acts?.flatMap(act => 
     act.beats?.map(beat => ({
@@ -178,7 +177,7 @@ const SceneTags: React.FC<SceneTagsProps> = ({
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0 w-72 max-h-80 overflow-auto">
-            {structure && (
+            {structure ? (
               <div className="flex flex-col">
                 <div className="flex justify-between items-center p-2 bg-muted border-b">
                   <span className="text-sm font-medium">Story Beat</span>
@@ -191,12 +190,20 @@ const SceneTags: React.FC<SceneTagsProps> = ({
                     </button>
                   )}
                 </div>
-                <BeatPopoverContent 
-                  selectedStructure={structure}
-                  elementBeatId={element.beat}
-                  onBeatSelect={handleBeatSelect}
-                />
+                {hasStructure ? (
+                  <BeatPopoverContent 
+                    selectedStructure={structure}
+                    elementBeatId={element.beat}
+                    onBeatSelect={handleBeatSelect}
+                  />
+                ) : (
+                  <div className="p-3 text-sm text-center text-yellow-600">
+                    This structure doesn't have any acts or beats defined.
+                  </div>
+                )}
               </div>
+            ) : (
+              <StructureUnavailableMessage />
             )}
           </PopoverContent>
         </Popover>

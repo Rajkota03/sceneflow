@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { ActType, Structure } from '@/lib/types';
+import { ActType, Structure, BeatSceneCount } from '@/lib/types';
 import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
@@ -21,8 +21,12 @@ interface TagManagerProps {
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
   selectedStructure?: Structure | null;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  availableStructures?: Array<{ id: string; name: string }>;
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -33,18 +37,14 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeActFilter,
   beatMode = 'on',
   onToggleBeatMode,
+  selectedStructure,
+  selectedStructureId,
+  onStructureChange,
+  availableStructures,
   activeBeatId,
-  onBeatClick
+  onBeatClick,
+  beatSceneCounts = []
 }) => {
-  // Get scene counts for beats and structure information from context
-  const { 
-    beatSceneCounts, 
-    onStructureChange, 
-    selectedStructureId, 
-    availableStructures,
-    selectedStructure
-  } = useScriptEditor();
-  
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
     if (!scriptContent || !scriptContent.elements) return [];
@@ -80,7 +80,7 @@ const TagManager: React.FC<TagManagerProps> = ({
             </h3>
             
             {/* Structure Selector */}
-            {availableStructures && availableStructures.length > 0 && (
+            {availableStructures && availableStructures.length > 0 && onStructureChange && (
               <StructureSelector
                 availableStructures={availableStructures}
                 selectedStructureId={selectedStructureId}
