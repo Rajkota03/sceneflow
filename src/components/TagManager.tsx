@@ -5,7 +5,6 @@ import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
 import { BeatMode } from '@/types/scriptTypes';
-import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import BeatModeToggle from './act-bar/BeatModeToggle';
 import { cn } from '@/lib/utils';
@@ -71,31 +70,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   
   return (
     <div className="bg-white dark:bg-slate-850 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center">
-        <Button variant="ghost" size="sm" className="mr-2">
-          <ArrowLeft size={16} />
-        </Button>
-        <div className="text-sm font-medium flex-1 flex items-center">
-          <span className="inline-block truncate max-w-[220px]">
-            {projectName || "Untitled Screenplay"}
-          </span>
-          <div className="mx-2 text-gray-400">·</div>
-          <span className="text-gray-500 text-sm font-normal">
-            {selectedStructure?.name || structureName}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm" className="text-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></svg>
-            Notes
-          </Button>
-          <div className="w-px h-5 bg-gray-300 dark:bg-gray-600"></div>
-          <Button variant="outline" size="sm" className="bg-blue-600 text-white hover:bg-blue-700 border-blue-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Save
-          </Button>
-        </div>
-      </div>
+      {/* Removed the first header bar with project name */}
       
       <div className="px-4 py-3">
         <div className="flex items-center mb-2">
