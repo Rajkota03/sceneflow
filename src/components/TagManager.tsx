@@ -21,6 +21,8 @@ interface TagManagerProps {
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
   selectedStructure?: Structure | null;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
   beatSceneCounts?: BeatSceneCount[];
@@ -34,14 +36,16 @@ const TagManager: React.FC<TagManagerProps> = ({
   activeActFilter,
   beatMode = 'on',
   onToggleBeatMode,
+  selectedStructureId,
+  onStructureChange,
   activeBeatId,
   onBeatClick,
   beatSceneCounts = []
 }) => {
   // Get scene counts for beats and structure information from context
   const { 
-    onStructureChange, 
-    selectedStructureId, 
+    onStructureChange: contextStructureChange, 
+    selectedStructureId: contextStructureId, 
     availableStructures,
     selectedStructure
   } = useScriptEditor();
@@ -70,6 +74,10 @@ const TagManager: React.FC<TagManagerProps> = ({
     count
   }));
   
+  // Use either the prop values or the context values
+  const handleStructureChange = onStructureChange || contextStructureChange;
+  const structureId = selectedStructureId || contextStructureId;
+  
   return (
     <div className="bg-white dark:bg-slate-850 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="px-3 py-2">
@@ -84,8 +92,8 @@ const TagManager: React.FC<TagManagerProps> = ({
             {availableStructures && availableStructures.length > 0 && (
               <StructureSelector
                 availableStructures={availableStructures}
-                selectedStructureId={selectedStructureId}
-                onStructureChange={onStructureChange}
+                selectedStructureId={structureId}
+                onStructureChange={handleStructureChange}
               />
             )}
           </div>
@@ -109,6 +117,7 @@ const TagManager: React.FC<TagManagerProps> = ({
           activeBeatId={activeBeatId}
           onBeatClick={onBeatClick}
           beatSceneCounts={beatSceneCounts}
+          actCounts={actCounts}
         />
         
         {allTags.length > 0 && (

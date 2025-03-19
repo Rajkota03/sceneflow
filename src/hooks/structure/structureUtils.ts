@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Create a new structure with the given name and template
 export function createStructure(name: string, template?: Structure): Structure {
   const id = `structure-${Date.now()}`;
+  const currentTime = new Date().toISOString();
   
   if (template) {
     return {
@@ -26,7 +27,9 @@ export function createStructure(name: string, template?: Structure): Structure {
   return {
     id,
     name,
-    acts: []
+    acts: [],
+    createdAt: currentTime,
+    updatedAt: currentTime
   };
 }
 
@@ -76,7 +79,9 @@ export function addBeatToAct(structure: Structure, actId: string, beat: Partial<
     id: `beat-${uuidv4()}`,
     title: beat.title || 'New Beat',
     description: beat.description || '',
+    timePosition: beat.timePosition || 0, // Make sure timePosition is always provided
     complete: beat.complete || false,
+    notes: beat.notes || '',
     ...beat
   };
   
@@ -99,8 +104,10 @@ export function addActToStructure(structure: Structure, act: Partial<Act>): Stru
   const newAct: Act = {
     id: `act-${uuidv4()}`,
     title: act.title || 'New Act',
-    beats: [],
-    ...act
+    colorHex: act.colorHex || '#cccccc', // Default color if not provided
+    startPosition: act.startPosition || 0, // Default start position
+    endPosition: act.endPosition || 100, // Default end position
+    beats: act.beats || []
   };
   
   return {
@@ -261,12 +268,14 @@ export async function fetchStructuresFromSupabase(projectId: string) {
 
 export function parseStructureData(structureData: any): Structure {
   // Basic implementation to parse structure data
+  const currentTime = new Date().toISOString();
+  
   return {
     id: structureData.id || '',
     name: structureData.name || 'Unnamed Structure',
     acts: structureData.acts || [],
-    createdAt: structureData.createdAt || new Date().toISOString(),
-    updatedAt: structureData.updatedAt || new Date().toISOString()
+    createdAt: structureData.createdAt || currentTime,
+    updatedAt: structureData.updatedAt || currentTime
   };
 }
 
