@@ -3,7 +3,8 @@ import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
-import { FormatState } from '@/lib/formatContext'; // Import the FormatState type
+import { FormatState } from '@/lib/formatContext';
+import FormatStyler from '../FormatStyler';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -19,7 +20,7 @@ interface ScriptPageProps {
   projectId?: string;
   beatMode: BeatMode;
   selectedStructure?: Structure | null;
-  formatState?: FormatState; // Using the imported FormatState type
+  formatState?: FormatState;
   currentPage: number;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
@@ -42,26 +43,39 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   currentPage,
   onBeatTag
 }) => {
+  // Calculate approx lines per page (based on Final Draft standard of ~54 lines/page)
+  const linesPerPage = 54;
+  
+  // Get total line count estimate based on elements
+  const getLineCount = (element: ScriptElement): number => {
+    const text = element.text || '';
+    const baseLines = Math.max(1, Math.ceil(text.length / 60)); // ~60 chars per line
+    
+    switch(element.type) {
+      case 'scene-heading':
+        return 1;
+      case 'action':
+        return baseLines;
+      case 'character':
+        return 1;
+      case 'dialogue':
+        return baseLines;
+      case 'parenthetical':
+        return 1;
+      case 'transition':
+        return 2; // 1 for transition + 1 for spacing
+      default:
+        return baseLines;
+    }
+  };
+  
+  // Calculate approx page and add page breaks as needed
+  const totalLines = elements.reduce((acc, element) => acc + getLineCount(element), 0);
+  const estimatedPageCount = Math.max(1, Math.ceil(totalLines / linesPerPage));
+  
   return (
-    <div className="script-page" style={{ 
-      transform: `scale(${formatState?.zoomLevel || 1})`,
-      transformOrigin: 'top center',
-      transition: 'transform 0.2s ease-out',
-      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-    }}>
-      <div className="script-page-content" style={{
-        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-        fontSize: '12pt',
-        position: 'relative'
-      }}>
-        {/* Page number now positioned inside the page */}
-        <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: "Courier Final Draft, Courier Prime, monospace",
-          fontSize: "12pt",
-        }}>
-          {currentPage}
-        </div>
-        
+    <FormatStyler currentPage={currentPage}>
+      <div className="script-elements-container">
         {elements.map((element, index) => (
           <EditorElement
             key={element.id}
@@ -82,7 +96,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           />
         ))}
       </div>
-    </div>
+    </FormatStyler>
   );
 };
 

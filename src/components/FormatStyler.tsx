@@ -33,32 +33,45 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     color: isDarkMode ? '#F6F6F7' : formatState.textColor || '#000000',
     backgroundColor: isDarkMode ? '#1A1F2C' : 'white',
     textAlign: formatState.alignment || 'left',
-    lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
-                formatState.lineSpacing === '1.5' ? '1.5' : '2',
-    width: '100%',
-    maxWidth: '8.5in', // Standard screenplay width
-    height: forPrint || forExport ? 'auto' : 'auto',
-    minHeight: forPrint || forExport ? 'auto' : '11in', // Standard screenplay height
+    lineHeight: '1.2', // Match Final Draft's line spacing
+    width: '8.5in', // US Letter width - Final Draft standard
+    height: forPrint || forExport ? '11in' : 'auto',
+    minHeight: forPrint || forExport ? '11in' : '11in', // Standard screenplay height
     margin: '0 auto',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
-    overflow: 'visible',
     position: 'relative',
     direction: 'ltr',
     unicodeBidi: 'plaintext',
-    padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
+    padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in', // Final Draft standard margins
     boxShadow: isDarkMode 
-      ? '0 2px 10px rgba(0,0,0,0.3)' 
-      : '0 2px 10px rgba(0,0,0,0.1)',
+      ? '0 4px 12px rgba(0,0,0,0.4)' 
+      : '0 4px 12px rgba(0,0,0,0.15)',
+    border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
+  };
+
+  // Add a page number in Final Draft style
+  const pageNumberStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: '0.5in',
+    right: '1in',
+    fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+    fontSize: '12pt',
+    color: isDarkMode ? '#aaa' : '#666',
   };
 
   return (
     <div 
       style={style} 
-      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
+      className={`script-format-styler ${forPrint || forExport ? 'print-version' : ''}`}
       data-font="courier-final-draft"
       dir="ltr"
     >
+      {!forPrint && !forExport && (
+        <div style={pageNumberStyle}>
+          {currentPage}
+        </div>
+      )}
       {children}
     </div>
   );
