@@ -1,5 +1,5 @@
 
-import { Structure, Act, Beat } from './types';
+import { Structure, Act, Beat } from '@/lib/types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create a new structure with the given name and template
@@ -182,7 +182,7 @@ export function getStructureCompletionPercentage(structure: Structure): number {
 }
 
 // Update a beat's completion status
-export function updateStructureBeatCompletion(structure: Structure, beatId: string, actId: string, complete: boolean): Structure | null {
+export function updateStructureBeatCompletion(structure: Structure | null, beatId: string, actId: string, complete: boolean): Structure | null {
   if (!structure || !structure.acts) return null;
   
   return {
@@ -240,4 +240,37 @@ export function getAllBeatsFlat(structure: Structure): Beat[] {
   if (!structure.acts) return [];
   
   return structure.acts.flatMap(act => act.beats || []);
+}
+
+// Calculate the structure progress
+export function calculateStructureProgress(structure: Structure): number {
+  return getStructureCompletionPercentage(structure);
+}
+
+// Add the required missing functions for useStructures.ts
+export async function fetchStructuresFromSupabase(projectId: string) {
+  console.log('Fetching structures for project:', projectId);
+  
+  // For now, return a mock implementation
+  return {
+    allStructures: [],
+    linkedStructureId: null,
+    error: null
+  };
+}
+
+export function parseStructureData(structureData: any): Structure {
+  // Basic implementation to parse structure data
+  return {
+    id: structureData.id || '',
+    name: structureData.name || 'Unnamed Structure',
+    acts: structureData.acts || [],
+    createdAt: structureData.createdAt || new Date().toISOString(),
+    updatedAt: structureData.updatedAt || new Date().toISOString()
+  };
+}
+
+export async function linkStructureToProject(projectId: string, structureId: string): Promise<void> {
+  console.log(`Linking structure ${structureId} to project ${projectId}`);
+  // Implement the actual linking logic
 }

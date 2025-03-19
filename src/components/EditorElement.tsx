@@ -97,6 +97,24 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onFocus();
+    
+    if (editorRef.current) {
+      // Ensure the element gets focus
+      editorRef.current.focus();
+      
+      // Attempt to set the cursor at the click position
+      const selection = window.getSelection();
+      if (selection) {
+        try {
+          const range = document.createRange();
+          range.setStart(e.target as Node, 0);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } catch (err) {
+          console.error("Error setting cursor position:", err);
+        }
+      }
+    }
   };
 
   return (
@@ -147,6 +165,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         }}
         dir="ltr"
         tabIndex={0} // Ensure element is focusable
+        data-element-type={element.type} // Add data attribute for element type
       >
         {text}
       </div>

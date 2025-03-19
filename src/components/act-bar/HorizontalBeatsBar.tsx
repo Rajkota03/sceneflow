@@ -42,6 +42,13 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
     return null;
   }
 
+  // Helper function to get act label
+  const getActLabel = (actId: string | undefined) => {
+    if (!actId) return "";
+    const act = actButtons.find(a => a.id === actId);
+    return act ? act.label : actId;
+  };
+
   return (
     <div className="w-full py-1">
       <TooltipProvider>
@@ -97,7 +104,7 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
                         "text-xs font-medium px-1.5 py-0.5 rounded", 
                         beat.actBgColor || "bg-gray-100"
                       )}>
-                        {actButtons.find(a => a.id === beat.actId)?.label || beat.actId}
+                        {getActLabel(beat.actId)}
                       </span>
                     </p>
                   )}

@@ -15,6 +15,8 @@ const TagManagerContainer: React.FC = () => {
     projectId,
     projectTitle,
     selectedStructure,
+    selectedStructureId,
+    onStructureChange,
     activeBeatId,
     setActiveBeatId,
     beatSceneCounts
@@ -38,6 +40,8 @@ const TagManagerContainer: React.FC = () => {
       beatMode={beatMode}
       onToggleBeatMode={onToggleBeatMode}
       selectedStructure={selectedStructure}
+      selectedStructureId={selectedStructureId}
+      onStructureChange={onStructureChange}
       activeBeatId={activeBeatId}
       onBeatClick={handleBeatClick}
       beatSceneCounts={beatSceneCounts || []}
