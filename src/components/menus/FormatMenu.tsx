@@ -10,18 +10,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useFormat } from '@/lib/formatContext';
 import { Pilcrow, LayoutTemplate, FileText, Save } from 'lucide-react';
-import { LineSpacingType } from '@/lib/types';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 import { toast } from 'sonner';
 import { generatePDF } from '@/lib/pdfExport';
 
 const FormatMenu = () => {
-  const { formatState, setLineSpacing, toggleShowSceneNumbers } = useFormat();
+  const { formatState, setLineSpacing } = useFormat();
   const { elements, scriptContentRef } = useScriptEditor();
 
   const handleLineSpacingChange = (spacing: 'single' | '1.5' | 'double') => {
     if (setLineSpacing) {
-      setLineSpacing(spacing as LineSpacingType);
+      setLineSpacing(spacing);
     }
   };
 
@@ -80,13 +79,6 @@ const FormatMenu = () => {
         >
           <span className="text-xs mr-2">2.0</span>
           Double Line Spacing
-        </DropdownMenuItem>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuItem onClick={() => toggleShowSceneNumbers && toggleShowSceneNumbers()}>
-          <LayoutTemplate className="h-4 w-4 mr-2" />
-          {formatState.showSceneNumbers ? 'Hide' : 'Show'} Scene Numbers
         </DropdownMenuItem>
         
         <DropdownMenuSeparator />

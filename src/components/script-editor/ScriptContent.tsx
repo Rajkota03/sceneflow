@@ -1,9 +1,10 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useFormat } from '@/lib/formatContext';
-import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
+import { generateUniqueId } from '@/lib/formatScript';
+import { toast } from 'sonner';
 
 const ScriptContent: React.FC = () => {
   const { formatState } = useFormat();
@@ -22,7 +23,8 @@ const ScriptContent: React.FC = () => {
     projectId,
     beatMode,
     selectedStructure,
-    scriptContentRef
+    scriptContentRef,
+    setElements
   } = useScriptEditor();
 
   const handleFocus = (id: string) => {
@@ -32,15 +34,41 @@ const ScriptContent: React.FC = () => {
   // If there are no elements, create initial elements with placeholder text
   useEffect(() => {
     if (elements.length === 0) {
-      // The provider should handle this, but we can add a check here too
-      console.log("Script content: No elements found");
+      console.log("Creating default elements for empty script");
+      const defaultElements = [
+        {
+          id: generateUniqueId(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: generateUniqueId(),
+          type: 'action',
+          text: 'Type your action here...'
+        }
+      ];
+      
+      // Set the new elements
+      setElements(defaultElements);
+      
+      // Set the first element as active
+      setTimeout(() => {
+        setActiveElementId(defaultElements[0].id);
+      }, 100);
     }
-  }, [elements]);
+  }, [elements, setElements, setActiveElementId]);
+
+  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If clicking on the background (not an element), focus the last element
+    if (e.target === e.currentTarget && elements.length > 0) {
+      setActiveElementId(elements[elements.length - 1].id);
+    }
+  };
 
   return (
     <div 
       className="w-full h-full overflow-auto bg-white dark:bg-slate-800 cursor-text"
-      style={{ position: 'relative' }}
+      onClick={handleEditorClick}
     >
       <div 
         ref={scriptContentRef}

@@ -19,9 +19,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   zoomPercentage = 100,
   onZoomChange
 }) => {
-  const {
-    formatState
-  } = useFormat();
+  const { formatState } = useFormat();
   const {
     elements,
     activeElementId,

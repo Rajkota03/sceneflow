@@ -26,50 +26,23 @@ export function useElementInteraction({
   isActive,
   characterNames
 }: UseElementInteractionProps) {
-  const [text, setText] = useState(initialText);
+  const [text, setText] = useState(initialText || '');
   const [suggestionsVisible, setSuggestionsVisible] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
   const [focusIndex, setFocusIndex] = useState(0);
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
-  // Sync text with initial value from props
+  // Sync text with initial value from props when it changes
   useEffect(() => {
-    setText(initialText);
+    setText(initialText || '');
+    
+    // Update the inner text of the editor ref if it exists and doesn't match
+    if (editorRef.current && editorRef.current.innerText !== initialText) {
+      editorRef.current.innerText = initialText || '';
+    }
   }, [initialText]);
   
-  // Focus management when element becomes active
-  useEffect(() => {
-    if (editorRef.current && isActive) {
-      // Update the inner content to ensure it matches the text
-      if (editorRef.current.innerText !== initialText) {
-        editorRef.current.innerText = initialText;
-      }
-      
-      // Focus the element when it becomes active
-      editorRef.current.focus();
-      
-      // Position cursor at the end
-      const range = document.createRange();
-      const sel = window.getSelection();
-      
-      // Different handling based on whether there's content or not
-      if (editorRef.current.childNodes.length > 0) {
-        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-        range.setStartAfter(lastNode);
-      } else {
-        range.setStart(editorRef.current, 0);
-      }
-      
-      range.collapse(true);
-      
-      if (sel) {
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }
-    }
-  }, [isActive, initialText]);
-
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.innerText;
     setText(newText);
@@ -148,8 +121,13 @@ export function useElementInteraction({
         e.preventDefault();
         setFocusIndex(prevIndex => Math.max(0, prevIndex - 1));
       } else {
-        e.preventDefault();
-        onNavigate('up', elementId);
+        const selection = window.getSelection();
+        const isAtStart = selection && selection.anchorOffset === 0;
+        
+        if (isAtStart) {
+          e.preventDefault();
+          onNavigate('up', elementId);
+        }
       }
       return;
     } 
@@ -159,8 +137,15 @@ export function useElementInteraction({
         e.preventDefault();
         setFocusIndex(prevIndex => Math.min(filteredSuggestions.length - 1, prevIndex + 1));
       } else {
-        e.preventDefault();
-        onNavigate('down', elementId);
+        const selection = window.getSelection();
+        const isAtEnd = selection && 
+                       editorRef.current && 
+                       selection.anchorOffset === editorRef.current.textContent?.length;
+        
+        if (isAtEnd) {
+          e.preventDefault();
+          onNavigate('down', elementId);
+        }
       }
       return;
     } 

@@ -9,6 +9,7 @@ import ElementTypeMenu from './editor/ElementTypeMenu';
 import useElementInteraction from '@/hooks/useElementInteraction';
 import { formatType } from '@/lib/formatScript';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
+import BeatTagButton from './script/beat-tags/BeatTagButton';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -172,12 +173,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
           
           {showBeatTags && (
             <div className="absolute right-0 top-0">
-              <SceneTags 
-                element={element} 
-                onTagsChange={onTagsChange} 
-                projectId={projectId}
-                selectedStructure={structure}
-                onBeatTag={handleBeatTagging}
+              <BeatTagButton
+                elementId={element.id}
+                beatId={element.beat}
               />
             </div>
           )}
