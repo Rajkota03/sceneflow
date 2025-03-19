@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -26,6 +27,7 @@ interface ScriptEditorProviderProps {
 
 export interface ScriptEditorContextType {
   elements: ScriptElement[];
+  setElements: (elements: ScriptElement[]) => void;
   activeElementId: string | null;
   setActiveElementId: (id: string | null) => void;
   activeTagFilter: string | null;
@@ -200,6 +202,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const contextValue: ScriptEditorContextType = {
     elements,
+    setElements,
     activeElementId,
     setActiveElementId,
     activeTagFilter,
