@@ -67,7 +67,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu
+    setShowElementMenu,
+    focusAndPlaceCursor
   } = useElementInteraction({
     elementId: element.id,
     text: element.text,
@@ -88,33 +89,22 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Ensure cursor positioning works correctly
   useEffect(() => {
     if (isActive && editorRef.current) {
-      // Ensure focus and cursor visibility
-      editorRef.current.focus();
-      
-      // Position cursor at end of text
-      const range = document.createRange();
-      const selection = window.getSelection();
-      
-      if (editorRef.current.childNodes.length > 0) {
-        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-        range.setStartAfter(lastNode);
-      } else {
-        range.setStart(editorRef.current, 0);
-      }
-      
-      range.collapse(true);
-      
-      if (selection) {
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
+      focusAndPlaceCursor();
     }
-  }, [isActive]);
+  }, [isActive, focusAndPlaceCursor]);
+
+  // Handle click on the element
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onFocus();
+  };
 
   return (
     <div 
+      id={`element-container-${element.id}`}
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
+      onClick={handleClick}
       ref={editorDivRef}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -131,6 +121,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       </div>
       
       <div
+        id={element.id}
         ref={editorRef}
         className={`
           element-text 

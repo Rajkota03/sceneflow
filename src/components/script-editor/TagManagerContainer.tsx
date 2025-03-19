@@ -21,6 +21,7 @@ const TagManagerContainer: React.FC = () => {
   } = useScriptEditor();
 
   const handleBeatClick = (beatId: string) => {
+    console.log("Beat clicked:", beatId);
     setActiveBeatId(beatId);
   };
 
@@ -39,7 +40,6 @@ const TagManagerContainer: React.FC = () => {
       selectedStructure={selectedStructure}
       activeBeatId={activeBeatId}
       onBeatClick={handleBeatClick}
-      // Pass beatSceneCounts as a properly typed prop that exists in TagManager
       beatSceneCounts={beatSceneCounts || []}
     />
   );

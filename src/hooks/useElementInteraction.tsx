@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
 
@@ -38,45 +37,62 @@ export function useElementInteraction({
     setText(initialText);
   }, [initialText]);
 
-  // Set up cursor and focus when element becomes active
-  useEffect(() => {
-    if (editorRef.current && isActive) {
-      // Set the text content to ensure it's up to date
-      if (editorRef.current.innerText !== initialText) {
-        editorRef.current.innerText = initialText;
-      }
-
-      // Focus the element with a slight delay to ensure UI is ready
-      setTimeout(() => {
-        // Apply focus
-        if (editorRef.current) {
-          editorRef.current.focus();
+  // Function to focus element and place cursor at the end
+  const focusAndPlaceCursor = useCallback(() => {
+    if (!editorRef.current) return;
+    
+    // Apply focus with a slight delay to ensure UI is ready
+    setTimeout(() => {
+      // Focus the element
+      if (editorRef.current) {
+        console.log(`Focusing element ${elementId}`);
+        editorRef.current.focus();
+      
+        // Set text content if needed
+        if (editorRef.current.innerText !== text) {
+          editorRef.current.innerText = text;
+        }
         
+        try {
           // Position cursor at end of text
           const range = document.createRange();
           const sel = window.getSelection();
           
-          try {
-            // Position cursor at end of text
-            if (editorRef.current.childNodes.length > 0) {
-              range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+          // Check if element has child nodes
+          if (editorRef.current.childNodes.length > 0) {
+            const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+            
+            if (lastNode.nodeType === Node.TEXT_NODE) {
+              // If it's a text node, set cursor at the end of the text
+              range.setStart(lastNode, lastNode.textContent?.length || 0);
             } else {
-              range.setStart(editorRef.current, 0);
+              // Otherwise set cursor after the last node
+              range.setStartAfter(lastNode);
             }
-            
-            range.collapse(true);
-            
-            if (sel) {
-              sel.removeAllRanges();
-              sel.addRange(range);
-            }
-          } catch (err) {
-            console.error('Error setting cursor position:', err);
+          } else {
+            // If no child nodes, set cursor at beginning of element
+            range.setStart(editorRef.current, 0);
           }
+          
+          range.collapse(true);
+          
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        } catch (err) {
+          console.error('Error setting cursor position:', err);
         }
-      }, 10);
+      }
+    }, 10);
+  }, [elementId, text]);
+
+  // Set up cursor and focus when element becomes active
+  useEffect(() => {
+    if (isActive) {
+      focusAndPlaceCursor();
     }
-  }, [isActive, initialText]);
+  }, [isActive, focusAndPlaceCursor]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.innerText;
@@ -206,6 +222,9 @@ export function useElementInteraction({
   const handleElementTypeChange = (newType: ElementType) => {
     onFormatChange(elementId, newType);
     setShowElementMenu(false);
+    
+    // Re-focus the element after changing type
+    setTimeout(focusAndPlaceCursor, 50);
   };
 
   return {
@@ -220,7 +239,8 @@ export function useElementInteraction({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu
+    setShowElementMenu,
+    focusAndPlaceCursor
   };
 }
 

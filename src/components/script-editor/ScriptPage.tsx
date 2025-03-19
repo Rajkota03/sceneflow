@@ -52,7 +52,8 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         transform: `scale(${formatState?.zoomLevel || 1})`,
         transformOrigin: 'top center',
         transition: 'transform 0.2s ease-out',
-        fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+        cursor: 'text' // Explicitly set cursor
       }}
     >
       <div 
