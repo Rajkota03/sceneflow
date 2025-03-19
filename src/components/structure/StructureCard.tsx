@@ -14,39 +14,28 @@ interface StructureCardProps {
   structure: Structure;
   onEdit: (structure: Structure) => void;
   onDelete: (id: string) => Promise<void>;
-  isLoading?: boolean;
 }
 
 // Helper function to calculate beat completion as a percentage
 const calculateProgress = (acts: Act[]): number => {
-  if (!acts || !Array.isArray(acts)) return 0;
-  
   let completedBeats = 0;
   let totalBeats = 0;
   
   acts.forEach(act => {
-    if (act.beats && Array.isArray(act.beats)) {
-      act.beats.forEach(beat => {
-        totalBeats++;
-        if (beat.complete) {
-          completedBeats++;
-        }
-      });
-    }
+    act.beats.forEach(beat => {
+      totalBeats++;
+      if (beat.complete) {
+        completedBeats++;
+      }
+    });
   });
   
   return totalBeats > 0 ? (completedBeats / totalBeats) * 100 : 0;
 };
 
-const StructureCard: React.FC<StructureCardProps> = ({ 
-  structure, 
-  onEdit, 
-  onDelete,
-  isLoading = false
-}) => {
+const StructureCard: React.FC<StructureCardProps> = ({ structure, onEdit, onDelete }) => {
   const navigate = useNavigate();
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   
   const progress = calculateProgress(structure.acts);
   
@@ -59,18 +48,8 @@ const StructureCard: React.FC<StructureCardProps> = ({
   };
   
   const handleDeleteConfirm = async () => {
-    if (isDeleting) return; // Prevent multiple clicks
-    
-    try {
-      setIsDeleting(true);
-      await onDelete(structure.id);
-    } catch (error) {
-      console.error('Error deleting structure:', error);
-    } finally {
-      // Only close if we're still mounted
-      setIsDeleting(false);
-      setDeleteAlertOpen(false);
-    }
+    await onDelete(structure.id);
+    setDeleteAlertOpen(false);
   };
   
   // Format the dates
@@ -105,22 +84,21 @@ const StructureCard: React.FC<StructureCardProps> = ({
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLoading || isDeleting}>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleViewClick} disabled={isLoading || isDeleting}>
+              <DropdownMenuItem onClick={handleViewClick}>
                 View Structure
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleEditClick} disabled={isLoading || isDeleting}>
+              <DropdownMenuItem onClick={handleEditClick}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"
                 onClick={() => setDeleteAlertOpen(true)}
-                disabled={isLoading || isDeleting}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
@@ -165,16 +143,9 @@ const StructureCard: React.FC<StructureCardProps> = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={(e) => {
-                e.preventDefault();
-                handleDeleteConfirm();
-              }} 
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isDeleting || isLoading}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-red-600 hover:bg-red-700">
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

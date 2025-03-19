@@ -3,11 +3,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { Structure } from '@/lib/types';
 import { StructureHookProps, StructureHookReturn } from './types';
 import { 
-  calculateStructureProgress,
-  updateStructureBeatCompletion,
-  saveStructureBeatCompletion,
   fetchStructuresFromSupabase,
   parseStructureData,
+  updateStructureBeatCompletion,
+  saveStructureBeatCompletion,
   linkStructureToProject
 } from './structureUtils';
 
@@ -90,12 +89,12 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     }
   };
 
-  // Create a wrapper around updateStructureBeatCompletion
+  // Implement the update beat completion function
   const updateBeatCompletionHandler = (beatId: string, actId: string, complete: boolean) => {
     return updateStructureBeatCompletion(selectedStructure, beatId, actId, complete);
   };
 
-  // Create a wrapper around saveStructureBeatCompletion
+  // Implement the save beat completion function
   const saveBeatCompletionHandler = async (structureId: string, updatedStructure: Structure) => {
     return await saveStructureBeatCompletion(structureId, updatedStructure);
   };

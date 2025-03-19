@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Map, Check, X } from 'lucide-react';
+import { Map, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 import BeatPopoverContent from './BeatPopoverContent';
@@ -11,13 +11,11 @@ import { toast } from '@/components/ui/use-toast';
 interface BeatPopoverProps {
   elementId: string;
   elementBeatId?: string;
-  onRemoveTag?: () => void;
 }
 
 const BeatPopover: React.FC<BeatPopoverProps> = ({ 
   elementId,
-  elementBeatId,
-  onRemoveTag
+  elementBeatId
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { selectedStructure, handleBeatTag } = useScriptEditor();
@@ -25,11 +23,8 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
   // Find the beat in the structure
   const findBeatDetails = () => {
     if (!selectedStructure || !elementBeatId) return null;
-    if (!selectedStructure.acts || !Array.isArray(selectedStructure.acts)) return null;
     
     for (const act of selectedStructure.acts) {
-      if (!act.beats || !Array.isArray(act.beats)) continue;
-      
       const beat = act.beats.find(b => b.id === elementBeatId);
       if (beat) {
         return {
@@ -46,22 +41,29 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
   
   const handleBeatSelect = (beatId: string, actId: string) => {
     handleBeatTag(elementId, beatId, actId);
+    
+    // When a beat is selected, mark it as complete in the structure
+    if (selectedStructure) {
+      const updatedStructure = { ...selectedStructure };
+      const act = updatedStructure.acts.find(a => a.id === actId);
+      if (act) {
+        const beat = act.beats.find(b => b.id === beatId);
+        if (beat) {
+          beat.complete = true;
+        }
+      }
+    }
+    
+    toast({
+      description: "Scene tagged with beat successfully",
+      duration: 2000,
+    });
+    
     setIsOpen(false);
   };
   
   const handleRemoveBeat = () => {
-    handleBeatTag(elementId, '', '');
-    
-    // Call the onRemoveTag prop if provided
-    if (onRemoveTag) {
-      onRemoveTag();
-    }
-    
-    toast({
-      description: "Scene tag removed successfully",
-      duration: 2000,
-    });
-    
+    handleBeatTag(elementId, '');
     setIsOpen(false);
   };
   
@@ -79,18 +81,10 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
           )}
         >
           {elementBeatId ? (
-            <div className="flex items-center">
+            <>
               <Check size={14} className="mr-1" />
-              <span className="max-w-24 truncate">{beatDetails?.beatTitle || 'Beat'}</span>
-              <X 
-                size={14} 
-                className="ml-1 text-white hover:text-red-200" 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleRemoveBeat();
-                }} 
-              />
-            </div>
+              {beatDetails?.beatTitle || 'Beat'}
+            </>
           ) : (
             <Map size={14} />
           )}
@@ -111,9 +105,9 @@ const BeatPopover: React.FC<BeatPopoverProps> = ({
                   variant="ghost" 
                   size="sm" 
                   onClick={handleRemoveBeat}
-                  className="h-7 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+                  className="h-7 w-7 p-0"
                 >
-                  <X size={14} className="mr-1" /> Remove Tag
+                  <Check size={14} className="text-green-500" />
                 </Button>
               )}
             </div>

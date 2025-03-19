@@ -38,7 +38,7 @@ export const useBeatTagging = ({
     
     // Show success toast
     toast({
-      description: beatId ? "Scene tagged successfully" : "Beat tag removed",
+      description: "Scene tagged successfully",
       duration: 2000,
     });
     

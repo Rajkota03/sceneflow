@@ -12,15 +12,13 @@ export interface NoteEditorProps {
   onSaveNote: (updatedNote: Note) => void;
   isPopup?: boolean;
   onClose?: () => void;
-  onCancel?: () => void;
 }
 
 const NoteEditor: React.FC<NoteEditorProps> = ({ 
   note, 
   onSaveNote,
   isPopup = false,
-  onClose,
-  onCancel
+  onClose 
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -56,9 +54,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
   };
 
   const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else if (onClose) {
+    if (onClose) {
       onClose();
     }
   };
@@ -92,10 +88,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
           Last updated: {new Date(note.updatedAt || note.createdAt).toLocaleString()}
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={handleCancel}>
-            <X className="w-4 h-4 mr-1" />
-            Cancel
-          </Button>
+          {onClose && (
+            <Button variant="outline" size="sm" onClick={handleCancel}>
+              <X className="w-4 h-4 mr-1" />
+              Cancel
+            </Button>
+          )}
           <Button 
             onClick={handleSave} 
             size="sm" 

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ChevronDown } from 'lucide-react';
-import { StructureType } from '@/hooks/structure/useDashboardStructures';
+import { StructureType } from '@/hooks/useDashboardStructures';
 
 interface StructuresTabProps {
   structures: Structure[];
@@ -37,17 +37,6 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
 }) => {
   const navigate = useNavigate();
   const [isStructureMenuOpen, setIsStructureMenuOpen] = useState(false);
-  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
-  
-  // Wrapper for delete handler to track local deletion state
-  const handleDelete = async (id: string) => {
-    try {
-      setIsDeletingId(id);
-      await handleDeleteStructure(id);
-    } finally {
-      setIsDeletingId(null);
-    }
-  };
 
   return (
     <>
@@ -56,7 +45,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         
         <DropdownMenu open={isStructureMenuOpen} onOpenChange={setIsStructureMenuOpen}>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" disabled={isLoading}>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">
               <PlusCircle className="h-4 w-4 mr-2" />
               Create Structure
               <ChevronDown className="h-4 w-4 ml-2" />
@@ -98,8 +87,8 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
         projectType="structure"
       />
       
-      {isLoading && structures.length === 0 ? (
-        <LoadingState message="Loading your structures..." />
+      {isLoading ? (
+        <LoadingState />
       ) : structures.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {structures.map(structure => (
@@ -107,8 +96,7 @@ const StructuresTab: React.FC<StructuresTabProps> = ({
               key={structure.id}
               structure={structure}
               onEdit={handleEditStructure}
-              onDelete={handleDelete}
-              isLoading={isLoading || (isDeletingId === structure.id)}
+              onDelete={handleDeleteStructure}
             />
           ))}
         </div>

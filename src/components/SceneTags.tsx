@@ -14,7 +14,7 @@ import TagInputPopover from './script/beat-tags/TagInputPopover';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
-import { Map, Check, X } from 'lucide-react';
+import { Map, Check } from 'lucide-react';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -84,39 +84,11 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     }
   };
   
-  const handleBeatSelect = (beatId: string, actId: string) => {
-    console.log('Beat selected:', beatId, actId, element.id);
-    if (handleBeatTagging) {
-      handleBeatTagging(element.id, beatId, actId);
-      toast({
-        description: "Scene tagged successfully",
-        duration: 2000,
-      });
-      setBeatPopupOpen(false);
-    } else {
-      console.error('Beat tagging handler not available');
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not tag scene. Handler not available.",
-      });
-    }
-  };
-  
-  const handleRemoveBeat = () => {
-    if (handleBeatTagging) {
-      handleBeatTagging(element.id, '', '');
-      toast({
-        description: "Beat tag removed successfully",
-        duration: 2000,
-      });
-    }
-  };
-  
   const hasStructure = !!(structure && structure.acts && Array.isArray(structure.acts) && structure.acts.length > 0);
   
-  // Always show the beat tag button, even if structure isn't available yet
-  // This gives better UI feedback that the feature exists
+  if (!hasStructure) {
+    return <StructureUnavailableMessage />;
+  }
   
   const availableBeats = structure?.acts?.flatMap(act => 
     act.beats?.map(beat => ({
@@ -135,6 +107,25 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const beatDetails = hasBeatTag 
     ? availableBeats.find(b => b.beatId === element.beat)
     : null;
+  
+  const handleBeatSelect = (beatId: string, actId: string) => {
+    console.log('Beat selected:', beatId, actId, element.id);
+    if (handleBeatTagging) {
+      handleBeatTagging(element.id, beatId, actId);
+      toast({
+        description: "Scene tagged successfully",
+        duration: 2000,
+      });
+      setBeatPopupOpen(false);
+    } else {
+      console.error('Beat tagging handler not available');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not tag scene. Handler not available.",
+      });
+    }
+  };
 
   return (
     <div className="flex items-center text-xs space-x-1">
@@ -159,51 +150,22 @@ const SceneTags: React.FC<SceneTagsProps> = ({
               onClick={() => setBeatPopupOpen(true)}
             >
               {hasBeatTag ? (
-                <div className="flex items-center">
+                <>
                   <Check size={14} className="mr-1" />
-                  <span className="max-w-24 truncate">{beatDetails?.beatTitle || 'Beat'}</span>
-                  <X 
-                    size={14} 
-                    className="ml-1 text-white hover:text-red-200" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveBeat();
-                    }} 
-                  />
-                </div>
+                  {beatDetails?.beatTitle || 'Beat'}
+                </>
               ) : (
                 <Map size={14} />
               )}
             </button>
           </PopoverTrigger>
           <PopoverContent align="start" className="p-0 w-72 max-h-80 overflow-auto">
-            {structure ? (
-              <div className="flex flex-col">
-                <div className="flex justify-between items-center p-2 bg-muted border-b">
-                  <span className="text-sm font-medium">Story Beat</span>
-                  {hasBeatTag && (
-                    <button 
-                      className="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50"
-                      onClick={handleRemoveBeat}
-                    >
-                      <X size={14} className="inline mr-1" /> Remove Tag
-                    </button>
-                  )}
-                </div>
-                {hasStructure ? (
-                  <BeatPopoverContent 
-                    selectedStructure={structure}
-                    elementBeatId={element.beat}
-                    onBeatSelect={handleBeatSelect}
-                  />
-                ) : (
-                  <div className="p-3 text-sm text-center text-yellow-600">
-                    This structure doesn't have any acts or beats defined.
-                  </div>
-                )}
-              </div>
-            ) : (
-              <StructureUnavailableMessage />
+            {structure && (
+              <BeatPopoverContent 
+                selectedStructure={structure}
+                elementBeatId={element.beat}
+                onBeatSelect={handleBeatSelect}
+              />
             )}
           </PopoverContent>
         </Popover>

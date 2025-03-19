@@ -6,20 +6,17 @@ interface BeatTagButtonProps {
   elementId: string;
   beatId?: string;
   beatTitle?: string;
-  onRemoveTag?: () => void;
 }
 
 const BeatTagButton: React.FC<BeatTagButtonProps> = ({
   elementId,
   beatId,
-  beatTitle,
-  onRemoveTag
+  beatTitle
 }) => {
   return (
     <BeatPopover 
       elementId={elementId}
       elementBeatId={beatId}
-      onRemoveTag={onRemoveTag}
     />
   );
 };
