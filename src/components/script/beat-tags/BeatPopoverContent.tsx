@@ -29,7 +29,7 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
         {selectedStructure.acts.map((act) => (
           <div key={act.id} className="mb-3">
             <h3 className="font-medium text-xs text-gray-500 uppercase tracking-wider mb-1 px-1">
-              {act.title || `Act ${act.number || ''}`}
+              {act.title || `Act ${act.id.slice(0, 4)}`}
             </h3>
             <div className="space-y-1">
               {Array.isArray(act.beats) && act.beats.map((beat) => (
