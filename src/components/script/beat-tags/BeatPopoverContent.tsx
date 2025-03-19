@@ -68,35 +68,37 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
             )}>
               {act.title || "Act"}
             </div>
-            <ScrollArea className="h-full max-h-48 w-full">
-              <div className="p-2 flex flex-wrap gap-1.5">
-                {act.beats && Array.isArray(act.beats) ? (
-                  act.beats.map(beat => {
-                    const isSelected = elementBeatId === beat.id;
-                    
-                    return (
-                      <Badge 
-                        key={beat.id}
-                        onClick={() => onBeatSelect(beat.id, act.id)}
-                        className={cn(
-                          "cursor-pointer flex items-center gap-1 px-2 py-1 text-xs whitespace-nowrap",
-                          isSelected 
-                            ? "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/20 dark:text-orange-300" 
-                            : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-                        )}
-                      >
-                        {isSelected && <Flame size={10} className="h-3 w-3" />}
-                        <span className="truncate max-w-[120px]">{beat.title}</span>
-                      </Badge>
-                    );
-                  })
-                ) : (
-                  <div className="px-2 py-1 text-xs text-gray-500">
-                    No beats defined for this act
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
+            <div className="p-2">
+              <ScrollArea className="w-full pb-1">
+                <div className="flex gap-1.5 flex-wrap">
+                  {act.beats && Array.isArray(act.beats) ? (
+                    act.beats.map(beat => {
+                      const isSelected = elementBeatId === beat.id;
+                      
+                      return (
+                        <Badge 
+                          key={beat.id}
+                          onClick={() => onBeatSelect(beat.id, act.id)}
+                          className={cn(
+                            "cursor-pointer flex items-center gap-1 px-2 py-1 text-xs whitespace-nowrap",
+                            isSelected 
+                              ? "bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/20 dark:text-orange-300" 
+                              : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                          )}
+                        >
+                          {isSelected && <Flame size={10} className="h-3 w-3" />}
+                          <span className="truncate max-w-[120px]">{beat.title}</span>
+                        </Badge>
+                      );
+                    })
+                  ) : (
+                    <div className="px-2 py-1 text-xs text-gray-500">
+                      No beats defined for this act
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
           </React.Fragment>
         );
       })}

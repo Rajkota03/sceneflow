@@ -41,7 +41,7 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
 
   return (
     <ScrollArea className="w-full">
-      <div className="flex flex-wrap gap-1 py-1 px-1">
+      <div className="flex gap-1 py-1">
         <TooltipProvider>
           {beats.map((beat) => (
             <Tooltip key={beat.id}>
@@ -60,7 +60,7 @@ const HorizontalBeatsBar: React.FC<HorizontalBeatsBarProps> = ({
                 >
                   <div className="flex items-center gap-1">
                     <span className={cn(
-                      "font-medium truncate max-w-[100px]",
+                      "font-medium truncate max-w-[80px]",
                       activeBeatId === beat.id ? "text-orange-700 dark:text-orange-400" : "",
                       beat.complete ? "text-green-700" : ""
                     )}>
