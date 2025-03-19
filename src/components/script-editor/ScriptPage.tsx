@@ -3,6 +3,7 @@ import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
+import { FormatState } from '@/lib/formatContext'; // Import the FormatState type
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -18,7 +19,7 @@ interface ScriptPageProps {
   projectId?: string;
   beatMode: BeatMode;
   selectedStructure?: Structure | null;
-  formatState?: any; // Changed from FormatState to any to avoid the export error
+  formatState?: FormatState; // Using the imported FormatState type
   currentPage: number;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }

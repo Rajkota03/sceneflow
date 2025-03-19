@@ -26,6 +26,7 @@ export const useBeatTagging = ({
       return;
     }
     
+    // Update the beat ID in the element
     setElements(prevElements =>
       prevElements.map(element =>
         element.id === elementId 
@@ -34,6 +35,7 @@ export const useBeatTagging = ({
       )
     );
     
+    // Show success toast
     toast({
       description: "Scene tagged successfully",
       duration: 2000,
@@ -104,8 +106,9 @@ export const useBeatTagging = ({
   };
 
   const updatePageNumbers = () => {
+    // Assign estimated page numbers to elements
     const updatedElements = elements.map((element, index) => {
-      const estimatedPage = Math.floor(index / 15) + 1;
+      const estimatedPage = Math.floor(index / 15) + 1; // Simple estimation - 15 elements per page
       return { ...element, page: estimatedPage };
     });
     
@@ -113,6 +116,7 @@ export const useBeatTagging = ({
     updateBeatSceneCounts();
   };
 
+  // Update scene counts whenever elements or structure changes
   useEffect(() => {
     updatePageNumbers();
   }, [elements.length, selectedStructure]);

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Act } from '@/lib/types';
+import { Progress } from '../ui/progress';
 
 export interface StructureProgressBarProps {
   structure?: {

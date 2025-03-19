@@ -12,6 +12,7 @@ import BeatTagButton from './script/beat-tags/BeatTagButton';
 import BeatPopoverContent from './script/beat-tags/BeatPopoverContent';
 import TagInputPopover from './script/beat-tags/TagInputPopover';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
+import { toast } from '@/components/ui/use-toast';
 
 interface SceneTagsProps {
   element: ScriptElement;
@@ -75,15 +76,6 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   // Check if we have a selected structure with acts
   const hasStructure = !!(structure && structure.acts && Array.isArray(structure.acts) && structure.acts.length > 0);
   
-  // Log for debugging
-  console.log('SceneTags render:', { 
-    hasStructure, 
-    structureId: structure?.id,
-    beatPopupOpen,
-    elementId: element.id,
-    hasBeatTag: !!element.beat
-  });
-  
   // If we don't have a valid structure selected, show a message
   if (!hasStructure) {
     return <StructureUnavailableMessage />;
@@ -114,8 +106,20 @@ const SceneTags: React.FC<SceneTagsProps> = ({
     console.log('Beat selected:', beatId, actId, element.id);
     if (handleBeatTagging) {
       handleBeatTagging(element.id, beatId, actId);
+      // Show a toast for user feedback
+      toast({
+        description: "Scene tagged successfully",
+        duration: 2000,
+      });
       // Close the popup immediately after selection
       setBeatPopupOpen(false);
+    } else {
+      console.error('Beat tagging handler not available');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not tag scene. Handler not available.",
+      });
     }
   };
 
