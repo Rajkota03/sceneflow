@@ -4,6 +4,7 @@ import { useFormat } from '@/lib/formatContext';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
 import { generateUniqueId } from '@/lib/formatScript';
+import { ElementType } from '@/lib/types';
 import { toast } from 'sonner';
 
 const ScriptContent: React.FC = () => {
@@ -38,12 +39,12 @@ const ScriptContent: React.FC = () => {
       const defaultElements = [
         {
           id: generateUniqueId(),
-          type: 'scene-heading',
+          type: 'scene-heading' as ElementType,
           text: 'INT. SOMEWHERE - DAY'
         },
         {
           id: generateUniqueId(),
-          type: 'action',
+          type: 'action' as ElementType,
           text: 'Type your action here...'
         }
       ];
