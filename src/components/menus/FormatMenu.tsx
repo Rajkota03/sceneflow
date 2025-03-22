@@ -10,11 +10,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useFormat } from '@/lib/formatContext';
 import { Pilcrow } from 'lucide-react';
-import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 
 const FormatMenu = () => {
   const { formatState, setLineSpacing } = useFormat();
-  const { elements } = useScriptEditor();
 
   const handleLineSpacingChange = (spacing: 'single' | '1.5' | 'double') => {
     if (setLineSpacing) {

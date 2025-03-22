@@ -1,12 +1,5 @@
 
 import React from 'react';
-import { useFormat } from '@/lib/formatContext';
-import { ScrollArea } from '../ui/scroll-area';
-import { useScriptEditor } from './ScriptEditorProvider';
-import ScriptPage from './ScriptPage';
-import ZoomControls from './ZoomControls';
-import TagManagerContainer from './TagManagerContainer';
-import ScriptContent from './ScriptContent';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -17,39 +10,14 @@ interface ScriptEditorContentProps {
 const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   className,
   zoomPercentage = 100,
-  onZoomChange
 }) => {
-  const { formatState } = useFormat();
-  const {
-    elements,
-    activeElementId,
-    currentPage,
-    getPreviousElementType,
-    handleElementChange,
-    setActiveElementId,
-    handleNavigate,
-    handleEnterKey,
-    changeElementType,
-    handleTagsChange,
-    characterNames,
-    projectId,
-    beatMode,
-    selectedStructure,
-    scriptContentRef,
-    handleBeatTag
-  } = useScriptEditor();
-
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      {/* Tag Manager container to filter elements by tag/act/beat */}
-      <TagManagerContainer />
-      
-      {/* This is the main content area where the script is displayed */}
-      <div className="flex-grow overflow-auto relative">
-        <ScriptContent />
+      <div className="flex-grow overflow-auto p-4">
+        <div className="w-full h-full flex items-center justify-center">
+          <p className="text-gray-500">Screenplay editor content will be implemented here</p>
+        </div>
       </div>
-      
-      {onZoomChange && <ZoomControls zoomPercentage={zoomPercentage} onZoomChange={onZoomChange} />}
     </div>
   );
 };

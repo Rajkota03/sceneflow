@@ -14,7 +14,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  // Simplified styling without Final Draft specific formatting
+  // Basic styling 
   const style: React.CSSProperties = {
     fontFamily: '"Courier Prime", monospace',
     fontSize: '12pt',

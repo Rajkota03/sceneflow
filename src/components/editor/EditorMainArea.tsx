@@ -3,7 +3,7 @@ import React from 'react';
 import { ScriptContent, TitlePageData, Note } from '@/lib/types';
 import TitlePageView from '../TitlePageView';
 import NoteWindow from '../notes/NoteWindow';
-import ScriptEditor from '../script-editor/ScriptEditor';
+import ScriptEditor from '../ScriptEditor';
 import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorMainAreaProps {

@@ -1,110 +1,11 @@
 
 import React from 'react';
-import { useFormat } from '@/lib/formatContext';
-import { useScriptEditor } from './ScriptEditorProvider';
-import ScriptPage from './ScriptPage';
-import { generateUniqueId } from '@/lib/formatScript';
-import { ElementType } from '@/lib/types';
 
 const ScriptContent: React.FC = () => {
-  const { formatState } = useFormat();
-  const {
-    elements,
-    activeElementId,
-    currentPage,
-    getPreviousElementType,
-    handleElementChange,
-    setActiveElementId,
-    handleNavigate,
-    handleEnterKey,
-    changeElementType,
-    handleTagsChange,
-    characterNames,
-    projectId,
-    beatMode,
-    selectedStructure,
-    scriptContentRef,
-    setElements,
-    handleBeatTag
-  } = useScriptEditor();
-
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
-  };
-
-  // If there are no elements, create initial elements with placeholder text
-  React.useEffect(() => {
-    if (elements.length === 0) {
-      console.log("Creating default elements for empty script");
-      const defaultElements = [
-        {
-          id: generateUniqueId(),
-          type: 'scene-heading' as ElementType,
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: generateUniqueId(),
-          type: 'action' as ElementType,
-          text: 'Type your action here...'
-        }
-      ];
-      
-      // Set the new elements
-      setElements(defaultElements);
-      
-      // Set the first element as active
-      setTimeout(() => {
-        setActiveElementId(defaultElements[0].id);
-      }, 100);
-    }
-  }, [elements, setElements, setActiveElementId]);
-
-  const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // If clicking on the background (not an element), focus the last element
-    if (e.target === e.currentTarget && elements.length > 0) {
-      setActiveElementId(elements[elements.length - 1].id);
-    }
-  };
-
   return (
-    <div 
-      className="w-full h-full overflow-auto bg-white dark:bg-slate-800 cursor-text"
-      onClick={handleEditorClick}
-      dir="ltr" // Force LTR direction for screenplay
-    >
-      <div 
-        ref={scriptContentRef}
-        className="min-h-full flex flex-col items-center pt-8 pb-20"
-        dir="ltr" // Ensure LTR direction
-      >
-        <div 
-          className="mx-auto"
-          style={{ 
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out',
-            direction: 'ltr' // Ensure LTR direction
-          }}
-        >
-          <ScriptPage
-            elements={elements || []}
-            activeElementId={activeElementId}
-            getPreviousElementType={getPreviousElementType}
-            handleElementChange={handleElementChange}
-            handleFocus={handleFocus}
-            handleNavigate={handleNavigate}
-            handleEnterKey={handleEnterKey}
-            handleFormatChange={changeElementType}
-            handleTagsChange={handleTagsChange}
-            characterNames={characterNames}
-            projectId={projectId}
-            beatMode={beatMode}
-            selectedStructure={selectedStructure}
-            formatState={formatState}
-            currentPage={currentPage}
-            onBeatTag={handleBeatTag}
-          />
-        </div>
+    <div className="w-full h-full overflow-auto bg-white dark:bg-slate-800 cursor-text">
+      <div className="min-h-full flex flex-col items-center pt-8 pb-20">
+        <p className="text-gray-500">Script content will be implemented here</p>
       </div>
     </div>
   );
