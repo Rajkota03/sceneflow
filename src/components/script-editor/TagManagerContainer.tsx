@@ -3,6 +3,7 @@ import React from 'react';
 import TagManager from '../TagManager';
 import { useScriptEditor } from './ScriptEditorProvider';
 import { Structure as ScriptStructure } from '@/types/scriptTypes';
+import { Structure as LibStructure } from '@/lib/types';
 
 const TagManagerContainer: React.FC = () => {
   const {
@@ -19,11 +20,15 @@ const TagManagerContainer: React.FC = () => {
     projectId
   } = useScriptEditor();
 
-  // Convert structures to the expected type if needed
-  const scriptStructures: ScriptStructure[] = structures.map(structure => ({
+  // Convert structures to the expected type with proper type checking
+  const scriptStructures: ScriptStructure[] = structures.map((structure: LibStructure) => ({
     ...structure,
-    createdAt: typeof structure.createdAt === 'string' ? structure.createdAt : structure.createdAt.toString(),
-    updatedAt: typeof structure.updatedAt === 'string' ? structure.updatedAt : structure.updatedAt.toString()
+    createdAt: typeof structure.createdAt === 'string' 
+      ? structure.createdAt 
+      : new Date(structure.createdAt || '').toISOString(),
+    updatedAt: typeof structure.updatedAt === 'string' 
+      ? structure.updatedAt 
+      : new Date(structure.updatedAt || '').toISOString()
   }));
 
   return (
