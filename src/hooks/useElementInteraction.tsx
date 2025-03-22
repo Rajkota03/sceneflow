@@ -73,12 +73,17 @@ export function useElementInteraction({
       return;
     }
     
-    // Format shortcuts with Cmd/Ctrl
+    // Format shortcuts with Cmd/Ctrl - Final Draft standard keyboard shortcuts
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1': // Scene Heading
           e.preventDefault();
           onFormatChange(elementId, 'scene-heading');
+          if (text.trim() === '' || !/^(INT|EXT|I\/E)/i.test(text)) {
+            const newText = text.trim() === '' ? 'INT. ' : `INT. ${text}`;
+            setText(newText);
+            onChange(elementId, newText, 'scene-heading');
+          }
           return;
         case '2': // Action
           e.preventDefault();
@@ -87,6 +92,12 @@ export function useElementInteraction({
         case '3': // Character
           e.preventDefault();
           onFormatChange(elementId, 'character');
+          // Auto-uppercase character name
+          if (text.trim() !== '') {
+            const newText = text.toUpperCase();
+            setText(newText);
+            onChange(elementId, newText, 'character');
+          }
           return;
         case '4': // Dialogue
           e.preventDefault();
@@ -95,11 +106,17 @@ export function useElementInteraction({
         case '5': // Parenthetical
           e.preventDefault();
           onFormatChange(elementId, 'parenthetical');
+          // Auto-format parenthetical
+          if (!text.startsWith('(') && !text.endsWith(')')) {
+            const newText = `(${text})`;
+            setText(newText);
+            onChange(elementId, newText, 'parenthetical');
+          }
           return;
         case '6': // Transition
           e.preventDefault();
           onFormatChange(elementId, 'transition');
-          const newText = text.trim() === '' ? 'CUT TO:' : text;
+          const newText = text.trim() === '' ? 'CUT TO:' : text.toUpperCase();
           setText(newText);
           onChange(elementId, newText, 'transition');
           return;
@@ -107,18 +124,18 @@ export function useElementInteraction({
           break;
       }
       
-      // Ctrl+Shift+R for transition
+      // Ctrl+Shift+R for transition (Final Draft standard)
       if (e.shiftKey && e.key.toLowerCase() === 'r') {
         e.preventDefault();
         onFormatChange(elementId, 'transition');
-        const newText = text.trim() === '' ? 'CUT TO:' : text;
+        const newText = text.trim() === '' ? 'CUT TO:' : text.toUpperCase();
         setText(newText);
         onChange(elementId, newText, 'transition');
         return;
       }
     }
 
-    // Handle Enter key
+    // Handle Enter key - Final Draft navigation standard
     if (e.key === 'Enter') {
       e.preventDefault();
       
@@ -168,7 +185,7 @@ export function useElementInteraction({
       return;
     } 
     
-    // Tab for character suggestions or element type cycling
+    // Tab for character suggestions or element type cycling - Final Draft standard
     if (e.key === 'Tab') {
       e.preventDefault();
       
@@ -177,7 +194,7 @@ export function useElementInteraction({
         return;
       }
       
-      // Tab in dialogue creates a parenthetical
+      // Tab in dialogue creates a parenthetical - Final Draft standard
       if (type === 'dialogue') {
         onFormatChange(elementId, 'parenthetical');
         if (!text.startsWith('(') && !text.endsWith(')')) {

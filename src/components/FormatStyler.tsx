@@ -20,7 +20,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   
-  // Standard Final Draft styling
+  // Standard Final Draft page styling (not element styling)
   const style: React.CSSProperties = {
     fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
     fontSize: '12pt',
@@ -36,7 +36,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     height: forPrint || forExport ? '11in' : 'auto',
     minHeight: forPrint || forExport ? '11in' : '11in',
     margin: '0 auto',
-    padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in', // Final Draft standard margins
+    padding: '1in 1in 1in 1in', // Just set standard page margins, not element margins
     boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
     position: 'relative',
@@ -45,9 +45,9 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     // Line spacing based on format state
     lineHeight: formatState.lineSpacing === 'single' ? '1.0' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2.0',
-    // Force LTR direction for screenplay text
+    // Force LTR direction for screenplay text - fixing direction issues
     direction: 'ltr',
-    unicodeBidi: 'plaintext',
+    // Removing unicodeBidi: 'plaintext' which can cause text reversal
     overflowX: 'hidden', // Prevent horizontal overflow
     overflowWrap: 'break-word', // Break words to prevent overflow
     wordWrap: 'break-word', // For better browser compatibility
@@ -66,7 +66,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   };
 
   return (
-    <div style={style} className="format-styler">
+    <div style={style} className="format-styler" dir="ltr">
       {children}
       {(forPrint || forExport || currentPage > 0) && (
         <div style={pageNumberStyle}>{currentPage}</div>

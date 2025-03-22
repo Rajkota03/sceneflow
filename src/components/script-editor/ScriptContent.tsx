@@ -75,6 +75,7 @@ const ScriptContent: React.FC = () => {
       <div 
         ref={scriptContentRef}
         className="min-h-full flex flex-col items-center pt-8 pb-20"
+        dir="ltr" // Ensure LTR direction
       >
         <div 
           className="mx-auto"
@@ -82,6 +83,7 @@ const ScriptContent: React.FC = () => {
             transform: `scale(${formatState.zoomLevel})`,
             transformOrigin: 'top center',
             transition: 'transform 0.2s ease-out',
+            direction: 'ltr' // Ensure LTR direction
           }}
         >
           <ScriptPage

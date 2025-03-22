@@ -1,13 +1,13 @@
 
 import { ElementType } from '@/lib/types';
 
-// Final Draft standard margins and positioning
+// Final Draft standard margins and positioning per the specs
 export const FINAL_DRAFT_MARGINS = {
   sceneHeading: { left: '1.5in', right: '1in' },
   action: { left: '1.5in', right: '1in' },
   character: { left: '3.5in', right: '1in' },
   dialogue: { left: '2.5in', right: '2.5in' },
-  parenthetical: { left: '3in', right: '2.9in' },
+  parenthetical: { left: '3.0in', right: '2.9in' },
   transition: { left: '5.5in', right: '1in' }
 };
 
@@ -42,7 +42,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     lineHeight: 1.2,
     marginBottom: '1em',
     direction: 'ltr',
-    unicodeBidi: 'plaintext',
+    // Removed unicodeBidi: 'plaintext',
     overflowWrap: 'break-word',
     wordWrap: 'break-word',
     maxWidth: '100%',

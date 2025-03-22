@@ -32,7 +32,11 @@ const FormatMenu = () => {
 
     try {
       toast.info("Preparing PDF...");
-      const pdf = await generatePDF({ elements });
+      // Generate script PDF with Final Draft standard formatting
+      const pdf = await generatePDF({ 
+        elements,
+        useStandardMargins: true, // Ensure Final Draft margins are used
+      });
       
       // Create a download link
       const url = URL.createObjectURL(pdf);
@@ -49,6 +53,22 @@ const FormatMenu = () => {
       toast.error("Failed to export PDF");
     }
   };
+
+  // Keyboard shortcut for export
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + P shortcut for PDF export
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        handleExportToPDF();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [elements]);
 
   return (
     <DropdownMenu>
@@ -89,7 +109,6 @@ const FormatMenu = () => {
         </DropdownMenuItem>
         
         <DropdownMenuItem 
-          disabled
           className="text-xs text-muted-foreground"
         >
           <FileText className="h-4 w-4 mr-2" />

@@ -116,6 +116,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''}`} 
       onContextMenu={handleRightClick}
+      dir="ltr" // Force LTR direction
     >
       <div
         ref={editorRef}
@@ -136,7 +137,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           direction: 'ltr',
-          unicodeBidi: 'plaintext'
+          // Removed unicodeBidi which was causing reversal issues
         }}
         dir="ltr"
         data-element-type={element.type}
