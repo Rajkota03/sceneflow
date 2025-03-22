@@ -1,3 +1,4 @@
+
 import { ElementType } from '@/lib/types';
 
 // Final Draft standard margins and positioning
@@ -42,7 +43,9 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     unicodeBidi: 'plaintext',
     overflowWrap: 'break-word',
     wordWrap: 'break-word',
-    maxWidth: '100%'
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   };
   
   switch (type) {
@@ -69,7 +72,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: '2in',
-        textAlign: 'center'
+        textAlign: 'left', // Changed from center to left
+        direction: 'ltr', // Explicitly force LTR direction
       };
     case 'dialogue':
       return {

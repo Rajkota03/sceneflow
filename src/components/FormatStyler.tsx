@@ -28,27 +28,25 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     textDecoration: [formatState.isUnderline ? 'underline' : '', formatState.isStrikethrough ? 'line-through' : ''].filter(Boolean).join(' '),
     color: isDarkMode ? '#F6F6F7' : formatState.textColor || '#000000',
     backgroundColor: isDarkMode ? '#1A1F2C' : 'white',
-    textAlign: formatState.alignment || 'left',
+    textAlign: 'left', // Always left-aligned for base container
     lineHeight: '1.2',
-    // Match Final Draft's line spacing
-    width: '8.5in',
-    // US Letter width - Final Draft standard
+    width: '8.5in', // US Letter width - Final Draft standard
     height: forPrint || forExport ? '11in' : 'auto',
     minHeight: forPrint || forExport ? '11in' : '11in',
-    // Standard screenplay height
     margin: '0 auto',
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
     position: 'relative',
-    direction: 'ltr', // Force left-to-right text direction
+    direction: 'ltr', // Explicitly force left-to-right text direction
     unicodeBidi: 'plaintext', // Handle bidirectional text properly
-    padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in',
-    // Final Draft standard margins
+    padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in', // Final Draft standard margins
     boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
     pointerEvents: 'auto', // Allow pointer events on the container
     overflowX: 'hidden', // Prevent horizontal overflow
     overflowWrap: 'break-word', // Break words to prevent overflow
+    wordWrap: 'break-word', // For better browser compatibility
+    maxWidth: '100%', // Ensure it doesn't exceed container width
   };
 
   // Add a page number in Final Draft style
@@ -67,7 +65,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       style={style} 
       data-font="courier-final-draft" 
       dir="ltr" 
-      className=""
+      className="format-styler"
     >
       {!forPrint && !forExport && (
         <div style={pageNumberStyle}>

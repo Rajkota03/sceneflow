@@ -113,6 +113,18 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   }, [isActive]);
 
+  // Generate specific alignment class based on element type
+  const getAlignmentClass = () => {
+    switch (element.type) {
+      case 'character':
+        return 'text-center';
+      case 'transition':
+        return 'text-right';
+      default:
+        return 'text-left';
+    }
+  };
+
   return (
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
@@ -137,6 +149,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active-element' : ''}
+          ${getAlignmentClass()}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
@@ -156,7 +169,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
           maxWidth: '100%', // Ensure text stays within container
           overflow: 'hidden', // Prevent text from overflowing
           textOverflow: 'ellipsis', // Show ellipsis if text overflows
-          textAlign: element.type === 'character' ? 'center' : (element.type === 'transition' ? 'right' : 'left'),
           ...elementStyles
         }}
         dir="ltr"
