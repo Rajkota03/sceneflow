@@ -1,13 +1,5 @@
 
-// Export placeholders to fix the import errors
-export const BeatTagButton = () => null;
-export const BeatPopoverContent = () => null;
-export const TagInputPopover = () => null;
-export const StructureUnavailableMessage = () => null;
-
-export default {
-  BeatTagButton,
-  BeatPopoverContent,
-  TagInputPopover,
-  StructureUnavailableMessage
-};
+export { default as BeatTagButton } from './BeatTagButton';
+export { default as BeatPopoverContent } from './BeatPopoverContent';
+export { default as TagInputPopover } from './TagInputPopover';
+export { default as StructureUnavailableMessage } from './StructureUnavailableMessage';

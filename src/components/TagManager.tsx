@@ -13,8 +13,8 @@ interface TagManagerProps {
   scriptContent: any;
   onFilterByTag: (tag: string | null) => void;
   onFilterByAct: (act: ActType | null) => void;
-  activeFilter: string | null;
-  activeActFilter: ActType | null;
+  activeFilter?: string | null;
+  activeActFilter?: ActType | null;
   projectName?: string;
   structureName?: string;
   projectId?: string;
@@ -23,6 +23,10 @@ interface TagManagerProps {
   selectedStructure?: Structure | null;
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
+  // Add the missing properties
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  structures?: Array<{ id: string; name: string }>;
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
@@ -34,16 +38,20 @@ const TagManager: React.FC<TagManagerProps> = ({
   beatMode = 'on',
   onToggleBeatMode,
   activeBeatId,
-  onBeatClick
+  onBeatClick,
+  selectedStructureId,
+  onStructureChange,
+  structures = [],
 }) => {
-  // Get scene counts for beats and structure information from context
-  const { 
-    beatSceneCounts, 
-    onStructureChange, 
-    selectedStructureId, 
-    availableStructures,
-    selectedStructure
-  } = useScriptEditor();
+  // Use context properties if not provided via props
+  const scriptEditor = useScriptEditor();
+  
+  // Get scene counts for beats and structure information from context or props
+  const beatSceneCounts = scriptEditor.beatSceneCounts || [];
+  const handleStructureChange = onStructureChange || scriptEditor.onStructureChange;
+  const finalSelectedStructureId = selectedStructureId || scriptEditor.selectedStructureId;
+  const availableStructures = structures.length > 0 ? structures : scriptEditor.availableStructures || [];
+  const selectedStructure = scriptEditor.selectedStructure;
   
   // Extract all unique tags from scriptContent
   const allTags = useMemo(() => {
@@ -83,8 +91,8 @@ const TagManager: React.FC<TagManagerProps> = ({
             {availableStructures && availableStructures.length > 0 && (
               <StructureSelector
                 availableStructures={availableStructures}
-                selectedStructureId={selectedStructureId}
-                onStructureChange={onStructureChange}
+                selectedStructureId={finalSelectedStructureId || ''}
+                onStructureChange={handleStructureChange || (() => {})}
               />
             )}
           </div>

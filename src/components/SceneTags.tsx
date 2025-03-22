@@ -7,10 +7,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import StructureUnavailableMessage from './script/beat-tags/StructureUnavailableMessage';
-import BeatTagButton from './script/beat-tags/BeatTagButton';
-import BeatPopoverContent from './script/beat-tags/BeatPopoverContent';
-import TagInputPopover from './script/beat-tags/TagInputPopover';
+import { StructureUnavailableMessage } from './script/beat-tags';
+import { BeatTagButton } from './script/beat-tags';
+import { BeatPopoverContent } from './script/beat-tags';
+import { TagInputPopover } from './script/beat-tags';
 import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
@@ -36,15 +36,16 @@ const SceneTags: React.FC<SceneTagsProps> = ({
   const [tags, setTags] = useState<string[]>(element.tags || []);
   const [beatPopupOpen, setBeatPopupOpen] = useState(false);
   
-  const { 
-    handleBeatTag: contextHandleBeatTag, 
-    selectedStructure: contextStructure,
-    beatSceneCounts
-  } = useScriptEditor();
+  const scriptEditor = useScriptEditor();
   
-  const handleBeatTagging = onBeatTag || contextHandleBeatTag;
+  // Use the beat tagging handler from props or context
+  const handleBeatTagging = onBeatTag || scriptEditor.handleBeatTag;
   
-  const structure = selectedStructure || contextStructure;
+  // Use the structure from props or context
+  const structure = selectedStructure || scriptEditor.selectedStructure;
+  
+  // Get beat scene counts from context if available
+  const beatSceneCounts = scriptEditor.beatSceneCounts || [];
   
   useEffect(() => {
     setTags(element.tags || []);

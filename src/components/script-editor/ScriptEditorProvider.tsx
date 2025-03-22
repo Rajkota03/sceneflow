@@ -1,7 +1,8 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
-import { ScriptContent, ElementType, ScriptElement } from '@/lib/types';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { ScriptContent, ElementType, ScriptElement, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId, detectElementType } from '@/lib/formatScript';
+import useBeatTagging from '@/hooks/useBeatTagging';
 
 interface ScriptEditorProviderProps {
   initialContent: ScriptContent;
@@ -25,6 +26,13 @@ export interface ScriptEditorContextType {
   setActiveElement: (id: string | null) => void;
   showKeyboardShortcuts: boolean;
   toggleKeyboardShortcuts: () => void;
+  // Add missing properties to fix errors
+  handleBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  selectedStructure?: Structure | null;
+  beatSceneCounts?: BeatSceneCount[];
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string | null;
+  availableStructures?: Array<{ id: string; name: string }>;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
@@ -49,6 +57,27 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(null);
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
+  const [availableStructures, setAvailableStructures] = useState<Array<{ id: string; name: string }>>([]);
+
+  // Initialize beat tagging functionality
+  const {
+    beatSceneCounts,
+    handleBeatTag,
+    activeBeatId,
+    setActiveBeatId,
+  } = useBeatTagging({
+    elements,
+    setElements,
+    selectedStructure
+  });
+
+  // Update elements when initialContent changes
+  useEffect(() => {
+    if (initialContent && initialContent.elements) {
+      setElements(initialContent.elements);
+    }
+  }, [initialContent]);
 
   // Update an existing element
   const updateElement = useCallback((id: string, text: string, type?: ElementType) => {
@@ -154,7 +183,14 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     changeElementType,
     setActiveElement: setActiveElementId,
     showKeyboardShortcuts,
-    toggleKeyboardShortcuts
+    toggleKeyboardShortcuts,
+    // Add the missing properties
+    handleBeatTag,
+    selectedStructure,
+    beatSceneCounts,
+    onStructureChange,
+    selectedStructureId,
+    availableStructures
   };
 
   return (
