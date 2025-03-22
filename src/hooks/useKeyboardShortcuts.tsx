@@ -1,10 +1,8 @@
 
 import { useEffect, useState } from 'react';
-import { toast } from '@/components/ui/use-toast';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
-import { exportScriptToPDF } from '@/lib/pdfExport';
+import { generatePDF } from '@/lib/pdfExport';
 
 interface UseKeyboardShortcutsProps {
   onExport?: () => void;
@@ -33,6 +31,7 @@ export function useKeyboardShortcuts({
   // Get change element type function from context
   const changeElementType = contextValue?.changeElementType;
   const activeElementId = contextValue?.activeElementId;
+  const elements = contextValue?.elements;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,24 +47,40 @@ export function useKeyboardShortcuts({
         e.preventDefault();
         if (onExport) {
           onExport();
-        } else if (scriptContentRef?.current) {
+        } else if (elements && elements.length > 0) {
           // Default PDF export logic if no custom handler provided
-          exportScriptToPDF(scriptContentRef.current, true, 'screenplay')
-            .then(() => {
-              toast({
-                title: "PDF Exported",
-                description: "Your script has been exported successfully.",
+          try {
+            toast.info("Preparing PDF...");
+            generatePDF({ elements })
+              .then(pdf => {
+                // Create a download link
+                const url = URL.createObjectURL(pdf);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'screenplay.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("PDF exported successfully");
+              })
+              .catch(error => {
+                console.error('PDF export error:', error);
+                toast.error("Failed to export PDF");
               });
-            })
-            .catch(error => {
-              console.error('PDF export error:', error);
-              toast({
-                title: "Export Failed",
-                description: "There was an error exporting your script to PDF.",
-                variant: "destructive",
-              });
-            });
+          } catch (error) {
+            console.error('PDF export error:', error);
+            toast.error("Failed to export PDF");
+          }
+        } else {
+          toast.error("No content to export");
         }
+        return;
+      }
+      
+      // Save with Ctrl+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        toast.success("Script saved");
         return;
       }
       
@@ -92,8 +107,23 @@ export function useKeyboardShortcuts({
           return;
         }
         
-        // Format as Transition: Ctrl+Shift+R
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'r') {
+        // Format as Dialogue: Ctrl+4
+        if ((e.ctrlKey || e.metaKey) && e.key === '4') {
+          e.preventDefault();
+          changeElementType(activeElementId, 'dialogue');
+          return;
+        }
+        
+        // Format as Parenthetical: Ctrl+5
+        if ((e.ctrlKey || e.metaKey) && e.key === '5') {
+          e.preventDefault();
+          changeElementType(activeElementId, 'parenthetical');
+          return;
+        }
+        
+        // Format as Transition: Ctrl+6 or Ctrl+Shift+R
+        if (((e.ctrlKey || e.metaKey) && e.key === '6') || 
+            ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'r')) {
           e.preventDefault();
           changeElementType(activeElementId, 'transition');
           return;
@@ -105,12 +135,18 @@ export function useKeyboardShortcuts({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onExport, scriptContentRef, toggleKeyboardShortcuts, changeElementType, activeElementId]);
+  }, [onExport, scriptContentRef, toggleKeyboardShortcuts, changeElementType, activeElementId, elements]);
 
   return {
     showKeyboardShortcuts,
     setShowKeyboardShortcuts: toggleKeyboardShortcuts,
-    exportToPdf: (element: HTMLElement) => exportScriptToPDF(element, true, 'screenplay')
+    exportToPdf: (element: HTMLElement) => {
+      if (elements && elements.length > 0) {
+        return generatePDF({ elements });
+      } else {
+        throw new Error("No content to export");
+      }
+    }
   };
 }
 

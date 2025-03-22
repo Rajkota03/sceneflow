@@ -70,6 +70,7 @@ const ScriptContent: React.FC = () => {
     <div 
       className="w-full h-full overflow-auto bg-white dark:bg-slate-800 cursor-text"
       onClick={handleEditorClick}
+      dir="ltr" // Force LTR direction for screenplay
     >
       <div 
         ref={scriptContentRef}

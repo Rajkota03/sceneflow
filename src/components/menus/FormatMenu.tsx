@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useFormat } from '@/lib/formatContext';
-import { Pilcrow, LayoutTemplate, FileText, Save } from 'lucide-react';
+import { Pilcrow, Save, FileText } from 'lucide-react';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 import { toast } from 'sonner';
 import { generatePDF } from '@/lib/pdfExport';
@@ -86,6 +86,14 @@ const FormatMenu = () => {
         <DropdownMenuItem onClick={handleExportToPDF}>
           <Save className="h-4 w-4 mr-2" />
           Export to PDF
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem 
+          disabled
+          className="text-xs text-muted-foreground"
+        >
+          <FileText className="h-4 w-4 mr-2" />
+          Shortcut: Ctrl+P
         </DropdownMenuItem>
         
       </DropdownMenuContent>

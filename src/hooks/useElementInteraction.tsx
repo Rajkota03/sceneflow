@@ -76,27 +76,27 @@ export function useElementInteraction({
     // Format shortcuts with Cmd/Ctrl
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
-        case '1':
+        case '1': // Scene Heading
           e.preventDefault();
           onFormatChange(elementId, 'scene-heading');
           return;
-        case '2':
+        case '2': // Action
           e.preventDefault();
           onFormatChange(elementId, 'action');
           return;
-        case '3':
+        case '3': // Character
           e.preventDefault();
           onFormatChange(elementId, 'character');
           return;
-        case '4':
+        case '4': // Dialogue
           e.preventDefault();
           onFormatChange(elementId, 'dialogue');
           return;
-        case '5':
+        case '5': // Parenthetical
           e.preventDefault();
           onFormatChange(elementId, 'parenthetical');
           return;
-        case '6':
+        case '6': // Transition
           e.preventDefault();
           onFormatChange(elementId, 'transition');
           const newText = text.trim() === '' ? 'CUT TO:' : text;
@@ -106,12 +106,30 @@ export function useElementInteraction({
         default:
           break;
       }
+      
+      // Ctrl+Shift+R for transition
+      if (e.shiftKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        onFormatChange(elementId, 'transition');
+        const newText = text.trim() === '' ? 'CUT TO:' : text;
+        setText(newText);
+        onChange(elementId, newText, 'transition');
+        return;
+      }
     }
 
     // Handle Enter key
     if (e.key === 'Enter') {
       e.preventDefault();
-      onEnterKey(elementId, e.shiftKey);
+      
+      // If Shift+Enter in dialogue, insert a new line instead of a new element
+      if (e.shiftKey && type === 'dialogue') {
+        const newText = text + '\n';
+        setText(newText);
+        onChange(elementId, newText, type);
+      } else {
+        onEnterKey(elementId, e.shiftKey);
+      }
       return;
     } 
     
@@ -159,6 +177,7 @@ export function useElementInteraction({
         return;
       }
       
+      // Tab in dialogue creates a parenthetical
       if (type === 'dialogue') {
         onFormatChange(elementId, 'parenthetical');
         if (!text.startsWith('(') && !text.endsWith(')')) {
