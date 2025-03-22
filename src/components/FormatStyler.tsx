@@ -36,7 +36,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     height: forPrint || forExport ? '11in' : 'auto',
     minHeight: forPrint || forExport ? '11in' : '11in',
     margin: '0 auto',
-    padding: '1in 1in 1in 1in', // Just set standard page margins, not element margins
+    padding: '1in', // Standard 1-inch margins all around
     boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
     position: 'relative',
@@ -47,7 +47,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
                 formatState.lineSpacing === '1.5' ? '1.5' : '2.0',
     // Force LTR direction for screenplay text - fixing direction issues
     direction: 'ltr',
-    // Removing unicodeBidi: 'plaintext' which can cause text reversal
+    // Removed unicodeBidi which was causing reversal issues
     overflowX: 'hidden', // Prevent horizontal overflow
     overflowWrap: 'break-word', // Break words to prevent overflow
     wordWrap: 'break-word', // For better browser compatibility

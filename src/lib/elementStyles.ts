@@ -42,7 +42,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     lineHeight: 1.2,
     marginBottom: '1em',
     direction: 'ltr',
-    // Removed unicodeBidi: 'plaintext',
+    // Removed unicodeBidi property
     overflowWrap: 'break-word',
     wordWrap: 'break-word',
     maxWidth: '100%',
@@ -54,66 +54,74 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     case 'scene-heading':
       return {
         ...baseStyles,
-        width: 'calc(100% - 2.5in)',
+        width: '100%', // Changed from calc() to 100%
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: FINAL_DRAFT_MARGINS.sceneHeading.left,
+        marginRight: FINAL_DRAFT_MARGINS.sceneHeading.right,
         textAlign: 'left'
       };
     case 'action':
       return {
         ...baseStyles,
-        width: 'calc(100% - 2.5in)',
+        width: '100%', // Changed from calc() to 100%
         marginLeft: FINAL_DRAFT_MARGINS.action.left,
+        marginRight: FINAL_DRAFT_MARGINS.action.right,
         textAlign: 'left'
       };
     case 'character':
       return {
         ...baseStyles,
-        width: '38%',
+        width: '100%', // Changed from 38% to 100%
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: FINAL_DRAFT_MARGINS.character.left,
+        marginRight: FINAL_DRAFT_MARGINS.character.right,
         textAlign: 'left'
       };
     case 'dialogue':
       return {
         ...baseStyles,
-        width: '62%',
+        width: '100%', // Changed from 62% to 100%
         marginLeft: FINAL_DRAFT_MARGINS.dialogue.left,
+        marginRight: FINAL_DRAFT_MARGINS.dialogue.right,
         textAlign: 'left'
       };
     case 'parenthetical':
       return {
         ...baseStyles,
-        width: '50%',
+        width: '100%', // Changed from 50% to 100%
         fontStyle: 'italic',
         marginLeft: FINAL_DRAFT_MARGINS.parenthetical.left,
+        marginRight: FINAL_DRAFT_MARGINS.parenthetical.right,
         textAlign: 'left'
       };
     case 'transition':
       return {
         ...baseStyles,
-        width: 'calc(100% - 2.5in)',
+        width: '100%', // Changed from calc() to 100%
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: FINAL_DRAFT_MARGINS.transition.left
+        marginLeft: FINAL_DRAFT_MARGINS.transition.left,
+        marginRight: FINAL_DRAFT_MARGINS.transition.right
       };
     case 'note':
       return {
         ...baseStyles,
-        width: 'calc(100% - 2.5in)',
+        width: '100%', // Changed from calc() to 100%
         fontStyle: 'italic',
         color: '#666',
         marginLeft: FINAL_DRAFT_MARGINS.action.left,
+        marginRight: FINAL_DRAFT_MARGINS.action.right,
         textAlign: 'left'
       };
     default:
       return { 
         ...baseStyles, 
-        width: 'calc(100% - 2.5in)',
+        width: '100%', // Changed from calc() to 100%
         marginLeft: FINAL_DRAFT_MARGINS.action.left,
+        marginRight: FINAL_DRAFT_MARGINS.action.right,
         textAlign: 'left'
       };
   }

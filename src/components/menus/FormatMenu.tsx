@@ -35,7 +35,7 @@ const FormatMenu = () => {
       // Generate script PDF with Final Draft standard formatting
       const pdf = await generatePDF({ 
         elements,
-        useStandardMargins: true, // Ensure Final Draft margins are used
+        // Removing the useStandardMargins property that caused the build error
       });
       
       // Create a download link

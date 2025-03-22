@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -137,7 +136,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           direction: 'ltr',
-          // Removed unicodeBidi which was causing reversal issues
+          // Removed unicodeBidi property entirely
         }}
         dir="ltr"
         data-element-type={element.type}
