@@ -2,7 +2,7 @@
 import { ElementType } from '@/lib/types';
 
 // Final Draft standard margins and positioning
-const FINAL_DRAFT_MARGINS = {
+export const FINAL_DRAFT_MARGINS = {
   sceneHeading: { left: '1.5in', right: '1in' },
   action: { left: '1.5in', right: '1in' },
   character: { left: '3.5in', right: '1in' },
@@ -11,6 +11,7 @@ const FINAL_DRAFT_MARGINS = {
   transition: { left: '5.5in', right: '1in' }
 };
 
+// Maps element types to Tailwind classes for rendering
 export const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   switch (type) {
     case 'scene-heading':
@@ -18,11 +19,11 @@ export const renderStyle = (type: ElementType, previousElementType?: ElementType
     case 'action':
       return 'mb-4';
     case 'character':
-      return 'text-center font-bold uppercase mb-1 mx-auto';
+      return 'text-left font-bold uppercase mb-1';
     case 'dialogue':
-      return 'mb-4 mx-auto';
+      return 'mb-4';
     case 'parenthetical':
-      return 'text-center italic mb-1 mx-auto';
+      return 'text-left italic mb-1';
     case 'transition':
       return 'text-right font-bold uppercase tracking-wide mb-4';
     case 'note':
@@ -32,6 +33,7 @@ export const renderStyle = (type: ElementType, previousElementType?: ElementType
   }
 };
 
+// Get the proper CSS styles for each element type based on Final Draft standards
 export const getElementStyles = (type: ElementType): React.CSSProperties => {
   // Base styles following Final Draft standards
   const baseStyles: React.CSSProperties = {
@@ -45,7 +47,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     wordWrap: 'break-word',
     maxWidth: '100%',
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    textOverflow: 'ellipsis'
   };
   
   switch (type) {
@@ -55,14 +57,14 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         width: 'calc(100% - 2.5in)',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '1.5in',
+        marginLeft: FINAL_DRAFT_MARGINS.sceneHeading.left,
         textAlign: 'left'
       };
     case 'action':
       return {
         ...baseStyles,
         width: 'calc(100% - 2.5in)',
-        marginLeft: '1.5in',
+        marginLeft: FINAL_DRAFT_MARGINS.action.left,
         textAlign: 'left'
       };
     case 'character':
@@ -71,29 +73,23 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         width: '38%',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '3.5in',
-        textAlign: 'left',
-        direction: 'ltr',
-        unicodeBidi: 'plaintext',
+        marginLeft: FINAL_DRAFT_MARGINS.character.left,
+        textAlign: 'left'
       };
     case 'dialogue':
       return {
         ...baseStyles,
         width: '62%',
-        marginLeft: '2.5in',
-        textAlign: 'left',
-        direction: 'ltr',
-        unicodeBidi: 'plaintext',
+        marginLeft: FINAL_DRAFT_MARGINS.dialogue.left,
+        textAlign: 'left'
       };
     case 'parenthetical':
       return {
         ...baseStyles,
         width: '50%',
         fontStyle: 'italic',
-        marginLeft: '3in',
-        textAlign: 'left',
-        direction: 'ltr',
-        unicodeBidi: 'plaintext',
+        marginLeft: FINAL_DRAFT_MARGINS.parenthetical.left,
+        textAlign: 'left'
       };
     case 'transition':
       return {
@@ -102,7 +98,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '1.5in'
+        marginLeft: FINAL_DRAFT_MARGINS.transition.left
       };
     case 'note':
       return {
@@ -110,14 +106,14 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         width: 'calc(100% - 2.5in)',
         fontStyle: 'italic',
         color: '#666',
-        marginLeft: '1.5in',
+        marginLeft: FINAL_DRAFT_MARGINS.action.left,
         textAlign: 'left'
       };
     default:
       return { 
         ...baseStyles, 
         width: 'calc(100% - 2.5in)',
-        marginLeft: '1.5in',
+        marginLeft: FINAL_DRAFT_MARGINS.action.left,
         textAlign: 'left'
       };
   }

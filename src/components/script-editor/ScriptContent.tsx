@@ -1,11 +1,10 @@
 
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
 import { generateUniqueId } from '@/lib/formatScript';
 import { ElementType } from '@/lib/types';
-import { toast } from 'sonner';
 
 const ScriptContent: React.FC = () => {
   const { formatState } = useFormat();
@@ -25,7 +24,8 @@ const ScriptContent: React.FC = () => {
     beatMode,
     selectedStructure,
     scriptContentRef,
-    setElements
+    setElements,
+    handleBeatTag
   } = useScriptEditor();
 
   const handleFocus = (id: string) => {
@@ -33,7 +33,7 @@ const ScriptContent: React.FC = () => {
   };
 
   // If there are no elements, create initial elements with placeholder text
-  useEffect(() => {
+  React.useEffect(() => {
     if (elements.length === 0) {
       console.log("Creating default elements for empty script");
       const defaultElements = [
@@ -76,7 +76,7 @@ const ScriptContent: React.FC = () => {
         className="min-h-full flex flex-col items-center pt-8 pb-20"
       >
         <div 
-          className="w-full max-w-4xl mx-auto px-4"
+          className="mx-auto"
           style={{ 
             transform: `scale(${formatState.zoomLevel})`,
             transformOrigin: 'top center',
@@ -99,6 +99,7 @@ const ScriptContent: React.FC = () => {
             selectedStructure={selectedStructure}
             formatState={formatState}
             currentPage={currentPage}
+            onBeatTag={handleBeatTag}
           />
         </div>
       </div>

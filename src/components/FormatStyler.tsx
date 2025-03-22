@@ -28,7 +28,6 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     textDecoration: [formatState.isUnderline ? 'underline' : '', formatState.isStrikethrough ? 'line-through' : ''].filter(Boolean).join(' '),
     color: isDarkMode ? '#F6F6F7' : formatState.textColor || '#000000',
     backgroundColor: isDarkMode ? '#1A1F2C' : 'white',
-    textAlign: 'left', // Always left-aligned for base container
     lineHeight: '1.2',
     width: '8.5in', // US Letter width - Final Draft standard
     height: forPrint || forExport ? '11in' : 'auto',
@@ -37,8 +36,6 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
     position: 'relative',
-    direction: 'ltr', // Explicitly force left-to-right text direction
-    unicodeBidi: 'plaintext', // Handle bidirectional text properly
     padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in', // Final Draft standard margins
     boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
@@ -64,15 +61,16 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     <div 
       style={style} 
       data-font="courier-final-draft" 
-      dir="ltr" 
-      className="format-styler"
+      className="format-styler script-page"
     >
       {!forPrint && !forExport && (
-        <div style={pageNumberStyle}>
+        <div style={pageNumberStyle} className="page-number">
           {currentPage}
         </div>
       )}
-      {children}
+      <div className="script-page-content">
+        {children}
+      </div>
     </div>
   );
 };

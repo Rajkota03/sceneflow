@@ -2,7 +2,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
-import SceneTags from './SceneTags';
 import { BeatMode } from '@/types/scriptTypes';
 import { renderStyle, getElementStyles } from '@/lib/elementStyles';
 import ElementTypeMenu from './editor/ElementTypeMenu';
@@ -45,13 +44,13 @@ const EditorElement: React.FC<EditorElementProps> = ({
   onBeatTag
 }) => {
   // Access global context for beat tagging and structure
-  const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
+  const contextValue = useScriptEditor ? useScriptEditor() : null;
   
   // Use the structure from props or context
-  const structure = selectedStructure || contextStructure;
+  const structure = selectedStructure || (contextValue ? contextValue.selectedStructure : null);
   
   // Use onBeatTag from props or context
-  const handleBeatTagging = onBeatTag || contextHandleBeatTag;
+  const handleBeatTagging = onBeatTag || (contextValue ? contextValue.handleBeatTag : undefined);
   
   const {
     text,
@@ -113,43 +112,17 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   }, [isActive]);
 
-  // Generate specific alignment class based on element type
-  const getAlignmentClass = () => {
-    switch (element.type) {
-      case 'character':
-        return 'text-center';
-      case 'transition':
-        return 'text-right';
-      default:
-        return 'text-left';
-    }
-  };
-
   return (
     <div 
-      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
+      className={`element-container ${element.type} ${isActive ? 'active' : ''}`} 
       onContextMenu={handleRightClick}
     >
-      <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {isActive && showKeyboardShortcuts && (
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <button
-              onClick={() => setShowElementMenu(!showElementMenu)}
-              className="px-1.5 py-0.5 text-blue-600 hover:bg-gray-100 rounded"
-            >
-              {formatType(element.type)}
-            </button>
-          </div>
-        )}
-      </div>
-      
       <div
         ref={editorRef}
         className={`
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active-element' : ''}
-          ${getAlignmentClass()}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
@@ -158,18 +131,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onKeyDown={handleKeyDown}
         onInput={handleChange}
         style={{
+          ...elementStyles,
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           direction: 'ltr',
-          unicodeBidi: 'plaintext',
-          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          pointerEvents: 'auto', // Ensure the element can receive pointer events
-          minHeight: '1.2em', // Ensure empty elements have height
-          maxWidth: '100%', // Ensure text stays within container
-          overflow: 'hidden', // Prevent text from overflowing
-          textOverflow: 'ellipsis', // Show ellipsis if text overflows
-          ...elementStyles
+          unicodeBidi: 'plaintext'
         }}
         dir="ltr"
         data-element-type={element.type}
@@ -187,7 +154,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
             />
           )}
           
-          {showBeatTags && (
+          {showBeatTags && handleBeatTagging && (
             <div className="absolute right-0 top-0">
               <BeatTagButton
                 elementId={element.id}

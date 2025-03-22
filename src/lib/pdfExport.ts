@@ -12,6 +12,42 @@ interface PDFExportOptions {
 }
 
 /**
+ * Export script content directly to PDF
+ */
+export const exportScriptToPDF = async (
+  scriptContentElement: HTMLElement,
+  includePageNumbers: boolean = true,
+  fileName: string = 'screenplay'
+): Promise<void> => {
+  try {
+    const canvas = await html2canvas(scriptContentElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'px',
+      format: 'letter'
+    });
+    
+    // Calculate dimensions to maintain aspect ratio
+    const imgWidth = pdf.internal.pageSize.getWidth();
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.save(`${fileName}.pdf`);
+    
+    return;
+  } catch (error) {
+    console.error('PDF export error:', error);
+    throw error;
+  }
+};
+
+/**
  * Generates a PDF from the screenplay content
  */
 export const generatePDF = async (
