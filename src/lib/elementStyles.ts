@@ -52,67 +52,72 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     case 'scene-heading':
       return {
         ...baseStyles,
-        width: 'calc(100% - 1.5in)',
+        width: 'calc(100% - 2.5in)',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '0',
+        marginLeft: '1.5in',
         textAlign: 'left'
       };
     case 'action':
       return {
         ...baseStyles,
-        width: 'calc(100% - 1.5in)',
-        marginLeft: '0',
+        width: 'calc(100% - 2.5in)',
+        marginLeft: '1.5in',
         textAlign: 'left'
       };
     case 'character':
       return {
         ...baseStyles,
-        width: '33%',
+        width: '38%',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '2in',
-        textAlign: 'center', // Changed back to center for character names
-        direction: 'ltr', // Explicitly force LTR direction
+        marginLeft: '3.5in',
+        textAlign: 'left',
+        direction: 'ltr',
+        unicodeBidi: 'plaintext',
       };
     case 'dialogue':
       return {
         ...baseStyles,
         width: '62%',
-        marginLeft: '1in',
-        textAlign: 'left'
+        marginLeft: '2.5in',
+        textAlign: 'left',
+        direction: 'ltr',
+        unicodeBidi: 'plaintext',
       };
     case 'parenthetical':
       return {
         ...baseStyles,
-        width: '40%',
+        width: '50%',
         fontStyle: 'italic',
-        marginLeft: '1.5in',
-        textAlign: 'left'
+        marginLeft: '3in',
+        textAlign: 'left',
+        direction: 'ltr',
+        unicodeBidi: 'plaintext',
       };
     case 'transition':
       return {
         ...baseStyles,
-        width: 'calc(100% - 1.5in)',
+        width: 'calc(100% - 2.5in)',
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: '0'
+        marginLeft: '1.5in'
       };
     case 'note':
       return {
         ...baseStyles,
-        width: 'calc(100% - 1.5in)',
+        width: 'calc(100% - 2.5in)',
         fontStyle: 'italic',
         color: '#666',
-        marginLeft: '0',
+        marginLeft: '1.5in',
         textAlign: 'left'
       };
     default:
       return { 
         ...baseStyles, 
-        width: 'calc(100% - 1.5in)',
-        marginLeft: '0',
+        width: 'calc(100% - 2.5in)',
+        marginLeft: '1.5in',
         textAlign: 'left'
       };
   }
