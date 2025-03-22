@@ -26,7 +26,7 @@ export interface ScriptElement {
   text: string;
   tags?: string[];
   act?: ActType;
-  beat?: string; // Add beat identifier
+  beat?: string; // Beat identifier
 }
 
 export interface ScriptContent {
@@ -76,6 +76,7 @@ export interface ScriptElementProps {
   structures?: Structure[];
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  onAdditionalClick?: () => void;
 }
 
 // Structure-related types
@@ -93,7 +94,7 @@ export interface Structure {
 export interface Act {
   id: string;
   title: string;
-  colorHex: string;
+  colorHex?: string; // Hex color code for the act
   startPosition: number; // percentage (0-100)
   endPosition: number; // percentage (0-100)
   beats: Beat[];

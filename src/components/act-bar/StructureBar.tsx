@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { ActType } from '@/lib/types';
 
 interface StructureBarButtonProps {
   id: string;
@@ -12,32 +11,26 @@ interface StructureBarButtonProps {
 }
 
 interface StructureBarProps {
-  visibleActs: Array<StructureBarButtonProps>;
-  activeAct: ActType | null;
-  onSelectAct: (act: ActType | null) => void;
+  buttons: StructureBarButtonProps[];
 }
 
-const StructureBar: React.FC<StructureBarProps> = ({ 
-  visibleActs,
-  activeAct,
-  onSelectAct
+const StructureBar: React.FC<StructureBarProps> = ({
+  buttons
 }) => {
   return (
-    <div className="rounded-lg overflow-hidden w-full mb-2 border border-gray-200 dark:border-gray-700 flex">
-      {visibleActs.map((actBtn) => {
-        return (
-          <div 
-            key={actBtn.id}
-            onClick={actBtn.onClick}
-            className={`${actBtn.bgColor} ${actBtn.isActive ? 'ring-2 ring-inset ring-blue-500' : ''} flex-grow text-center py-2 cursor-pointer transition-all hover:brightness-95 active:brightness-90`}
-            style={{ flex: 1 }}
-          >
-            <span className={`text-sm font-medium ${actBtn.color}`}>
-              {actBtn.label}
-            </span>
-          </div>
-        );
-      })}
+    <div className="flex rounded-lg overflow-hidden w-full mb-2 border border-gray-200 dark:border-gray-700">
+      {buttons.map((button, index) => (
+        <div 
+          key={button.id}
+          onClick={button.onClick}
+          className={`${button.bgColor} ${button.isActive ? 'ring-2 ring-inset ring-blue-500' : ''} flex-grow text-center py-2 cursor-pointer transition-all hover:brightness-95 active:brightness-90`}
+          style={{ flex: 1 }}
+        >
+          <span className={`text-sm font-medium ${button.color}`}>
+            {button.label}
+          </span>
+        </div>
+      ))}
     </div>
   );
 };

@@ -1,11 +1,9 @@
 
 import React from 'react';
-import TagManagerContainer from './TagManagerContainer';
-import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
-import ScriptContent from './ScriptContent';
-import ZoomControls from './ZoomControls';
-import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
-import { useTheme } from '@/lib/themeContext';
+import { useFormat } from '@/lib/formatContext';
+import { ScrollArea } from '../ui/scroll-area';
+import { useScriptEditor } from './ScriptEditorProvider';
+import ScriptPage from './ScriptPage';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -13,30 +11,61 @@ interface ScriptEditorContentProps {
   onZoomChange: (value: number[]) => void;
 }
 
-const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
+const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({ 
   className,
   zoomPercentage,
   onZoomChange
 }) => {
-  const { showKeyboardShortcuts } = useKeyboardShortcuts();
-  const { theme } = useTheme();
+  const { formatState } = useFormat();
+  const {
+    filteredElements,
+    activeElementId,
+    currentPage,
+    getPreviousElementType,
+    handleElementChange,
+    handleFocus,
+    handleNavigate,
+    handleEnterKey,
+    changeElementType,
+    handleTagsChange,
+    characterNames,
+    projectId,
+    beatMode,
+    selectedStructure,
+    handleBeatTag,
+    handleRemoveBeat,
+    scriptContentRef
+  } = useScriptEditor();
 
   return (
-    <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <TagManagerContainer />
-      
-      {showKeyboardShortcuts && <KeyboardShortcutsHelp />}
-      
-      <div className="script-content-wrapper relative flex-grow h-full overflow-hidden">
-        <ScriptContent />
+    <ScrollArea className={`h-full w-full overflow-auto ${className || ''}`}>
+      <div 
+        className="flex justify-center w-full pt-8 pb-20"
+        ref={scriptContentRef}
+      >
+        <div className="w-full max-w-4xl mx-auto">
+          <ScriptPage
+            elements={filteredElements}
+            activeElementId={activeElementId}
+            getPreviousElementType={getPreviousElementType}
+            handleElementChange={handleElementChange}
+            handleFocus={handleFocus}
+            handleNavigate={handleNavigate}
+            handleEnterKey={handleEnterKey}
+            handleFormatChange={changeElementType}
+            handleTagsChange={handleTagsChange}
+            characterNames={characterNames}
+            projectId={projectId}
+            beatMode={beatMode}
+            selectedStructure={selectedStructure}
+            onBeatTag={handleBeatTag}
+            onRemoveBeat={handleRemoveBeat}
+            formatState={formatState}
+            currentPage={currentPage}
+          />
+        </div>
       </div>
-      
-      <ZoomControls 
-        zoomPercentage={zoomPercentage}
-        onZoomChange={onZoomChange}
-        theme={theme}
-      />
-    </div>
+    </ScrollArea>
   );
 };
 

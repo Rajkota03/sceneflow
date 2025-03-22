@@ -1,8 +1,10 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
+import BeatTagSelector from './BeatTagSelector';
+import SceneBeatTag from './SceneBeatTag';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -17,10 +19,11 @@ interface ScriptPageProps {
   characterNames: string[];
   projectId?: string;
   beatMode: BeatMode;
-  selectedStructure?: Structure | null;
-  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
-  formatState?: { zoomLevel: number };
-  currentPage?: number;
+  selectedStructure: Structure | null;
+  onBeatTag: (elementId: string, beatId: string, actId: string) => void;
+  onRemoveBeat?: (elementId: string) => void;
+  formatState: any;
+  currentPage: number;
 }
 
 const ScriptPage: React.FC<ScriptPageProps> = ({
@@ -38,98 +41,104 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   beatMode,
   selectedStructure,
   onBeatTag,
-  formatState = { zoomLevel: 1 },
-  currentPage = 1
+  onRemoveBeat,
+  formatState,
+  currentPage
 }) => {
-  // Listen for custom PDF import events
-  useEffect(() => {
-    const handlePdfImport = (event: CustomEvent) => {
-      console.log('PDF import event received', event.detail);
-      // You would handle the PDF import here by updating elements
-      // This would need to be connected to your state management
-    };
-
-    // Add event listener for PDF imports
-    window.addEventListener('pdf-imported' as any, handlePdfImport as any);
-    
-    // Clean up
-    return () => {
-      window.removeEventListener('pdf-imported' as any, handlePdfImport as any);
-    };
-  }, []);
-
-  // Handle keyboard shortcuts at the script level for commands that affect the whole script
-  useEffect(() => {
-    const handleGlobalShortcuts = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey) {
-        if (e.key === 'p') {
-          e.preventDefault();
-          // Trigger print/export functionality
-          document.querySelector('.menubar-trigger')?.dispatchEvent(
-            new MouseEvent('click', { bubbles: true })
-          );
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleGlobalShortcuts);
-    return () => {
-      window.removeEventListener('keydown', handleGlobalShortcuts);
-    };
-  }, []);
-
+  const [tagSelectorOpen, setTagSelectorOpen] = useState<string | null>(null);
+  
+  const handleSceneClick = (elementId: string) => {
+    // Only allow tagging for scene headings and in beat mode
+    const element = elements.find(el => el.id === elementId);
+    if (beatMode === 'on' && element?.type === 'scene-heading') {
+      setTagSelectorOpen(tagSelectorOpen === elementId ? null : elementId);
+    }
+  };
+  
+  const handleRemoveBeatTag = (elementId: string) => {
+    if (onRemoveBeat) {
+      onRemoveBeat(elementId);
+    }
+  };
+  
   return (
     <div className="script-page" style={{ 
       transform: `scale(${formatState.zoomLevel})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-      width: '8.5in', // Standard screenplay width
-      minHeight: '11in', // Standard screenplay height
-      margin: '0 auto',
-      position: 'relative',
-      backgroundColor: 'white',
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-      border: '1px solid #ddd'
+      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
     }}>
       <div className="script-page-content" style={{
-        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        position: 'relative',
-        padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
-        boxSizing: 'border-box',
-        height: '100%',
-        lineHeight: '1.2', // Standard screenplay line spacing
-        direction: 'ltr',
-        unicodeBidi: 'plaintext'
+        position: 'relative'
       }}>
         {/* Page number positioned inside the page */}
-        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
+          fontFamily: "Courier Final Draft, Courier Prime, monospace",
           fontSize: "12pt",
         }}>
           {currentPage}
         </div>
         
-        {elements.map((element, index) => (
-          <EditorElement
-            key={element.id}
-            element={element}
-            previousElementType={getPreviousElementType(index)}
-            onChange={handleElementChange}
-            onFocus={() => handleFocus(element.id)}
-            isActive={activeElementId === element.id}
-            onNavigate={handleNavigate}
-            onEnterKey={handleEnterKey}
-            onFormatChange={handleFormatChange}
-            onTagsChange={handleTagsChange}
-            characterNames={characterNames}
-            projectId={projectId}
-            beatMode={beatMode}
-            selectedStructure={selectedStructure}
-            onBeatTag={onBeatTag}
-          />
-        ))}
+        {elements.map((element, index) => {
+          const previousElementType = getPreviousElementType(
+            index - 1
+          );
+          
+          return (
+            <div key={element.id} className="relative">
+              {/* Scene Beat Tag Indicator - only for scene headings with beat tag */}
+              {beatMode === 'on' && element.type === 'scene-heading' && element.beat && (
+                <div className="absolute -left-24 top-1">
+                  <SceneBeatTag 
+                    beatId={element.beat}
+                    structure={selectedStructure}
+                    onClick={() => handleSceneClick(element.id)}
+                  />
+                </div>
+              )}
+              
+              {/* Beat Tag Selector - only displays when opened for a specific scene */}
+              {beatMode === 'on' && element.type === 'scene-heading' && tagSelectorOpen === element.id && (
+                <div className="absolute right-2 top-0">
+                  <BeatTagSelector
+                    elementId={element.id}
+                    isOpen={tagSelectorOpen === element.id}
+                    onOpenChange={(open) => setTagSelectorOpen(open ? element.id : null)}
+                    structure={selectedStructure}
+                    activeBeatId={element.beat}
+                    onBeatSelect={onBeatTag}
+                    onRemoveBeat={handleRemoveBeatTag}
+                  />
+                </div>
+              )}
+              
+              <EditorElement
+                key={element.id}
+                element={element}
+                previousElementType={previousElementType}
+                onChange={handleElementChange}
+                onFocus={() => handleFocus(element.id)}
+                isActive={activeElementId === element.id}
+                onNavigate={handleNavigate}
+                onEnterKey={handleEnterKey}
+                onFormatChange={handleFormatChange}
+                onTagsChange={handleTagsChange}
+                characterNames={characterNames}
+                projectId={projectId}
+                beatMode={beatMode}
+                selectedStructure={selectedStructure}
+                onBeatTag={onBeatTag}
+                onAdditionalClick={
+                  element.type === 'scene-heading' ? 
+                  () => handleSceneClick(element.id) : 
+                  undefined
+                }
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

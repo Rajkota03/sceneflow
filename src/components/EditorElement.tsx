@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -24,6 +23,7 @@ interface EditorElementProps {
   beatMode?: BeatMode;
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  onAdditionalClick?: () => void;
 }
 
 const EditorElement: React.FC<EditorElementProps> = ({ 
@@ -40,7 +40,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
   projectId,
   beatMode = 'on',
   selectedStructure,
-  onBeatTag
+  onBeatTag,
+  onAdditionalClick,
 }) => {
   const {
     text,
@@ -74,11 +75,30 @@ const EditorElement: React.FC<EditorElementProps> = ({
   }, [element, selectedStructure]);
 
   const elementStyles = getElementStyles(element.type);
+  
+  const handleElementClick = (e: React.MouseEvent) => {
+    // Only trigger the additional click handler if:
+    // 1. We have a click handler
+    // 2. It's a scene heading
+    // 3. Beat mode is on
+    // 4. It's already been focused (to avoid conflicting with the normal focus behavior)
+    // 5. It's specifically a double-click (for more intentional tagging interaction)
+    if (
+      onAdditionalClick && 
+      element.type === 'scene-heading' && 
+      beatMode === 'on' && 
+      isActive &&
+      e.detail === 2 // Check if it's a double-click
+    ) {
+      onAdditionalClick();
+    }
+  };
 
   return (
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
+      onClick={handleElementClick}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && (
@@ -99,6 +119,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active-element' : ''}
+          ${element.type === 'scene-heading' && beatMode === 'on' ? 'cursor-pointer' : ''}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
@@ -128,18 +149,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
               onSelect={handleSelectCharacter} 
               focusIndex={focusIndex}
             />
-          )}
-          
-          {element.type === 'scene-heading' && beatMode === 'on' && (
-            <div className="absolute right-0 top-0">
-              <SceneTags 
-                element={element} 
-                onTagsChange={onTagsChange} 
-                projectId={projectId}
-                selectedStructure={selectedStructure}
-                onBeatTag={onBeatTag}
-              />
-            </div>
           )}
           
           {showElementMenu && (

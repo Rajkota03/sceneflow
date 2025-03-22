@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
@@ -34,6 +33,8 @@ interface ScriptEditorContextType {
   selectedStructure: Structure | null;
   handleStructureChange: (structureId: string) => void;
   handleBeatTag: (elementId: string, beatId: string, actId: string) => void;
+  handleRemoveBeat: (elementId: string) => void;
+  beatSceneCounts: Record<string, number>;
   projectId?: string;
   scriptContentRef: React.RefObject<HTMLDivElement>;
   showKeyboardShortcuts: boolean;
@@ -78,6 +79,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>(externalBeatMode);
   const scriptContentRef = useRef<HTMLDivElement>(null);
+  const [beatSceneCounts, setBeatSceneCounts] = useState<Record<string, number>>({});
   
   const { showKeyboardShortcuts, setShowKeyboardShortcuts } = useKeyboardShortcuts({
     scriptContentRef
@@ -126,6 +128,17 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const characterNames = useCharacterNames(elements);
   const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
+
+  // Calculate beat scene counts whenever elements change
+  useEffect(() => {
+    const counts: Record<string, number> = {};
+    elements.forEach(element => {
+      if (element.beat) {
+        counts[element.beat] = (counts[element.beat] || 0) + 1;
+      }
+    });
+    setBeatSceneCounts(counts);
+  }, [elements]);
 
   useEffect(() => {
     const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
@@ -221,12 +234,44 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (selectedStructure) {
-      console.log("Selected structure in context:", selectedStructure.name);
-      console.log("Number of acts:", selectedStructure.acts?.length || 0);
+  const handleRemoveBeat = async (elementId: string) => {
+    // Find the element and its current beat
+    const element = elements.find(e => e.id === elementId);
+    if (!element || !element.beat || !selectedStructureId) return;
+    
+    const beatId = element.beat;
+    
+    // Remove the beat tag from the element
+    const newElements: ScriptElement[] = elements.map(el =>
+      el.id === elementId ? { ...el, beat: undefined } : el
+    );
+    setElements(newElements);
+    
+    // Check if this was the last scene tagged with this beat
+    const otherSceneWithSameBeat = elements.some(
+      e => e.id !== elementId && e.beat === beatId
+    );
+    
+    // If no other scene has this beat, mark it as incomplete in the structure
+    if (!otherSceneWithSameBeat && selectedStructure) {
+      // Find the act containing this beat
+      let actId = "";
+      for (const act of selectedStructure.acts) {
+        const beatExists = act.beats?.some(b => b.id === beatId);
+        if (beatExists) {
+          actId = act.id;
+          break;
+        }
+      }
+      
+      if (actId) {
+        const updatedStructure = updateBeatCompletion(beatId, actId, false);
+        if (updatedStructure) {
+          await saveBeatCompletion(selectedStructureId, updatedStructure);
+        }
+      }
     }
-  }, [selectedStructure]);
+  };
 
   const value = {
     elements,
@@ -253,6 +298,8 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     selectedStructure,
     handleStructureChange,
     handleBeatTag,
+    handleRemoveBeat,
+    beatSceneCounts,
     projectId,
     scriptContentRef,
     showKeyboardShortcuts,

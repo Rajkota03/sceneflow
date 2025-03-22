@@ -5,7 +5,7 @@ import ActBar from './act-bar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
-import useStructures from './tag-manager/useStructures';
+import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface ActCount {
   act: ActType | null;
@@ -27,8 +27,7 @@ const TagManager: React.FC<TagManagerProps> = ({
   structures = []
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
-  
-  const selectedStructure = structures.find(s => s.id === selectedStructureId) || null;
+  const { beatSceneCounts, selectedStructure } = useScriptEditor();
   
   const actCountsArray: ActCount[] = Object.entries(actCounts).map(([act, count]) => ({
     act: act as ActType,
@@ -44,14 +43,6 @@ const TagManager: React.FC<TagManagerProps> = ({
     }
   };
   
-  console.log('TagManager - Available structures:', structures.length);
-  console.log('TagManager - Selected structure ID:', selectedStructureId);
-  
-  if (selectedStructure) {
-    console.log('TagManager - Selected structure name:', selectedStructure.name);
-    console.log('TagManager - Selected structure acts:', selectedStructure.acts?.length || 0);
-  }
-
   return (
     <div className="mb-4">
       <div className="flex justify-between items-center mb-2">
@@ -65,6 +56,10 @@ const TagManager: React.FC<TagManagerProps> = ({
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
             selectedStructure={selectedStructure}
+            beatSceneCounts={beatSceneCounts}
+            onStructureChange={onStructureChange}
+            selectedStructureId={selectedStructureId}
+            availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
           />
         )}
       </div>

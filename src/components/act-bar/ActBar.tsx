@@ -13,6 +13,7 @@ import { List } from 'lucide-react';
 import StructureBar from './StructureBar';
 import ActButton from './ActButton';
 import BeatModeToggle from './BeatModeToggle';
+import StructureSelector from './StructureSelector';
 
 interface ActCount {
   act: ActType | null;
@@ -28,6 +29,10 @@ interface ActBarProps {
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
   selectedStructure?: Structure | null;
+  beatSceneCounts?: Record<string, number>;
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string;
+  availableStructures?: Array<{ id: string; name: string }>;
 }
 
 const ActBar: React.FC<ActBarProps> = ({ 
@@ -38,7 +43,11 @@ const ActBar: React.FC<ActBarProps> = ({
   structureName,
   beatMode = 'on',
   onToggleBeatMode,
-  selectedStructure
+  selectedStructure,
+  beatSceneCounts = {},
+  onStructureChange,
+  selectedStructureId,
+  availableStructures = []
 }) => {
   const [showAllActs, setShowAllActs] = useState(false);
   const [actButtons, setActButtons] = useState<Array<{
@@ -46,6 +55,7 @@ const ActBar: React.FC<ActBarProps> = ({
     label: string;
     color: string;
     bgColor: string;
+    beatIds: string[];
   }>>([]);
   
   // Default structure colors
@@ -68,25 +78,46 @@ const ActBar: React.FC<ActBarProps> = ({
           id: act.id,
           label: act.title || `Act ${index + 1}`,
           color: defaultColor.color,
-          bgColor: defaultColor.bgColor
+          bgColor: defaultColor.bgColor,
+          beatIds: act.beats?.map(b => b.id) || []
         };
       });
       
       setActButtons(buttons);
     } else {
       console.log("No valid structure acts found, using default");
-      setActButtons(defaultActColors);
+      setActButtons(defaultActColors.map(ac => ({ 
+        ...ac, 
+        beatIds: [] 
+      })));
     }
   }, [selectedStructure]);
   
   const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 5);
   
-  // Create an array of StructureBarButtonProps objects
-  const structureBarButtons = visibleActs.map(act => ({
-    ...act,
-    isActive: activeAct === act.id as ActType,
-    onClick: () => onSelectAct(act.id as ActType)
-  }));
+  // Calculate total beat count for each act
+  const getActBeatCount = (actButton: typeof actButtons[0]) => {
+    if (!actButton.beatIds.length) return 0;
+    
+    let count = 0;
+    for (const beatId of actButton.beatIds) {
+      count += beatSceneCounts[beatId] || 0;
+    }
+    return count;
+  };
+  
+  // Create StructureBar data structure
+  const structureBarButtons = visibleActs.map(act => {
+    const beatCount = getActBeatCount(act);
+    return {
+      id: act.id,
+      label: act.label + (beatCount > 0 ? ` (${beatCount})` : ''),
+      color: act.color,
+      bgColor: act.bgColor,
+      isActive: activeAct === act.id as ActType,
+      onClick: () => onSelectAct(act.id as ActType)
+    };
+  });
   
   return (
     <div className="w-full">
@@ -96,10 +127,12 @@ const ActBar: React.FC<ActBarProps> = ({
             {projectName}
           </h3>
           
-          {selectedStructure && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">
-              Structure: {selectedStructure.name}
-            </span>
+          {availableStructures && availableStructures.length > 0 && onStructureChange && (
+            <StructureSelector
+              structures={availableStructures}
+              selectedStructureId={selectedStructureId}
+              onStructureChange={onStructureChange}
+            />
           )}
         </div>
         
@@ -129,11 +162,9 @@ const ActBar: React.FC<ActBarProps> = ({
           </Button>
         </div>
         
-        {/* Structure Bar - Fixed with properly typed props */}
+        {/* Structure Bar with properly typed props */}
         <StructureBar
-          visibleActs={structureBarButtons}
-          activeAct={activeAct}
-          onSelectAct={onSelectAct}
+          buttons={structureBarButtons}
         />
       </div>
       
@@ -162,6 +193,7 @@ const ActBar: React.FC<ActBarProps> = ({
             count => count.act === actBtn.id
           );
           const count = actCount ? actCount.count : 0;
+          const beatCount = getActBeatCount(actBtn);
           
           return (
             <ActButton
@@ -172,6 +204,7 @@ const ActBar: React.FC<ActBarProps> = ({
               bgColor={actBtn.bgColor}
               isActive={activeAct === actBtn.id}
               count={count}
+              beatCount={beatCount}
               onClick={() => onSelectAct(actBtn.id as ActType)}
             />
           );
