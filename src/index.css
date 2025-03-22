@@ -69,6 +69,40 @@
   }
 }
 
+/* Global direction fix for text elements */
+[contenteditable="true"],
+.script-page,
+.script-page *,
+.element-text,
+.character,
+.dialogue,
+.scene-heading,
+.action,
+.parenthetical,
+.transition {
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
+  text-align: start !important;
+}
+
+/* Character name alignment (special case) */
+.character {
+  text-align: center !important;
+}
+
+/* Transition alignment (special case) */
+.transition {
+  text-align: right !important;
+}
+
+/* Ensure text doesn't overflow container boundaries */
+.element-text {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+}
+
 /* Dark mode styles */
 .dark .script-page {
   background-color: #1A1F2C;
@@ -120,6 +154,8 @@
   overflow: visible;
   position: relative;
   border: 1px solid #ddd;
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
 }
 
 .script-page-content {
@@ -128,8 +164,9 @@
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
-  direction: ltr;
-  unicode-bidi: plaintext;
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
+  overflow-x: hidden;
 }
 
 /* Element-specific formatting - Following Final Draft standards */
@@ -188,6 +225,8 @@
   width: 100%;
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Final Draft page numbers */
@@ -353,8 +392,9 @@ textarea.auto-resize {
 
 /* Fix for reversed text input */
 [contenteditable="true"] {
-  direction: ltr;
-  unicode-bidi: plaintext;
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
+  text-align: start !important;
 }
 
 /* Keyboard shortcut information */
@@ -423,4 +463,3 @@ textarea.auto-resize {
   height: 100%;
   overflow: hidden;
 }
-

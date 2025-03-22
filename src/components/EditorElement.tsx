@@ -153,6 +153,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           pointerEvents: 'auto', // Ensure the element can receive pointer events
           minHeight: '1.2em', // Ensure empty elements have height
+          maxWidth: '100%', // Ensure text stays within container
+          overflow: 'hidden', // Prevent text from overflowing
+          textOverflow: 'ellipsis', // Show ellipsis if text overflows
+          textAlign: element.type === 'character' ? 'center' : (element.type === 'transition' ? 'right' : 'left'),
           ...elementStyles
         }}
         dir="ltr"

@@ -1,25 +1,25 @@
+
 import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { useTheme } from '@/lib/themeContext';
+
 interface FormatStylerProps {
   children: React.ReactNode;
   forPrint?: boolean;
   forExport?: boolean;
   currentPage?: number;
 }
+
 const FormatStyler: React.FC<FormatStylerProps> = ({
   children,
   forPrint = false,
   forExport = false,
   currentPage = 1
 }) => {
-  const {
-    formatState
-  } = useFormat();
-  const {
-    theme
-  } = useTheme();
+  const { formatState } = useFormat();
+  const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
+
   const style: React.CSSProperties = {
     fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
     fontSize: '12pt',
@@ -40,13 +40,15 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     transition: 'all 0.2s ease',
     boxSizing: 'border-box',
     position: 'relative',
-    direction: 'ltr',
-    unicodeBidi: 'plaintext',
+    direction: 'ltr', // Force left-to-right text direction
+    unicodeBidi: 'plaintext', // Handle bidirectional text properly
     padding: forPrint || forExport ? '0' : '1in 1in 1in 1.5in',
     // Final Draft standard margins
     boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
     border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
-    pointerEvents: 'auto' // Allow pointer events on the container
+    pointerEvents: 'auto', // Allow pointer events on the container
+    overflowX: 'hidden', // Prevent horizontal overflow
+    overflowWrap: 'break-word', // Break words to prevent overflow
   };
 
   // Add a page number in Final Draft style
@@ -59,11 +61,22 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     color: isDarkMode ? '#aaa' : '#666',
     pointerEvents: 'none' // Don't block interaction with the page number
   };
-  return <div style={style} data-font="courier-final-draft" dir="ltr" className="">
-      {!forPrint && !forExport && <div style={pageNumberStyle}>
+
+  return (
+    <div 
+      style={style} 
+      data-font="courier-final-draft" 
+      dir="ltr" 
+      className=""
+    >
+      {!forPrint && !forExport && (
+        <div style={pageNumberStyle}>
           {currentPage}
-        </div>}
+        </div>
+      )}
       {children}
-    </div>;
+    </div>
+  );
 };
+
 export default FormatStyler;

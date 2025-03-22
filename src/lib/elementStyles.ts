@@ -1,4 +1,3 @@
-
 import { ElementType } from '@/lib/types';
 
 // Final Draft standard margins and positioning
@@ -38,25 +37,30 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
     fontSize: '12pt',
     lineHeight: 1.2,
-    marginBottom: '1em'
+    marginBottom: '1em',
+    direction: 'ltr',
+    unicodeBidi: 'plaintext',
+    overflowWrap: 'break-word',
+    wordWrap: 'break-word',
+    maxWidth: '100%'
   };
   
   switch (type) {
     case 'scene-heading':
       return {
         ...baseStyles,
-        width: '100%',
+        width: 'calc(100% - 1.5in)',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: FINAL_DRAFT_MARGINS.sceneHeading.left,
-        paddingRight: FINAL_DRAFT_MARGINS.sceneHeading.right
+        marginLeft: '0',
+        textAlign: 'left'
       };
     case 'action':
       return {
         ...baseStyles,
-        width: '100%',
-        marginLeft: FINAL_DRAFT_MARGINS.action.left,
-        paddingRight: FINAL_DRAFT_MARGINS.action.right
+        width: 'calc(100% - 1.5in)',
+        marginLeft: '0',
+        textAlign: 'left'
       };
     case 'character':
       return {
@@ -64,49 +68,48 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         width: '33%',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: FINAL_DRAFT_MARGINS.character.left,
-        paddingRight: FINAL_DRAFT_MARGINS.character.right
+        marginLeft: '2in',
+        textAlign: 'center'
       };
     case 'dialogue':
       return {
         ...baseStyles,
         width: '62%',
-        marginLeft: FINAL_DRAFT_MARGINS.dialogue.left,
-        paddingRight: FINAL_DRAFT_MARGINS.dialogue.right
+        marginLeft: '1in',
+        textAlign: 'left'
       };
     case 'parenthetical':
       return {
         ...baseStyles,
         width: '40%',
         fontStyle: 'italic',
-        marginLeft: FINAL_DRAFT_MARGINS.parenthetical.left,
-        paddingRight: FINAL_DRAFT_MARGINS.parenthetical.right
+        marginLeft: '1.5in',
+        textAlign: 'left'
       };
     case 'transition':
       return {
         ...baseStyles,
-        width: '100%',
+        width: 'calc(100% - 1.5in)',
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginLeft: FINAL_DRAFT_MARGINS.transition.left,
-        paddingRight: FINAL_DRAFT_MARGINS.transition.right
+        marginLeft: '0'
       };
     case 'note':
       return {
         ...baseStyles,
-        width: '100%',
+        width: 'calc(100% - 1.5in)',
         fontStyle: 'italic',
         color: '#666',
-        marginLeft: FINAL_DRAFT_MARGINS.action.left,
-        paddingRight: FINAL_DRAFT_MARGINS.action.right
+        marginLeft: '0',
+        textAlign: 'left'
       };
     default:
       return { 
         ...baseStyles, 
-        width: '100%',
-        marginLeft: FINAL_DRAFT_MARGINS.action.left,
-        paddingRight: FINAL_DRAFT_MARGINS.action.right
+        width: 'calc(100% - 1.5in)',
+        marginLeft: '0',
+        textAlign: 'left'
       };
   }
 };
