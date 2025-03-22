@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { Structure } from '@/lib/types';
+import { Structure, Act } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Check } from 'lucide-react';
 
 interface BeatPopoverContentProps {
   selectedStructure: Structure;
-  elementBeatId?: string;
+  elementBeatId?: string | null;
   onBeatSelect: (beatId: string, actId: string) => void;
 }
 
@@ -13,38 +15,42 @@ const BeatPopoverContent: React.FC<BeatPopoverContentProps> = ({
   elementBeatId,
   onBeatSelect
 }) => {
+  if (!selectedStructure?.acts || selectedStructure.acts.length === 0) {
+    return (
+      <div className="p-4 text-center text-sm text-gray-500">
+        No beats available in this structure.
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full">
-      <div className="p-2 bg-slate-100 dark:bg-slate-700 border-b">
-        <h4 className="font-medium text-sm">{selectedStructure.name}</h4>
-      </div>
-      <div className="max-h-60 overflow-y-auto">
-        {selectedStructure.acts?.map((act) => (
-          <div key={act.id} className="border-b last:border-0">
-            <div className="p-2 bg-slate-50 dark:bg-slate-800">
-              <h5 className="font-medium text-xs">{act.title}</h5>
-            </div>
-            <div>
-              {act.beats?.map((beat) => (
-                <button
-                  key={beat.id}
-                  className={`flex items-center justify-between w-full px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 ${
-                    elementBeatId === beat.id ? 'bg-blue-50 dark:bg-blue-900/30' : ''
-                  }`}
-                  onClick={() => onBeatSelect(beat.id, act.id)}
-                >
-                  <span className="text-xs">{beat.title}</span>
-                  {elementBeatId === beat.id && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
+    <div className="max-h-80 overflow-auto">
+      {selectedStructure.acts.map((act) => (
+        <div key={act.id} className="border-b border-gray-200 last:border-0">
+          <div className="px-3 py-2 font-medium bg-gray-50 dark:bg-gray-800">
+            {act.title}
           </div>
-        ))}
-      </div>
+          <div className="p-1">
+            {act.beats && act.beats.map((beat) => (
+              <div
+                key={beat.id}
+                className={cn(
+                  "px-3 py-2 cursor-pointer text-sm flex items-center justify-between",
+                  elementBeatId === beat.id
+                    ? "bg-blue-50 dark:bg-blue-900/20 font-medium"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                )}
+                onClick={() => onBeatSelect(beat.id, act.id)}
+              >
+                <span>{beat.title}</span>
+                {elementBeatId === beat.id && (
+                  <Check size={16} className="text-blue-500" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

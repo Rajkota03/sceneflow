@@ -2,6 +2,8 @@
 import React from 'react';
 import { ScriptElement } from '@/lib/types';
 import { renderStyle } from '@/lib/elementStyles';
+import ScriptElementEditor from './ScriptElement';
+import { useScriptEditor } from './ScriptEditorProvider';
 
 interface ScriptPageProps {
   currentPage: number;
@@ -12,6 +14,8 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   currentPage,
   elements
 }) => {
+  const { activeElementId } = useScriptEditor();
+  
   return (
     <div className="script-page mb-8">
       <div className="script-page-content">
@@ -20,27 +24,13 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         </div>
         
         <div className="script-elements-container" dir="ltr">
-          {elements.map((element) => (
-            <div 
+          {elements.map((element, index) => (
+            <ScriptElementEditor 
               key={element.id}
-              className={`element-container ${element.type}`}
-            >
-              <div 
-                className={`element-text ${renderStyle(element.type)}`}
-                dir="ltr"
-              >
-                {element.text || (
-                  <span className="text-gray-300">
-                    {element.type === 'scene-heading' ? 'INT./EXT. LOCATION - TIME' :
-                     element.type === 'character' ? 'CHARACTER NAME' :
-                     element.type === 'dialogue' ? 'Character dialogue...' :
-                     element.type === 'parenthetical' ? '(action)' :
-                     element.type === 'transition' ? 'CUT TO:' :
-                     'Start typing...'}
-                  </span>
-                )}
-              </div>
-            </div>
+              element={element}
+              index={index}
+              isActive={activeElementId === element.id}
+            />
           ))}
         </div>
       </div>

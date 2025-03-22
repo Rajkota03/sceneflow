@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Check, MapPin } from 'lucide-react';
 
 interface BeatTagButtonProps {
   hasBeatTag: boolean;
@@ -25,16 +26,11 @@ const BeatTagButton: React.FC<BeatTagButtonProps> = ({
     >
       {hasBeatTag ? (
         <>
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
+          <Check size={14} className="mr-1" />
           {beatTitle}
         </>
       ) : (
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 7l6 6 6-6"></path>
-          <path d="M3 17l6 6 6-6"></path>
-        </svg>
+        <MapPin size={14} />
       )}
     </button>
   );

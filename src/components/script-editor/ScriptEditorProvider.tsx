@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { ScriptContent, ElementType, ScriptElement, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId, detectElementType } from '@/lib/formatScript';
@@ -20,13 +19,12 @@ export interface ScriptEditorContextType {
   elements: ScriptElement[];
   activeElementId: string | null;
   updateElement: (id: string, text: string, type?: ElementType) => void;
-  addElement: (afterId: string, type?: ElementType) => void;
+  addElement: (afterId: string, type?: ElementType) => string;
   deleteElement: (id: string) => void;
   changeElementType: (id: string, newType: ElementType) => void;
   setActiveElement: (id: string | null) => void;
   showKeyboardShortcuts: boolean;
   toggleKeyboardShortcuts: () => void;
-  // Add missing properties to fix errors
   handleBeatTag?: (elementId: string, beatId: string, actId: string) => void;
   selectedStructure?: Structure | null;
   beatSceneCounts?: BeatSceneCount[];
@@ -84,9 +82,8 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setElements(prev => {
       const updated = prev.map(el => {
         if (el.id === id) {
-          // If no type is provided, detect it based on text content
-          const elementType = type || detectElementType(text, el.type);
-          return { ...el, text, type: elementType };
+          // If no type is provided, keep the current type
+          return { ...el, text, type: type || el.type };
         }
         return el;
       });
@@ -97,7 +94,9 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   }, [onChange]);
 
   // Add a new element after the specified element
-  const addElement = useCallback((afterId: string, type?: ElementType) => {
+  const addElement = useCallback((afterId: string, type?: ElementType): string => {
+    let newElementId = generateUniqueId();
+    
     setElements(prev => {
       const index = prev.findIndex(el => el.id === afterId);
       if (index === -1) return prev;
@@ -116,7 +115,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       }
 
       const newElement: ScriptElement = {
-        id: generateUniqueId(),
+        id: newElementId,
         type: newType,
         text: ''
       };
@@ -132,8 +131,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     });
 
     // Return the ID of the new element (for focusing)
-    const newId = generateUniqueId();
-    return newId;
+    return newElementId;
   }, [onChange]);
 
   // Delete an element
@@ -184,7 +182,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setActiveElement: setActiveElementId,
     showKeyboardShortcuts,
     toggleKeyboardShortcuts,
-    // Add the missing properties
     handleBeatTag,
     selectedStructure,
     beatSceneCounts,
