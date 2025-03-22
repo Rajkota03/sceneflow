@@ -1,15 +1,14 @@
 
 import React from 'react';
-import { ScriptContent } from '../../lib/types';
+import { ScriptContent as ScriptContentType } from '../../lib/types';
 import { useFormat } from '@/lib/formatContext';
 import ScriptEditorProvider from './ScriptEditorProvider';
 import ScriptEditorContent from './ScriptEditorContent';
 import { Note } from '@/lib/types';
-import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptEditorProps {
-  initialContent: ScriptContent;
-  onChange: (content: ScriptContent) => void;
+  initialContent: ScriptContentType;
+  onChange: (content: ScriptContentType) => void;
   notes?: Note[];
   onNoteCreate?: (note: Note) => void;
   className?: string;
@@ -18,19 +17,19 @@ interface ScriptEditorProps {
   projectId?: string;
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
-  beatMode?: BeatMode;
-  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const ScriptEditor = ({ 
   initialContent, 
   onChange, 
+  notes, 
+  onNoteCreate, 
   className,
   projectName = "Untitled Project",
+  structureName = "Three Act Structure",
   projectId,
   onStructureChange,
-  selectedStructureId,
-  beatMode = 'on'
+  selectedStructureId: externalSelectedStructureId,
 }: ScriptEditorProps) => {
   const { formatState, setZoomLevel } = useFormat();
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
@@ -42,32 +41,13 @@ const ScriptEditor = ({
     }
   };
 
-  // Ensure initialContent has at least one element
-  if (!initialContent.elements || initialContent.elements.length === 0) {
-    initialContent = {
-      elements: [
-        {
-          id: "default-element-1",
-          type: "scene-heading",
-          text: "INT. SOMEWHERE - DAY"
-        },
-        {
-          id: "default-element-2",
-          type: "action",
-          text: "Start writing your screenplay here..."
-        }
-      ]
-    };
-  }
-
   return (
     <ScriptEditorProvider
       initialContent={initialContent}
       onChange={onChange}
       projectId={projectId}
-      selectedStructureId={selectedStructureId}
+      selectedStructureId={externalSelectedStructureId}
       onStructureChange={onStructureChange}
-      projectTitle={projectName}
     >
       <ScriptEditorContent
         className={className}

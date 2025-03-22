@@ -1,41 +1,37 @@
 
 import React from 'react';
-import TagManager from '@/components/TagManager';
-import { BeatMode } from '@/types/scriptTypes';
+import TagManager from '../TagManager';
 import { useScriptEditor } from './ScriptEditorProvider';
 
-interface TagManagerContainerProps {
-  beatMode?: BeatMode;
-  onToggleBeatMode?: (mode: BeatMode) => void;
-  projectId?: string;
-  onStructureChange?: (structureId: string) => void;
-  selectedStructureId?: string;
-  structures?: { id: string; name: string }[];
-}
-
-const TagManagerContainer: React.FC<TagManagerContainerProps> = ({
-  beatMode = 'on',
-  onToggleBeatMode,
-  projectId,
-  onStructureChange,
-  selectedStructureId,
-  structures = []
-}) => {
-  const scriptEditor = useScriptEditor();
-  const scriptTitle = scriptEditor.projectTitle || 'Untitled';
+const TagManagerContainer: React.FC = () => {
+  const {
+    elements,
+    activeTagFilter,
+    setActiveTagFilter,
+    activeActFilter,
+    setActiveActFilter,
+    beatMode,
+    setBeatMode,
+    structures,
+    selectedStructureId,
+    handleStructureChange,
+    projectId
+  } = useScriptEditor();
 
   return (
     <TagManager
-      scriptContent={{ elements: scriptEditor.elements || [] }}
-      onFilterByTag={() => {}}
-      onFilterByAct={() => {}}
-      projectName={scriptTitle}
-      structureName="Three Act Structure"
+      scriptContent={{ elements }}
+      onFilterByTag={setActiveTagFilter}
+      onFilterByAct={setActiveActFilter}
+      activeFilter={activeTagFilter}
+      activeActFilter={activeActFilter}
+      projectName={projectId ? undefined : "Untitled Project"}
+      structureName={selectedStructureId ? undefined : "Three Act Structure"}
       beatMode={beatMode}
-      onToggleBeatMode={onToggleBeatMode}
-      selectedStructureId={selectedStructureId}
-      onStructureChange={onStructureChange}
+      onToggleBeatMode={setBeatMode}
       structures={structures}
+      selectedStructureId={selectedStructureId || undefined}
+      onStructureChange={handleStructureChange}
     />
   );
 };

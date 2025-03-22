@@ -1,41 +1,49 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { ScriptContent, ElementType, ScriptElement, Structure, BeatSceneCount } from '@/lib/types';
-import { generateUniqueId, detectElementType } from '@/lib/formatScript';
-import useBeatTagging from '@/hooks/useBeatTagging';
+import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
+import useScriptElements from '@/hooks/useScriptElements';
+import useFilteredElements from '@/hooks/useFilteredElements';
+import useCharacterNames from '@/hooks/useCharacterNames';
+import useProjectStructures from '@/hooks/useProjectStructures';
+import { BeatMode } from '@/types/scriptTypes';
+import { toast } from '@/components/ui/use-toast';
+import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 
-interface ScriptEditorProviderProps {
-  initialContent: ScriptContent;
-  onChange: (content: ScriptContent) => void;
-  projectId?: string;
-  projectTitle?: string;
-  selectedStructureId?: string;
-  onStructureChange?: (structureId: string) => void;
-  children: React.ReactNode;
-}
-
-// Create a context type with properties needed for the screenplay editor
-export interface ScriptEditorContextType {
-  projectTitle?: string;
+interface ScriptEditorContextType {
   elements: ScriptElement[];
+  filteredElements: ScriptElement[];
   activeElementId: string | null;
-  updateElement: (id: string, text: string, type?: ElementType) => void;
-  addElement: (afterId: string, type?: ElementType) => string;
-  deleteElement: (id: string) => void;
+  setActiveElementId: (id: string | null) => void;
+  handleElementChange: (id: string, text: string, type: ElementType) => void;
+  getPreviousElementType: (index: number) => ElementType | undefined;
+  addNewElement: (afterId: string, explicitType?: ElementType) => void;
   changeElementType: (id: string, newType: ElementType) => void;
-  setActiveElement: (id: string | null) => void;
+  handleEnterKey: (id: string, shiftKey: boolean) => void;
+  handleNavigate: (direction: 'up' | 'down', id: string) => void;
+  handleFocus: (id: string) => void;
+  handleTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  activeTagFilter: string | null;
+  setActiveTagFilter: (tag: string | null) => void;
+  activeActFilter: ActType | null;
+  setActiveActFilter: (act: ActType | null) => void;
+  beatMode: BeatMode;
+  setBeatMode: (mode: BeatMode) => void;
+  structures: Structure[];
+  selectedStructureId: string | null;
+  selectedStructure: Structure | null;
+  handleStructureChange: (structureId: string) => void;
+  handleBeatTag: (elementId: string, beatId: string, actId: string) => void;
+  projectId?: string;
+  scriptContentRef: React.RefObject<HTMLDivElement>;
   showKeyboardShortcuts: boolean;
-  toggleKeyboardShortcuts: () => void;
-  handleBeatTag?: (elementId: string, beatId: string, actId: string) => void;
-  selectedStructure?: Structure | null;
-  beatSceneCounts?: BeatSceneCount[];
-  onStructureChange?: (structureId: string) => void;
-  selectedStructureId?: string | null;
-  availableStructures?: Array<{ id: string; name: string }>;
+  setShowKeyboardShortcuts: (show: boolean) => void;
+  currentPage: number;
+  fetchStructures: () => Promise<void>;
 }
 
-const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
+const ScriptEditorContext = createContext<ScriptEditorContextType | null>(null);
 
-export const useScriptEditor = (): ScriptEditorContextType => {
+export const useScriptEditor = () => {
   const context = useContext(ScriptEditorContext);
   if (!context) {
     throw new Error('useScriptEditor must be used within a ScriptEditorProvider');
@@ -43,155 +51,200 @@ export const useScriptEditor = (): ScriptEditorContextType => {
   return context;
 };
 
-const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
+interface ScriptEditorProviderProps {
+  initialContent: ScriptContent;
+  onChange: (content: ScriptContent) => void;
+  projectId?: string;
+  selectedStructureId?: string;
+  onStructureChange?: (structureId: string) => void;
+  children: React.ReactNode;
+}
+
+export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   initialContent,
   onChange,
   projectId,
-  projectTitle,
-  selectedStructureId,
+  selectedStructureId: externalSelectedStructureId,
   onStructureChange,
   children
 }) => {
-  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
-  const [activeElementId, setActiveElementId] = useState<string | null>(null);
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
-  const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
-  const [availableStructures, setAvailableStructures] = useState<Array<{ id: string; name: string }>>([]);
-
-  // Initialize beat tagging functionality
-  const {
-    beatSceneCounts,
-    handleBeatTag,
-    activeBeatId,
-    setActiveBeatId,
-  } = useBeatTagging({
-    elements,
-    setElements,
-    selectedStructure
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
+  const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  const scriptContentRef = useRef<HTMLDivElement>(null);
+  
+  const { showKeyboardShortcuts, setShowKeyboardShortcuts } = useKeyboardShortcuts({
+    scriptContentRef
   });
 
-  // Update elements when initialContent changes
-  useEffect(() => {
-    if (initialContent && initialContent.elements) {
-      setElements(initialContent.elements);
-    }
-  }, [initialContent]);
-
-  // Update an existing element
-  const updateElement = useCallback((id: string, text: string, type?: ElementType) => {
-    setElements(prev => {
-      const updated = prev.map(el => {
-        if (el.id === id) {
-          // If no type is provided, keep the current type
-          return { ...el, text, type: type || el.type };
-        }
-        return el;
-      });
-      
-      onChange({ elements: updated });
-      return updated;
-    });
-  }, [onChange]);
-
-  // Add a new element after the specified element
-  const addElement = useCallback((afterId: string, type?: ElementType): string => {
-    let newElementId = generateUniqueId();
-    
-    setElements(prev => {
-      const index = prev.findIndex(el => el.id === afterId);
-      if (index === -1) return prev;
-
-      // Determine the new element type based on context
-      const prevElement = prev[index];
-      let newType: ElementType = type || 'action';
-      
-      // If previous element was a character, default to dialogue
-      if (prevElement.type === 'character') {
-        newType = 'dialogue';
-      } 
-      // If previous element was a scene heading, default to action
-      else if (prevElement.type === 'scene-heading') {
-        newType = 'action';
-      }
-
-      const newElement: ScriptElement = {
-        id: newElementId,
-        type: newType,
-        text: ''
-      };
-
-      const updated = [
-        ...prev.slice(0, index + 1),
-        newElement,
-        ...prev.slice(index + 1)
-      ];
-      
-      onChange({ elements: updated });
-      return updated;
-    });
-
-    // Return the ID of the new element (for focusing)
-    return newElementId;
-  }, [onChange]);
-
-  // Delete an element
-  const deleteElement = useCallback((id: string) => {
-    setElements(prev => {
-      // Don't delete the last element
-      if (prev.length <= 1) return prev;
-      
-      const updated = prev.filter(el => el.id !== id);
-      onChange({ elements: updated });
-      return updated;
-    });
-  }, [onChange]);
-
-  // Change the type of an element
-  const changeElementType = useCallback((id: string, newType: ElementType) => {
-    setElements(prev => {
-      const updated = prev.map(el => {
-        if (el.id === id) {
-          // Format text based on new type if needed
-          let formattedText = el.text;
-          if (newType === 'scene-heading' || newType === 'character' || newType === 'transition') {
-            formattedText = el.text.toUpperCase();
-          }
-          return { ...el, type: newType, text: formattedText };
-        }
-        return el;
-      });
-      
-      onChange({ elements: updated });
-      return updated;
-    });
-  }, [onChange]);
-
-  // Toggle keyboard shortcuts help visibility
-  const toggleKeyboardShortcuts = useCallback(() => {
-    setShowKeyboardShortcuts(prev => !prev);
-  }, []);
-
-  const contextValue: ScriptEditorContextType = {
-    projectTitle,
-    elements,
-    activeElementId,
-    updateElement,
-    addElement,
-    deleteElement,
-    changeElementType,
-    setActiveElement: setActiveElementId,
-    showKeyboardShortcuts,
-    toggleKeyboardShortcuts,
-    handleBeatTag,
+  const { 
+    structures, 
+    selectedStructureId, 
     selectedStructure,
-    beatSceneCounts,
-    onStructureChange,
+    handleStructureChange: changeSelectedStructure,
+    updateBeatCompletion,
+    saveBeatCompletion,
+    fetchStructures
+  } = useProjectStructures(projectId);
+
+  useEffect(() => {
+    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
+      console.log("External structure ID changed, updating:", externalSelectedStructureId);
+      changeSelectedStructure(externalSelectedStructureId);
+    }
+  }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
+
+  const {
+    elements,
+    setElements,
+    activeElementId,
+    setActiveElementId,
+    handleElementChange,
+    getPreviousElementType,
+    addNewElement,
+    changeElementType
+  } = useScriptElements(initialContent, onChange);
+
+  const characterNames = useCharacterNames(elements);
+  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
+
+  useEffect(() => {
+    const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
+      if (event.detail && Array.isArray(event.detail.elements)) {
+        const importedElements = event.detail.elements;
+        if (importedElements.length > 0) {
+          setElements(importedElements);
+          setActiveElementId(importedElements[0].id);
+          
+          toast({
+            title: "PDF Imported",
+            description: `Successfully imported ${importedElements.length} elements from PDF`,
+          });
+        }
+      }
+    };
+    
+    window.addEventListener('pdf-imported' as any, handlePdfImported as any);
+    
+    return () => {
+      window.removeEventListener('pdf-imported' as any, handlePdfImported as any);
+    };
+  }, [setElements, setActiveElementId]);
+
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    const currentElement = elements[currentIndex];
+    
+    if (shiftKey && currentElement.type === 'dialogue') {
+      const updatedElements: ScriptElement[] = [...elements];
+      updatedElements[currentIndex] = {
+        ...currentElement,
+        text: currentElement.text + '\n'
+      };
+      setElements(updatedElements);
+      return;
+    }
+    
+    addNewElement(id);
+  };
+
+  const handleNavigate = (direction: 'up' | 'down', id: string) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    if (direction === 'up' && currentIndex > 0) {
+      setActiveElementId(elements[currentIndex - 1].id);
+    } else if (direction === 'down' && currentIndex < elements.length - 1) {
+      setActiveElementId(elements[currentIndex + 1].id);
+    }
+  };
+
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
+
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    const newElements: ScriptElement[] = elements.map(element =>
+      element.id === elementId ? { ...element, tags } : element
+    );
+    setElements(newElements);
+  };
+
+  const handleStructureChange = async (structureId: string) => {
+    console.log("Structure changing to:", structureId);
+    await changeSelectedStructure(structureId);
+    
+    if (onStructureChange) {
+      onStructureChange(structureId);
+    }
+    
+    await fetchStructures();
+  };
+
+  const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
+    if (!selectedStructure || !selectedStructureId) return;
+    
+    const newElements: ScriptElement[] = elements.map(element =>
+      element.id === elementId ? { ...element, beat: beatId } : element
+    );
+    setElements(newElements);
+    
+    const updatedStructure = updateBeatCompletion(beatId, actId, true);
+    if (updatedStructure) {
+      const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
+      if (success) {
+        console.log("Beat tagged and structure progress updated");
+      } else {
+        console.error("Failed to update structure progress");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (selectedStructure) {
+      console.log("Selected structure in context:", selectedStructure.name);
+      console.log("Number of acts:", selectedStructure.acts?.length || 0);
+    }
+  }, [selectedStructure]);
+
+  const value = {
+    elements,
+    filteredElements,
+    activeElementId,
+    setActiveElementId,
+    handleElementChange,
+    getPreviousElementType,
+    addNewElement,
+    changeElementType,
+    handleEnterKey,
+    handleNavigate,
+    handleFocus,
+    handleTagsChange,
+    characterNames,
+    activeTagFilter,
+    setActiveTagFilter,
+    activeActFilter,
+    setActiveActFilter,
+    beatMode,
+    setBeatMode,
+    structures,
     selectedStructureId,
-    availableStructures
+    selectedStructure,
+    handleStructureChange,
+    handleBeatTag,
+    projectId,
+    scriptContentRef,
+    showKeyboardShortcuts,
+    setShowKeyboardShortcuts,
+    currentPage,
+    fetchStructures
   };
 
   return (
-    <ScriptEditorContext.Provider value={contextValue}>
+    <ScriptEditorContext.Provider value={value}>
       {children}
     </ScriptEditorContext.Provider>
   );

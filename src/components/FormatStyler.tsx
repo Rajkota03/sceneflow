@@ -5,45 +5,60 @@ import { useTheme } from '@/lib/themeContext';
 
 interface FormatStylerProps {
   children: React.ReactNode;
+  forPrint?: boolean;
+  forExport?: boolean;
+  currentPage?: number;
 }
 
-const FormatStyler: React.FC<FormatStylerProps> = ({
-  children
+const FormatStyler: React.FC<FormatStylerProps> = ({ 
+  children, 
+  forPrint = false, 
+  forExport = false,
+  currentPage = 1
 }) => {
   const { formatState } = useFormat();
   const { theme } = useTheme();
+  
   const isDarkMode = theme === 'dark';
   
-  // Basic styling 
   const style: React.CSSProperties = {
-    fontFamily: '"Courier Prime", monospace',
+    fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
     fontSize: '12pt',
     fontWeight: formatState.isBold ? 'bold' : 'normal',
     fontStyle: formatState.isItalic ? 'italic' : 'normal',
     textDecoration: [
-      formatState.isUnderline ? 'underline' : '', 
+      formatState.isUnderline ? 'underline' : '',
       formatState.isStrikethrough ? 'line-through' : ''
     ].filter(Boolean).join(' '),
     color: isDarkMode ? '#F6F6F7' : formatState.textColor || '#000000',
     backgroundColor: isDarkMode ? '#1A1F2C' : 'white',
+    textAlign: formatState.alignment || 'left',
+    lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
+                formatState.lineSpacing === '1.5' ? '1.5' : '2',
     width: '100%',
-    padding: '1rem',
-    boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.15)',
-    border: `1px solid ${isDarkMode ? '#333' : '#ddd'}`,
-    position: 'relative',
-    boxSizing: 'border-box',
+    maxWidth: '8.5in', // Standard screenplay width
+    height: forPrint || forExport ? 'auto' : 'auto',
+    minHeight: forPrint || forExport ? 'auto' : '11in', // Standard screenplay height
+    margin: '0 auto',
     transition: 'all 0.2s ease',
-    lineHeight: formatState.lineSpacing === 'single' ? '1.0' : 
-                formatState.lineSpacing === '1.5' ? '1.5' : '2.0',
+    boxSizing: 'border-box',
+    overflow: 'visible',
+    position: 'relative',
     direction: 'ltr',
-    overflowX: 'hidden',
-    overflowWrap: 'break-word',
-    wordWrap: 'break-word',
-    maxWidth: '100%'
+    unicodeBidi: 'plaintext',
+    padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
+    boxShadow: isDarkMode 
+      ? '0 2px 10px rgba(0,0,0,0.3)' 
+      : '0 2px 10px rgba(0,0,0,0.1)',
   };
 
   return (
-    <div style={style} className="format-styler" dir="ltr">
+    <div 
+      style={style} 
+      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
+      data-font="courier-final-draft"
+      dir="ltr"
+    >
       {children}
     </div>
   );

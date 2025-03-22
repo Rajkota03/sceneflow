@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { ScriptContent, TitlePageData, Note } from '@/lib/types';
-import TitlePageView from '../TitlePageView';
-import NoteWindow from '../notes/NoteWindow';
-import ScriptEditor from '../ScriptEditor';
-import { BeatMode } from '@/types/scriptTypes';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { Button } from '@/components/ui/button';
+import { Pencil } from 'lucide-react';
+import ScriptEditor from '../script-editor/ScriptEditor';
+import TitlePageView from '@/components/TitlePageView';
+import NoteWindow from '@/components/notes/NoteWindow';
+import { Note, ScriptContent, TitlePageData } from '@/lib/types';
 
 interface EditorMainAreaProps {
   showTitlePage: boolean;
@@ -18,10 +20,9 @@ interface EditorMainAreaProps {
   exitSplitScreen: () => void;
   onEditNote: (note: Note) => void;
   projectId?: string;
-  projectTitle?: string;
-  selectedStructureId?: string;
-  onStructureChange?: (structureId: string) => void;
-  beatMode: BeatMode;
+  projectTitle: string;
+  onStructureChange: (structureId: string) => void;
+  selectedStructureId: string | null;
 }
 
 const EditorMainArea: React.FC<EditorMainAreaProps> = ({
@@ -37,59 +38,101 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   onEditNote,
   projectId,
   projectTitle,
-  selectedStructureId,
   onStructureChange,
-  beatMode
+  selectedStructureId
 }) => {
   return (
-    <div className="flex-grow flex overflow-hidden">
-      {/* Main editor area */}
-      <div className={`flex-grow ${splitScreenNote ? 'w-1/2' : 'w-full'} overflow-hidden`}>
-        {showTitlePage ? (
-          <div className="h-full overflow-auto bg-white dark:bg-slate-800 p-6">
+    <main className="flex-grow overflow-hidden py-4 px-4 bg-[#EEEEEE] dark:bg-slate-900 relative transition-colors duration-200">
+      {splitScreenNote ? (
+        <ResizablePanelGroup direction="horizontal" className="h-full">
+          <ResizablePanel defaultSize={70} minSize={30}>
+            <div className="h-full overflow-auto">
+              {showTitlePage ? (
+                <TitlePageView data={titlePageData} />
+              ) : (
+                <ScriptEditor 
+                  initialContent={content} 
+                  onChange={onContentChange} 
+                  className="overflow-auto"
+                  projectName={projectTitle}
+                  projectId={projectId}
+                  onStructureChange={onStructureChange}
+                  selectedStructureId={selectedStructureId || undefined}
+                />
+              )}
+            </div>
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={30} minSize={20}>
+            <div className="h-full flex flex-col">
+              <div className="bg-gray-50 dark:bg-slate-800 px-3 py-2 flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
+                <h3 className="text-sm font-medium dark:text-slate-200">Notes</h3>
+                <div className="flex space-x-2">
+                  {splitScreenNote && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => onEditNote(splitScreenNote)}
+                      className="text-xs h-7 dark:text-slate-200 dark:hover:bg-slate-700"
+                    >
+                      <Pencil size={14} className="mr-1" />
+                      Edit
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={exitSplitScreen}
+                    className="text-xs h-7 dark:text-slate-200 dark:hover:bg-slate-700"
+                  >
+                    Exit Split View
+                  </Button>
+                </div>
+              </div>
+              <div className="flex-grow overflow-auto p-3 bg-white dark:bg-slate-800">
+                {splitScreenNote && (
+                  <NoteWindow 
+                    note={splitScreenNote} 
+                    onClose={() => onNoteClose(splitScreenNote.id)} 
+                    onSplitScreen={() => {}} 
+                    isFloating={false}
+                    onEditNote={onEditNote}
+                  />
+                )}
+              </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <>
+          {showTitlePage ? (
             <TitlePageView data={titlePageData} />
-          </div>
-        ) : (
-          <ScriptEditor
-            initialContent={content}
-            onChange={onContentChange}
-            className="h-full"
-            projectName={projectTitle}
-            projectId={projectId}
-            selectedStructureId={selectedStructureId}
-            onStructureChange={onStructureChange}
-            beatMode={beatMode}
-          />
-        )}
-      </div>
-
-      {/* Split screen for note */}
-      {splitScreenNote && (
-        <div className="w-1/2 border-l border-slate-200 dark:border-slate-700">
-          <NoteWindow
-            note={splitScreenNote}
-            onClose={() => exitSplitScreen()}
-            onEdit={() => onEditNote(splitScreenNote)}
-            isFullHeight={true}
-            hideSplitButton={true}
-            isFloating={false}
-          />
-        </div>
+          ) : (
+            <ScriptEditor 
+              initialContent={content} 
+              onChange={onContentChange}
+              projectName={projectTitle}
+              projectId={projectId}
+              onStructureChange={onStructureChange}
+              selectedStructureId={selectedStructureId || undefined}
+            />
+          )}
+        </>
       )}
-
-      {/* Floating note windows */}
-      <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2 z-50">
-        {openNotes.map(note => (
-          <NoteWindow
-            key={note.id}
-            note={note}
-            onClose={() => onNoteClose(note.id)}
-            onSplitScreen={() => onSplitScreen(note)}
-            onEdit={() => onEditNote(note)}
-          />
-        ))}
-      </div>
-    </div>
+      
+      {openNotes.map(note => (
+        <NoteWindow 
+          key={note.id}
+          note={note}
+          onClose={() => onNoteClose(note.id)}
+          onSplitScreen={onSplitScreen}
+          isFloating={true}
+          onEditNote={onEditNote}
+        />
+      ))}
+    </main>
   );
 };
 

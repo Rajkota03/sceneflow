@@ -1,38 +1,135 @@
 
-import React from 'react';
-import { ScriptElement } from '@/lib/types';
-import { renderStyle } from '@/lib/elementStyles';
-import ScriptElementEditor from './ScriptElement';
-import { useScriptEditor } from './ScriptEditorProvider';
+import React, { useEffect } from 'react';
+import { ScriptElement, ElementType, Structure } from '@/lib/types';
+import EditorElement from '../EditorElement';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptPageProps {
-  currentPage: number;
   elements: ScriptElement[];
+  activeElementId: string | null;
+  getPreviousElementType: (index: number) => ElementType | undefined;
+  handleElementChange: (id: string, text: string, type: ElementType) => void;
+  handleFocus: (id: string) => void;
+  handleNavigate: (direction: 'up' | 'down', id: string) => void;
+  handleEnterKey: (id: string, shiftKey: boolean) => void;
+  handleFormatChange: (id: string, newType: ElementType) => void;
+  handleTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  projectId?: string;
+  beatMode: BeatMode;
+  selectedStructure?: Structure | null;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  formatState?: { zoomLevel: number };
+  currentPage?: number;
 }
 
-const ScriptPage: React.FC<ScriptPageProps> = ({ 
-  currentPage,
-  elements
+const ScriptPage: React.FC<ScriptPageProps> = ({
+  elements,
+  activeElementId,
+  getPreviousElementType,
+  handleElementChange,
+  handleFocus,
+  handleNavigate,
+  handleEnterKey,
+  handleFormatChange,
+  handleTagsChange,
+  characterNames,
+  projectId,
+  beatMode,
+  selectedStructure,
+  onBeatTag,
+  formatState = { zoomLevel: 1 },
+  currentPage = 1
 }) => {
-  const { activeElementId } = useScriptEditor();
-  
+  // Listen for custom PDF import events
+  useEffect(() => {
+    const handlePdfImport = (event: CustomEvent) => {
+      console.log('PDF import event received', event.detail);
+      // You would handle the PDF import here by updating elements
+      // This would need to be connected to your state management
+    };
+
+    // Add event listener for PDF imports
+    window.addEventListener('pdf-imported' as any, handlePdfImport as any);
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('pdf-imported' as any, handlePdfImport as any);
+    };
+  }, []);
+
+  // Handle keyboard shortcuts at the script level for commands that affect the whole script
+  useEffect(() => {
+    const handleGlobalShortcuts = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey) {
+        if (e.key === 'p') {
+          e.preventDefault();
+          // Trigger print/export functionality
+          document.querySelector('.menubar-trigger')?.dispatchEvent(
+            new MouseEvent('click', { bubbles: true })
+          );
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleGlobalShortcuts);
+    return () => {
+      window.removeEventListener('keydown', handleGlobalShortcuts);
+    };
+  }, []);
+
   return (
-    <div className="script-page mb-8">
-      <div className="script-page-content">
-        <div className="page-number absolute top-0.5 right-1 text-xs text-gray-400">
+    <div className="script-page" style={{ 
+      transform: `scale(${formatState.zoomLevel})`,
+      transformOrigin: 'top center',
+      transition: 'transform 0.2s ease-out',
+      fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+      width: '8.5in', // Standard screenplay width
+      minHeight: '11in', // Standard screenplay height
+      margin: '0 auto',
+      position: 'relative',
+      backgroundColor: 'white',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+      border: '1px solid #ddd'
+    }}>
+      <div className="script-page-content" style={{
+        fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+        fontSize: '12pt',
+        position: 'relative',
+        padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
+        boxSizing: 'border-box',
+        height: '100%',
+        lineHeight: '1.2', // Standard screenplay line spacing
+        direction: 'ltr',
+        unicodeBidi: 'plaintext'
+      }}>
+        {/* Page number positioned inside the page */}
+        <div className="page-number absolute top-4 right-8 text-gray-700 font-bold text-sm z-10" style={{
+          fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+          fontSize: "12pt",
+        }}>
           {currentPage}
         </div>
         
-        <div className="script-elements-container" dir="ltr">
-          {elements.map((element, index) => (
-            <ScriptElementEditor 
-              key={element.id}
-              element={element}
-              index={index}
-              isActive={activeElementId === element.id}
-            />
-          ))}
-        </div>
+        {elements.map((element, index) => (
+          <EditorElement
+            key={element.id}
+            element={element}
+            previousElementType={getPreviousElementType(index)}
+            onChange={handleElementChange}
+            onFocus={() => handleFocus(element.id)}
+            isActive={activeElementId === element.id}
+            onNavigate={handleNavigate}
+            onEnterKey={handleEnterKey}
+            onFormatChange={handleFormatChange}
+            onTagsChange={handleTagsChange}
+            characterNames={characterNames}
+            projectId={projectId}
+            beatMode={beatMode}
+            selectedStructure={selectedStructure}
+            onBeatTag={onBeatTag}
+          />
+        ))}
       </div>
     </div>
   );

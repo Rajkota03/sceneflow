@@ -1,9 +1,8 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Import the Courier Final Draft font */
+/* Import the Courier Final Draft font - using preconnect for performance */
 @font-face {
   font-family: 'Courier Final Draft';
   src: url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff2') format('woff2'),
@@ -70,18 +69,7 @@
   }
 }
 
-/* Screenplay specific styles */
-.script-page {
-  width: 8.5in;
-  min-height: 11in;
-  background-color: white;
-  margin: 0 auto;
-  position: relative;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  color: black;
-  box-sizing: border-box;
-}
-
+/* Dark mode styles */
 .dark .script-page {
   background-color: #1A1F2C;
   color: #F6F6F7;
@@ -89,109 +77,251 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.script-page-content {
-  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
-  font-size: 12pt;
-  line-height: 1.2;
-  padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left */
-  height: 100%;
-  box-sizing: border-box;
-  direction: ltr;
-}
-
-/* Script elements styling */
-.element-container {
-  position: relative;
-  margin-bottom: 0.25rem;
-  width: 100%;
-}
-
-.element-text {
-  outline: none;
-  white-space: pre-wrap;
-  word-break: break-word;
-  min-height: 1.2em;
-  padding: 2px;
-  direction: ltr !important;
-  unicode-bidi: plaintext !important;
-  text-align: left !important;
-  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
-}
-
-/* Active element styling */
-.element-text.active-element {
-  background-color: rgba(100, 100, 255, 0.05);
-  outline: 1px solid rgba(100, 100, 255, 0.2);
-}
-
 .dark .element-text.active-element {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-/* Force LTR for screenplay elements */
-.scene-heading, 
-.action, 
-.character, 
-.dialogue, 
-.parenthetical, 
-.transition {
-  direction: ltr !important;
-  unicode-bidi: plaintext !important;
-  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
+.dark ::selection {
+  background-color: rgba(79, 70, 229, 0.3);
+  color: inherit;
 }
 
-/* Element-specific styles */
+.dark .keyboard-shortcuts-help {
+  background-color: #1A1F2C;
+  border-color: #333333;
+  color: #F6F6F7;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark .keyboard-shortcuts-table th,
+.dark .keyboard-shortcuts-table td {
+  border-color: #333333;
+}
+
+.dark .keyboard-shortcut-key {
+  background-color: #333333;
+  color: #F6F6F7;
+  border-color: #444444;
+}
+
+/* Screenplay formatting styles - Based on Final Draft industry standards */
+.script-page {
+  width: 8.5in;
+  height: auto;
+  min-height: 11in;
+  padding: 0;
+  margin: 0 auto;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt;
+  line-height: 1.2;
+  color: #000;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+  position: relative;
+  border: 1px solid #ddd;
+}
+
+.script-page-content {
+  padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left - standard screenplay margins */
+  height: 100%;
+  box-sizing: border-box;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+/* Element-specific formatting - Following Final Draft standards */
 .scene-heading {
-  margin-bottom: 1em;
   text-transform: uppercase;
   font-weight: bold;
+  margin-bottom: 1em;
+  text-align: left;
+  width: 100%;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .action {
   margin-bottom: 1em;
+  text-align: left;
+  width: 100%;
+  white-space: pre-wrap;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  overflow-x: visible; /* Remove horizontal scrollbar */
 }
 
 .character {
   text-transform: uppercase;
+  text-align: center;
+  width: 30%;
+  margin: 1em auto 0.1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-weight: bold;
-  margin-bottom: 0.1em;
 }
 
 .dialogue {
-  margin-bottom: 1em;
+  width: 65%;
+  margin: 0 auto 1em;
+  text-align: left;
+  padding-left: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
 }
 
 .parenthetical {
+  width: 40%;
+  margin: 0 auto 0.1em;
+  text-align: left;
+  padding-left: 1.5em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-style: italic;
-  margin-bottom: 0.1em;
 }
 
 .transition {
-  text-align: right !important;
+  text-align: right;
   text-transform: uppercase;
+  margin: 1em 0;
+  width: 100%;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-weight: bold;
-  margin-bottom: 1em;
 }
 
-/* Character suggestions */
-.character-suggestions {
+.element-container {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  margin-bottom: 0.25em;
+}
+
+/* Script content wrapper */
+.script-content-wrapper {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Active element highlighting - Modified to be more subtle */
+.element-text.active-element {
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+/* Remove all scrollbars from editor elements */
+.element-container textarea,
+textarea.resize-none {
+  overflow: hidden !important;
+  resize: none;
+  height: auto;
+  min-height: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+}
+
+/* Auto-expanding textarea styles */
+textarea.auto-resize {
+  overflow: hidden !important;
+  resize: none;
+  height: auto;
+  min-height: 1em;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+}
+
+/* PDF export specific styles */
+.pdf-export p {
+  margin: 0;
+  padding: 0;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
+  line-height: 1.2 !important;
+}
+
+/* Make sure all textareas use the correct font */
+.script-page-content textarea {
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+  font-size: 12pt !important;
+  overflow: hidden !important; /* Remove scrollbars on all textareas */
+}
+
+/* Character suggestions dropdown styles */
+.dark .character-suggestions {
   position: absolute;
   z-index: 100;
-  background-color: white;
-  border: 1px solid #ddd;
+  width: 60%;
+  left: 20%;
+  background-color: #1A1F2C;
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  max-height: 200px;
-  overflow-y: auto;
-  width: 200px;
 }
 
-.dark .character-suggestions {
-  background-color: #1A1F2C;
-  border-color: #333;
+/* Remove the border highlight when focusing on an element */
+.element-container:focus-within {
+  outline: none;
 }
 
-/* Keyboard shortcuts */
+/* Add some extra space to elements */
+.element-container + .element-container {
+  margin-top: 0.25em;
+}
+
+/* Custom selection style */
+::selection {
+  background-color: rgba(0, 120, 212, 0.2);
+  color: inherit;
+}
+
+/* Final Draft specific page numbering - Standard screenplay format */
+.page-number {
+  position: absolute;
+  top: 0.5in;
+  right: 1in;
+  font-family: 'Courier Final Draft', 'Courier Prime', monospace;
+  font-size: 12pt;
+  color: #666;
+}
+
+/* Print-specific styles - To ensure proper printing/PDF export */
+@media print {
+  .script-page {
+    box-shadow: none;
+    width: 8.5in;
+    height: 11in;
+    margin: 0;
+    padding: 0;
+    border: none;
+  }
+  
+  .script-page-content {
+    padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
+  }
+  
+  /* Ensure proper text formatting in print */
+  .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
+    font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
+    font-size: 12pt !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* Hide editing UI elements in print */
+  .character-suggestions, .element-menu, button, .zoom-control {
+    display: none !important;
+  }
+  
+  /* Page break handling */
+  .page-break {
+    page-break-after: always;
+    height: 0;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Fix for reversed text input */
+[contenteditable="true"] {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
+/* Keyboard shortcut information */
 .keyboard-shortcuts-help {
   background-color: white;
   border: 1px solid #ddd;
@@ -203,12 +333,6 @@
   right: 20px;
   top: 60px;
   z-index: 100;
-}
-
-.dark .keyboard-shortcuts-help {
-  background-color: #1A1F2C;
-  border-color: #333;
-  color: #F6F6F7;
 }
 
 .keyboard-shortcuts-table {
@@ -224,91 +348,42 @@
   border-bottom: 1px solid #eee;
 }
 
-.dark .keyboard-shortcuts-table th,
-.dark .keyboard-shortcuts-table td {
-  border-color: #333;
+.keyboard-shortcuts-table tr:last-child td {
+  border-bottom: none;
 }
 
-/* Zoom controls */
-.zoom-controls {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background-color: white;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  display: flex;
-  align-items: center;
-  padding: 0.5rem;
-  z-index: 50;
+.keyboard-shortcut-key {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 0.15rem 0.35rem;
+  font-family: monospace;
+  font-size: 0.8rem;
 }
 
-.dark .zoom-controls {
-  background-color: #1A1F2C;
-  border-color: #333;
-}
-
-/* Print styles */
-@media print {
-  .script-page {
-    box-shadow: none;
-    width: 8.5in;
-    height: 11in;
-    margin: 0;
-    padding: 0;
-    border: none;
-  }
-  
-  .script-page-content {
-    padding: 1in 1in 1in 1.5in;
-  }
-  
-  .element-container:not(.active) .element-format-indicator,
-  .zoom-controls,
-  .character-suggestions,
-  .keyboard-shortcuts-help {
-    display: none !important;
-  }
-}
-
-/* Focus and selection styles */
-.element-text:focus {
-  outline: none;
-}
-
-::selection {
-  background-color: rgba(0, 120, 212, 0.2);
-}
-
-.dark ::selection {
-  background-color: rgba(79, 70, 229, 0.3);
-}
-
-/* Element type menu */
-.element-type-menu {
+/* Screenplay element formatting help */
+.element-format-indicator {
   position: absolute;
-  z-index: 999;
-  background-color: white;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  padding: 0.5rem 0;
-  width: 200px;
+  left: -24px;
+  top: 2px;
+  font-size: 0.7rem;
+  color: #666;
+  border-radius: 2px;
+  padding: 1px 2px;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.dark .element-type-menu {
-  background-color: #1A1F2C;
-  border-color: #333;
+.element-container:hover .element-format-indicator {
+  opacity: 1;
 }
 
-.element-type-item {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.element-type-item:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.dark .element-type-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+/* Ensure proper scrolling */
+.script-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }

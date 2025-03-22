@@ -1,57 +1,112 @@
 
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import React, { useState } from 'react';
+import { 
+  MenubarMenu, 
+  MenubarTrigger, 
+  MenubarContent, 
+  MenubarItem, 
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarCheckboxItem,
+  MenubarSub,
+  MenubarSubContent,
+  MenubarSubTrigger
+} from '@/components/ui/menubar';
+import { toast } from '@/components/ui/use-toast';
+import { ElementType } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
-import { Pilcrow } from 'lucide-react';
 
 const FormatMenu = () => {
-  const { formatState, setLineSpacing } = useFormat();
+  const { formatState, setFont, setFontSize } = useFormat();
+  const [showSceneNumbers, setShowSceneNumbers] = useState(false);
+  
+  const handleElementChange = (elementType: ElementType) => {
+    toast({
+      title: `Changed to ${elementType}`,
+      description: `The current element has been changed to ${elementType}.`,
+    });
+  };
 
-  const handleLineSpacingChange = (spacing: 'single' | '1.5' | 'double') => {
-    if (setLineSpacing) {
-      setLineSpacing(spacing);
-    }
+  const toggleSceneNumbers = () => {
+    setShowSceneNumbers(!showSceneNumbers);
+    toast({
+      title: `Scene Numbers ${!showSceneNumbers ? "Enabled" : "Disabled"}`,
+      description: `Scene numbers are now ${!showSceneNumbers ? "visible" : "hidden"} in the script.`,
+    });
+  };
+
+  const handlePageBreak = () => {
+    toast({
+      title: "Page Break Inserted",
+      description: "A manual page break has been added to the script.",
+    });
+  };
+
+  const handleFontSettings = () => {
+    const fonts = ["Courier Prime", "Courier New", "Final Draft", "Courier Screenplay"];
+    const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
+    setFont(randomFont);
+    
+    toast({
+      title: "Font Settings Updated",
+      description: `Font changed to ${randomFont}`,
+    });
+  };
+
+  const handleSpacingOptions = () => {
+    const newSize = formatState.fontSize === 12 ? 14 : 12;
+    setFontSize(newSize);
+    
+    toast({
+      title: "Spacing Options Updated",
+      description: `Font size changed to ${newSize}pt`,
+    });
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <Pilcrow className="h-4 w-4" />
-          <span className="sr-only">Format options</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => handleLineSpacingChange('single')}
-          className={formatState.lineSpacing === 'single' ? 'bg-accent' : ''}
-        >
-          <span className="text-xs mr-2">1.0</span>
-          Single Line Spacing
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleLineSpacingChange('1.5')}
-          className={formatState.lineSpacing === '1.5' ? 'bg-accent' : ''}
-        >
-          <span className="text-xs mr-2">1.5</span>
-          1.5 Line Spacing
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleLineSpacingChange('double')}
-          className={formatState.lineSpacing === 'double' ? 'bg-accent' : ''}
-        >
-          <span className="text-xs mr-2">2.0</span>
-          Double Line Spacing
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <MenubarMenu>
+      <MenubarTrigger className="text-white hover:bg-[#333333]">Format</MenubarTrigger>
+      <MenubarContent>
+        <MenubarItem onClick={() => handleElementChange('scene-heading')}>
+          Scene Heading
+          <MenubarShortcut>⌘1</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={() => handleElementChange('action')}>
+          Action
+          <MenubarShortcut>⌘2</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={() => handleElementChange('character')}>
+          Character
+          <MenubarShortcut>⌘3</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={() => handleElementChange('dialogue')}>
+          Dialogue
+          <MenubarShortcut>⌘4</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={() => handleElementChange('parenthetical')}>
+          Parenthetical
+          <MenubarShortcut>⌘5</MenubarShortcut>
+        </MenubarItem>
+        <MenubarItem onClick={() => handleElementChange('transition')}>
+          Transition
+          <MenubarShortcut>⌘6</MenubarShortcut>
+        </MenubarItem>
+        <MenubarSeparator />
+        <MenubarCheckboxItem checked={showSceneNumbers} onClick={toggleSceneNumbers}>
+          Scene Numbers
+        </MenubarCheckboxItem>
+        <MenubarItem onClick={handlePageBreak}>
+          Page Break
+        </MenubarItem>
+        <MenubarSeparator />
+        <MenubarItem onClick={handleFontSettings}>
+          Font Settings...
+        </MenubarItem>
+        <MenubarItem onClick={handleSpacingOptions}>
+          Spacing Options...
+        </MenubarItem>
+      </MenubarContent>
+    </MenubarMenu>
   );
 };
 
