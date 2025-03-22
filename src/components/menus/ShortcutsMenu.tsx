@@ -9,12 +9,17 @@ import {
   MenubarCheckboxItem,
   MenubarShortcut
 } from '@/components/ui/menubar';
-import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
 import { KeyboardIcon } from 'lucide-react';
 
-const ShortcutsMenu: React.FC = () => {
-  const { showKeyboardShortcuts, toggleKeyboardShortcuts } = useScriptEditor();
+interface ShortcutsMenuProps {
+  onToggleShortcuts?: () => void;
+  showShortcuts?: boolean;
+}
 
+const ShortcutsMenu: React.FC<ShortcutsMenuProps> = ({ 
+  onToggleShortcuts, 
+  showShortcuts = false 
+}) => {
   return (
     <MenubarMenu>
       <MenubarTrigger className="text-white hover:bg-[#333333]">
@@ -25,8 +30,8 @@ const ShortcutsMenu: React.FC = () => {
       </MenubarTrigger>
       <MenubarContent>
         <MenubarCheckboxItem
-          checked={showKeyboardShortcuts}
-          onClick={toggleKeyboardShortcuts}
+          checked={showShortcuts}
+          onClick={onToggleShortcuts}
         >
           Show Keyboard Shortcuts
           <MenubarShortcut>⌘/</MenubarShortcut>

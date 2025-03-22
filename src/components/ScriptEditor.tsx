@@ -3,6 +3,7 @@ import React from 'react';
 import { ScriptContent, Note } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
 import { BeatMode } from '@/types/scriptTypes';
+import ScriptEditor as NewScriptEditor from './script-editor/ScriptEditor';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -24,16 +25,24 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
   onChange, 
   className,
   projectName = "Untitled Project",
+  projectId,
+  onStructureChange,
+  selectedStructureId,
+  beatMode = 'on',
+  onToggleBeatMode
 }) => {
   return (
-    <div className={`w-full h-full bg-white dark:bg-slate-800 p-4 ${className || ''}`}>
-      <div className="text-center p-10 max-w-md mx-auto">
-        <h2 className="text-xl font-bold mb-4">Screenplay Editor</h2>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          The screenplay editor has been reset and will be rebuilt from scratch.
-        </p>
-      </div>
-    </div>
+    <NewScriptEditor
+      initialContent={initialContent}
+      onChange={onChange}
+      className={className}
+      projectName={projectName}
+      projectId={projectId}
+      selectedStructureId={selectedStructureId}
+      onStructureChange={onStructureChange}
+      beatMode={beatMode}
+      onToggleBeatMode={onToggleBeatMode}
+    />
   );
 };
 

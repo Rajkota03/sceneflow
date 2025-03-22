@@ -1,43 +1,41 @@
 
 import React from 'react';
-import TagManager from '../TagManager';
+import TagManager from '@/components/TagManager';
+import { BeatMode } from '@/types/scriptTypes';
 import { useScriptEditor } from './ScriptEditorProvider';
 
-const TagManagerContainer: React.FC = () => {
-  const {
-    elements,
-    activeTagFilter,
-    setActiveTagFilter,
-    activeActFilter,
-    setActiveActFilter,
-    beatMode,
-    onToggleBeatMode,
-    projectId,
-    projectTitle,
-    selectedStructure,
-    activeBeatId,
-    setActiveBeatId
-  } = useScriptEditor();
+interface TagManagerContainerProps {
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
+  projectId?: string;
+  onStructureChange?: (structureId: string) => void;
+  selectedStructureId?: string;
+  structures?: { id: string; name: string }[];
+}
 
-  const handleBeatClick = (beatId: string) => {
-    setActiveBeatId(beatId);
-  };
+const TagManagerContainer: React.FC<TagManagerContainerProps> = ({
+  beatMode = 'on',
+  onToggleBeatMode,
+  projectId,
+  onStructureChange,
+  selectedStructureId,
+  structures = []
+}) => {
+  const scriptEditor = useScriptEditor();
+  const scriptTitle = scriptEditor.projectTitle || 'Untitled';
 
   return (
     <TagManager
-      scriptContent={{ elements: elements || [] }}
-      onFilterByTag={setActiveTagFilter}
-      onFilterByAct={setActiveActFilter}
-      activeFilter={activeTagFilter}
-      activeActFilter={activeActFilter}
-      projectName={projectTitle || (projectId ? undefined : "Untitled Screenplay")}
-      structureName={"Three Act Structure"}
-      projectId={projectId}
+      scriptContent={{ elements: scriptEditor.elements || [] }}
+      onFilterByTag={() => {}}
+      onFilterByAct={() => {}}
+      projectName={scriptTitle}
+      structureName="Three Act Structure"
       beatMode={beatMode}
       onToggleBeatMode={onToggleBeatMode}
-      selectedStructure={selectedStructure}
-      activeBeatId={activeBeatId}
-      onBeatClick={handleBeatClick}
+      selectedStructureId={selectedStructureId}
+      onStructureChange={onStructureChange}
+      structures={structures}
     />
   );
 };

@@ -42,8 +42,8 @@ export function useKeyboardShortcuts({
         return;
       }
       
-      // Export PDF with Ctrl+P
-      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      // Export PDF with Ctrl+E
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
         e.preventDefault();
         if (onExport) {
           onExport();
