@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ActType, Structure } from '@/lib/types';
 import { Button } from '../ui/button';
@@ -58,7 +57,6 @@ const ActBar: React.FC<ActBarProps> = ({
     beatIds: string[];
   }>>([]);
   
-  // Default structure colors
   const defaultActColors = [
     { id: 'act1', label: 'ACT 1', color: 'text-blue-800', bgColor: 'bg-blue-100' },
     { id: 'act2a', label: 'ACT 2A', color: 'text-amber-800', bgColor: 'bg-amber-100' },
@@ -95,7 +93,6 @@ const ActBar: React.FC<ActBarProps> = ({
   
   const visibleActs = showAllActs ? actButtons : actButtons.slice(0, 5);
   
-  // Calculate total beat count for each act
   const getActBeatCount = (actButton: typeof actButtons[0]) => {
     if (!actButton.beatIds.length) return 0;
     
@@ -106,7 +103,6 @@ const ActBar: React.FC<ActBarProps> = ({
     return count;
   };
   
-  // Create StructureBar data structure
   const structureBarButtons = visibleActs.map(act => {
     const beatCount = getActBeatCount(act);
     return {
@@ -129,7 +125,7 @@ const ActBar: React.FC<ActBarProps> = ({
           
           {availableStructures && availableStructures.length > 0 && onStructureChange && (
             <StructureSelector
-              structures={availableStructures}
+              availableStructures={availableStructures}
               selectedStructureId={selectedStructureId}
               onStructureChange={onStructureChange}
             />
@@ -144,7 +140,6 @@ const ActBar: React.FC<ActBarProps> = ({
         )}
       </div>
       
-      {/* Story Structure Bar */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center">
@@ -162,13 +157,11 @@ const ActBar: React.FC<ActBarProps> = ({
           </Button>
         </div>
         
-        {/* Structure Bar with properly typed props */}
         <StructureBar
           buttons={structureBarButtons}
         />
       </div>
       
-      {/* Button filters for quick navigation */}
       <div className="flex flex-wrap items-center space-x-2 mb-1">
         <TooltipProvider>
           <Tooltip>

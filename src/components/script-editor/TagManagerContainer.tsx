@@ -2,6 +2,7 @@
 import React from 'react';
 import TagManager from '../TagManager';
 import { useScriptEditor } from './ScriptEditorProvider';
+import { Structure as ScriptStructure } from '@/types/scriptTypes';
 
 const TagManagerContainer: React.FC = () => {
   const {
@@ -18,6 +19,13 @@ const TagManagerContainer: React.FC = () => {
     projectId
   } = useScriptEditor();
 
+  // Convert structures to the expected type if needed
+  const scriptStructures: ScriptStructure[] = structures.map(structure => ({
+    ...structure,
+    createdAt: typeof structure.createdAt === 'string' ? structure.createdAt : structure.createdAt.toString(),
+    updatedAt: typeof structure.updatedAt === 'string' ? structure.updatedAt : structure.updatedAt.toString()
+  }));
+
   return (
     <TagManager
       scriptContent={{ elements }}
@@ -29,7 +37,7 @@ const TagManagerContainer: React.FC = () => {
       structureName={selectedStructureId ? undefined : "Three Act Structure"}
       beatMode={beatMode}
       onToggleBeatMode={setBeatMode}
-      structures={structures}
+      structures={scriptStructures}
       selectedStructureId={selectedStructureId || undefined}
       onStructureChange={handleStructureChange}
     />

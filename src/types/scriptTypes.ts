@@ -59,7 +59,7 @@ export interface Structure {
 export interface Act {
   id: string;
   title: string;
-  colorHex: string;
+  colorHex?: string; // Changed to optional to match lib/types.ts
   startPosition: number; // percentage (0-100)
   endPosition: number; // percentage (0-100)
   beats: Beat[];
