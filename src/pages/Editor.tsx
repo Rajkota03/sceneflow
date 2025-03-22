@@ -3,9 +3,7 @@ import { useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Pencil } from 'lucide-react';
 import EditorMenuBar from '../components/EditorMenuBar';
-import { FormatProvider } from '@/lib/formatContext';
 import { ThemeProvider } from '@/lib/themeContext';
 import { useAuth } from '@/App';
 import NoteEditor from '@/components/notes/NoteEditor';
@@ -13,7 +11,7 @@ import { useEditorState } from '@/components/editor/useEditorState';
 import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
-import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
+import { BeatMode } from '@/types/scriptTypes';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -38,6 +36,7 @@ const Editor = () => {
     currentEditNote,
     selectedStructureId,
     structures,
+    beatMode = 'on' as BeatMode,
     setNoteEditorOpen,
     handleContentChange,
     handleTitleChange,
@@ -54,6 +53,7 @@ const Editor = () => {
     handleEditNote,
     handleSaveNote,
     handleStructureChange,
+    handleToggleBeatMode,
   } = useEditorState({ projectId, session });
 
   if (isLoading) {
@@ -83,71 +83,71 @@ const Editor = () => {
 
   return (
     <ThemeProvider>
-      <FormatProvider>
-        <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200" ref={mainContainerRef}>
-          <EditorMenuBar 
-            onSave={() => handleSave()} 
-            onSaveAs={handleSaveAs} 
-            onTitlePage={() => toggleTitlePage()}
-            onEditTitlePage={handleTitlePageUpdate}
-            titlePageData={titlePageData}
-            showTitlePage={showTitlePage}
-            onToggleTitlePage={toggleTitlePage}
-            notes={notes}
-            onCreateNote={handleCreateNoteClick}
-            onOpenNote={handleOpenNote}
-            onEditNote={handleEditNote}
-          />
-          
-          <EditorHeader
-            title={title}
-            onTitleChange={handleTitleChange}
-            isSaving={isSaving}
-            saveButtonText={saveButtonText}
-            saveButtonIcon={saveButtonIcon}
-            onSave={() => handleSave()}
-            notes={notes}
-            onOpenNote={handleOpenNote}
-            onCreateNote={handleCreateNoteClick}
-            onDeleteNote={handleDeleteNote}
-            onEditNote={handleEditNote}
-            availableStructures={availableStructures}
-            selectedStructureId={selectedStructureId}
-            onStructureChange={handleStructureChange}
-          />
-          
-          <EditorMainArea
-            showTitlePage={showTitlePage}
-            titlePageData={titlePageData}
-            content={content}
-            onContentChange={handleContentChange}
-            splitScreenNote={splitScreenNote}
-            openNotes={openNotes}
-            onNoteClose={handleCloseNote}
-            onSplitScreen={handleSplitScreen}
-            exitSplitScreen={exitSplitScreen}
-            onEditNote={handleEditNote}
-            projectId={projectId}
-            projectTitle={title}
-            onStructureChange={handleStructureChange}
-            selectedStructureId={selectedStructureId}
-          />
-          
-          <EditorFooter
-            showTitlePage={showTitlePage}
-            lastSaved={lastSaved}
-            elementCount={content.elements.length}
-            characterCount={content.elements.filter(e => e.type === 'character').length}
-          />
-          
-          <NoteEditor 
-            open={noteEditorOpen} 
-            onOpenChange={setNoteEditorOpen} 
-            note={currentEditNote}
-            onSaveNote={handleSaveNote}
-          />
-        </div>
-      </FormatProvider>
+      <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200" ref={mainContainerRef}>
+        <EditorMenuBar 
+          onSave={() => handleSave()} 
+          onSaveAs={handleSaveAs} 
+          onTitlePage={() => toggleTitlePage()}
+          onEditTitlePage={handleTitlePageUpdate}
+          titlePageData={titlePageData}
+          showTitlePage={showTitlePage}
+          onToggleTitlePage={toggleTitlePage}
+          notes={notes}
+          onCreateNote={handleCreateNoteClick}
+          onOpenNote={handleOpenNote}
+          onEditNote={handleEditNote}
+        />
+        
+        <EditorHeader
+          title={title}
+          onTitleChange={handleTitleChange}
+          isSaving={isSaving}
+          saveButtonText={saveButtonText}
+          saveButtonIcon={saveButtonIcon}
+          onSave={() => handleSave()}
+          notes={notes}
+          onOpenNote={handleOpenNote}
+          onCreateNote={handleCreateNoteClick}
+          onDeleteNote={handleDeleteNote}
+          onEditNote={handleEditNote}
+          availableStructures={availableStructures}
+          selectedStructureId={selectedStructureId}
+          onStructureChange={handleStructureChange}
+        />
+        
+        <EditorMainArea
+          showTitlePage={showTitlePage}
+          titlePageData={titlePageData}
+          content={content}
+          onContentChange={handleContentChange}
+          splitScreenNote={splitScreenNote}
+          openNotes={openNotes}
+          onNoteClose={handleCloseNote}
+          onSplitScreen={handleSplitScreen}
+          exitSplitScreen={exitSplitScreen}
+          onEditNote={handleEditNote}
+          projectId={projectId}
+          projectTitle={title}
+          onStructureChange={handleStructureChange}
+          selectedStructureId={selectedStructureId}
+          beatMode={beatMode}
+          onToggleBeatMode={handleToggleBeatMode}
+        />
+        
+        <EditorFooter
+          showTitlePage={showTitlePage}
+          lastSaved={lastSaved}
+          elementCount={content.elements.length}
+          characterCount={content.elements.filter(e => e.type === 'character').length}
+        />
+        
+        <NoteEditor 
+          open={noteEditorOpen} 
+          onOpenChange={setNoteEditorOpen} 
+          note={currentEditNote}
+          onSaveNote={handleSaveNote}
+        />
+      </div>
     </ThemeProvider>
   );
 };

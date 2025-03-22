@@ -7,6 +7,7 @@ import ScriptEditor from '../script-editor/ScriptEditor';
 import TitlePageView from '@/components/TitlePageView';
 import NoteWindow from '@/components/notes/NoteWindow';
 import { Note, ScriptContent, TitlePageData } from '@/lib/types';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface EditorMainAreaProps {
   showTitlePage: boolean;
@@ -23,6 +24,8 @@ interface EditorMainAreaProps {
   projectTitle: string;
   onStructureChange: (structureId: string) => void;
   selectedStructureId: string | null;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
 const EditorMainArea: React.FC<EditorMainAreaProps> = ({
@@ -39,7 +42,9 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   projectId,
   projectTitle,
   onStructureChange,
-  selectedStructureId
+  selectedStructureId,
+  beatMode = 'on',
+  onToggleBeatMode
 }) => {
   return (
     <main className="flex-grow overflow-hidden py-4 px-4 bg-[#EEEEEE] dark:bg-slate-900 relative transition-colors duration-200">
@@ -58,6 +63,8 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
                   projectId={projectId}
                   onStructureChange={onStructureChange}
                   selectedStructureId={selectedStructureId || undefined}
+                  beatMode={beatMode}
+                  onToggleBeatMode={onToggleBeatMode}
                 />
               )}
             </div>
@@ -117,6 +124,8 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
               projectId={projectId}
               onStructureChange={onStructureChange}
               selectedStructureId={selectedStructureId || undefined}
+              beatMode={beatMode}
+              onToggleBeatMode={onToggleBeatMode}
             />
           )}
         </>

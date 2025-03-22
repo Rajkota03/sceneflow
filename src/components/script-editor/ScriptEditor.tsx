@@ -5,6 +5,7 @@ import { useFormat } from '@/lib/formatContext';
 import ScriptEditorProvider from './ScriptEditorProvider';
 import ScriptEditorContent from './ScriptEditorContent';
 import { Note } from '@/lib/types';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface ScriptEditorProps {
   initialContent: ScriptContentType;
@@ -17,9 +18,11 @@ interface ScriptEditorProps {
   projectId?: string;
   onStructureChange?: (structureId: string) => void;
   selectedStructureId?: string;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
 }
 
-const ScriptEditor = ({ 
+const ScriptEditor: React.FC<ScriptEditorProps> = ({ 
   initialContent, 
   onChange, 
   notes, 
@@ -29,7 +32,9 @@ const ScriptEditor = ({
   structureName = "Three Act Structure",
   projectId,
   onStructureChange,
-  selectedStructureId: externalSelectedStructureId,
+  selectedStructureId,
+  beatMode = 'on',
+  onToggleBeatMode,
 }: ScriptEditorProps) => {
   const { formatState, setZoomLevel } = useFormat();
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
@@ -46,8 +51,10 @@ const ScriptEditor = ({
       initialContent={initialContent}
       onChange={onChange}
       projectId={projectId}
-      selectedStructureId={externalSelectedStructureId}
+      selectedStructureId={selectedStructureId}
       onStructureChange={onStructureChange}
+      beatMode={beatMode}
+      onToggleBeatMode={onToggleBeatMode}
     >
       <ScriptEditorContent
         className={className}

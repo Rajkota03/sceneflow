@@ -6,6 +6,7 @@ import { emptyProject } from '@/lib/mockData';
 import { Json } from '@/integrations/supabase/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { BeatMode } from '@/types/scriptTypes';
 
 interface UseEditorStateProps {
   projectId: string | undefined;
@@ -38,6 +39,8 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
   const [currentEditNote, setCurrentEditNote] = useState<Note | null>(null);
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(null);
+  const [structures, setStructures] = useState<any[]>([]);
+  const [beatMode, setBeatMode] = useState<BeatMode>('on');
   const mainContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -198,6 +201,10 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
       ...prev,
       title: e.target.value
     }));
+  };
+
+  const handleToggleBeatMode = (mode: BeatMode) => {
+    setBeatMode(mode);
   };
 
   useEffect(() => {
@@ -489,6 +496,8 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
     noteEditorOpen,
     currentEditNote,
     selectedStructureId,
+    structures,
+    beatMode,
     mainContainerRef,
     setCreateNoteDialogOpen,
     setNoteEditorOpen,
@@ -508,5 +517,6 @@ export const useEditorState = ({ projectId, session }: UseEditorStateProps) => {
     handleEditNote,
     handleSaveNote,
     handleStructureChange,
+    handleToggleBeatMode,
   };
 };

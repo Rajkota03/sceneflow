@@ -52,7 +52,7 @@ const initialFormatState: FormatState = {
 
 const FormatContext = createContext<FormatContextType | undefined>(undefined);
 
-export const FormatProvider = ({ children }: { children: ReactNode }) => {
+export const FormatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [formatState, setFormatState] = useState<FormatState>(initialFormatState);
 
   const setFont = (font: string) => {

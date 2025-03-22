@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
 import useScriptElements from '@/hooks/useScriptElements';
@@ -57,6 +58,8 @@ interface ScriptEditorProviderProps {
   projectId?: string;
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
+  beatMode?: BeatMode;
+  onToggleBeatMode?: (mode: BeatMode) => void;
   children: React.ReactNode;
 }
 
@@ -66,12 +69,14 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   projectId,
   selectedStructureId: externalSelectedStructureId,
   onStructureChange,
+  beatMode: externalBeatMode = 'on',
+  onToggleBeatMode,
   children
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
   const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
-  const [beatMode, setBeatMode] = useState<BeatMode>('on');
+  const [beatMode, setBeatMode] = useState<BeatMode>(externalBeatMode);
   const scriptContentRef = useRef<HTMLDivElement>(null);
   
   const { showKeyboardShortcuts, setShowKeyboardShortcuts } = useKeyboardShortcuts({
@@ -94,6 +99,19 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       changeSelectedStructure(externalSelectedStructureId);
     }
   }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
+
+  useEffect(() => {
+    if (externalBeatMode !== beatMode) {
+      setBeatMode(externalBeatMode);
+    }
+  }, [externalBeatMode]);
+
+  const handleBeatModeChange = (mode: BeatMode) => {
+    setBeatMode(mode);
+    if (onToggleBeatMode) {
+      onToggleBeatMode(mode);
+    }
+  };
 
   const {
     elements,
@@ -229,7 +247,7 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     activeActFilter,
     setActiveActFilter,
     beatMode,
-    setBeatMode,
+    setBeatMode: handleBeatModeChange,
     structures,
     selectedStructureId,
     selectedStructure,
