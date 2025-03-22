@@ -3,7 +3,7 @@ import React from 'react';
 import { ScriptContent, Note } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
 import { BeatMode } from '@/types/scriptTypes';
-import ScriptEditor as NewScriptEditor from './script-editor/ScriptEditor';
+import { default as NewScriptEditor } from './script-editor/ScriptEditor';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
