@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
-import FormatStyler from './FormatStyler';
+import { TitlePageData } from '@/lib/types';
 
 interface TitlePageViewProps {
   data: TitlePageData;
@@ -9,9 +8,9 @@ interface TitlePageViewProps {
 
 const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
   return (
-    <FormatStyler>
-      <div className="title-page flex flex-col items-center min-h-[11in] text-center relative py-8">
-        <div className="title-section" style={{ marginTop: '3in' }}>
+    <div className="title-page bg-white dark:bg-slate-800 p-6 rounded-md shadow-md">
+      <div className="flex flex-col items-center text-center py-8">
+        <div className="title-section mb-8">
           <h1 className="text-xl uppercase font-bold mb-8">{data.title || "SCRIPT TITLE"}</h1>
           
           <div className="author-section mt-12">
@@ -27,12 +26,12 @@ const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
         </div>
         
         {data.contact && (
-          <div className="contact-section absolute bottom-24 left-24 text-sm text-left whitespace-pre-line">
+          <div className="contact-section mt-12 text-sm text-left whitespace-pre-line">
             <p>{data.contact}</p>
           </div>
         )}
       </div>
-    </FormatStyler>
+    </div>
   );
 };
 

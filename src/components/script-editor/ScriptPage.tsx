@@ -4,7 +4,6 @@ import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
 import { FormatState } from '@/lib/formatContext';
-import FormatStyler from '../FormatStyler';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -39,12 +38,11 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   projectId,
   beatMode,
   selectedStructure,
-  formatState,
   currentPage,
   onBeatTag
 }) => {
   return (
-    <FormatStyler currentPage={currentPage}>
+    <div className="script-container p-4">
       <div className="script-elements-container" dir="ltr">
         {elements.map((element, index) => (
           <EditorElement
@@ -66,7 +64,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           />
         ))}
       </div>
-    </FormatStyler>
+    </div>
   );
 };
 
