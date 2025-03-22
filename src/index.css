@@ -189,11 +189,13 @@
 
 .character {
   text-transform: uppercase;
-  text-align: center;
+  text-align: center !important;
   width: 33%;
   margin: 1em auto 0.1em 3.3in; /* Final Draft character positioning */
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-weight: bold;
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
 }
 
 .dialogue {

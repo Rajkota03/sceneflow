@@ -72,7 +72,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: '2in',
-        textAlign: 'left', // Changed from center to left
+        textAlign: 'center', // Changed back to center for character names
         direction: 'ltr', // Explicitly force LTR direction
       };
     case 'dialogue':
