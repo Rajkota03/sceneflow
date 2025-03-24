@@ -11,7 +11,6 @@ import { useEditorState } from '@/components/editor/useEditorState';
 import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
-import { BeatMode } from '@/types/scriptTypes';
 
 const Editor = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -36,7 +35,6 @@ const Editor = () => {
     currentEditNote,
     selectedStructureId,
     structures,
-    beatMode = 'on' as BeatMode,
     setNoteEditorOpen,
     handleContentChange,
     handleTitleChange,
@@ -53,7 +51,6 @@ const Editor = () => {
     handleEditNote,
     handleSaveNote,
     handleStructureChange,
-    handleToggleBeatMode,
   } = useEditorState({ projectId, session });
 
   if (isLoading) {
@@ -61,7 +58,7 @@ const Editor = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
         <div className="flex flex-col items-center">
           <Loader className="animate-spin h-8 w-8 text-primary mb-4" />
-          <p className="text-slate-600 dark:text-slate-300">Loading your screenplay...</p>
+          <p className="text-slate-600 dark:text-slate-300">Loading your project...</p>
         </div>
       </div>
     );
@@ -130,15 +127,13 @@ const Editor = () => {
           projectTitle={title}
           onStructureChange={handleStructureChange}
           selectedStructureId={selectedStructureId}
-          beatMode={beatMode}
-          onToggleBeatMode={handleToggleBeatMode}
         />
         
         <EditorFooter
           showTitlePage={showTitlePage}
           lastSaved={lastSaved}
-          elementCount={content.elements.length}
-          characterCount={content.elements.filter(e => e.type === 'character').length}
+          elementCount={0}
+          characterCount={0}
         />
         
         <NoteEditor 

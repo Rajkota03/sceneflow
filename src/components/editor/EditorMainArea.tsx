@@ -3,7 +3,6 @@ import React from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
 import { Pencil } from 'lucide-react';
-import ScriptEditor from '../script-editor/ScriptEditor';
 import TitlePageView from '@/components/TitlePageView';
 import NoteWindow from '@/components/notes/NoteWindow';
 import { Note, ScriptContent, TitlePageData } from '@/lib/types';
@@ -31,20 +30,12 @@ interface EditorMainAreaProps {
 const EditorMainArea: React.FC<EditorMainAreaProps> = ({
   showTitlePage,
   titlePageData,
-  content,
-  onContentChange,
   splitScreenNote,
   openNotes,
   onNoteClose,
   onSplitScreen,
   exitSplitScreen,
   onEditNote,
-  projectId,
-  projectTitle,
-  onStructureChange,
-  selectedStructureId,
-  beatMode = 'on',
-  onToggleBeatMode
 }) => {
   return (
     <main className="flex-grow overflow-hidden py-4 px-4 bg-[#EEEEEE] dark:bg-slate-900 relative transition-colors duration-200">
@@ -55,17 +46,14 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
               {showTitlePage ? (
                 <TitlePageView data={titlePageData} />
               ) : (
-                <ScriptEditor 
-                  initialContent={content} 
-                  onChange={onContentChange} 
-                  className="overflow-auto"
-                  projectName={projectTitle}
-                  projectId={projectId}
-                  onStructureChange={onStructureChange}
-                  selectedStructureId={selectedStructureId || undefined}
-                  beatMode={beatMode}
-                  onToggleBeatMode={onToggleBeatMode}
-                />
+                <div className="flex justify-center items-center h-full w-full">
+                  <div className="text-center p-8 bg-white rounded-lg shadow-sm dark:bg-slate-800 dark:text-white">
+                    <h3 className="text-xl font-medium">Screenplay Functionality Removed</h3>
+                    <p className="mt-2 text-gray-600 dark:text-gray-300">
+                      The screenplay editor has been removed from the application.
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
           </ResizablePanel>
@@ -117,16 +105,14 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
           {showTitlePage ? (
             <TitlePageView data={titlePageData} />
           ) : (
-            <ScriptEditor 
-              initialContent={content} 
-              onChange={onContentChange}
-              projectName={projectTitle}
-              projectId={projectId}
-              onStructureChange={onStructureChange}
-              selectedStructureId={selectedStructureId || undefined}
-              beatMode={beatMode}
-              onToggleBeatMode={onToggleBeatMode}
-            />
+            <div className="flex justify-center items-center h-full w-full">
+              <div className="text-center p-8 bg-white rounded-lg shadow-sm dark:bg-slate-800 dark:text-white">
+                <h3 className="text-xl font-medium">Screenplay Functionality Removed</h3>
+                <p className="mt-2 text-gray-600 dark:text-gray-300">
+                  The screenplay editor has been removed from the application.
+                </p>
+              </div>
+            </div>
           )}
         </>
       )}
