@@ -14,7 +14,7 @@ import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import ZoomControls from './ZoomControls';
 import { BeatMode } from '@/types/scriptTypes';
-import ScriptEditorProvider, { useScriptEditor as useScriptEditorHook } from './ScriptEditorProvider';
+import ScriptEditorProvider, { useScriptEditor } from './ScriptEditorProvider';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -76,7 +76,7 @@ const ScriptEditorContent = ({
   projectName,
   structureName 
 }: ScriptEditorContentProps) => {
-  const { formatState } = useFormat();
+  const { formatState, setZoomLevel } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const editorRef = useRef<HTMLDivElement>(null);
   const { showKeyboardShortcuts } = useKeyboardShortcuts();
@@ -100,49 +100,34 @@ const ScriptEditorContent = ({
     characterNames,
     filteredElements,
     selectedStructure,
-    handleBeatTag
+    handleBeatTag,
+    addNewElement
   } = useScriptEditor();
 
   useEffect(() => {
     if (!elements || elements.length === 0) {
       console.log("No elements found, creating default elements");
-      const defaultElements: ScriptElement[] = [
-        {
-          id: generateUniqueId(),
-          type: 'scene-heading',
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: generateUniqueId(),
-          type: 'action',
-          text: 'Type your action here...'
-        }
-      ];
-      // Get the addNewElement function from context instead of trying to use setElements
-      const scriptEditor = useScriptEditor();
       
-      // Check if elements already exist to avoid infinite loop
-      if (scriptEditor.elements.length === 0) {
-        // Use the appropriate method that's available in the context
-        // We can use the addNewElement function instead since setElements isn't available
-        const firstElement = defaultElements[0];
-        const secondElement = defaultElements[1];
-        
-        // Add elements one by one since we don't have direct setElements
-        if (typeof scriptEditor.addNewElement === 'function') {
-          // Add first element - this will be a bit tricky since we need a reference element
-          // We'll need to handle this differently
-          
-          // Here we're working around the limitation by utilizing changeElementType method
-          // which we know exists in the context
-          if (scriptEditor.changeElementType) {
-            // If we can't directly set elements, we'll work with what we have
-            setActiveElementId(firstElement.id);
-          }
-        }
-      }
+      // Create first element
+      const sceneHeadingId = generateUniqueId();
+      
+      // We're using changeElementType to create our first element
+      const tempElement = {
+        id: sceneHeadingId,
+        type: 'scene-heading' as ElementType,
+        text: 'INT. SOMEWHERE - DAY'
+      };
+      
+      changeElementType(sceneHeadingId, 'scene-heading');
+      handleElementChange(sceneHeadingId, 'INT. SOMEWHERE - DAY', 'scene-heading');
+      
+      // Then add a second element after it
+      addNewElement(sceneHeadingId);
+      
+      // Focus on the first element
+      setActiveElementId(sceneHeadingId);
     }
-  }, [elements.length, setActiveElementId]);
+  }, [elements.length, setActiveElementId, changeElementType, handleElementChange, addNewElement]);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -246,8 +231,6 @@ const ScriptEditorContent = ({
         zoomPercentage={zoomPercentage}
         onZoomChange={(value) => {
           const newZoomLevel = value[0] / 100;
-          // Access the setZoomLevel function from the formatContext, not formatState
-          const { setZoomLevel } = useFormat();
           if (setZoomLevel) {
             setZoomLevel(newZoomLevel);
           }
@@ -258,7 +241,3 @@ const ScriptEditorContent = ({
 };
 
 export default ScriptEditor;
-
-function useScriptEditor() {
-  return useScriptEditorHook();
-}
