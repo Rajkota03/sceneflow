@@ -50,6 +50,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     boxShadow: isDarkMode 
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',
+    pointerEvents: 'auto', // Ensure clicks are captured
   };
 
   return (

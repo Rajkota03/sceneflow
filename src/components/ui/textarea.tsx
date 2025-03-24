@@ -15,6 +15,11 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         ref={ref}
         spellCheck="true"
+        style={{
+          caretColor: 'black',
+          cursor: 'text',
+          pointerEvents: 'auto',
+        }}
         {...props}
       />
     )

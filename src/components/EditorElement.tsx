@@ -69,12 +69,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
     characterNames
   });
 
-  useEffect(() => {
-    if (element.type === 'scene-heading' && element.beat && selectedStructure) {
-      console.log(`Scene ${element.id} has beat tag: ${element.beat}`);
-    }
-  }, [element, selectedStructure]);
-
   // Force focus when element becomes active
   useEffect(() => {
     if (isActive && editorRef.current) {
@@ -106,6 +100,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
   const elementStyles = getElementStyles(element.type);
   
   const handleElementClick = (e: React.MouseEvent) => {
+    // Ensure click propagates properly
+    e.stopPropagation();
+    
     // Only trigger the additional click handler if:
     // 1. We have a click handler
     // 2. It's a scene heading
@@ -138,7 +135,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
         {isActive && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <button
-              onClick={() => setShowElementMenu(!showElementMenu)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowElementMenu(!showElementMenu);
+              }}
               className="px-1.5 py-0.5 text-blue-600 hover:bg-gray-100 rounded"
             >
               {formatType(element.type)}
@@ -173,6 +173,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black', // Explicitly set caret color
           cursor: 'text', // Explicitly set cursor style
+          pointerEvents: 'auto', // Ensure clicks are captured
           ...elementStyles
         }}
         spellCheck="false"

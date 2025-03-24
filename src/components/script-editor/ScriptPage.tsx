@@ -62,16 +62,19 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   };
   
   return (
-    <div className="script-page" style={{ 
+    <div className="script-page relative" style={{ 
       transform: `scale(${formatState.zoomLevel})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+      fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+      pointerEvents: 'auto',
     }}>
       <div className="script-page-content" style={{
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        position: 'relative'
+        position: 'relative',
+        pointerEvents: 'auto',
+        minHeight: '50vh', // Ensure the page has enough height to be clickable
       }}>
         {/* Page number positioned inside the page */}
         <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
@@ -101,7 +104,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
               
               {/* Beat Tag Selector - only displays when opened for a specific scene */}
               {beatMode === 'on' && element.type === 'scene-heading' && tagSelectorOpen === element.id && (
-                <div className="absolute right-2 top-0">
+                <div className="absolute right-2 top-0 z-50">
                   <BeatTagSelector
                     elementId={element.id}
                     isOpen={tagSelectorOpen === element.id}

@@ -196,6 +196,7 @@ export function useElementInteraction({
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setShowElementMenu(!showElementMenu);
   };
 
