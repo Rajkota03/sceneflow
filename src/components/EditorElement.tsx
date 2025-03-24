@@ -70,61 +70,23 @@ const EditorElement: React.FC<EditorElementProps> = ({
     characterNames
   });
 
-  // Force focus when element becomes active
-  useEffect(() => {
-    if (isActive && editorRef.current) {
-      // Small timeout to ensure DOM is ready
-      setTimeout(() => {
-        editorRef.current?.focus();
-        
-        // Set cursor at the end of text
-        const range = document.createRange();
-        const sel = window.getSelection();
-        
-        if (editorRef.current) {
-          try {
-            if (editorRef.current.childNodes.length > 0) {
-              const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-              const offset = lastNode.textContent?.length || 0;
-              range.setStart(lastNode, offset);
-            } else {
-              range.setStart(editorRef.current, 0);
-            }
-            
-            range.collapse(true);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          } catch (e) {
-            console.error('Error setting cursor position:', e);
-          }
-        }
-      }, 10);
-    }
-  }, [isActive]);
-
   const elementStyles = getElementStyles(element.type);
   
   const handleElementClick = (e: React.MouseEvent) => {
     // Ensure click propagates properly
     e.stopPropagation();
     
-    // Only trigger the additional click handler if:
-    // 1. We have a click handler
-    // 2. It's a scene heading
-    // 3. Beat mode is on
-    // 4. It's already been focused (to avoid conflicting with the normal focus behavior)
-    // 5. It's specifically a double-click (for more intentional tagging interaction)
+    // Only trigger the additional click handler if it's a double-click on a scene heading
     if (
       onAdditionalClick && 
       element.type === 'scene-heading' && 
       beatMode === 'on' && 
-      isActive &&
       e.detail === 2 // Check if it's a double-click
     ) {
       onAdditionalClick();
     }
     
-    // Ensure focus happens on single click
+    // Ensure focus happens on click
     if (!isActive) {
       onFocus();
     }
@@ -164,9 +126,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
-        onFocus={(e) => {
-          e.stopPropagation();
-          onFocus();
+        onFocus={() => {
+          if (!isActive) {
+            onFocus();
+          }
         }}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}

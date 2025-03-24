@@ -65,19 +65,11 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
     <div 
       className="script-page relative" 
       style={{ 
-        transform: `scale(${formatState.zoomLevel})`,
-        transformOrigin: 'top center',
+        width: '8.5in',
+        margin: '0 auto',
+        pointerEvents: 'auto',
         transition: 'transform 0.2s ease-out',
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-        pointerEvents: 'auto',
-      }}
-      onClick={(e) => {
-        // If clicking directly on the script page (not on an element), 
-        // we could optionally add a new element or focus the last one
-        if (e.target === e.currentTarget && elements.length > 0) {
-          // Optional: Focus the last element
-          // handleFocus(elements[elements.length - 1].id);
-        }
       }}
     >
       <div 
@@ -88,6 +80,12 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           position: 'relative',
           pointerEvents: 'auto',
           minHeight: '50vh', // Ensure the page has enough height to be clickable
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          backgroundColor: 'white',
+          padding: '1in',
+          paddingBottom: '1.5in', // Extra padding at bottom for visibility
+          transform: `scale(${formatState.zoomLevel})`,
+          transformOrigin: 'top center',
         }}
       >
         {/* Page number positioned inside the page */}

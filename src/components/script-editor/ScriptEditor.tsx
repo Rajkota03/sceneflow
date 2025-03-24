@@ -1,7 +1,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '@/lib/types';
-import EditorElement from '../EditorElement';
 import { generateUniqueId } from '@/lib/formatScript';
 import FormatStyler from '../FormatStyler';
 import { useFormat } from '@/lib/formatContext';
@@ -13,8 +12,8 @@ import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import ZoomControls from './ZoomControls';
-import { BeatMode } from '@/types/scriptTypes';
-import ScriptEditorProvider, { useScriptEditor } from './ScriptEditorProvider';
+import ScriptEditorProvider from './ScriptEditorProvider';
+import ScriptEditorContent from './ScriptEditorContent';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -25,27 +24,38 @@ interface ScriptEditorProps {
   projectName?: string;
   structureName?: string;
   projectId?: string;
-  selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
-  beatMode?: BeatMode;
-  onToggleBeatMode?: (mode: BeatMode) => void;
+  selectedStructureId?: string;
+  beatMode?: 'on' | 'off';
+  onToggleBeatMode?: (mode: 'on' | 'off') => void;
 }
 
-const ScriptEditor = ({
-  initialContent,
-  onChange,
-  notes,
-  onNoteCreate,
+const ScriptEditor = ({ 
+  initialContent, 
+  onChange, 
+  notes, 
+  onNoteCreate, 
   className,
   projectName = "Untitled Project",
   structureName = "Three Act Structure",
   projectId,
-  selectedStructureId,
   onStructureChange,
+  selectedStructureId,
   beatMode = 'on',
   onToggleBeatMode
 }: ScriptEditorProps) => {
-  // Wrap the editor content in the provider for context access
+  const { formatState, setZoomLevel } = useFormat();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const zoomPercentage = Math.round(formatState.zoomLevel * 100);
+
+  const handleZoomChange = (value: number[]) => {
+    const newZoomLevel = value[0] / 100;
+    if (setZoomLevel) {
+      setZoomLevel(newZoomLevel);
+    }
+  };
+
   return (
     <ScriptEditorProvider
       initialContent={initialContent}
@@ -56,187 +66,22 @@ const ScriptEditor = ({
       beatMode={beatMode}
       onToggleBeatMode={onToggleBeatMode}
     >
-      <ScriptEditorContent 
-        className={className}
-        projectName={projectName}
-        structureName={structureName}
-      />
-    </ScriptEditorProvider>
-  );
-};
-
-interface ScriptEditorContentProps {
-  className?: string;
-  projectName?: string;
-  structureName?: string;
-}
-
-const ScriptEditorContent = ({ 
-  className,
-  projectName,
-  structureName 
-}: ScriptEditorContentProps) => {
-  const { formatState, setZoomLevel } = useFormat();
-  const [currentPage, setCurrentPage] = useState(1);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const { showKeyboardShortcuts } = useKeyboardShortcuts();
-  
-  const {
-    elements,
-    activeElementId,
-    setActiveElementId,
-    activeTagFilter,
-    setActiveTagFilter,
-    activeActFilter,
-    setActiveActFilter,
-    beatMode,
-    setBeatMode,
-    handleElementChange,
-    getPreviousElementType,
-    handleNavigate,
-    handleEnterKey,
-    changeElementType,
-    handleTagsChange,
-    characterNames,
-    filteredElements,
-    selectedStructure,
-    handleBeatTag,
-    addNewElement
-  } = useScriptEditor();
-
-  useEffect(() => {
-    if (!elements || elements.length === 0) {
-      console.log("No elements found, creating default elements");
-      
-      // Create first element
-      const sceneHeadingId = generateUniqueId();
-      
-      // We're using changeElementType to create our first element
-      const tempElement = {
-        id: sceneHeadingId,
-        type: 'scene-heading' as ElementType,
-        text: 'INT. SOMEWHERE - DAY'
-      };
-      
-      changeElementType(sceneHeadingId, 'scene-heading');
-      handleElementChange(sceneHeadingId, 'INT. SOMEWHERE - DAY', 'scene-heading');
-      
-      // Then add a second element after it
-      addNewElement(sceneHeadingId);
-      
-      // Focus on the first element
-      setActiveElementId(sceneHeadingId);
-    }
-  }, [elements.length, setActiveElementId, changeElementType, handleElementChange, addNewElement]);
-
-  const zoomPercentage = Math.round(formatState.zoomLevel * 100);
-
-  const handleFormatChange = (id: string, newType: ElementType) => {
-    changeElementType(id, newType);
-  };
-
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
-  };
-
-  // Function to handle editor container click
-  const handleEditorClick = (e: React.MouseEvent) => {
-    // If clicking on the editor background and not an element, 
-    // focus the last element or the first one
-    if (e.target === editorRef.current && elements.length > 0) {
-      const lastElementId = elements[elements.length - 1].id;
-      setActiveElementId(lastElementId);
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
-  return (
-    <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
-      <div 
-        className="flex justify-center w-full h-full overflow-auto"
-        ref={editorRef}
-        onClick={handleEditorClick}
-        tabIndex={-1} // Make the container focusable but not in tab sequence
-      >
-        <div className="w-full max-w-4xl mx-auto">
-          {/* Tag manager with Act Bar for filtering scenes */}
-          <TagManager 
-            scriptContent={{ elements }} 
-            onFilterByTag={setActiveTagFilter}
-            onFilterByAct={setActiveActFilter}
-            activeFilter={activeTagFilter}
-            activeActFilter={activeActFilter}
-            projectName={projectName}
-            structureName={structureName}
-            beatMode={beatMode}
-            onToggleBeatMode={setBeatMode}
-          />
-          
-          {showKeyboardShortcuts && <KeyboardShortcutsHelp />}
-          
-          <FormatStyler currentPage={currentPage}>
-            <div className="script-page" style={{ 
-              transform: `scale(${formatState.zoomLevel})`,
-              transformOrigin: 'top center',
-              transition: 'transform 0.2s ease-out',
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace'
-            }}>
-              <div 
-                className="script-page-content" 
-                style={{
-                  fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-                  fontSize: '12pt',
-                  position: 'relative',
-                  minHeight: '300px' // Ensure there's clickable area even with few elements
-                }}
-              >
-                {/* Page number now positioned inside the page */}
-                <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-                  fontFamily: "Courier Final Draft, Courier Prime, monospace",
-                  fontSize: "12pt",
-                }}>
-                  {currentPage}
-                </div>
-                
-                {filteredElements.map((element, index) => (
-                  <EditorElement
-                    key={element.id}
-                    element={element}
-                    previousElementType={getPreviousElementType(
-                      activeTagFilter || activeActFilter
-                        ? filteredElements.findIndex(el => el.id === element.id) - 1
-                        : index - 1
-                    )}
-                    onChange={handleElementChange}
-                    onFocus={() => handleFocus(element.id)}
-                    isActive={activeElementId === element.id}
-                    onNavigate={handleNavigate}
-                    onEnterKey={handleEnterKey}
-                    onFormatChange={handleFormatChange}
-                    onTagsChange={handleTagsChange}
-                    characterNames={characterNames}
-                    beatMode={beatMode}
-                    selectedStructure={selectedStructure}
-                    onBeatTag={handleBeatTag}
-                  />
-                ))}
-              </div>
-            </div>
-          </FormatStyler>
+      <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
+        <div className="flex justify-center w-full h-full overflow-auto">
+          <div className="w-full">
+            <ScriptEditorContent 
+              zoomPercentage={zoomPercentage}
+              onZoomChange={handleZoomChange}
+            />
+          </div>
         </div>
+        
+        <ZoomControls 
+          zoomPercentage={zoomPercentage}
+          onZoomChange={handleZoomChange}
+        />
       </div>
-      
-      <ZoomControls 
-        zoomPercentage={zoomPercentage}
-        onZoomChange={(value) => {
-          const newZoomLevel = value[0] / 100;
-          if (setZoomLevel) {
-            setZoomLevel(newZoomLevel);
-          }
-        }}
-      />
-    </div>
+    </ScriptEditorProvider>
   );
 };
 

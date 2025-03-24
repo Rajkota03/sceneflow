@@ -36,48 +36,53 @@ export function useElementInteraction({
   // Sync text state with initialText from props
   useEffect(() => {
     setText(initialText);
-    if (editorRef.current && editorRef.current.innerText !== initialText) {
+    // Only update the DOM directly if the element isn't active
+    // When active, leave the DOM alone to prevent cursor jumping
+    if (editorRef.current && !isActive && editorRef.current.innerText !== initialText) {
       editorRef.current.innerText = initialText;
     }
-  }, [initialText]);
+  }, [initialText, isActive]);
   
-  // Set focus and cursor position when element becomes active
+  // Set focus when element becomes active
   useEffect(() => {
-    if (editorRef.current && isActive) {
-      // Make sure the innerText is updated with the latest text
-      if (editorRef.current.innerText !== text) {
-        editorRef.current.innerText = text;
-      }
-      
+    if (isActive && editorRef.current) {
       // Focus the element with a small delay to ensure DOM is ready
-      setTimeout(() => {
-        editorRef.current?.focus();
-        
-        // Position cursor at the end
-        const range = document.createRange();
-        const sel = window.getSelection();
-        
-        if (editorRef.current) {
-          try {
-            if (editorRef.current.childNodes.length > 0) {
-              const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-              const offset = lastNode.textContent?.length || 0;
-              range.setStart(lastNode, offset);
-            } else {
-              // If no child nodes, set cursor at beginning of empty div
-              range.setStart(editorRef.current, 0);
-            }
+      const timeoutId = setTimeout(() => {
+        // Only set focus if document.activeElement is not already this element
+        // This prevents cursor from jumping when clicking within the text
+        if (document.activeElement !== editorRef.current) {
+          editorRef.current?.focus();
+          
+          // Only position cursor at the end if this is a fresh focus, not a click within text
+          if (window.getSelection()?.rangeCount === 0) {
+            const range = document.createRange();
+            const sel = window.getSelection();
             
-            range.collapse(true);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          } catch (e) {
-            console.error('Error setting cursor position:', e);
+            if (editorRef.current) {
+              try {
+                if (editorRef.current.childNodes.length > 0) {
+                  const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+                  const offset = lastNode.textContent?.length || 0;
+                  range.setStart(lastNode, offset);
+                } else {
+                  // If no child nodes, set cursor at beginning of empty div
+                  range.setStart(editorRef.current, 0);
+                }
+                
+                range.collapse(true);
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+              } catch (e) {
+                console.error('Error setting cursor position:', e);
+              }
+            }
           }
         }
       }, 10);
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [isActive, text]);
+  }, [isActive]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -107,9 +112,31 @@ export function useElementInteraction({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Prevent default for navigation keys to avoid unexpected behavior
+    // Only prevent default for navigation keys when they should be intercepted
     if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
-      e.preventDefault();
+      // For arrow keys, only prevent default if suggestions are visible
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !suggestionsVisible) {
+        // Allow cursor movement within the text if there are multiple lines and we're not at boundaries
+        const selection = window.getSelection();
+        const textContent = editorRef.current?.textContent || '';
+        
+        if (textContent.includes('\n')) {
+          const cursorAtStart = selection?.anchorOffset === 0;
+          const cursorAtEnd = selection?.anchorOffset === textContent.length;
+          
+          // Only prevent default if we're at boundaries
+          if ((e.key === 'ArrowUp' && cursorAtStart) || 
+              (e.key === 'ArrowDown' && cursorAtEnd)) {
+            e.preventDefault();
+          } else {
+            return; // Let the browser handle within-text navigation
+          }
+        } else {
+          e.preventDefault();
+        }
+      } else {
+        e.preventDefault();
+      }
     }
     
     if (e.key === 'Backspace' && text.trim() === '') {
@@ -221,11 +248,30 @@ export function useElementInteraction({
     setShowElementMenu(false);
   };
 
-  const handleBlur = () => {
-    // Don't hide suggestions immediately, as the user might be clicking on a suggestion
-    // Instead, we'll let the suggestion click handler handle closing
-    if (!suggestionsVisible) {
+  const handleBlur = (e: React.FocusEvent) => {
+    // Only hide menus if we're not focusing a related element (like suggestions)
+    // Check if the related target is a child of our suggestions
+    let isSuggestionClick = false;
+    
+    if (e.relatedTarget && suggestionsVisible) {
+      const suggestionElements = document.querySelectorAll('.character-suggestion-item');
+      suggestionElements.forEach(el => {
+        if (el.contains(e.relatedTarget as Node)) {
+          isSuggestionClick = true;
+        }
+      });
+    }
+    
+    if (!isSuggestionClick) {
+      // Hide element menu regardless
       setShowElementMenu(false);
+      
+      // Hide suggestions with a small delay to allow clicks to register
+      const timeoutId = setTimeout(() => {
+        setSuggestionsVisible(false);
+      }, 200);
+      
+      return () => clearTimeout(timeoutId);
     }
   };
 

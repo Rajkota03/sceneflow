@@ -38,32 +38,34 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   return (
-    <ScrollArea className={`h-full w-full overflow-auto ${className || ''}`}>
+    <ScrollArea className={`h-full w-full overflow-auto ${className || ''}`} scrollHideDelay={0}>
       <div 
         className="flex justify-center w-full pt-8 pb-20"
         ref={scriptContentRef}
+        style={{ 
+          minHeight: '100vh',
+          pointerEvents: 'auto'
+        }}
       >
-        <div className="w-full max-w-4xl mx-auto">
-          <ScriptPage
-            elements={filteredElements}
-            activeElementId={activeElementId}
-            getPreviousElementType={getPreviousElementType}
-            handleElementChange={handleElementChange}
-            handleFocus={handleFocus}
-            handleNavigate={handleNavigate}
-            handleEnterKey={handleEnterKey}
-            handleFormatChange={changeElementType}
-            handleTagsChange={handleTagsChange}
-            characterNames={characterNames}
-            projectId={projectId}
-            beatMode={beatMode}
-            selectedStructure={selectedStructure}
-            onBeatTag={handleBeatTag}
-            onRemoveBeat={handleRemoveBeat}
-            formatState={formatState}
-            currentPage={currentPage}
-          />
-        </div>
+        <ScriptPage
+          elements={filteredElements}
+          activeElementId={activeElementId}
+          getPreviousElementType={getPreviousElementType}
+          handleElementChange={handleElementChange}
+          handleFocus={handleFocus}
+          handleNavigate={handleNavigate}
+          handleEnterKey={handleEnterKey}
+          handleFormatChange={changeElementType}
+          handleTagsChange={handleTagsChange}
+          characterNames={characterNames}
+          projectId={projectId}
+          beatMode={beatMode}
+          selectedStructure={selectedStructure}
+          onBeatTag={handleBeatTag}
+          onRemoveBeat={handleRemoveBeat}
+          formatState={formatState}
+          currentPage={currentPage}
+        />
       </div>
     </ScrollArea>
   );
