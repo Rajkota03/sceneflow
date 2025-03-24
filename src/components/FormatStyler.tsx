@@ -50,8 +50,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     boxShadow: isDarkMode 
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',
-    pointerEvents: 'all', // Changed from 'auto' to 'all'
-    touchAction: 'auto', // Added to ensure touch events work correctly
+    touchAction: 'manipulation', // Better touch handling
   };
 
   return (

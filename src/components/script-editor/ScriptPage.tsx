@@ -66,33 +66,30 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   
   return (
     <div 
-      className="script-page relative" 
+      className="script-page" 
       style={{ 
         width: '8.5in',
         margin: '0 auto',
         backgroundColor: 'white',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        pointerEvents: 'all', // Changed from 'auto' to 'all'
         transition: 'transform 0.2s ease-out',
         transform: `scale(${scaleValue})`,
         transformOrigin: 'top center',
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         border: '1px solid rgba(0,0,0,0.1)',
         position: 'relative',
-        touchAction: 'auto', // Added to ensure touch events work correctly
+        touchAction: 'manipulation'
       }}
     >
       <div 
-        className="script-page-content" 
+        className="script-page-content relative" 
         style={{
           fontFamily: 'Courier Final Draft, Courier Prime, monospace',
           fontSize: '12pt',
-          position: 'relative',
-          pointerEvents: 'all', // Changed from 'auto' to 'all'
           minHeight: '11in', // Standard letter size height
           padding: '1in',
           paddingBottom: '1.5in', // Extra padding at bottom for visibility
-          cursor: 'text', // Added to show text cursor by default
+          cursor: 'text'
         }}
       >
         {/* Page number positioned inside the page */}
@@ -109,7 +106,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           );
           
           return (
-            <div key={element.id} className="relative" style={{ pointerEvents: 'all' }}>
+            <div key={element.id} className="relative">
               {/* Scene Beat Tag Indicator - only for scene headings with beat tag */}
               {beatMode === 'on' && element.type === 'scene-heading' && element.beat && (
                 <div className="absolute -left-24 top-1">

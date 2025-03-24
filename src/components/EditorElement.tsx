@@ -75,58 +75,29 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Make sure the component focuses properly when it becomes active
   useEffect(() => {
     if (isActive && editorRef.current) {
-      // Only focus if not already focused to prevent cursor jumps
       if (document.activeElement !== editorRef.current) {
-        // Use setTimeout to ensure DOM is ready before focusing
-        setTimeout(() => {
-          if (editorRef.current) {
-            editorRef.current.focus();
-            
-            // Move cursor to end of text
-            const selection = window.getSelection();
-            const range = document.createRange();
-            
-            if (selection && editorRef.current.childNodes.length > 0) {
-              const textNode = editorRef.current.childNodes[0];
-              range.setStart(textNode, text.length);
-              range.setEnd(textNode, text.length);
-              selection.removeAllRanges();
-              selection.addRange(range);
-            }
-          }
-        }, 0);
+        editorRef.current.focus();
       }
     }
-  }, [isActive, text]);
+  }, [isActive]);
 
   const handleElementClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Stop propagation to prevent parent handlers
+    e.stopPropagation();
+    onFocus();
     
-    // Always focus first on click
-    if (!isActive) {
-      onFocus();
-    }
-    
-    // Only handle double-click actions if element is already active
-    if (
-      isActive &&
-      onAdditionalClick && 
-      element.type === 'scene-heading' && 
-      beatMode === 'on' && 
-      e.detail === 2 // Check if it's a double-click
-    ) {
+    if (isActive && onAdditionalClick && 
+        element.type === 'scene-heading' && 
+        beatMode === 'on' && 
+        e.detail === 2) {
       onAdditionalClick();
     }
   };
 
   return (
     <div 
-      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
-      onContextMenu={handleRightClick}
-      onClick={handleElementClick}
+      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`}
       data-element-id={element.id}
       data-element-type={element.type}
-      style={{ pointerEvents: 'all' }}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && (
@@ -154,6 +125,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
+        onClick={handleElementClick}
+        onContextMenu={handleRightClick}
         onFocus={(e) => {
           e.stopPropagation();
           if (!isActive) {
@@ -171,9 +144,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          caretColor: 'black', // Explicitly set caret color
-          cursor: 'text', // Explicitly set cursor style
-          pointerEvents: 'all', // Changed from 'auto' to 'all'
+          caretColor: 'black',
+          cursor: 'text',
           ...elementStyles
         }}
       />

@@ -38,16 +38,13 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   return (
-    <ScrollArea 
-      className={`h-full w-full overflow-auto ${className || ''}`} 
-      scrollHideDelay={0}
-    >
+    <div className="h-full w-full overflow-auto">
       <div 
         className="flex justify-center w-full pt-8 pb-20"
         ref={scriptContentRef}
         style={{ 
           minHeight: '100vh',
-          pointerEvents: 'all' // Changed from 'auto' to 'all' to ensure events are captured
+          width: '100%'
         }}
       >
         <ScriptPage
@@ -70,7 +67,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           currentPage={currentPage}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
