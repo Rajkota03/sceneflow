@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -315,10 +314,27 @@ textarea.auto-resize {
   }
 }
 
-/* Fix for reversed text input */
+/* Fix for reversed text input - this is crucial */
 [contenteditable="true"] {
-  direction: ltr;
-  unicode-bidi: embed;
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+}
+
+/* Ensure all editable elements have the right text direction */
+.element-text, 
+.script-page-content div,
+.script-page-content textarea,
+[contenteditable] {
+  direction: ltr !important;
+  unicode-bidi: embed !important;
+}
+
+/* Format styler container - proper centering for script */
+.script-format-styler {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
 
 /* Keyboard shortcut information */
@@ -386,12 +402,4 @@ textarea.auto-resize {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-}
-
-/* Format styler container */
-.script-format-styler {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
 }

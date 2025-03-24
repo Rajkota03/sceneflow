@@ -141,6 +141,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
+        dir="ltr"
         onClick={handleElementClick}
         onContextMenu={handleRightClick}
         onFocus={(e) => {
@@ -153,7 +154,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
-        dir="ltr"
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',

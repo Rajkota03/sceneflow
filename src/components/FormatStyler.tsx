@@ -36,7 +36,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
     width: '100%',
-    maxWidth: '8.5in', // Standard screenplay width
+    maxWidth: forPrint || forExport ? '8.5in' : '8.5in', // Standard screenplay width
     height: forPrint || forExport ? 'auto' : 'auto',
     minHeight: forPrint || forExport ? 'auto' : '11in', // Standard screenplay height
     margin: '0 auto',
@@ -55,7 +55,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   return (
     <div 
       style={style} 
-      className="script-format-styler w-full flex justify-center items-center"
+      className="script-format-styler w-full flex justify-center"
       data-font="courier-final-draft"
     >
       {children}

@@ -142,6 +142,7 @@ const ScriptElement: React.FC<ScriptElementProps> = ({
         className={getElementClasses()}
         contentEditable={true}
         suppressContentEditableWarning={true}
+        dir="ltr"
         onClick={(e) => {
           e.stopPropagation();
           if (!isActive) {
@@ -158,7 +159,6 @@ const ScriptElement: React.FC<ScriptElementProps> = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
-        dir="ltr"
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
