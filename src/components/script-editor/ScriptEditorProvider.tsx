@@ -1,46 +1,25 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-import { ScriptContent, ScriptElement, ElementType, ActType, Structure } from '@/lib/types';
-import useScriptElements from '@/hooks/useScriptElements';
-import useFilteredElements from '@/hooks/useFilteredElements';
-import useCharacterNames from '@/hooks/useCharacterNames';
-import useProjectStructures from '@/hooks/useProjectStructures';
+import { ScriptContent, ScriptElement, ElementType, Structure } from '@/lib/types';
 import { BeatMode } from '@/types/scriptTypes';
-import { toast } from '@/components/ui/use-toast';
-import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+import { generateUniqueId } from '@/lib/formatScript';
 
 interface ScriptEditorContextType {
   elements: ScriptElement[];
-  filteredElements: ScriptElement[];
   activeElementId: string | null;
   setActiveElementId: (id: string | null) => void;
-  handleElementChange: (id: string, text: string, type: ElementType) => void;
-  getPreviousElementType: (index: number) => ElementType | undefined;
-  addNewElement: (afterId: string, explicitType?: ElementType) => void;
-  changeElementType: (id: string, newType: ElementType) => void;
-  handleEnterKey: (id: string, shiftKey: boolean) => void;
-  handleNavigate: (direction: 'up' | 'down', id: string) => void;
-  handleFocus: (id: string) => void;
-  handleTagsChange: (elementId: string, tags: string[]) => void;
-  characterNames: string[];
+  handleElementChange: (content: ScriptContent) => void;
+  addNewElement: (afterId: string, type?: ElementType) => void;
+  deleteElement: (id: string) => void;
   activeTagFilter: string | null;
   setActiveTagFilter: (tag: string | null) => void;
-  activeActFilter: ActType | null;
-  setActiveActFilter: (act: ActType | null) => void;
   beatMode: BeatMode;
   setBeatMode: (mode: BeatMode) => void;
   structures: Structure[];
   selectedStructureId: string | null;
   selectedStructure: Structure | null;
   handleStructureChange: (structureId: string) => void;
-  handleBeatTag: (elementId: string, beatId: string, actId: string) => void;
-  handleRemoveBeat: (elementId: string) => void;
-  beatSceneCounts: Record<string, number>;
-  projectId?: string;
   scriptContentRef: React.RefObject<HTMLDivElement>;
-  showKeyboardShortcuts: boolean;
-  setShowKeyboardShortcuts: (show: boolean) => void;
-  currentPage: number;
-  fetchStructures: () => Promise<void>;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | null>(null);
@@ -57,7 +36,7 @@ interface ScriptEditorProviderProps {
   initialContent: ScriptContent;
   onChange: (content: ScriptContent) => void;
   projectId?: string;
-  selectedStructureId?: string;
+  selectedStructureId?: string | null;
   onStructureChange?: (structureId: string) => void;
   beatMode?: BeatMode;
   onToggleBeatMode?: (mode: BeatMode) => void;
@@ -74,240 +53,143 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   onToggleBeatMode,
   children
 }) => {
-  const [currentPage, setCurrentPage] = useState(1);
+  // Initialize core state
+  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
+  const [activeElementId, setActiveElementId] = useState<string | null>(
+    elements.length > 0 ? elements[0].id : null
+  );
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
-  const [activeActFilter, setActiveActFilter] = useState<ActType | null>(null);
   const [beatMode, setBeatMode] = useState<BeatMode>(externalBeatMode);
-  const scriptContentRef = useRef<HTMLDivElement>(null);
-  const [beatSceneCounts, setBeatSceneCounts] = useState<Record<string, number>>({});
+  const [structures, setStructures] = useState<Structure[]>([]);
+  const [selectedStructureId, setSelectedStructureId] = useState<string | null>(externalSelectedStructureId || null);
+  const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
   
-  const { showKeyboardShortcuts, setShowKeyboardShortcuts } = useKeyboardShortcuts({
-    scriptContentRef
-  });
-
-  const { 
-    structures, 
-    selectedStructureId, 
-    selectedStructure,
-    handleStructureChange: changeSelectedStructure,
-    updateBeatCompletion,
-    saveBeatCompletion,
-    fetchStructures
-  } = useProjectStructures(projectId);
-
+  const scriptContentRef = useRef<HTMLDivElement>(null);
+  
+  // Sync with external state when it changes
   useEffect(() => {
-    if (externalSelectedStructureId && externalSelectedStructureId !== selectedStructureId) {
-      console.log("External structure ID changed, updating:", externalSelectedStructureId);
-      changeSelectedStructure(externalSelectedStructureId);
+    if (externalSelectedStructureId !== selectedStructureId) {
+      setSelectedStructureId(externalSelectedStructureId || null);
     }
-  }, [externalSelectedStructureId, selectedStructureId, changeSelectedStructure]);
-
+  }, [externalSelectedStructureId]);
+  
   useEffect(() => {
     if (externalBeatMode !== beatMode) {
       setBeatMode(externalBeatMode);
     }
   }, [externalBeatMode]);
-
+  
+  // Handle changes to the script content
+  const handleElementChange = (content: ScriptContent) => {
+    if (content.elements) {
+      setElements(content.elements);
+      onChange(content);
+    }
+  };
+  
+  // Add a new element after the specified element
+  const addNewElement = (afterId: string, type?: ElementType) => {
+    const afterIndex = elements.findIndex(el => el.id === afterId);
+    if (afterIndex === -1) return;
+    
+    const newElement: ScriptElement = {
+      id: generateUniqueId(),
+      type: type || 'action',
+      text: ''
+    };
+    
+    const newElements = [
+      ...elements.slice(0, afterIndex + 1),
+      newElement,
+      ...elements.slice(afterIndex + 1)
+    ];
+    
+    setElements(newElements);
+    setActiveElementId(newElement.id);
+    onChange({ elements: newElements });
+  };
+  
+  // Delete an element
+  const deleteElement = (id: string) => {
+    const elementIndex = elements.findIndex(el => el.id === id);
+    if (elementIndex === -1) return;
+    
+    // Don't delete the last element
+    if (elements.length <= 1) return;
+    
+    const newElements = elements.filter(el => el.id !== id);
+    
+    // Set the active element to the previous one, or the next one if there's no previous
+    const newActiveIndex = Math.max(0, elementIndex - 1);
+    
+    setElements(newElements);
+    setActiveElementId(newElements[newActiveIndex].id);
+    onChange({ elements: newElements });
+  };
+  
+  // Handle structure change
+  const handleStructureChange = (structureId: string) => {
+    setSelectedStructureId(structureId);
+    
+    // Find the structure by ID
+    const structure = structures.find(s => s.id === structureId);
+    if (structure) {
+      setSelectedStructure(structure);
+    }
+    
+    if (onStructureChange) {
+      onStructureChange(structureId);
+    }
+  };
+  
+  // Handle beat mode change
   const handleBeatModeChange = (mode: BeatMode) => {
     setBeatMode(mode);
     if (onToggleBeatMode) {
       onToggleBeatMode(mode);
     }
   };
-
-  const {
-    elements,
-    setElements,
-    activeElementId,
-    setActiveElementId,
-    handleElementChange,
-    getPreviousElementType,
-    addNewElement,
-    changeElementType
-  } = useScriptElements(initialContent, onChange);
-
-  const characterNames = useCharacterNames(elements);
-  const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter);
-
-  // Calculate beat scene counts whenever elements change
+  
+  // Initialize with default elements if empty
   useEffect(() => {
-    const counts: Record<string, number> = {};
-    elements.forEach(element => {
-      if (element.beat) {
-        counts[element.beat] = (counts[element.beat] || 0) + 1;
-      }
-    });
-    setBeatSceneCounts(counts);
-  }, [elements]);
-
-  useEffect(() => {
-    const handlePdfImported = (event: CustomEvent<{elements: ScriptElement[]}>) => {
-      if (event.detail && Array.isArray(event.detail.elements)) {
-        const importedElements = event.detail.elements;
-        if (importedElements.length > 0) {
-          setElements(importedElements);
-          setActiveElementId(importedElements[0].id);
-          
-          toast({
-            title: "PDF Imported",
-            description: `Successfully imported ${importedElements.length} elements from PDF`,
-          });
+    if (elements.length === 0) {
+      const defaultElements: ScriptElement[] = [
+        {
+          id: generateUniqueId(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: generateUniqueId(),
+          type: 'action',
+          text: 'Start writing your screenplay...'
         }
-      }
-    };
-    
-    window.addEventListener('pdf-imported' as any, handlePdfImported as any);
-    
-    return () => {
-      window.removeEventListener('pdf-imported' as any, handlePdfImported as any);
-    };
-  }, [setElements, setActiveElementId]);
-
-  const handleEnterKey = (id: string, shiftKey: boolean) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    const currentElement = elements[currentIndex];
-    
-    if (shiftKey && currentElement.type === 'dialogue') {
-      const updatedElements: ScriptElement[] = [...elements];
-      updatedElements[currentIndex] = {
-        ...currentElement,
-        text: currentElement.text + '\n'
-      };
-      setElements(updatedElements);
-      return;
-    }
-    
-    addNewElement(id);
-  };
-
-  const handleNavigate = (direction: 'up' | 'down', id: string) => {
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
-    
-    if (direction === 'up' && currentIndex > 0) {
-      setActiveElementId(elements[currentIndex - 1].id);
-    } else if (direction === 'down' && currentIndex < elements.length - 1) {
-      setActiveElementId(elements[currentIndex + 1].id);
-    }
-  };
-
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
-  };
-
-  const handleTagsChange = (elementId: string, tags: string[]) => {
-    const newElements: ScriptElement[] = elements.map(element =>
-      element.id === elementId ? { ...element, tags } : element
-    );
-    setElements(newElements);
-  };
-
-  const handleStructureChange = async (structureId: string) => {
-    console.log("Structure changing to:", structureId);
-    await changeSelectedStructure(structureId);
-    
-    if (onStructureChange) {
-      onStructureChange(structureId);
-    }
-    
-    await fetchStructures();
-  };
-
-  const handleBeatTag = async (elementId: string, beatId: string, actId: string) => {
-    if (!selectedStructure || !selectedStructureId) return;
-    
-    const newElements: ScriptElement[] = elements.map(element =>
-      element.id === elementId ? { ...element, beat: beatId } : element
-    );
-    setElements(newElements);
-    
-    const updatedStructure = updateBeatCompletion(beatId, actId, true);
-    if (updatedStructure) {
-      const success = await saveBeatCompletion(selectedStructureId, updatedStructure);
-      if (success) {
-        console.log("Beat tagged and structure progress updated");
-      } else {
-        console.error("Failed to update structure progress");
-      }
-    }
-  };
-
-  const handleRemoveBeat = async (elementId: string) => {
-    // Find the element and its current beat
-    const element = elements.find(e => e.id === elementId);
-    if (!element || !element.beat || !selectedStructureId) return;
-    
-    const beatId = element.beat;
-    
-    // Remove the beat tag from the element
-    const newElements: ScriptElement[] = elements.map(el =>
-      el.id === elementId ? { ...el, beat: undefined } : el
-    );
-    setElements(newElements);
-    
-    // Check if this was the last scene tagged with this beat
-    const otherSceneWithSameBeat = elements.some(
-      e => e.id !== elementId && e.beat === beatId
-    );
-    
-    // If no other scene has this beat, mark it as incomplete in the structure
-    if (!otherSceneWithSameBeat && selectedStructure) {
-      // Find the act containing this beat
-      let actId = "";
-      for (const act of selectedStructure.acts) {
-        const beatExists = act.beats?.some(b => b.id === beatId);
-        if (beatExists) {
-          actId = act.id;
-          break;
-        }
-      }
+      ];
       
-      if (actId) {
-        const updatedStructure = updateBeatCompletion(beatId, actId, false);
-        if (updatedStructure) {
-          await saveBeatCompletion(selectedStructureId, updatedStructure);
-        }
-      }
+      setElements(defaultElements);
+      setActiveElementId(defaultElements[0].id);
+      onChange({ elements: defaultElements });
     }
-  };
-
+  }, []);
+  
   const value = {
     elements,
-    filteredElements,
     activeElementId,
     setActiveElementId,
     handleElementChange,
-    getPreviousElementType,
     addNewElement,
-    changeElementType,
-    handleEnterKey,
-    handleNavigate,
-    handleFocus,
-    handleTagsChange,
-    characterNames,
+    deleteElement,
     activeTagFilter,
     setActiveTagFilter,
-    activeActFilter,
-    setActiveActFilter,
     beatMode,
     setBeatMode: handleBeatModeChange,
     structures,
     selectedStructureId,
     selectedStructure,
     handleStructureChange,
-    handleBeatTag,
-    handleRemoveBeat,
-    beatSceneCounts,
-    projectId,
-    scriptContentRef,
-    showKeyboardShortcuts,
-    setShowKeyboardShortcuts,
-    currentPage,
-    fetchStructures
+    scriptContentRef
   };
-
+  
   return (
     <ScriptEditorContext.Provider value={value}>
       {children}

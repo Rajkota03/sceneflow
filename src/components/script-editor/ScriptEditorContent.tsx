@@ -1,15 +1,46 @@
 
 import React from 'react';
+import ScriptEditor from './ScriptEditor';
+import { useScriptEditor } from './ScriptEditorProvider';
 
-const ScriptEditorContent: React.FC = () => {
+interface ScriptEditorContentProps {
+  zoomPercentage: number;
+  onZoomChange: (value: number[]) => void;
+}
+
+const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
+  zoomPercentage,
+  onZoomChange
+}) => {
+  const {
+    elements,
+    handleElementChange,
+    activeElementId,
+    scriptContentRef,
+    activeTagFilter,
+    setActiveTagFilter,
+    beatMode,
+    selectedStructureId,
+    handleStructureChange,
+    setBeatMode
+  } = useScriptEditor();
+
   return (
-    <div className="flex justify-center items-center h-full w-full">
-      <div className="text-center p-8 bg-white rounded-lg shadow-sm">
-        <h3 className="text-xl font-medium text-gray-800">Screenplay Functionality Removed</h3>
-        <p className="mt-2 text-gray-600">
-          The screenplay editor has been removed from the application.
-        </p>
-      </div>
+    <div className="flex justify-center items-center h-full w-full" ref={scriptContentRef}>
+      <ScriptEditor
+        initialContent={{ elements }}
+        onChange={(content) => {
+          if (content?.elements) {
+            handleElementChange(content);
+          }
+        }}
+        className="w-full h-full"
+        projectId={undefined}
+        selectedStructureId={selectedStructureId}
+        onStructureChange={handleStructureChange}
+        beatMode={beatMode}
+        onToggleBeatMode={setBeatMode}
+      />
     </div>
   );
 };
