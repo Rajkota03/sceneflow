@@ -46,6 +46,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           width: '100%',
           pointerEvents: 'auto' // Ensure pointer events are enabled
         }}
+        onClick={(e) => {
+          // Make sure clicks properly propagate
+          console.log('Clicked content container');
+        }}
       >
         <ScriptPage
           elements={filteredElements}

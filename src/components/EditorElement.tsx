@@ -136,7 +136,6 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
-        dangerouslySetInnerHTML={{ __html: text }}
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
@@ -149,7 +148,9 @@ const EditorElement: React.FC<EditorElementProps> = ({
           pointerEvents: 'auto', // Ensure pointer events are enabled
           ...elementStyles
         }}
-      />
+      >
+        {text}
+      </div>
       
       {isActive && (
         <>

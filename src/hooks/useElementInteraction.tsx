@@ -38,8 +38,8 @@ export function useElementInteraction({
     setText(initialText);
     if (editorRef.current) {
       // Only update DOM if content is different to avoid cursor jumping
-      if (editorRef.current.innerText !== initialText) {
-        editorRef.current.innerText = initialText;
+      if (editorRef.current.textContent !== initialText) {
+        editorRef.current.textContent = initialText;
       }
     }
   }, [initialText]);
@@ -47,7 +47,7 @@ export function useElementInteraction({
   // Handle change events from the contentEditable div
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    const newText = e.currentTarget.innerText || '';
+    const newText = e.currentTarget.textContent || '';
     
     console.log('Text changed:', newText); // Debug log
     
@@ -157,7 +157,7 @@ export function useElementInteraction({
         // Get selection position
         const selection = window.getSelection();
         const range = selection?.getRangeAt(0);
-        const textLength = editorRef.current?.innerText.length || 0;
+        const textLength = editorRef.current?.textContent?.length || 0;
         
         // Only navigate if we're at the end of the text
         if (range && range.endOffset === textLength && range.collapsed) {
@@ -206,7 +206,7 @@ export function useElementInteraction({
   // Handle character selection from suggestions
   const handleSelectCharacter = (name: string) => {
     if (editorRef.current) {
-      editorRef.current.innerText = name;
+      editorRef.current.textContent = name;
       setText(name);
       onChange(elementId, name, type);
       setSuggestionsVisible(false);
