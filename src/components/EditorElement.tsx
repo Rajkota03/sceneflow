@@ -72,9 +72,18 @@ const EditorElement: React.FC<EditorElementProps> = ({
 
   const elementStyles = getElementStyles(element.type);
   
+  // Make sure the component focuses properly when it becomes active
+  useEffect(() => {
+    if (isActive && editorRef.current) {
+      // Avoid setting focus if the element is already focused to prevent cursor jumps
+      if (document.activeElement !== editorRef.current) {
+        editorRef.current.focus();
+      }
+    }
+  }, [isActive]);
+
   const handleElementClick = (e: React.MouseEvent) => {
-    // Ensure click propagates properly
-    e.stopPropagation();
+    e.stopPropagation(); // Stop propagation to prevent parent handlers
     
     // Only trigger the additional click handler if it's a double-click on a scene heading
     if (
@@ -86,7 +95,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       onAdditionalClick();
     }
     
-    // Ensure focus happens on click
+    // Always focus on click if not already active
     if (!isActive) {
       onFocus();
     }
@@ -126,7 +135,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
-        onFocus={() => {
+        onFocus={(e) => {
+          e.stopPropagation();
           if (!isActive) {
             onFocus();
           }

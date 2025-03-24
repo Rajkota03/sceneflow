@@ -38,7 +38,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   return (
-    <ScrollArea className={`h-full w-full overflow-auto ${className || ''}`} scrollHideDelay={0}>
+    <ScrollArea 
+      className={`h-full w-full overflow-auto ${className || ''}`} 
+      scrollHideDelay={0}
+    >
       <div 
         className="flex justify-center w-full pt-8 pb-20"
         ref={scriptContentRef}

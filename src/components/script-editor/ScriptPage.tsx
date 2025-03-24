@@ -67,9 +67,14 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
       style={{ 
         width: '8.5in',
         margin: '0 auto',
-        pointerEvents: 'auto',
+        backgroundColor: 'white',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        pointerEvents: 'auto', // Ensure clicks are captured
         transition: 'transform 0.2s ease-out',
+        transform: `scale(${formatState.zoomLevel})`,
+        transformOrigin: 'top center',
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+        border: '1px solid rgba(0,0,0,0.1)',
       }}
     >
       <div 
@@ -78,14 +83,10 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           fontFamily: 'Courier Final Draft, Courier Prime, monospace',
           fontSize: '12pt',
           position: 'relative',
-          pointerEvents: 'auto',
-          minHeight: '50vh', // Ensure the page has enough height to be clickable
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          backgroundColor: 'white',
+          pointerEvents: 'auto', // Ensure clicks are captured
+          minHeight: '11in', // Standard letter size height
           padding: '1in',
           paddingBottom: '1.5in', // Extra padding at bottom for visibility
-          transform: `scale(${formatState.zoomLevel})`,
-          transformOrigin: 'top center',
         }}
       >
         {/* Page number positioned inside the page */}

@@ -33,66 +33,29 @@ export function useElementInteraction({
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
-  // Sync text state with initialText from props
+  // Update local text state when prop changes (but only if not actively editing)
   useEffect(() => {
-    setText(initialText);
-    // Only update the DOM directly if the element isn't active
-    // When active, leave the DOM alone to prevent cursor jumping
-    if (editorRef.current && !isActive && editorRef.current.innerText !== initialText) {
-      editorRef.current.innerText = initialText;
+    if (initialText !== text) {
+      setText(initialText);
+      
+      // Only update the DOM if not currently active (to prevent cursor jumps)
+      if (!isActive && editorRef.current && editorRef.current.innerText !== initialText) {
+        editorRef.current.innerText = initialText;
+      }
     }
   }, [initialText, isActive]);
   
-  // Set focus when element becomes active
-  useEffect(() => {
-    if (isActive && editorRef.current) {
-      // Focus the element with a small delay to ensure DOM is ready
-      const timeoutId = setTimeout(() => {
-        // Only set focus if document.activeElement is not already this element
-        // This prevents cursor from jumping when clicking within the text
-        if (document.activeElement !== editorRef.current) {
-          editorRef.current?.focus();
-          
-          // Only position cursor at the end if this is a fresh focus, not a click within text
-          if (window.getSelection()?.rangeCount === 0) {
-            const range = document.createRange();
-            const sel = window.getSelection();
-            
-            if (editorRef.current) {
-              try {
-                if (editorRef.current.childNodes.length > 0) {
-                  const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-                  const offset = lastNode.textContent?.length || 0;
-                  range.setStart(lastNode, offset);
-                } else {
-                  // If no child nodes, set cursor at beginning of empty div
-                  range.setStart(editorRef.current, 0);
-                }
-                
-                range.collapse(true);
-                sel?.removeAllRanges();
-                sel?.addRange(range);
-              } catch (e) {
-                console.error('Error setting cursor position:', e);
-              }
-            }
-          }
-        }
-      }, 10);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isActive]);
-
+  // Handle change events from the contentEditable div
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    const newText = e.currentTarget.innerText;
+    const newText = e.currentTarget.innerText || '';
     
     // Only update if text actually changed
     if (newText !== text) {
       setText(newText);
       onChange(elementId, newText, type);
       
+      // If it's a character element, check for character name suggestions
       if (type === 'character') {
         const detected = detectCharacter(newText, characterNames);
         setSuggestionsVisible(detected);
@@ -111,40 +74,16 @@ export function useElementInteraction({
     }
   };
 
+  // Handle keyboard navigation and special keys
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Only prevent default for navigation keys when they should be intercepted
-    if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
-      // For arrow keys, only prevent default if suggestions are visible
-      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !suggestionsVisible) {
-        // Allow cursor movement within the text if there are multiple lines and we're not at boundaries
-        const selection = window.getSelection();
-        const textContent = editorRef.current?.textContent || '';
-        
-        if (textContent.includes('\n')) {
-          const cursorAtStart = selection?.anchorOffset === 0;
-          const cursorAtEnd = selection?.anchorOffset === textContent.length;
-          
-          // Only prevent default if we're at boundaries
-          if ((e.key === 'ArrowUp' && cursorAtStart) || 
-              (e.key === 'ArrowDown' && cursorAtEnd)) {
-            e.preventDefault();
-          } else {
-            return; // Let the browser handle within-text navigation
-          }
-        } else {
-          e.preventDefault();
-        }
-      } else {
-        e.preventDefault();
-      }
-    }
-    
+    // Handle special keys
     if (e.key === 'Backspace' && text.trim() === '') {
       e.preventDefault();
       onNavigate('up', elementId);
       return;
     }
     
+    // Handle formatting keyboard shortcuts
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -170,6 +109,7 @@ export function useElementInteraction({
         case '6':
           e.preventDefault();
           onFormatChange(elementId, 'transition');
+          // Auto-add "CUT TO:" for empty transitions
           const newText = text.trim() === '' ? 'CUT TO:' : text;
           setText(newText);
           onChange(elementId, newText, 'transition');
@@ -179,31 +119,63 @@ export function useElementInteraction({
       }
     }
 
+    // Handle Enter key
     if (e.key === 'Enter') {
       e.preventDefault();
       e.stopPropagation();
       onEnterKey(elementId, e.shiftKey);
-    } else if (e.key === 'ArrowUp') {
+      return;
+    }
+    
+    // Handle arrow keys for navigation
+    if (e.key === 'ArrowUp') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
+        // Use arrows to navigate suggestions when they're visible
         e.preventDefault();
         setFocusIndex(prevIndex => Math.max(0, prevIndex - 1));
       } else {
-        onNavigate('up', elementId);
+        // Get selection position
+        const selection = window.getSelection();
+        const range = selection?.getRangeAt(0);
+        
+        // Only navigate if we're at the start of the text
+        if (range && range.startOffset === 0 && range.collapsed) {
+          e.preventDefault();
+          onNavigate('up', elementId);
+        }
       }
-    } else if (e.key === 'ArrowDown') {
+      return;
+    }
+    
+    if (e.key === 'ArrowDown') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
+        // Use arrows to navigate suggestions when they're visible
         e.preventDefault();
         setFocusIndex(prevIndex => Math.min(filteredSuggestions.length - 1, prevIndex + 1));
       } else {
-        onNavigate('down', elementId);
+        // Get selection position
+        const selection = window.getSelection();
+        const range = selection?.getRangeAt(0);
+        const textLength = editorRef.current?.innerText.length || 0;
+        
+        // Only navigate if we're at the end of the text
+        if (range && range.endOffset === textLength && range.collapsed) {
+          e.preventDefault();
+          onNavigate('down', elementId);
+        }
       }
-    } else if (suggestionsVisible && filteredSuggestions.length > 0 && e.key === 'Tab') {
-      e.preventDefault();
-      handleSelectCharacter(filteredSuggestions[focusIndex]);
-    } else if (e.key === 'Tab') {
+      return;
+    }
+    
+    // Handle Tab for element type cycling
+    if (e.key === 'Tab') {
       e.preventDefault();
       
-      if (type === 'dialogue') {
+      if (suggestionsVisible && filteredSuggestions.length > 0) {
+        // Use Tab to select a suggestion when they're visible
+        handleSelectCharacter(filteredSuggestions[focusIndex]);
+      } else if (type === 'dialogue') {
+        // Convert dialogue to parenthetical on Tab
         onFormatChange(elementId, 'parenthetical');
         if (!text.startsWith('(') && !text.endsWith(')')) {
           const newText = `(${text})`;
@@ -211,6 +183,7 @@ export function useElementInteraction({
           onChange(elementId, newText, 'parenthetical');
         }
       } else {
+        // Cycle through element types
         const elementTypes: ElementType[] = [
           'scene-heading',
           'action',
@@ -225,9 +198,11 @@ export function useElementInteraction({
         
         onFormatChange(elementId, elementTypes[nextIndex]);
       }
+      return;
     }
   };
 
+  // Handle character selection from suggestions
   const handleSelectCharacter = (name: string) => {
     if (editorRef.current) {
       editorRef.current.innerText = name;
@@ -237,17 +212,20 @@ export function useElementInteraction({
     }
   };
 
+  // Handle right-click to show element type menu
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setShowElementMenu(!showElementMenu);
   };
 
+  // Handle element type change
   const handleElementTypeChange = (newType: ElementType) => {
     onFormatChange(elementId, newType);
     setShowElementMenu(false);
   };
 
+  // Handle blur events
   const handleBlur = (e: React.FocusEvent) => {
     // Only hide menus if we're not focusing a related element (like suggestions)
     // Check if the related target is a child of our suggestions
@@ -263,15 +241,13 @@ export function useElementInteraction({
     }
     
     if (!isSuggestionClick) {
-      // Hide element menu regardless
+      // Hide element menu
       setShowElementMenu(false);
       
       // Hide suggestions with a small delay to allow clicks to register
-      const timeoutId = setTimeout(() => {
+      setTimeout(() => {
         setSuggestionsVisible(false);
       }, 200);
-      
-      return () => clearTimeout(timeoutId);
     }
   };
 
