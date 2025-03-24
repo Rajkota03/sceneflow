@@ -36,6 +36,15 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     scriptContentRef
   } = useScriptEditor();
 
+  const handleContainerClick = (e: React.MouseEvent) => {
+    console.log('Script content container clicked');
+    // Allow clicks to properly propagate
+    if (e.target === e.currentTarget) {
+      // If clicking the container and not an element, we could focus the last element
+      console.log('Direct container click - could focus last element');
+    }
+  };
+
   return (
     <div className="h-full w-full overflow-auto">
       <div 
@@ -46,10 +55,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           width: '100%',
           pointerEvents: 'auto' // Ensure pointer events are enabled
         }}
-        onClick={(e) => {
-          // Make sure clicks properly propagate
-          console.log('Clicked content container');
-        }}
+        onClick={handleContainerClick}
       >
         <ScriptPage
           elements={filteredElements}

@@ -35,21 +35,26 @@ export function useElementInteraction({
   
   // Update local text state when prop changes
   useEffect(() => {
-    setText(initialText);
-    if (editorRef.current) {
+    // Only update if different to avoid cursor jumping
+    if (text !== initialText) {
+      setText(initialText);
+      
       // Only update DOM if content is different to avoid cursor jumping
-      if (editorRef.current.textContent !== initialText) {
-        editorRef.current.textContent = initialText;
+      if (editorRef.current && editorRef.current.textContent !== initialText) {
+        // We'll directly set textContent only if not active to avoid cursor jump
+        if (!isActive) {
+          editorRef.current.textContent = initialText;
+        }
       }
     }
-  }, [initialText]);
+  }, [initialText, text, isActive]);
   
   // Handle change events from the contentEditable div
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     e.stopPropagation();
     const newText = e.currentTarget.textContent || '';
     
-    console.log('Text changed:', newText); // Debug log
+    console.log('Text changed:', newText, 'for element:', elementId); // Debug log
     
     // Update local text state and propagate changes to parent
     setText(newText);
@@ -75,7 +80,7 @@ export function useElementInteraction({
 
   // Handle keyboard navigation and special keys
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    console.log('Key pressed:', e.key); // Debug log
+    console.log('Key pressed:', e.key, 'for element:', elementId); // Debug log
     
     // Only prevent backspace if text is empty to allow deletion otherwise
     if (e.key === 'Backspace' && text.trim() === '') {
@@ -111,9 +116,14 @@ export function useElementInteraction({
           e.preventDefault();
           onFormatChange(elementId, 'transition');
           // Auto-add "CUT TO:" for empty transitions
-          const newText = text.trim() === '' ? 'CUT TO:' : text;
-          setText(newText);
-          onChange(elementId, newText, 'transition');
+          if (text.trim() === '') {
+            const newText = 'CUT TO:';
+            setText(newText);
+            if (editorRef.current) {
+              editorRef.current.textContent = newText;
+            }
+            onChange(elementId, newText, 'transition');
+          }
           return;
         default:
           break;
@@ -137,7 +147,9 @@ export function useElementInteraction({
       } else {
         // Get selection position
         const selection = window.getSelection();
-        const range = selection?.getRangeAt(0);
+        if (!selection || selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
         
         // Only navigate if we're at the start of the text
         if (range && range.startOffset === 0 && range.collapsed) {
@@ -156,7 +168,9 @@ export function useElementInteraction({
       } else {
         // Get selection position
         const selection = window.getSelection();
-        const range = selection?.getRangeAt(0);
+        if (!selection || selection.rangeCount === 0) return;
+        
+        const range = selection.getRangeAt(0);
         const textLength = editorRef.current?.textContent?.length || 0;
         
         // Only navigate if we're at the end of the text
@@ -182,6 +196,10 @@ export function useElementInteraction({
           const newText = `(${text})`;
           setText(newText);
           onChange(elementId, newText, 'parenthetical');
+          // Update DOM directly for immediate feedback
+          if (editorRef.current) {
+            editorRef.current.textContent = newText;
+          }
         }
       } else {
         // Cycle through element types
@@ -206,6 +224,7 @@ export function useElementInteraction({
   // Handle character selection from suggestions
   const handleSelectCharacter = (name: string) => {
     if (editorRef.current) {
+      // Update the DOM directly for immediate feedback
       editorRef.current.textContent = name;
       setText(name);
       onChange(elementId, name, type);

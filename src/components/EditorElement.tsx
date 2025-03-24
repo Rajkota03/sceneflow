@@ -75,13 +75,29 @@ const EditorElement: React.FC<EditorElementProps> = ({
   // Make sure the component focuses properly when it becomes active
   useEffect(() => {
     if (isActive && editorRef.current) {
+      // Only focus if not already focused to avoid cursor jumping
       if (document.activeElement !== editorRef.current) {
         editorRef.current.focus();
+        
+        // Set cursor at end of text for better UX
+        const range = document.createRange();
+        const selection = window.getSelection();
+        
+        if (editorRef.current.childNodes.length > 0) {
+          const lastNode = editorRef.current.childNodes[0];
+          const textLength = lastNode.textContent?.length || 0;
+          range.setStart(lastNode, textLength);
+          range.collapse(true);
+          
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
       }
     }
   }, [isActive, editorRef]);
 
   const handleElementClick = (e: React.MouseEvent) => {
+    console.log('Element clicked', element.id, element.type);
     e.stopPropagation();
     onFocus();
     
@@ -128,6 +144,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         onClick={handleElementClick}
         onContextMenu={handleRightClick}
         onFocus={(e) => {
+          console.log('Element focused', element.id);
           e.stopPropagation();
           if (!isActive) {
             onFocus();
