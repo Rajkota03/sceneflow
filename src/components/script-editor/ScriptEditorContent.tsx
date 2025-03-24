@@ -47,7 +47,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
         ref={scriptContentRef}
         style={{ 
           minHeight: '100vh',
-          pointerEvents: 'auto'
+          pointerEvents: 'all' // Changed from 'auto' to 'all' to ensure events are captured
         }}
       >
         <ScriptPage
