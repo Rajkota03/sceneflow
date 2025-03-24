@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -129,7 +130,6 @@
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   direction: ltr;
-  unicode-bidi: plaintext;
 }
 
 /* Element-specific formatting - Following Final Draft standards */
@@ -318,7 +318,7 @@ textarea.auto-resize {
 /* Fix for reversed text input */
 [contenteditable="true"] {
   direction: ltr;
-  unicode-bidi: plaintext;
+  unicode-bidi: embed;
 }
 
 /* Keyboard shortcut information */
@@ -386,4 +386,12 @@ textarea.auto-resize {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+/* Format styler container */
+.script-format-styler {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }

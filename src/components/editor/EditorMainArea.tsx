@@ -52,7 +52,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
       {splitScreenNote ? (
         <ResizablePanelGroup direction="horizontal" className="h-full">
           <ResizablePanel defaultSize={70} minSize={30}>
-            <div className="h-full overflow-auto">
+            <div className="h-full overflow-auto flex justify-center">
               {showTitlePage ? (
                 <TitlePageView data={titlePageData} />
               ) : (
@@ -117,7 +117,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
           </ResizablePanel>
         </ResizablePanelGroup>
       ) : (
-        <>
+        <div className="h-full flex justify-center">
           {showTitlePage ? (
             <TitlePageView data={titlePageData} />
           ) : (
@@ -136,7 +136,7 @@ const EditorMainArea: React.FC<EditorMainAreaProps> = ({
               />
             </ScriptEditorProvider>
           )}
-        </>
+        </div>
       )}
       
       {openNotes.map(note => (

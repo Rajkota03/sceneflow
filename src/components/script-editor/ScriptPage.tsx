@@ -66,7 +66,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   
   return (
     <div 
-      className="script-page" 
+      className="script-page mx-auto" 
       style={{ 
         width: '8.5in',
         margin: '0 auto',

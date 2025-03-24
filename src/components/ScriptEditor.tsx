@@ -147,7 +147,7 @@ const ScriptEditor = ({
           {showKeyboardShortcuts && <KeyboardShortcutsHelp />}
           
           <FormatStyler currentPage={currentPage}>
-            <div className="script-page" style={{ 
+            <div className="script-page mx-auto" style={{ 
               transform: `scale(${formatState.zoomLevel})`,
               transformOrigin: 'top center',
               transition: 'transform 0.2s ease-out',

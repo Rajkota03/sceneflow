@@ -158,12 +158,13 @@ const ScriptElement: React.FC<ScriptElementProps> = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
+        dir="ltr"
         style={{
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          direction: 'ltr', // Explicitly set text direction to left-to-right
-          unicodeBidi: 'normal', // Changed from 'plaintext' to 'normal'
+          direction: 'ltr',
+          unicodeBidi: 'embed',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
           cursor: 'text',

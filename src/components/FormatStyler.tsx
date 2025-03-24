@@ -55,7 +55,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   return (
     <div 
       style={style} 
-      className="script-format-styler flex flex-col items-center"
+      className="script-format-styler w-full flex justify-center items-center"
       data-font="courier-final-draft"
     >
       {children}
