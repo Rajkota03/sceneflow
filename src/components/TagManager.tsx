@@ -5,7 +5,6 @@ import ActBar from './act-bar';
 import { BeatMode, TagManagerProps } from '@/types/scriptTypes';
 import useActCounts from './tag-manager/useActCounts';
 import TagFilter from './tag-manager/TagFilter';
-import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface ActCount {
   act: ActType | null;
@@ -27,7 +26,6 @@ const TagManager: React.FC<TagManagerProps> = ({
   structures = []
 }) => {
   const { availableTags, actCounts } = useActCounts(scriptContent);
-  const { beatSceneCounts, selectedStructure } = useScriptEditor();
   
   const actCountsArray: ActCount[] = Object.entries(actCounts).map(([act, count]) => ({
     act: act as ActType,
@@ -52,13 +50,11 @@ const TagManager: React.FC<TagManagerProps> = ({
             onSelectAct={handleActFilter} 
             actCounts={actCountsArray}
             projectName={projectName}
-            structureName={selectedStructure?.name || structureName}
+            structureName={structures.find(s => s.id === selectedStructureId)?.name || structureName}
             beatMode={beatMode}
             onToggleBeatMode={onToggleBeatMode}
-            selectedStructure={selectedStructure}
-            beatSceneCounts={beatSceneCounts}
-            onStructureChange={onStructureChange}
             selectedStructureId={selectedStructureId}
+            onStructureChange={onStructureChange}
             availableStructures={structures.map(s => ({ id: s.id, name: s.name }))}
           />
         )}

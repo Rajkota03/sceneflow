@@ -1,10 +1,10 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ScriptContent, ScriptElement, ElementType, Note, Structure } from '@/lib/types';
+import { ScriptContent, ElementType, Structure } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
 import { useFormat } from '@/lib/formatContext';
 import { BeatMode } from '@/types/scriptTypes';
-import ScriptElement from './ScriptElement';
+import ScriptElementComponent from './ScriptElement';
 import FormatStyler from '../FormatStyler';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
@@ -59,15 +59,15 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
   useEffect(() => {
     // Create default elements if none exist
     if (!elements || elements.length === 0) {
-      const defaultElements: ScriptElement[] = [
+      const defaultElements = [
         {
           id: generateUniqueId(),
-          type: 'scene-heading',
+          type: 'scene-heading' as ElementType,
           text: 'INT. SOMEWHERE - DAY'
         },
         {
           id: generateUniqueId(),
-          type: 'action',
+          type: 'action' as ElementType,
           text: 'Start writing your screenplay...'
         }
       ];
@@ -167,7 +167,7 @@ const ScriptEditor: React.FC<ScriptEditorProps> = ({
                 
                 {/* Map through the elements and render each one */}
                 {filteredElements.map((element, index) => (
-                  <ScriptElement
+                  <ScriptElementComponent
                     key={element.id}
                     id={element.id}
                     text={element.text}

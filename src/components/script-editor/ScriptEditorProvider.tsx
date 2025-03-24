@@ -1,8 +1,16 @@
 
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-import { ScriptContent, ScriptElement, ElementType, Structure } from '@/lib/types';
+import { ScriptContent, ScriptElement, ElementType, Structure, ActType } from '@/lib/types';
 import { BeatMode } from '@/types/scriptTypes';
 import { generateUniqueId } from '@/lib/formatScript';
+import useCharacterNames from '@/hooks/useCharacterNames';
+import useFilteredElements from '@/hooks/useFilteredElements';
+import useScriptNavigation from '@/hooks/useScriptNavigation';
+
+interface BeatSceneCount {
+  beatId: string;
+  count: number;
+}
 
 interface ScriptEditorContextType {
   elements: ScriptElement[];
@@ -20,6 +28,19 @@ interface ScriptEditorContextType {
   selectedStructure: Structure | null;
   handleStructureChange: (structureId: string) => void;
   scriptContentRef: React.RefObject<HTMLDivElement>;
+  // Additional properties needed by components
+  filteredElements: ScriptElement[];
+  currentPage: number;
+  getPreviousElementType: (index: number) => ElementType | undefined;
+  handleFocus: (id: string) => void;
+  handleNavigate: (direction: 'up' | 'down', id: string) => void;
+  handleEnterKey: (id: string, shiftKey: boolean) => void;
+  changeElementType: (id: string, newType: ElementType) => void;
+  handleTagsChange: (elementId: string, tags: string[]) => void;
+  characterNames: string[];
+  projectId?: string;
+  handleBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+  beatSceneCounts: BeatSceneCount[];
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | null>(null);
@@ -63,8 +84,16 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   const [structures, setStructures] = useState<Structure[]>([]);
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(externalSelectedStructureId || null);
   const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [beatSceneCounts, setBeatSceneCounts] = useState<BeatSceneCount[]>([]);
   
   const scriptContentRef = useRef<HTMLDivElement>(null);
+  
+  // Get character names from elements
+  const characterNames = useCharacterNames(elements);
+  
+  // Get filtered elements based on active filter
+  const filteredElements = useFilteredElements(elements, activeTagFilter, null);
   
   // Sync with external state when it changes
   useEffect(() => {
@@ -87,15 +116,80 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     }
   };
   
+  // Get the type of the previous element
+  const getPreviousElementType = (index: number): ElementType | undefined => {
+    if (index < 0 || !elements[index]) return undefined;
+    return elements[index].type;
+  };
+  
+  // Focus handling
+  const handleFocus = (id: string) => {
+    setActiveElementId(id);
+  };
+  
+  // Element navigation
+  const handleNavigate = (direction: 'up' | 'down', id: string) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    if (direction === 'up' && currentIndex > 0) {
+      setActiveElementId(elements[currentIndex - 1].id);
+    } else if (direction === 'down' && currentIndex < elements.length - 1) {
+      setActiveElementId(elements[currentIndex + 1].id);
+    }
+  };
+  
+  // Handle enter key press
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    const currentIndex = elements.findIndex(el => el.id === id);
+    if (currentIndex === -1) return;
+    
+    const currentElement = elements[currentIndex];
+    
+    // Handle shift+enter for line breaks in dialogue
+    if (shiftKey && currentElement.type === 'dialogue') {
+      const updatedElements = [...elements];
+      updatedElements[currentIndex] = {
+        ...currentElement,
+        text: currentElement.text + '\n'
+      };
+      setElements(updatedElements);
+      return;
+    }
+    
+    // Add a new element after the current one
+    addNewElement(id);
+  };
+  
   // Add a new element after the specified element
   const addNewElement = (afterId: string, type?: ElementType) => {
     const afterIndex = elements.findIndex(el => el.id === afterId);
     if (afterIndex === -1) return;
     
+    const currentElement = elements[afterIndex];
+    
+    // Determine the type of the new element based on the current one
+    let newType: ElementType = type || 'action';
+    let initialText = '';
+    
+    if (!type) {
+      if (currentElement.type === 'scene-heading') {
+        newType = 'action';
+      } else if (currentElement.type === 'character') {
+        newType = 'dialogue';
+      } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
+        newType = 'action';
+      } else if (currentElement.type === 'action') {
+        newType = 'action';
+      } else if (currentElement.type === 'transition') {
+        newType = 'scene-heading';
+      }
+    }
+    
     const newElement: ScriptElement = {
       id: generateUniqueId(),
-      type: type || 'action',
-      text: ''
+      type: newType,
+      text: initialText
     };
     
     const newElements = [
@@ -107,6 +201,43 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setElements(newElements);
     setActiveElementId(newElement.id);
     onChange({ elements: newElements });
+  };
+  
+  // Change the type of an element
+  const changeElementType = (id: string, newType: ElementType) => {
+    setElements(prevElements => {
+      const elementIndex = prevElements.findIndex(el => el.id === id);
+      if (elementIndex === -1) return prevElements;
+      
+      return prevElements.map((element, index) => {
+        if (element.id === id) {
+          let newText = element.text;
+          
+          // Auto-capitalize scene headings and character names
+          if (newType === 'scene-heading' || newType === 'character') {
+            newText = newText.toUpperCase();
+          }
+          
+          return { ...element, type: newType, text: newText };
+        }
+        return element;
+      });
+    });
+  };
+  
+  // Handle tags change
+  const handleTagsChange = (elementId: string, tags: string[]) => {
+    setElements(prevElements =>
+      prevElements.map(element =>
+        element.id === elementId ? { ...element, tags } : element
+      )
+    );
+  };
+  
+  // Handle beat tagging
+  const handleBeatTag = (elementId: string, beatId: string, actId: string) => {
+    console.log(`Tagging element ${elementId} with beat ${beatId} in act ${actId}`);
+    // Implementation would go here
   };
   
   // Delete an element
@@ -187,7 +318,20 @@ export const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     selectedStructureId,
     selectedStructure,
     handleStructureChange,
-    scriptContentRef
+    scriptContentRef,
+    // Additional properties
+    filteredElements,
+    currentPage,
+    getPreviousElementType,
+    handleFocus,
+    handleNavigate,
+    handleEnterKey,
+    changeElementType,
+    handleTagsChange,
+    characterNames,
+    projectId,
+    handleBeatTag,
+    beatSceneCounts
   };
   
   return (
