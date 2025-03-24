@@ -44,22 +44,19 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     boxSizing: 'border-box',
     overflow: 'visible',
     position: 'relative',
-    direction: 'ltr',
-    unicodeBidi: 'plaintext',
     padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
     boxShadow: isDarkMode 
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',
-    touchAction: 'manipulation', // Better touch handling
-    pointerEvents: 'auto', // Ensure pointer events are enabled
+    touchAction: 'manipulation',
+    pointerEvents: 'auto',
   };
 
   return (
     <div 
       style={style} 
-      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
+      className="script-format-styler flex flex-col items-center"
       data-font="courier-final-draft"
-      dir="ltr"
     >
       {children}
     </div>

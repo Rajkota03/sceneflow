@@ -162,8 +162,8 @@ const ScriptElement: React.FC<ScriptElementProps> = ({
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          direction: 'ltr',
-          unicodeBidi: 'plaintext',
+          direction: 'ltr', // Explicitly set text direction to left-to-right
+          unicodeBidi: 'normal', // Changed from 'plaintext' to 'normal'
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
           cursor: 'text',

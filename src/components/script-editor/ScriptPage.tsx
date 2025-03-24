@@ -79,7 +79,7 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         border: '1px solid rgba(0,0,0,0.1)',
         position: 'relative',
         touchAction: 'manipulation',
-        pointerEvents: 'auto' // Ensure pointer events are enabled
+        pointerEvents: 'auto'
       }}
     >
       <div 
@@ -87,11 +87,11 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         style={{
           fontFamily: 'Courier Final Draft, Courier Prime, monospace',
           fontSize: '12pt',
-          minHeight: '11in', // Standard letter size height
+          minHeight: '11in',
           padding: '1in',
-          paddingBottom: '1.5in', // Extra padding at bottom for visibility
+          paddingBottom: '1.5in',
           cursor: 'text',
-          pointerEvents: 'auto' // Ensure pointer events are enabled
+          pointerEvents: 'auto'
         }}
         onClick={(e) => {
           // Make sure clicking on empty areas doesn't interfere with typing

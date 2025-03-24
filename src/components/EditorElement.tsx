@@ -157,12 +157,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
           outline: 'none',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
-          direction: 'ltr',
-          unicodeBidi: 'plaintext',
+          direction: 'ltr', // Explicitly set text direction to left-to-right
+          unicodeBidi: 'normal', // Changed from 'plaintext' to 'normal'
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
           cursor: 'text',
-          pointerEvents: 'auto', // Ensure pointer events are enabled
+          pointerEvents: 'auto',
           ...elementStyles
         }}
       >
