@@ -1,19 +1,20 @@
-import { useEffect, useRef, useState, useContext } from 'react';
-import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '../lib/types';
+
+import { useEffect, useRef, useState } from 'react';
+import { ScriptContent, ScriptElement, Note, ElementType, ActType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
-import { generateUniqueId } from '../lib/formatScript';
-import FormatStyler from './FormatStyler';
+import { generateUniqueId } from '@/lib/formatScript';
+import FormatStyler from '../FormatStyler';
 import { useFormat } from '@/lib/formatContext';
-import TagManager from './TagManager';
+import TagManager from '../TagManager';
 import useScriptElements from '@/hooks/useScriptElements';
 import useFilteredElements from '@/hooks/useFilteredElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
 import useScriptNavigation from '@/hooks/useScriptNavigation';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
-import KeyboardShortcutsHelp from './script-editor/KeyboardShortcutsHelp';
-import ZoomControls from './script-editor/ZoomControls';
+import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
+import ZoomControls from './ZoomControls';
 import { BeatMode } from '@/types/scriptTypes';
-import ScriptEditorProvider, { ScriptEditorContext, useScriptEditor as useScriptEditorHook } from './ScriptEditorProvider';
+import ScriptEditorProvider, { useScriptEditor as useScriptEditorHook } from './ScriptEditorProvider';
 
 interface ScriptEditorProps {
   initialContent: ScriptContent;
@@ -64,15 +65,17 @@ const ScriptEditor = ({
   );
 };
 
+interface ScriptEditorContentProps {
+  className?: string;
+  projectName?: string;
+  structureName?: string;
+}
+
 const ScriptEditorContent = ({ 
   className,
   projectName,
   structureName 
-}: { 
-  className?: string;
-  projectName?: string;
-  structureName?: string;
-}) => {
+}: ScriptEditorContentProps) => {
   const { formatState } = useFormat();
   const [currentPage, setCurrentPage] = useState(1);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -80,7 +83,6 @@ const ScriptEditorContent = ({
   
   const {
     elements,
-    setElements,
     activeElementId,
     setActiveElementId,
     activeTagFilter,
@@ -116,10 +118,12 @@ const ScriptEditorContent = ({
           text: 'Type your action here...'
         }
       ];
-      setElements(defaultElements);
+      // Use context function from ScriptEditorProvider
+      const scriptEditorContext = useScriptEditor();
+      scriptEditorContext.setElements(defaultElements);
       setActiveElementId(defaultElements[0].id);
     }
-  }, [elements.length, setElements, setActiveElementId]);
+  }, [elements.length, setActiveElementId]);
 
   const zoomPercentage = Math.round(formatState.zoomLevel * 100);
 
@@ -223,7 +227,10 @@ const ScriptEditorContent = ({
         zoomPercentage={zoomPercentage}
         onZoomChange={(value) => {
           const newZoomLevel = value[0] / 100;
-          formatState.setZoomLevel(newZoomLevel);
+          // Use the format context method directly
+          if (formatState.setZoomLevel) {
+            formatState.setZoomLevel(newZoomLevel);
+          }
         }}
       />
     </div>
