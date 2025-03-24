@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
@@ -32,23 +33,41 @@ export function useElementInteraction({
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
+  // Sync text state with initialText from props
   useEffect(() => {
     setText(initialText);
-    if (editorRef.current && isActive) {
+    if (editorRef.current) {
       editorRef.current.innerText = initialText;
+    }
+  }, [initialText]);
+  
+  // Set focus and cursor position when element becomes active
+  useEffect(() => {
+    if (editorRef.current && isActive) {
+      // Make sure the innerText is updated with the latest text
+      if (editorRef.current.innerText !== text) {
+        editorRef.current.innerText = text;
+      }
+      
+      // Focus the element
+      editorRef.current.focus();
+      
+      // Position cursor at the end
       const range = document.createRange();
       const sel = window.getSelection();
+      
       if (editorRef.current.childNodes.length > 0) {
-        range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+        range.setStartAfter(lastNode);
       } else {
         range.setStart(editorRef.current, 0);
       }
+      
       range.collapse(true);
       sel?.removeAllRanges();
       sel?.addRange(range);
-      editorRef.current.focus();
     }
-  }, [initialText, isActive]);
+  }, [isActive, text]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.innerText;
@@ -73,6 +92,11 @@ export function useElementInteraction({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // Prevent default for navigation keys to avoid unexpected behavior
+    if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
+      e.preventDefault();
+    }
+    
     if (e.key === 'Backspace' && text.trim() === '') {
       e.preventDefault();
       onNavigate('up', elementId);
