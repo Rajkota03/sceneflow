@@ -78,7 +78,8 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         border: '1px solid rgba(0,0,0,0.1)',
         position: 'relative',
-        touchAction: 'manipulation'
+        touchAction: 'manipulation',
+        pointerEvents: 'auto' // Ensure pointer events are enabled
       }}
     >
       <div 
@@ -89,7 +90,12 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           minHeight: '11in', // Standard letter size height
           padding: '1in',
           paddingBottom: '1.5in', // Extra padding at bottom for visibility
-          cursor: 'text'
+          cursor: 'text',
+          pointerEvents: 'auto' // Ensure pointer events are enabled
+        }}
+        onClick={(e) => {
+          // Make sure clicking on empty areas doesn't interfere with typing
+          e.stopPropagation();
         }}
       >
         {/* Page number positioned inside the page */}

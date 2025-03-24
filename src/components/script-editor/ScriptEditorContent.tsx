@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useFormat } from '@/lib/formatContext';
-import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
 
@@ -44,7 +43,8 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
         ref={scriptContentRef}
         style={{ 
           minHeight: '100vh',
-          width: '100%'
+          width: '100%',
+          pointerEvents: 'auto' // Ensure pointer events are enabled
         }}
       >
         <ScriptPage

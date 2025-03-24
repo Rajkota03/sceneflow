@@ -36,8 +36,11 @@ export function useElementInteraction({
   // Update local text state when prop changes
   useEffect(() => {
     setText(initialText);
-    if (editorRef.current && editorRef.current.innerText !== initialText) {
-      editorRef.current.innerText = initialText;
+    if (editorRef.current) {
+      // Only update DOM if content is different to avoid cursor jumping
+      if (editorRef.current.innerText !== initialText) {
+        editorRef.current.innerText = initialText;
+      }
     }
   }, [initialText]);
   
@@ -45,6 +48,8 @@ export function useElementInteraction({
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     e.stopPropagation();
     const newText = e.currentTarget.innerText || '';
+    
+    console.log('Text changed:', newText); // Debug log
     
     // Update local text state and propagate changes to parent
     setText(newText);
@@ -70,6 +75,8 @@ export function useElementInteraction({
 
   // Handle keyboard navigation and special keys
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    console.log('Key pressed:', e.key); // Debug log
+    
     // Only prevent backspace if text is empty to allow deletion otherwise
     if (e.key === 'Backspace' && text.trim() === '') {
       e.preventDefault();

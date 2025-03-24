@@ -51,6 +51,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',
     touchAction: 'manipulation', // Better touch handling
+    pointerEvents: 'auto', // Ensure pointer events are enabled
   };
 
   return (

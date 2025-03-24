@@ -79,7 +79,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
         editorRef.current.focus();
       }
     }
-  }, [isActive]);
+  }, [isActive, editorRef]);
 
   const handleElementClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -146,6 +146,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
           cursor: 'text',
+          pointerEvents: 'auto', // Ensure pointer events are enabled
           ...elementStyles
         }}
       />
