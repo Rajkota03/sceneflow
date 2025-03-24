@@ -56,7 +56,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu
+    setShowElementMenu,
+    handleBlur
   } = useElementInteraction({
     elementId: element.id,
     text: element.text,
@@ -81,17 +82,21 @@ const EditorElement: React.FC<EditorElementProps> = ({
         const sel = window.getSelection();
         
         if (editorRef.current) {
-          if (editorRef.current.childNodes.length > 0) {
-            const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-            const offset = lastNode.textContent?.length || 0;
-            range.setStart(lastNode, offset);
-          } else {
-            range.setStart(editorRef.current, 0);
+          try {
+            if (editorRef.current.childNodes.length > 0) {
+              const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+              const offset = lastNode.textContent?.length || 0;
+              range.setStart(lastNode, offset);
+            } else {
+              range.setStart(editorRef.current, 0);
+            }
+            
+            range.collapse(true);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          } catch (e) {
+            console.error('Error setting cursor position:', e);
           }
-          
-          range.collapse(true);
-          sel?.removeAllRanges();
-          sel?.addRange(range);
         }
       }, 10);
     }
@@ -130,6 +135,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
       onClick={handleElementClick}
+      data-element-id={element.id}
+      data-element-type={element.type}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {isActive && (
@@ -161,7 +168,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           e.stopPropagation();
           onFocus();
         }}
-        onBlur={() => suggestionsVisible}
+        onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
         style={{

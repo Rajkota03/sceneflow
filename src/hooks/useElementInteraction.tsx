@@ -36,7 +36,7 @@ export function useElementInteraction({
   // Sync text state with initialText from props
   useEffect(() => {
     setText(initialText);
-    if (editorRef.current) {
+    if (editorRef.current && editorRef.current.innerText !== initialText) {
       editorRef.current.innerText = initialText;
     }
   }, [initialText]);
@@ -49,45 +49,60 @@ export function useElementInteraction({
         editorRef.current.innerText = text;
       }
       
-      // Focus the element
-      editorRef.current.focus();
-      
-      // Position cursor at the end
-      const range = document.createRange();
-      const sel = window.getSelection();
-      
-      if (editorRef.current.childNodes.length > 0) {
-        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-        range.setStartAfter(lastNode);
-      } else {
-        range.setStart(editorRef.current, 0);
-      }
-      
-      range.collapse(true);
-      sel?.removeAllRanges();
-      sel?.addRange(range);
+      // Focus the element with a small delay to ensure DOM is ready
+      setTimeout(() => {
+        editorRef.current?.focus();
+        
+        // Position cursor at the end
+        const range = document.createRange();
+        const sel = window.getSelection();
+        
+        if (editorRef.current) {
+          try {
+            if (editorRef.current.childNodes.length > 0) {
+              const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+              const offset = lastNode.textContent?.length || 0;
+              range.setStart(lastNode, offset);
+            } else {
+              // If no child nodes, set cursor at beginning of empty div
+              range.setStart(editorRef.current, 0);
+            }
+            
+            range.collapse(true);
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          } catch (e) {
+            console.error('Error setting cursor position:', e);
+          }
+        }
+      }, 10);
     }
   }, [isActive, text]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     const newText = e.currentTarget.innerText;
-    setText(newText);
-    onChange(elementId, newText, type);
     
-    if (type === 'character') {
-      const detected = detectCharacter(newText, characterNames);
-      setSuggestionsVisible(detected);
+    // Only update if text actually changed
+    if (newText !== text) {
+      setText(newText);
+      onChange(elementId, newText, type);
       
-      if (detected) {
-        const searchText = newText.toLowerCase();
-        const newSuggestions = characterNames.filter(name =>
-          name.toLowerCase().startsWith(searchText) && name !== newText
-        );
-        setFilteredSuggestions(newSuggestions);
-        setFocusIndex(0);
+      if (type === 'character') {
+        const detected = detectCharacter(newText, characterNames);
+        setSuggestionsVisible(detected);
+        
+        if (detected) {
+          const searchText = newText.toLowerCase();
+          const newSuggestions = characterNames.filter(name =>
+            name.toLowerCase().startsWith(searchText) && name !== newText
+          );
+          setFilteredSuggestions(newSuggestions);
+          setFocusIndex(0);
+        }
+      } else {
+        setSuggestionsVisible(false);
       }
-    } else {
-      setSuggestionsVisible(false);
     }
   };
 
@@ -139,6 +154,7 @@ export function useElementInteraction({
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      e.stopPropagation();
       onEnterKey(elementId, e.shiftKey);
     } else if (e.key === 'ArrowUp') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
@@ -205,6 +221,14 @@ export function useElementInteraction({
     setShowElementMenu(false);
   };
 
+  const handleBlur = () => {
+    // Don't hide suggestions immediately, as the user might be clicking on a suggestion
+    // Instead, we'll let the suggestion click handler handle closing
+    if (!suggestionsVisible) {
+      setShowElementMenu(false);
+    }
+  };
+
   return {
     text,
     editorRef,
@@ -217,7 +241,8 @@ export function useElementInteraction({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu
+    setShowElementMenu,
+    handleBlur
   };
 }
 
