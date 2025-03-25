@@ -42,4 +42,5 @@ export interface BeatSceneCount {
   actId: string;
   count: number;
   pageRange?: string;
+  sceneIds?: string[]; // Added to keep track of which scenes are tagged with this beat
 }

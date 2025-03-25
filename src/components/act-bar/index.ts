@@ -7,6 +7,7 @@ import BeatModeToggle from './BeatModeToggle';
 import StructureSelector from './StructureSelector';
 import StructureHeader from './StructureHeader';
 import ActButtonList from './ActButtonList';
+import BeatTagButton from '../script/beat-tags/BeatTagButton';
 
 export {
   ActBar as default,
@@ -16,5 +17,6 @@ export {
   BeatModeToggle,
   StructureSelector,
   StructureHeader,
-  ActButtonList
+  ActButtonList,
+  BeatTagButton
 };
