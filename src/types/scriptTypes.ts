@@ -1,5 +1,5 @@
 
-import { ScriptContent, ActType, Structure, BeatSceneCount } from "@/lib/types";
+import { ScriptContent, ActType, BeatSceneCount } from "@/lib/types";
 
 export type ActCountsRecord = {
   [key in ActType]: number;

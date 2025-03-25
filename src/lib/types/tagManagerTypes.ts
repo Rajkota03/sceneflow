@@ -41,7 +41,6 @@ export interface ScriptElementProps {
   characterNames: string[];
   projectId?: string;
   beatMode?: BeatMode;
-  structures?: Structure[];
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }

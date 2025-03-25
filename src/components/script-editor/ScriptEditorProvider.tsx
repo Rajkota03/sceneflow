@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -156,9 +157,10 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     
     const counts: BeatSceneCount[] = [];
     
+    // Ensure acts is always treated as an array
     const acts = Array.isArray(selectedStructure.acts) 
       ? selectedStructure.acts 
-      : Object.values(selectedStructure.acts);
+      : Object.values(selectedStructure.acts || {});
     
     if (!Array.isArray(acts) || acts.length === 0) {
       console.log('No valid acts found in structure:', selectedStructure.name);
@@ -166,15 +168,20 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       return;
     }
     
-    const allBeats = acts.reduce((beatList, act) => {
+    // Use type assertion to help TypeScript understand the structure
+    const allBeats = acts.reduce<Array<any>>((beatList, act: any) => {
       if (act && act.beats && Array.isArray(act.beats)) {
-        const beatsWithActId = act.beats.map(beat => ({ ...beat, actId: act.id }));
+        const beatsWithActId = act.beats.map((beat: any) => ({ 
+          ...beat, 
+          actId: act.id 
+        }));
         return [...beatList, ...beatsWithActId];
       }
       return beatList;
-    }, [] as Array<any>);
+    }, []);
     
-    allBeats.forEach(beat => {
+    // Now we can safely use forEach since allBeats is properly typed
+    allBeats.forEach((beat: any) => {
       if (!beat || !beat.id) return;
       
       const scenesWithBeat = elements.filter(element => 

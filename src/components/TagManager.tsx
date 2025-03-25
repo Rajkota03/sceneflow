@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { ActType, Structure } from '@/lib/types';
+import { ActType, Structure, BeatSceneCount } from '@/lib/types';
 import ActBar from './act-bar/ActBar';
 import TagFilter from './tag-manager/TagFilter';
 import useActCounts from './tag-manager/useActCounts';
@@ -23,6 +23,7 @@ interface TagManagerProps {
   selectedStructure?: Structure | null;
   activeBeatId?: string | null;
   onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
 }
 
 const TagManager: React.FC<TagManagerProps> = ({ 
