@@ -6,7 +6,7 @@ export const renderStyle = (type: ElementType, previousElementType?: ElementType
     case 'scene-heading':
       return 'font-bold uppercase tracking-wider mb-4 text-left';
     case 'action':
-      return 'mb-4';
+      return 'mb-4 text-left';
     case 'character':
       return 'text-center font-bold mb-1 mx-auto';
     case 'dialogue':
@@ -28,35 +28,39 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
     case 'scene-heading':
       return {
         width: '100%',
-        textTransform: 'uppercase',
-        fontWeight: 'bold',
-        marginBottom: '1em',
-        paddingTop: '0.5em',
         textAlign: 'left',
-        marginLeft: '0', // Remove auto margins
-        marginRight: '0', // Remove auto margins
-        margin: '0 0 1em 0' // Explicitly set margins (top, right, bottom, left)
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        marginBottom: '1em',
+        marginLeft: '0',
+        marginRight: '0',
+        paddingTop: '0.5em',
       };
     case 'action':
       return {
         width: '100%',
-        marginBottom: '1em'
+        textAlign: 'left',
+        marginBottom: '1em',
+        marginLeft: '0',
+        marginRight: '0'
       };
     case 'character':
       return {
-        width: '38%', // ~3.7"-4.2" from left edge (considering 1.5" left margin)
+        width: '38%', // Centered in the usable area
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginLeft: 'auto',
         marginRight: 'auto',
+        textAlign: 'center',
         marginTop: '1em',
         marginBottom: '0.1em'
       };
     case 'dialogue':
       return {
-        width: '62%', // ~2.5" from left, ~2.5" from right
+        width: '62%', // ~3" dialogue block (about half of the 6" usable width)
         marginLeft: 'auto',
         marginRight: 'auto',
+        textAlign: 'left',
         marginBottom: '1em'
       };
     case 'parenthetical':
@@ -65,6 +69,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginLeft: 'auto',
         marginRight: 'auto',
         fontStyle: 'italic',
+        textAlign: 'left',
         marginBottom: '0.1em'
       };
     case 'transition':
@@ -87,7 +92,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
   }
 };
 
-// Add a function to calculate proper page margins in CSS
+// Script page styles with proper margins
 export const getScriptPageStyles = (): React.CSSProperties => {
   return {
     width: '8.5in',
@@ -100,7 +105,7 @@ export const getScriptPageStyles = (): React.CSSProperties => {
   };
 };
 
-// Add a function to calculate page content styles
+// Page content styles
 export const getPageContentStyles = (): React.CSSProperties => {
   return {
     fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',

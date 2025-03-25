@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -43,13 +42,10 @@ const EditorElement: React.FC<EditorElementProps> = ({
   selectedStructure,
   onBeatTag
 }) => {
-  // Access global context for beat tagging and structure
   const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
   
-  // Use the structure from props or context
   const structure = selectedStructure || contextStructure;
   
-  // Use onBeatTag from props or context
   const handleBeatTagging = onBeatTag || contextHandleBeatTag;
   
   const {
@@ -79,16 +75,12 @@ const EditorElement: React.FC<EditorElementProps> = ({
 
   const elementStyles = getElementStyles(element.type);
   
-  // Only show beat tagging controls for scene headings
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
-  // Ensure cursor positioning works correctly
   useEffect(() => {
     if (isActive && editorRef.current) {
-      // Ensure focus and cursor visibility
       editorRef.current.focus();
       
-      // Position cursor at end of text
       const range = document.createRange();
       const selection = window.getSelection();
       
@@ -132,6 +124,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active-element' : ''}
+          ${element.type}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
@@ -146,11 +139,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          caretColor: 'black', // Explicitly set caret color
+          caretColor: 'black',
           ...elementStyles
         }}
         dir="ltr"
-        tabIndex={0} // Ensure element is focusable
+        tabIndex={0}
       >
         {text}
       </div>

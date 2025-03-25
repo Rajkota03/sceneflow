@@ -12,13 +12,14 @@ import { useScriptEditor } from './ScriptEditorProvider';
 const SceneHeading = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="font-bold uppercase tracking-wider mb-4 text-left"
+    className="scene-heading"
     style={{ 
       width: '100%',
       textAlign: 'left',
       marginLeft: 0,
       marginRight: 0,
-      margin: '0 0 1em 0'
+      fontWeight: 'bold',
+      textTransform: 'uppercase'
     }}
   >
     {children}
@@ -28,8 +29,13 @@ const SceneHeading = ({ attributes, children }: RenderElementProps) => (
 const Action = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="mb-4"
-    style={{ width: '100%' }}
+    className="action"
+    style={{ 
+      width: '100%', 
+      textAlign: 'left',
+      marginLeft: 0,
+      marginRight: 0
+    }}
   >
     {children}
   </div>
@@ -38,8 +44,13 @@ const Action = ({ attributes, children }: RenderElementProps) => (
 const Character = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="text-center font-bold mb-1 mx-auto uppercase"
-    style={{ width: '30%', marginLeft: 'auto', marginRight: 'auto' }}
+    className="character"
+    style={{ 
+      width: '38%', 
+      marginLeft: 'auto', 
+      marginRight: 'auto',
+      textAlign: 'center'
+    }}
   >
     {children}
   </div>
@@ -48,8 +59,13 @@ const Character = ({ attributes, children }: RenderElementProps) => (
 const Dialogue = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="mb-4 mx-auto"
-    style={{ width: '65%', marginLeft: 'auto', marginRight: 'auto' }}
+    className="dialogue"
+    style={{ 
+      width: '62%', 
+      marginLeft: 'auto', 
+      marginRight: 'auto',
+      textAlign: 'left'
+    }}
   >
     {children}
   </div>
@@ -58,8 +74,13 @@ const Dialogue = ({ attributes, children }: RenderElementProps) => (
 const Parenthetical = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="text-center italic mb-1 mx-auto"
-    style={{ width: '40%', marginLeft: 'auto', marginRight: 'auto' }}
+    className="parenthetical"
+    style={{ 
+      width: '40%', 
+      marginLeft: 'auto', 
+      marginRight: 'auto',
+      textAlign: 'left'
+    }}
   >
     {children}
   </div>
@@ -68,8 +89,11 @@ const Parenthetical = ({ attributes, children }: RenderElementProps) => (
 const Transition = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="text-right font-bold uppercase tracking-wider mb-4"
-    style={{ width: '100%' }}
+    className="transition"
+    style={{ 
+      width: '100%',
+      textAlign: 'right'
+    }}
   >
     {children}
   </div>
@@ -78,7 +102,7 @@ const Transition = ({ attributes, children }: RenderElementProps) => (
 const Note = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="text-sm italic text-gray-500 mb-2"
+    className="note"
     style={{ width: '100%' }}
   >
     {children}
@@ -372,7 +396,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             spellCheck={false}
             style={{ 
               fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              padding: '1rem'
+              padding: '1in 1in 1in 1.5in'
             }}
             placeholder="Begin typing your screenplay..."
           />

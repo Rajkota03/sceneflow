@@ -165,7 +165,7 @@
   font-weight: bold;
   margin-bottom: 1em;
   text-align: left !important; /* Force left alignment */
-  width: 100%;
+  width: 100% !important;
   margin-left: 0 !important; /* Force left margin to 0 */
   margin-right: 0 !important; /* Force right margin to 0 */
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
@@ -173,9 +173,11 @@
 
 .action {
   margin-bottom: 1em;
-  text-align: left;
-  width: 100%;
+  text-align: left !important;
+  width: 100% !important;
   white-space: pre-wrap;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   overflow-x: visible; /* Remove horizontal scrollbar */
 }
@@ -190,7 +192,7 @@
 }
 
 .dialogue {
-  width: 62%; /* ~2.5" from left, ~2.5" from right */
+  width: 62%; /* ~3" dialogue block */
   margin: 0 auto 1em;
   text-align: left;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
@@ -469,3 +471,4 @@ textarea.auto-resize {
   font-size: 12pt;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
 }
+
