@@ -3,7 +3,8 @@ import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
-import { FormatState } from '@/lib/formatContext'; // Import the FormatState type
+import { FormatState } from '@/lib/formatContext';
+import { getScriptPageStyles, getPageContentStyles } from '@/lib/elementStyles';
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -19,7 +20,7 @@ interface ScriptPageProps {
   projectId?: string;
   beatMode: BeatMode;
   selectedStructure?: Structure | null;
-  formatState?: FormatState; // Using the imported FormatState type
+  formatState?: FormatState;
   currentPage: number;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
@@ -44,22 +45,24 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
 }) => {
   // Create elements if none exist
   const displayElements = elements.length > 0 ? elements : [];
+  
+  const scriptPageStyles = getScriptPageStyles();
+  const pageContentStyles = getPageContentStyles();
 
   return (
     <div className="script-page" style={{ 
+      ...scriptPageStyles,
       transform: `scale(${formatState?.zoomLevel || 1})`,
       transformOrigin: 'top center',
       transition: 'transform 0.2s ease-out',
-      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
     }}>
       <div className="script-page-content" style={{
-        fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-        fontSize: '12pt',
+        ...pageContentStyles,
         position: 'relative'
       }}>
         {/* Page number positioned inside the page */}
         <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: "Courier Final Draft, Courier Prime, monospace",
+          fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
           fontSize: "12pt",
         }}>
           {currentPage}

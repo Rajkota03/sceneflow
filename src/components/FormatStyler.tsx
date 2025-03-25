@@ -2,6 +2,7 @@
 import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { useTheme } from '@/lib/themeContext';
+import { getScriptPageStyles } from '@/lib/elementStyles';
 
 interface FormatStylerProps {
   children: React.ReactNode;
@@ -20,9 +21,10 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
   const { theme } = useTheme();
   
   const isDarkMode = theme === 'dark';
+  const scriptPageStyles = getScriptPageStyles();
   
   const style: React.CSSProperties = {
-    fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
+    fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
     fontSize: '12pt',
     fontWeight: formatState.isBold ? 'bold' : 'normal',
     fontStyle: formatState.isItalic ? 'italic' : 'normal',
@@ -46,7 +48,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     position: 'relative',
     direction: 'ltr',
     unicodeBidi: 'plaintext',
-    padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
+    padding: forPrint || forExport ? '0' : scriptPageStyles.padding as string, // Standard screenplay margins
     boxShadow: isDarkMode 
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',

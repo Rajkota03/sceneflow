@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { TitlePageData } from '@/lib/types'; // Update import to use the type from lib/types
+import { TitlePageData } from '@/lib/types';
 import FormatStyler from './FormatStyler';
 
 interface TitlePageViewProps {
@@ -9,10 +9,14 @@ interface TitlePageViewProps {
 
 const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
   return (
-    <FormatStyler>
-      <div className="title-page flex flex-col items-center min-h-[11in] text-center relative py-8">
-        <div className="title-section" style={{ marginTop: '3in' }}>
-          <h1 className="text-xl uppercase font-bold mb-8">{data.title || "SCRIPT TITLE"}</h1>
+    <FormatStyler forPrint={false}>
+      <div className="title-page flex flex-col items-center min-h-[11in] text-center relative">
+        <div className="title-section">
+          <h1 className="uppercase font-bold mb-8">{data.title || "SCRIPT TITLE"}</h1>
+          
+          {data.subtitle && (
+            <p className="mb-8">{data.subtitle}</p>
+          )}
           
           <div className="author-section mt-12">
             <p className="mb-2">Written by</p>
@@ -20,14 +24,14 @@ const TitlePageView: React.FC<TitlePageViewProps> = ({ data }) => {
           </div>
           
           {data.basedOn && (
-            <div className="based-on-section mt-12">
+            <div className="based-on-section mt-8">
               <p>{data.basedOn}</p>
             </div>
           )}
         </div>
         
         {data.contact && (
-          <div className="contact-section absolute bottom-24 left-24 text-sm text-left whitespace-pre-line">
+          <div className="contact-section absolute bottom-24 left-0 text-left whitespace-pre-line">
             <p>{data.contact}</p>
           </div>
         )}

@@ -62,24 +62,43 @@ export function useKeyboardShortcuts({
         description: "Please wait while your script is being exported...",
       });
 
+      // Apply industry-standard formatting to the element for export
+      const originalClassName = element.className;
+      element.classList.add('pdf-export');
+      
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         logging: false
       });
       
+      // Reset the element's class
+      element.className = originalClassName;
+      
       const imgData = canvas.toDataURL('image/png');
+      
+      // Use US Letter size (8.5" x 11")
       const pdf = new jsPDF({
         orientation: 'portrait',
-        unit: 'px',
-        format: 'letter'
+        unit: 'in',
+        format: [8.5, 11]
       });
       
-      // Calculate dimensions to maintain aspect ratio
-      const imgWidth = pdf.internal.pageSize.getWidth();
+      // Calculate dimensions to maintain aspect ratio while respecting standard page size
+      const imgWidth = 8.5;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // Add page numbers (except for title page)
+      const pageCount = Math.ceil(imgHeight / 11);
+      for (let i = 1; i < pageCount; i++) {
+        pdf.setPage(i + 1);
+        pdf.setFontSize(12);
+        pdf.setFont('Courier', 'normal');
+        pdf.text(String(i + 1), 7.5, 0.5); // Page number in top right corner
+      }
+      
       pdf.save('screenplay.pdf');
       
       toast({

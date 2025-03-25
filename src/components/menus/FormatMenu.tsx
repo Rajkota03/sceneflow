@@ -17,7 +17,7 @@ import { ElementType } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
 
 const FormatMenu = () => {
-  const { formatState, setFont, setFontSize } = useFormat();
+  const { formatState, setFont, setFontSize, setLineSpacing } = useFormat();
   const [showSceneNumbers, setShowSceneNumbers] = useState(false);
   
   const handleElementChange = (elementType: ElementType) => {
@@ -43,7 +43,8 @@ const FormatMenu = () => {
   };
 
   const handleFontSettings = () => {
-    const fonts = ["Courier Prime", "Courier New", "Final Draft", "Courier Screenplay"];
+    // Industry standard fonts for screenplays
+    const fonts = ["Courier Prime", "Courier New", "Courier Final Draft"];
     const randomFont = fonts[Math.floor(Math.random() * fonts.length)];
     setFont(randomFont);
     
@@ -54,12 +55,15 @@ const FormatMenu = () => {
   };
 
   const handleSpacingOptions = () => {
-    const newSize = formatState.fontSize === 12 ? 14 : 12;
-    setFontSize(newSize);
+    // Industry standard is 12pt
+    setFontSize(12);
+    
+    // Set line spacing to industry standard (1.2)
+    setLineSpacing('single');
     
     toast({
-      title: "Spacing Options Updated",
-      description: `Font size changed to ${newSize}pt`,
+      title: "Spacing Updated to Industry Standard",
+      description: "Font size set to 12pt with single (1.2) line spacing",
     });
   };
 
@@ -99,12 +103,17 @@ const FormatMenu = () => {
           Page Break
         </MenubarItem>
         <MenubarSeparator />
-        <MenubarItem onClick={handleFontSettings}>
-          Font Settings...
-        </MenubarItem>
-        <MenubarItem onClick={handleSpacingOptions}>
-          Spacing Options...
-        </MenubarItem>
+        <MenubarSub>
+          <MenubarSubTrigger>Screenplay Format</MenubarSubTrigger>
+          <MenubarSubContent>
+            <MenubarItem onClick={handleFontSettings}>
+              Industry Standard Font
+            </MenubarItem>
+            <MenubarItem onClick={handleSpacingOptions}>
+              Industry Standard Spacing
+            </MenubarItem>
+          </MenubarSubContent>
+        </MenubarSub>
       </MenubarContent>
     </MenubarMenu>
   );
