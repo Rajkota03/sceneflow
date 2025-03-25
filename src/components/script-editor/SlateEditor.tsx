@@ -1,8 +1,7 @@
-
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, NodeEntry } from 'slate';
+import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
-import { withHistory } from 'slate-history';
+import { withHistory, HistoryEditor } from 'slate-history';
 import { v4 as uuidv4 } from 'uuid';
 import { SlateElementType, ElementType, ScriptElement } from '@/lib/types';
 import { scriptToSlate, slateToScript, createSlateElement } from '@/lib/slateUtils';
@@ -89,7 +88,7 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
 // Declare custom types for Slate
 declare module 'slate' {
   interface CustomTypes {
-    Editor: BaseEditor & ReactEditor;
+    Editor: BaseEditor & ReactEditor & HistoryEditor;
     Element: SlateElementType;
     Text: { text: string };
   }
@@ -203,9 +202,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     // Get the current selection
     const { selection } = editor;
     if (selection && Range.isCollapsed(selection)) {
-      // @ts-ignore - We know this is our custom element type
+      // Get the current node at selection
       const [node] = Editor.node(editor, selection.focus.path.slice(0, 1));
-      // @ts-ignore - We know this is our custom element type
+      // Extract the element type, using type assertion for TypeScript
       const elementType = (node as SlateElementType).type;
       
       // Handle Enter key
@@ -278,7 +277,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         );
         
         // Auto-format text based on element type, if needed
-        // @ts-ignore - We know this is our custom element type
+        // @ts-ignore - We know this is our custom element with text
         const currentNode = node as SlateElementType;
         // @ts-ignore - We know this contains a text property
         const text = currentNode.children[0]?.text || '';

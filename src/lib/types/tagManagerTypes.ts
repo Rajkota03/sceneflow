@@ -19,6 +19,7 @@ export interface TagManagerProps {
   onBeatClick?: (beatId: string) => void;
   beatSceneCounts?: BeatSceneCount[];
   projectId?: string;
+  selectedStructure?: Structure | null;
 }
 
 export interface ScriptElementProps {

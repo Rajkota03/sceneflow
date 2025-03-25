@@ -4,4 +4,8 @@ export * from './elementTypes';
 export * from './structureTypes';
 export * from './projectTypes';
 export * from './utilityTypes';
-export * from './tagManagerTypes';
+// Export tagManagerTypes but exclude BeatSceneCount which is already exported from elementTypes
+export type { 
+  TagManagerProps,
+  ScriptElementProps
+} from './tagManagerTypes';
