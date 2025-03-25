@@ -98,88 +98,44 @@ export function useElementInteraction({
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
-          e.preventDefault();
-          onEnterKey(elementId, false);
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                onFormatChange(activeElementId, 'scene-heading');
-              }
-            }
-          }, 10);
-          return;
         case '2':
-          e.preventDefault();
-          onEnterKey(elementId, false);
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                onFormatChange(activeElementId, 'action');
-              }
-            }
-          }, 10);
-          return;
         case '3':
-          e.preventDefault();
-          onEnterKey(elementId, false);
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                onFormatChange(activeElementId, 'character');
-              }
-            }
-          }, 10);
-          return;
         case '4':
-          e.preventDefault();
-          onEnterKey(elementId, false);
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                onFormatChange(activeElementId, 'dialogue');
-              }
-            }
-          }, 10);
-          return;
         case '5':
-          e.preventDefault();
-          onEnterKey(elementId, false);
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                onFormatChange(activeElementId, 'parenthetical');
-              }
-            }
-          }, 10);
-          return;
         case '6':
           e.preventDefault();
+          
           onEnterKey(elementId, false);
+          
           setTimeout(() => {
             const activeElements = document.querySelectorAll('.active-element');
             if (activeElements.length > 0) {
               const activeElementId = activeElements[0].closest('.element-container')?.id;
               if (activeElementId) {
-                onFormatChange(activeElementId, 'transition');
-                const newElement = document.querySelector('.active-element');
-                if (newElement && newElement.textContent?.trim() === '') {
-                  newElement.textContent = 'CUT TO:';
-                  onChange(activeElementId, 'CUT TO:', 'transition');
+                const typeMap: Record<string, ElementType> = {
+                  '1': 'scene-heading',
+                  '2': 'action',
+                  '3': 'character',
+                  '4': 'dialogue',
+                  '5': 'parenthetical',
+                  '6': 'transition'
+                };
+                
+                const newType = typeMap[e.key];
+                onFormatChange(activeElementId, newType);
+
+                if (newType === 'transition') {
+                  const newElement = document.querySelector('.active-element');
+                  if (newElement && newElement.textContent?.trim() === '') {
+                    newElement.textContent = 'CUT TO:';
+                    onChange(activeElementId, 'CUT TO:', newType);
+                  }
                 }
               }
             }
           }, 10);
           return;
+        
         default:
           break;
       }
