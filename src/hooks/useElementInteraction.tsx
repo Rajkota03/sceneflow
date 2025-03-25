@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
@@ -33,25 +32,20 @@ export function useElementInteraction({
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
-  // Initialize text when element changes
   useEffect(() => {
     setText(initialText);
   }, [initialText]);
 
-  // Set up cursor and focus when element becomes active
   useEffect(() => {
     if (editorRef.current && isActive) {
-      // Set the text content to ensure it's up to date
       if (editorRef.current.innerText !== initialText) {
         editorRef.current.innerText = initialText;
       }
 
-      // Focus the element and position cursor at end
       const range = document.createRange();
       const sel = window.getSelection();
       
       try {
-        // Position cursor at end of text
         if (editorRef.current.childNodes.length > 0) {
           range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
         } else {
@@ -65,7 +59,6 @@ export function useElementInteraction({
           sel.addRange(range);
         }
         
-        // Apply focus
         editorRef.current.focus();
       } catch (err) {
         console.error('Error setting cursor position:', err);
@@ -103,16 +96,11 @@ export function useElementInteraction({
     }
     
     if (e.metaKey || e.ctrlKey) {
-      // Modified keyboard shortcut handling to create new elements instead of changing current element
       switch (e.key) {
         case '1':
           e.preventDefault();
-          // Create a new scene heading element after the current element
           onEnterKey(elementId, false);
-          // We need to wait for the new element to be created before changing its type
           setTimeout(() => {
-            // The onEnterKey already created a new element and changed focus to it
-            // Now we just need to change its type
             const activeElements = document.querySelectorAll('.active-element');
             if (activeElements.length > 0) {
               const activeElementId = activeElements[0].closest('.element-container')?.id;
@@ -183,7 +171,6 @@ export function useElementInteraction({
               const activeElementId = activeElements[0].closest('.element-container')?.id;
               if (activeElementId) {
                 onFormatChange(activeElementId, 'transition');
-                // For transitions, we might want to set default text
                 const newElement = document.querySelector('.active-element');
                 if (newElement && newElement.textContent?.trim() === '') {
                   newElement.textContent = 'CUT TO:';
