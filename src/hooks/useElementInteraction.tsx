@@ -103,33 +103,95 @@ export function useElementInteraction({
     }
     
     if (e.metaKey || e.ctrlKey) {
+      // Modified keyboard shortcut handling to create new elements instead of changing current element
       switch (e.key) {
         case '1':
           e.preventDefault();
-          onFormatChange(elementId, 'scene-heading');
+          // Create a new scene heading element after the current element
+          onEnterKey(elementId, false);
+          // We need to wait for the new element to be created before changing its type
+          setTimeout(() => {
+            // The onEnterKey already created a new element and changed focus to it
+            // Now we just need to change its type
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'scene-heading');
+              }
+            }
+          }, 10);
           return;
         case '2':
           e.preventDefault();
-          onFormatChange(elementId, 'action');
+          onEnterKey(elementId, false);
+          setTimeout(() => {
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'action');
+              }
+            }
+          }, 10);
           return;
         case '3':
           e.preventDefault();
-          onFormatChange(elementId, 'character');
+          onEnterKey(elementId, false);
+          setTimeout(() => {
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'character');
+              }
+            }
+          }, 10);
           return;
         case '4':
           e.preventDefault();
-          onFormatChange(elementId, 'dialogue');
+          onEnterKey(elementId, false);
+          setTimeout(() => {
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'dialogue');
+              }
+            }
+          }, 10);
           return;
         case '5':
           e.preventDefault();
-          onFormatChange(elementId, 'parenthetical');
+          onEnterKey(elementId, false);
+          setTimeout(() => {
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'parenthetical');
+              }
+            }
+          }, 10);
           return;
         case '6':
           e.preventDefault();
-          onFormatChange(elementId, 'transition');
-          const newText = text.trim() === '' ? 'CUT TO:' : text;
-          setText(newText);
-          onChange(elementId, newText, 'transition');
+          onEnterKey(elementId, false);
+          setTimeout(() => {
+            const activeElements = document.querySelectorAll('.active-element');
+            if (activeElements.length > 0) {
+              const activeElementId = activeElements[0].closest('.element-container')?.id;
+              if (activeElementId) {
+                onFormatChange(activeElementId, 'transition');
+                // For transitions, we might want to set default text
+                const newElement = document.querySelector('.active-element');
+                if (newElement && newElement.textContent?.trim() === '') {
+                  newElement.textContent = 'CUT TO:';
+                  onChange(activeElementId, 'CUT TO:', 'transition');
+                }
+              }
+            }
+          }, 10);
           return;
         default:
           break;
