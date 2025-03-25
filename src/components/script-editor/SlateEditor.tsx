@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -12,7 +13,7 @@ import { useScriptEditor } from './ScriptEditorProvider';
 const SceneHeading = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
-    className="font-bold uppercase tracking-wider mb-4"
+    className="font-bold uppercase tracking-wider mb-4 text-left"
     style={{ width: '100%' }}
   >
     {children}

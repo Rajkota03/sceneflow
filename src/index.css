@@ -166,6 +166,8 @@
   margin-bottom: 1em;
   text-align: left;
   width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
 }
 

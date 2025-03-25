@@ -4,7 +4,7 @@ import { ElementType } from '@/lib/types';
 export const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
   switch (type) {
     case 'scene-heading':
-      return 'font-bold uppercase tracking-wider mb-4';
+      return 'font-bold uppercase tracking-wider mb-4 text-left';
     case 'action':
       return 'mb-4';
     case 'character':
@@ -31,7 +31,10 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textTransform: 'uppercase',
         fontWeight: 'bold',
         marginBottom: '1em',
-        paddingTop: '0.5em'
+        paddingTop: '0.5em',
+        textAlign: 'left',
+        marginLeft: '0', // Remove auto margins
+        marginRight: '0' // Remove auto margins
       };
     case 'action':
       return {
