@@ -121,14 +121,11 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const characterNames = useCharacterNames(elements);
 
-  // Update navigation to work with Slate's approach
   const handleNavigate = (id: string, direction: 'up' | 'down') => {
-    // This is now handled internally by Slate
     console.log('Navigation handled by Slate');
   };
 
   const handleEnterKey = (id: string, shiftKey: boolean) => {
-    // This is now handled internally by Slate
     console.log('Enter key handled by Slate');
   };
 
@@ -159,11 +156,27 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     
     const counts: BeatSceneCount[] = [];
     
-    const allBeats = selectedStructure.acts.flatMap(act => 
-      act.beats ? act.beats.map(beat => ({ ...beat, actId: act.id })) : []
-    );
+    const acts = Array.isArray(selectedStructure.acts) 
+      ? selectedStructure.acts 
+      : Object.values(selectedStructure.acts);
+    
+    if (!Array.isArray(acts) || acts.length === 0) {
+      console.log('No valid acts found in structure:', selectedStructure.name);
+      setBeatSceneCounts([]);
+      return;
+    }
+    
+    const allBeats = acts.reduce((beatList, act) => {
+      if (act && act.beats && Array.isArray(act.beats)) {
+        const beatsWithActId = act.beats.map(beat => ({ ...beat, actId: act.id }));
+        return [...beatList, ...beatsWithActId];
+      }
+      return beatList;
+    }, [] as Array<any>);
     
     allBeats.forEach(beat => {
+      if (!beat || !beat.id) return;
+      
       const scenesWithBeat = elements.filter(element => 
         element.beat === beat.id
       );
@@ -191,7 +204,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setElements(updatedElements);
     onChange({ elements: updatedElements });
     
-    // If we have a valid structure and actId is provided, mark the beat as complete
     if (selectedStructure && selectedStructureId && actId && beatId) {
       console.log('Marking beat as complete:', { beatId, actId });
       
@@ -199,7 +211,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
         selectedStructure,
         beatId,
         actId,
-        true // Mark as complete when a scene is tagged with this beat
+        true
       );
       
       if (updatedStructure) {
@@ -210,7 +222,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
             duration: 2000,
           });
           
-          // Refresh the structures to get the updated completion status
           if (fetchStructures) {
             fetchStructures();
           }

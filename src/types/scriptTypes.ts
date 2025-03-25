@@ -1,5 +1,5 @@
 
-import { ScriptContent, ActType } from "@/lib/types";
+import { ScriptContent, ActType, Structure, BeatSceneCount } from "@/lib/types";
 
 export type ActCountsRecord = {
   [key in ActType]: number;
@@ -20,6 +20,11 @@ export interface TagManagerProps {
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
   structures?: Structure[];
+  activeBeatId?: string | null;
+  onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
+  projectId?: string;
+  selectedStructure?: Structure | null;
 }
 
 export interface ScriptElementProps {
