@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -122,12 +121,16 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const characterNames = useCharacterNames(elements);
 
-  const { handleNavigate, handleEnterKey } = useScriptNavigation({
-    elements,
-    setElements,
-    activeElementId,
-    setActiveElementId
-  });
+  // Update navigation to work with Slate's approach
+  const handleNavigate = (id: string, direction: 'up' | 'down') => {
+    // This is now handled internally by Slate
+    console.log('Navigation handled by Slate');
+  };
+
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    // This is now handled internally by Slate
+    console.log('Enter key handled by Slate');
+  };
 
   const onStructureChangeHandler = (structureId: string) => {
     console.log('Structure changed to:', structureId);

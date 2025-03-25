@@ -27,6 +27,23 @@ export interface ScriptElement {
   page?: number; // Added for page tracking
 }
 
+// Slate specific types
+export type SlateElementType = {
+  type: ElementType;
+  children: SlateText[];
+  id: string;
+  tags?: string[];
+  act?: ActType;
+  beat?: string;
+  page?: number;
+}
+
+export type SlateText = {
+  text: string;
+}
+
+export type SlateDocument = SlateElementType[];
+
 export interface ScriptContent {
   elements: ScriptElement[];
 }

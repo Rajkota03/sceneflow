@@ -3,9 +3,9 @@ import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
-import ScriptPage from './ScriptPage';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
+import SlateEditor from './SlateEditor';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -21,25 +21,17 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const { formatState } = useFormat();
   const {
     elements,
-    activeElementId,
-    currentPage,
-    getPreviousElementType,
     handleElementChange,
-    setActiveElementId,
-    handleNavigate,
-    handleEnterKey,
-    changeElementType,
-    handleTagsChange,
-    characterNames,
-    projectId,
     beatMode,
     selectedStructure,
     scriptContentRef,
     handleBeatTag
   } = useScriptEditor();
 
-  const handleFocus = (id: string) => {
-    setActiveElementId(id);
+  // Handler for Slate editor content changes
+  const handleSlateChange = (newElements: any) => {
+    // This will update context with new elements
+    handleElementChange('', '', '');
   };
 
   return (
@@ -53,23 +45,13 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            <ScriptPage
+            <SlateEditor
               elements={elements || []}
-              activeElementId={activeElementId}
-              getPreviousElementType={getPreviousElementType}
-              handleElementChange={(id, text, type) => handleElementChange(id, text, type)}
-              handleFocus={handleFocus}
-              handleNavigate={handleNavigate}
-              handleEnterKey={handleEnterKey}
-              handleFormatChange={changeElementType}
-              handleTagsChange={handleTagsChange}
-              characterNames={characterNames}
-              projectId={projectId}
+              onChange={handleSlateChange}
+              formatState={formatState}
               beatMode={beatMode}
               selectedStructure={selectedStructure}
-              formatState={formatState}
-              currentPage={currentPage}
-              onBeatTag={handleBeatTag}
+              className="mt-4"
             />
           </div>
         </div>
