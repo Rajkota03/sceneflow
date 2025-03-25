@@ -6,6 +6,7 @@ import { useScriptEditor } from './ScriptEditorProvider';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
 import SlateEditor from './SlateEditor';
+import { ElementType } from '@/lib/types';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -31,7 +32,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   // Handler for Slate editor content changes
   const handleSlateChange = (newElements: any) => {
     // This will update context with new elements
-    handleElementChange('', '', '');
+    handleElementChange('', '', 'action' as ElementType);
   };
 
   return (

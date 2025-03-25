@@ -1,7 +1,7 @@
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path } from 'slate';
-import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate } from 'slate-react';
+import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, NodeEntry } from 'slate';
+import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
 import { withHistory } from 'slate-history';
 import { v4 as uuidv4 } from 'uuid';
 import { SlateElementType, ElementType, ScriptElement } from '@/lib/types';
@@ -85,6 +85,15 @@ const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   // Add more styling here for future formatting options
   return <span {...attributes}>{children}</span>;
 };
+
+// Declare custom types for Slate
+declare module 'slate' {
+  interface CustomTypes {
+    Editor: BaseEditor & ReactEditor;
+    Element: SlateElementType;
+    Text: { text: string };
+  }
+}
 
 // Define the props for the SlateEditor component
 interface SlateEditorProps {
@@ -194,7 +203,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     // Get the current selection
     const { selection } = editor;
     if (selection && Range.isCollapsed(selection)) {
+      // @ts-ignore - We know this is our custom element type
       const [node] = Editor.node(editor, selection.focus.path.slice(0, 1));
+      // @ts-ignore - We know this is our custom element type
       const elementType = (node as SlateElementType).type;
       
       // Handle Enter key
@@ -237,7 +248,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         // Transform the current element to the next type
         Transforms.setNodes(
           editor,
-          { type: elementTypes[nextIndex] },
+          { type: elementTypes[nextIndex] } as Partial<SlateElementType>,
           { at: selection.focus.path.slice(0, 1) }
         );
         return;
@@ -262,12 +273,14 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         // Apply the new type to the current element
         Transforms.setNodes(
           editor,
-          { type: newType },
+          { type: newType } as Partial<SlateElementType>,
           { at: selection.focus.path.slice(0, 1) }
         );
         
         // Auto-format text based on element type, if needed
+        // @ts-ignore - We know this is our custom element type
         const currentNode = node as SlateElementType;
+        // @ts-ignore - We know this contains a text property
         const text = currentNode.children[0]?.text || '';
         
         if (newType === 'scene-heading' || newType === 'character' || newType === 'transition') {
@@ -278,7 +291,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             editor,
             { 
               children: [{ text: formattedText }]
-            },
+            } as Partial<SlateElementType>,
             { at: selection.focus.path.slice(0, 1) }
           );
         }
@@ -293,8 +306,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     const { normalizeNode } = editor;
     
     editor.normalizeNode = ([node, path]) => {
-      if (SlateElement.isElement(node) && node.type) {
-        const elementType = node.type as ElementType;
+      if (SlateElement.isElement(node) && 'type' in node) {
+        const elementType = (node as SlateElementType).type;
         
         // Auto-capitalize scene headings, character names, and transitions
         if (
@@ -302,6 +315,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           elementType === 'character' || 
           elementType === 'transition'
         ) {
+          // @ts-ignore - We know this is our custom element with text
           const textNode = node.children[0];
           if (textNode && typeof textNode.text === 'string') {
             const currentText = textNode.text;
@@ -310,7 +324,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             if (currentText !== uppercasedText) {
               Transforms.setNodes(
                 editor,
-                { children: [{ text: uppercasedText }] },
+                { children: [{ text: uppercasedText }] } as Partial<SlateElementType>,
                 { at: path }
               );
               return;
@@ -334,7 +348,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     >
       <Slate
         editor={editor}
-        value={value}
+        initialValue={value}
         onChange={handleChange}
       >
         <div 

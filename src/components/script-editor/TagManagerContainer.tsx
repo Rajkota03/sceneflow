@@ -39,7 +39,7 @@ const TagManagerContainer: React.FC = () => {
       selectedStructure={selectedStructure}
       activeBeatId={activeBeatId}
       onBeatClick={handleBeatClick}
-      beatSceneCounts={beatSceneCounts}
+      beatSceneCounts={beatSceneCounts || []}
     />
   );
 };

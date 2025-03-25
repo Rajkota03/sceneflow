@@ -1,4 +1,5 @@
 
+import { Editor } from 'slate';
 import { ScriptElement, SlateElementType, SlateDocument } from './types';
 
 // Convert script elements to Slate document format
@@ -52,7 +53,7 @@ export const isElementType = (element: SlateElementType, type: SlateElementType[
 };
 
 // Check if the selection is in a specific element type
-export const isSelectionInType = (editor: any, type: SlateElementType['type']) => {
+export const isSelectionInType = (editor: Editor, type: SlateElementType['type']) => {
   const [match] = Editor.nodes(editor, {
     match: n => isElementType(n as SlateElementType, type),
   });

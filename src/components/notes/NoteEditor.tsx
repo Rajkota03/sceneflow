@@ -12,13 +12,15 @@ export interface NoteEditorProps {
   onSaveNote: (updatedNote: Note) => void;
   isPopup?: boolean;
   onClose?: () => void;
+  onCancel?: () => void;
 }
 
 const NoteEditor: React.FC<NoteEditorProps> = ({ 
   note, 
   onSaveNote,
   isPopup = false,
-  onClose 
+  onClose,
+  onCancel
 }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -54,7 +56,9 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
   };
 
   const handleCancel = () => {
-    if (onClose) {
+    if (onCancel) {
+      onCancel();
+    } else if (onClose) {
       onClose();
     }
   };

@@ -15,6 +15,10 @@ export interface TagManagerProps {
   selectedStructureId?: string;
   onStructureChange?: (structureId: string) => void;
   structures?: Structure[];
+  activeBeatId?: string | null;
+  onBeatClick?: (beatId: string) => void;
+  beatSceneCounts?: BeatSceneCount[];
+  projectId?: string;
 }
 
 export interface ScriptElementProps {
@@ -39,4 +43,12 @@ export interface ScriptElementProps {
   structures?: Structure[];
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
+}
+
+export interface BeatSceneCount {
+  beatId: string;
+  actId: string;
+  count: number;
+  pageRange?: string;
+  sceneIds?: string[];
 }
