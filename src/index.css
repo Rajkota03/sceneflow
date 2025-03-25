@@ -164,10 +164,10 @@
   text-transform: uppercase;
   font-weight: bold;
   margin-bottom: 1em;
-  text-align: left;
+  text-align: left !important; /* Force left alignment */
   width: 100%;
-  margin-left: 0;
-  margin-right: 0;
+  margin-left: 0 !important; /* Force left margin to 0 */
+  margin-right: 0 !important; /* Force right margin to 0 */
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
 }
 

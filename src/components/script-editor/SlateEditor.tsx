@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -14,7 +13,13 @@ const SceneHeading = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
     className="font-bold uppercase tracking-wider mb-4 text-left"
-    style={{ width: '100%' }}
+    style={{ 
+      width: '100%',
+      textAlign: 'left',
+      marginLeft: 0,
+      marginRight: 0,
+      margin: '0 0 1em 0'
+    }}
   >
     {children}
   </div>

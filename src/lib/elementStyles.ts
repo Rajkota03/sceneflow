@@ -34,7 +34,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         paddingTop: '0.5em',
         textAlign: 'left',
         marginLeft: '0', // Remove auto margins
-        marginRight: '0' // Remove auto margins
+        marginRight: '0', // Remove auto margins
+        margin: '0 0 1em 0' // Explicitly set margins (top, right, bottom, left)
       };
     case 'action':
       return {
