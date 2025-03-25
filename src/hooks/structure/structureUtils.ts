@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchStructuresFromSupabase = async (projectId: string) => {
   try {
+    console.log('Fetching structures for project ID:', projectId);
+    
     // Fetch all structures - using 'structures' table, not 'story_structures'
     const { data: allStructures, error: fetchError } = await supabase
       .from('structures')
@@ -13,6 +15,8 @@ export const fetchStructuresFromSupabase = async (projectId: string) => {
       console.error('Error fetching structures:', fetchError);
       return { error: 'Failed to fetch structures' };
     }
+
+    console.log('Fetched structures:', allStructures?.length || 0);
 
     // Fetch the linked structure ID for this project
     const { data: projectLink, error: linkError } = await supabase
@@ -26,6 +30,7 @@ export const fetchStructuresFromSupabase = async (projectId: string) => {
     }
     
     const linkedStructureId = projectLink?.structure_id || null;
+    console.log('Linked structure ID:', linkedStructureId);
     
     return { allStructures, linkedStructureId };
     
@@ -37,11 +42,41 @@ export const fetchStructuresFromSupabase = async (projectId: string) => {
 
 export const parseStructureData = (data: any): Structure => {
   try {
+    console.log('Parsing structure data:', data.id, data.name);
+    
+    let acts = [];
+    
+    // Try to parse acts from different possible locations in the data
+    if (Array.isArray(data.acts)) {
+      acts = data.acts;
+    } else if (data.content && Array.isArray(data.content.acts)) {
+      acts = data.content.acts;
+    } else if (typeof data.beats === 'string') {
+      try {
+        const parsedBeats = JSON.parse(data.beats);
+        if (Array.isArray(parsedBeats)) {
+          acts = parsedBeats;
+        } else if (parsedBeats && Array.isArray(parsedBeats.acts)) {
+          acts = parsedBeats.acts;
+        }
+      } catch (e) {
+        console.error('Error parsing beats JSON:', e);
+      }
+    } else if (data.beats && typeof data.beats === 'object') {
+      if (Array.isArray(data.beats)) {
+        acts = data.beats;
+      } else if (data.beats.acts && Array.isArray(data.beats.acts)) {
+        acts = data.beats.acts;
+      }
+    }
+    
+    console.log(`Structure ${data.id} has ${acts.length} acts`);
+    
     const structure: Structure = {
       id: data.id,
       name: data.name || 'Untitled Structure',
       description: data.description || '',
-      acts: Array.isArray(data.content?.acts) ? data.content.acts : [],
+      acts: acts,
       createdAt: data.created_at || new Date().toISOString(),
       updatedAt: data.updated_at || new Date().toISOString(),
       structure_type: data.structure_type || 'three_act'
@@ -70,6 +105,8 @@ export const parseStructureData = (data: any): Structure => {
 
 export const linkStructureToProject = async (projectId: string, structureId: string): Promise<boolean> => {
   try {
+    console.log('Linking structure to project:', structureId, projectId);
+    
     // Updated to use 'project_structures' table, not 'story_structures'
     const { error } = await supabase
       .from('project_structures')
@@ -84,6 +121,7 @@ export const linkStructureToProject = async (projectId: string, structureId: str
       return false;
     }
     
+    console.log('Successfully linked structure to project');
     return true;
   } catch (error) {
     console.error('Error in linkStructureToProject:', error);
@@ -126,10 +164,31 @@ export const saveStructureBeatCompletion = async (
   updatedStructure: Structure
 ): Promise<boolean> => {
   try {
+    console.log('Saving beat completion for structure:', structureId);
+    
+    // Make a serializable copy of the acts that will work with Supabase JSON types
+    const serializableActs: any[] = updatedStructure.acts.map(act => ({
+      id: act.id,
+      title: act.title,
+      description: act.description || "",
+      beats: act.beats.map(beat => ({
+        id: beat.id,
+        title: beat.title,
+        description: beat.description || "",
+        complete: beat.complete || false,
+        timePosition: beat.timePosition || 0,
+        pageRange: beat.pageRange || "",
+        notes: beat.notes || "",
+        sceneCount: beat.sceneCount || 0
+      }))
+    }));
+    
+    // Updating the beats in the content field to ensure compatibility
     const { error } = await supabase
       .from('structures')
       .update({ 
-        content: { acts: updatedStructure.acts },
+        content: { acts: serializableActs },
+        beats: { acts: serializableActs },
         updated_at: new Date().toISOString()
       })
       .eq('id', structureId);
@@ -139,9 +198,29 @@ export const saveStructureBeatCompletion = async (
       return false;
     }
     
+    console.log('Successfully saved beat completion');
     return true;
   } catch (error) {
     console.error('Error in saveStructureBeatCompletion:', error);
     return false;
   }
+};
+
+// Calculate structure progress based on completed beats
+export const calculateStructureProgress = (structure: Structure | null): number => {
+  if (!structure || !structure.acts || !Array.isArray(structure.acts)) {
+    return 0;
+  }
+  
+  let totalBeats = 0;
+  let completedBeats = 0;
+  
+  structure.acts.forEach(act => {
+    if (act.beats && Array.isArray(act.beats)) {
+      totalBeats += act.beats.length;
+      completedBeats += act.beats.filter(beat => beat.complete).length;
+    }
+  });
+  
+  return totalBeats > 0 ? (completedBeats / totalBeats) * 100 : 0;
 };

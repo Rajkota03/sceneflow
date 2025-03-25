@@ -63,9 +63,36 @@
   * {
     @apply border-border;
   }
-  body {
+  html, body {
     @apply bg-background text-foreground;
-    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+  
+  #root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Make sure scrollbars are enabled and working properly */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700;
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-600;
   }
 }
 
@@ -129,6 +156,7 @@
   font-family: 'Courier Final Draft', 'Courier Prime', monospace !important;
   font-size: 12pt !important;
   direction: ltr;
+  unicode-bidi: plaintext;
 }
 
 /* Element-specific formatting - Following Final Draft standards */
@@ -314,27 +342,10 @@ textarea.auto-resize {
   }
 }
 
-/* Fix for reversed text input - this is crucial */
+/* Fix for reversed text input */
 [contenteditable="true"] {
-  direction: ltr !important;
-  unicode-bidi: embed !important;
-}
-
-/* Ensure all editable elements have the right text direction */
-.element-text, 
-.script-page-content div,
-.script-page-content textarea,
-[contenteditable] {
-  direction: ltr !important;
-  unicode-bidi: embed !important;
-}
-
-/* Format styler container - proper centering for script */
-.script-format-styler {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  direction: ltr;
+  unicode-bidi: plaintext;
 }
 
 /* Keyboard shortcut information */
@@ -402,4 +413,15 @@ textarea.auto-resize {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+/* Card styles for consistency */
+.glass-card {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl transition-all duration-300;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.glass-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
 }

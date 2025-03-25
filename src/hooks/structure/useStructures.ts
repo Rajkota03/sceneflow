@@ -24,6 +24,7 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     setError('');
     
     try {
+      console.log('Fetching structures for project:', projectId);
       const { allStructures, linkedStructureId, error: fetchError } = 
         await fetchStructuresFromSupabase(projectId);
         
@@ -33,6 +34,7 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
       }
       
       if (allStructures && Array.isArray(allStructures)) {
+        console.log('Received structures:', allStructures.length);
         const parsedStructures = allStructures.map(structureData => 
           parseStructureData(structureData)
         );
@@ -40,12 +42,15 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
         setStructures(parsedStructures);
         
         if (linkedStructureId) {
+          console.log('Setting selected structure ID from link:', linkedStructureId);
           setSelectedStructureId(linkedStructureId);
           const linkedStructure = parsedStructures.find(s => s.id === linkedStructureId);
           if (linkedStructure) {
+            console.log('Setting selected structure from link:', linkedStructure.name);
             setSelectedStructure(linkedStructure);
           }
         } else if (parsedStructures.length > 0) {
+          console.log('No linked structure, defaulting to first structure:', parsedStructures[0].name);
           setSelectedStructureId(parsedStructures[0].id);
           setSelectedStructure(parsedStructures[0]);
         }
@@ -65,9 +70,16 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
   const handleStructureChange = async (structureId: string) => {
     if (!projectId) return;
     
+    console.log('handleStructureChange called with:', structureId);
     setSelectedStructureId(structureId);
     const structure = structures.find(s => s.id === structureId) || null;
-    setSelectedStructure(structure);
+    
+    if (structure) {
+      console.log('Setting selected structure to:', structure.name);
+      setSelectedStructure(structure);
+    } else {
+      console.log('Structure not found in available structures');
+    }
     
     try {
       await linkStructureToProject(projectId, structureId);
@@ -96,7 +108,7 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     handleStructureChange,
     updateBeatCompletion: updateBeatCompletionHandler,
     saveBeatCompletion: saveBeatCompletionHandler,
-    fetchStructures // Make sure fetchStructures is explicitly included in the return value
+    fetchStructures
   };
 };
 

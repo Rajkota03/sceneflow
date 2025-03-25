@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 
 interface UseKeyboardShortcutsProps {
   onExport?: () => void;
@@ -13,14 +14,27 @@ export function useKeyboardShortcuts({
   onExport, 
   scriptContentRef 
 }: UseKeyboardShortcutsProps = {}) {
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  // Use the context value if possible, otherwise use local state
+  let contextValue;
+  try {
+    contextValue = useScriptEditor();
+  } catch (e) {
+    // ScriptEditorProvider might not be available in all cases
+  }
+
+  const [localShowKeyboardShortcuts, setLocalShowKeyboardShortcuts] = useState(false);
+  
+  // Use context values if available, otherwise use local state
+  const showKeyboardShortcuts = contextValue?.showKeyboardShortcuts ?? localShowKeyboardShortcuts;
+  const toggleKeyboardShortcuts = contextValue?.toggleKeyboardShortcuts ?? 
+    (() => setLocalShowKeyboardShortcuts(prev => !prev));
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Toggle keyboard shortcuts help with Ctrl+/
       if ((e.ctrlKey || e.metaKey) && e.key === '/') {
         e.preventDefault();
-        setShowKeyboardShortcuts(prev => !prev);
+        toggleKeyboardShortcuts();
       }
       
       // Export PDF with Cmd+E
@@ -39,7 +53,7 @@ export function useKeyboardShortcuts({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onExport, scriptContentRef]);
+  }, [onExport, scriptContentRef, toggleKeyboardShortcuts]);
 
   const exportToPdf = async (element: HTMLElement) => {
     try {
@@ -84,7 +98,7 @@ export function useKeyboardShortcuts({
 
   return {
     showKeyboardShortcuts,
-    setShowKeyboardShortcuts,
+    setShowKeyboardShortcuts: toggleKeyboardShortcuts,
     exportToPdf
   };
 }

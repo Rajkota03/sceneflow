@@ -3,13 +3,18 @@ import { useEffect, useState } from 'react';
 import { ScriptElement, ActType } from '@/lib/types';
 
 export function useFilteredElements(
-  elements: ScriptElement[], 
+  elements: ScriptElement[] | undefined, 
   activeTagFilter: string | null, 
   activeActFilter: ActType | null
 ) {
-  const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements);
+  const [filteredElements, setFilteredElements] = useState<ScriptElement[]>(elements || []);
 
   useEffect(() => {
+    if (!elements) {
+      setFilteredElements([]);
+      return;
+    }
+    
     if (!activeTagFilter && !activeActFilter) {
       setFilteredElements(elements);
       return;

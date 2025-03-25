@@ -36,7 +36,7 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     lineHeight: formatState.lineSpacing === 'single' ? '1.2' : 
                 formatState.lineSpacing === '1.5' ? '1.5' : '2',
     width: '100%',
-    maxWidth: forPrint || forExport ? '8.5in' : '8.5in', // Standard screenplay width
+    maxWidth: '8.5in', // Standard screenplay width
     height: forPrint || forExport ? 'auto' : 'auto',
     minHeight: forPrint || forExport ? 'auto' : '11in', // Standard screenplay height
     margin: '0 auto',
@@ -44,19 +44,20 @@ const FormatStyler: React.FC<FormatStylerProps> = ({
     boxSizing: 'border-box',
     overflow: 'visible',
     position: 'relative',
+    direction: 'ltr',
+    unicodeBidi: 'plaintext',
     padding: forPrint || forExport ? '0' : '1in', // Standard screenplay margins
     boxShadow: isDarkMode 
       ? '0 2px 10px rgba(0,0,0,0.3)' 
       : '0 2px 10px rgba(0,0,0,0.1)',
-    touchAction: 'manipulation',
-    pointerEvents: 'auto',
   };
 
   return (
     <div 
       style={style} 
-      className="script-format-styler w-full flex justify-center"
+      className={`script-format-styler w-full h-full flex flex-col items-center ${forPrint || forExport ? 'print-version' : 'overflow-visible'}`}
       data-font="courier-final-draft"
+      dir="ltr"
     >
       {children}
     </div>

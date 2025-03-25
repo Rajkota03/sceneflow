@@ -1,10 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
 import { BeatMode } from '@/types/scriptTypes';
-import BeatTagSelector from './BeatTagSelector';
-import SceneBeatTag from './SceneBeatTag';
+import { FormatState } from '@/lib/formatContext'; // Import the FormatState type
 
 interface ScriptPageProps {
   elements: ScriptElement[];
@@ -19,16 +18,15 @@ interface ScriptPageProps {
   characterNames: string[];
   projectId?: string;
   beatMode: BeatMode;
-  selectedStructure: Structure | null;
-  onBeatTag: (elementId: string, beatId: string, actId: string) => void;
-  onRemoveBeat?: (elementId: string) => void;
-  formatState: any;
+  selectedStructure?: Structure | null;
+  formatState?: FormatState; // Using the imported FormatState type
   currentPage: number;
+  onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const ScriptPage: React.FC<ScriptPageProps> = ({
+const ScriptPage: React.FC<ScriptPageProps> = ({ 
   elements,
-  activeElementId,
+  activeElementId, 
   getPreviousElementType,
   handleElementChange,
   handleFocus,
@@ -40,64 +38,25 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   projectId,
   beatMode,
   selectedStructure,
-  onBeatTag,
-  onRemoveBeat,
   formatState,
-  currentPage
+  currentPage,
+  onBeatTag
 }) => {
-  const [tagSelectorOpen, setTagSelectorOpen] = useState<string | null>(null);
-  
-  const handleSceneClick = (elementId: string) => {
-    // Only allow tagging for scene headings and in beat mode
-    const element = elements.find(el => el.id === elementId);
-    if (beatMode === 'on' && element?.type === 'scene-heading') {
-      setTagSelectorOpen(tagSelectorOpen === elementId ? null : elementId);
-    }
-  };
-  
-  const handleRemoveBeatTag = (elementId: string) => {
-    if (onRemoveBeat) {
-      onRemoveBeat(elementId);
-    }
-  };
-  
-  // Calculate scale transform for display
-  const scaleValue = formatState.zoomLevel || 1;
-  
+  // Create elements if none exist
+  const displayElements = elements.length > 0 ? elements : [];
+
   return (
-    <div 
-      className="script-page mx-auto" 
-      style={{ 
-        width: '8.5in',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        transition: 'transform 0.2s ease-out',
-        transform: `scale(${scaleValue})`,
-        transformOrigin: 'top center',
+    <div className="script-page" style={{ 
+      transform: `scale(${formatState?.zoomLevel || 1})`,
+      transformOrigin: 'top center',
+      transition: 'transform 0.2s ease-out',
+      fontFamily: 'Courier Final Draft, Courier Prime, monospace'
+    }}>
+      <div className="script-page-content" style={{
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-        border: '1px solid rgba(0,0,0,0.1)',
-        position: 'relative',
-        touchAction: 'manipulation',
-        pointerEvents: 'auto'
-      }}
-    >
-      <div 
-        className="script-page-content relative" 
-        style={{
-          fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-          fontSize: '12pt',
-          minHeight: '11in',
-          padding: '1in',
-          paddingBottom: '1.5in',
-          cursor: 'text',
-          pointerEvents: 'auto'
-        }}
-        onClick={(e) => {
-          // Make sure clicking on empty areas doesn't interfere with typing
-          e.stopPropagation();
-        }}
-      >
+        fontSize: '12pt',
+        position: 'relative'
+      }}>
         {/* Page number positioned inside the page */}
         <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
           fontFamily: "Courier Final Draft, Courier Prime, monospace",
@@ -106,64 +65,25 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           {currentPage}
         </div>
         
-        {elements.map((element, index) => {
-          const previousElementType = getPreviousElementType(
-            index - 1
-          );
-          
-          return (
-            <div key={element.id} className="relative">
-              {/* Scene Beat Tag Indicator - only for scene headings with beat tag */}
-              {beatMode === 'on' && element.type === 'scene-heading' && element.beat && (
-                <div className="absolute -left-24 top-1">
-                  <SceneBeatTag 
-                    beatId={element.beat}
-                    structure={selectedStructure}
-                    onClick={() => handleSceneClick(element.id)}
-                  />
-                </div>
-              )}
-              
-              {/* Beat Tag Selector - only displays when opened for a specific scene */}
-              {beatMode === 'on' && element.type === 'scene-heading' && tagSelectorOpen === element.id && (
-                <div className="absolute right-2 top-0 z-50">
-                  <BeatTagSelector
-                    elementId={element.id}
-                    isOpen={tagSelectorOpen === element.id}
-                    onOpenChange={(open) => setTagSelectorOpen(open ? element.id : null)}
-                    structure={selectedStructure}
-                    activeBeatId={element.beat}
-                    onBeatSelect={onBeatTag}
-                    onRemoveBeat={handleRemoveBeatTag}
-                  />
-                </div>
-              )}
-              
-              <EditorElement
-                key={element.id}
-                element={element}
-                previousElementType={previousElementType}
-                onChange={handleElementChange}
-                onFocus={() => handleFocus(element.id)}
-                isActive={activeElementId === element.id}
-                onNavigate={handleNavigate}
-                onEnterKey={handleEnterKey}
-                onFormatChange={handleFormatChange}
-                onTagsChange={handleTagsChange}
-                characterNames={characterNames}
-                projectId={projectId}
-                beatMode={beatMode}
-                selectedStructure={selectedStructure}
-                onBeatTag={onBeatTag}
-                onAdditionalClick={
-                  element.type === 'scene-heading' ? 
-                  () => handleSceneClick(element.id) : 
-                  undefined
-                }
-              />
-            </div>
-          );
-        })}
+        {displayElements.map((element, index) => (
+          <EditorElement
+            key={element.id}
+            element={element}
+            previousElementType={getPreviousElementType(index - 1)}
+            onChange={handleElementChange}
+            onFocus={() => handleFocus(element.id)}
+            isActive={activeElementId === element.id}
+            onNavigate={handleNavigate}
+            onEnterKey={handleEnterKey}
+            onFormatChange={handleFormatChange}
+            onTagsChange={handleTagsChange}
+            characterNames={characterNames}
+            projectId={projectId}
+            beatMode={beatMode}
+            selectedStructure={selectedStructure}
+            onBeatTag={onBeatTag}
+          />
+        ))}
       </div>
     </div>
   );

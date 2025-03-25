@@ -33,34 +33,51 @@ export function useElementInteraction({
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   
-  // Update local text state when prop changes
+  // Initialize text when element changes
   useEffect(() => {
-    // Only update if different to avoid cursor jumping
-    if (text !== initialText) {
-      setText(initialText);
+    setText(initialText);
+  }, [initialText]);
+
+  // Set up cursor and focus when element becomes active
+  useEffect(() => {
+    if (editorRef.current && isActive) {
+      // Set the text content to ensure it's up to date
+      if (editorRef.current.innerText !== initialText) {
+        editorRef.current.innerText = initialText;
+      }
+
+      // Focus the element and position cursor at end
+      const range = document.createRange();
+      const sel = window.getSelection();
       
-      // Only update DOM if content is different to avoid cursor jumping
-      if (editorRef.current && editorRef.current.textContent !== initialText) {
-        // We'll directly set textContent only if not active to avoid cursor jump
-        if (!isActive) {
-          editorRef.current.textContent = initialText;
+      try {
+        // Position cursor at end of text
+        if (editorRef.current.childNodes.length > 0) {
+          range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+        } else {
+          range.setStart(editorRef.current, 0);
         }
+        
+        range.collapse(true);
+        
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+        
+        // Apply focus
+        editorRef.current.focus();
+      } catch (err) {
+        console.error('Error setting cursor position:', err);
       }
     }
-  }, [initialText, text, isActive]);
-  
-  // Handle change events from the contentEditable div
+  }, [isActive, initialText]);
+
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    const newText = e.currentTarget.textContent || '';
-    
-    console.log('Text changed:', newText, 'for element:', elementId); // Debug log
-    
-    // Update local text state and propagate changes to parent
+    const newText = e.currentTarget.innerText;
     setText(newText);
     onChange(elementId, newText, type);
     
-    // Check for character name suggestions
     if (type === 'character') {
       const detected = detectCharacter(newText, characterNames);
       setSuggestionsVisible(detected);
@@ -78,18 +95,13 @@ export function useElementInteraction({
     }
   };
 
-  // Handle keyboard navigation and special keys
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    console.log('Key pressed:', e.key, 'for element:', elementId); // Debug log
-    
-    // Only prevent backspace if text is empty to allow deletion otherwise
     if (e.key === 'Backspace' && text.trim() === '') {
       e.preventDefault();
       onNavigate('up', elementId);
       return;
     }
     
-    // Handle formatting keyboard shortcuts
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -115,94 +127,46 @@ export function useElementInteraction({
         case '6':
           e.preventDefault();
           onFormatChange(elementId, 'transition');
-          // Auto-add "CUT TO:" for empty transitions
-          if (text.trim() === '') {
-            const newText = 'CUT TO:';
-            setText(newText);
-            if (editorRef.current) {
-              editorRef.current.textContent = newText;
-            }
-            onChange(elementId, newText, 'transition');
-          }
+          const newText = text.trim() === '' ? 'CUT TO:' : text;
+          setText(newText);
+          onChange(elementId, newText, 'transition');
           return;
         default:
           break;
       }
     }
 
-    // Handle Enter key
     if (e.key === 'Enter') {
       e.preventDefault();
-      e.stopPropagation();
       onEnterKey(elementId, e.shiftKey);
-      return;
-    }
-    
-    // Handle arrow keys for navigation
-    if (e.key === 'ArrowUp') {
+    } else if (e.key === 'ArrowUp') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
-        // Use arrows to navigate suggestions when they're visible
         e.preventDefault();
         setFocusIndex(prevIndex => Math.max(0, prevIndex - 1));
       } else {
-        // Get selection position
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        
-        // Only navigate if we're at the start of the text
-        if (range && range.startOffset === 0 && range.collapsed) {
-          e.preventDefault();
-          onNavigate('up', elementId);
-        }
+        onNavigate('up', elementId);
       }
-      return;
-    }
-    
-    if (e.key === 'ArrowDown') {
+    } else if (e.key === 'ArrowDown') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
-        // Use arrows to navigate suggestions when they're visible
         e.preventDefault();
         setFocusIndex(prevIndex => Math.min(filteredSuggestions.length - 1, prevIndex + 1));
       } else {
-        // Get selection position
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) return;
-        
-        const range = selection.getRangeAt(0);
-        const textLength = editorRef.current?.textContent?.length || 0;
-        
-        // Only navigate if we're at the end of the text
-        if (range && range.endOffset === textLength && range.collapsed) {
-          e.preventDefault();
-          onNavigate('down', elementId);
-        }
+        onNavigate('down', elementId);
       }
-      return;
-    }
-    
-    // Handle Tab for element type cycling
-    if (e.key === 'Tab') {
+    } else if (suggestionsVisible && filteredSuggestions.length > 0 && e.key === 'Tab') {
+      e.preventDefault();
+      handleSelectCharacter(filteredSuggestions[focusIndex]);
+    } else if (e.key === 'Tab') {
       e.preventDefault();
       
-      if (suggestionsVisible && filteredSuggestions.length > 0) {
-        // Use Tab to select a suggestion when they're visible
-        handleSelectCharacter(filteredSuggestions[focusIndex]);
-      } else if (type === 'dialogue') {
-        // Convert dialogue to parenthetical on Tab
+      if (type === 'dialogue') {
         onFormatChange(elementId, 'parenthetical');
         if (!text.startsWith('(') && !text.endsWith(')')) {
           const newText = `(${text})`;
           setText(newText);
           onChange(elementId, newText, 'parenthetical');
-          // Update DOM directly for immediate feedback
-          if (editorRef.current) {
-            editorRef.current.textContent = newText;
-          }
         }
       } else {
-        // Cycle through element types
         const elementTypes: ElementType[] = [
           'scene-heading',
           'action',
@@ -217,43 +181,26 @@ export function useElementInteraction({
         
         onFormatChange(elementId, elementTypes[nextIndex]);
       }
-      return;
     }
   };
 
-  // Handle character selection from suggestions
   const handleSelectCharacter = (name: string) => {
     if (editorRef.current) {
-      // Update the DOM directly for immediate feedback
-      editorRef.current.textContent = name;
+      editorRef.current.innerText = name;
       setText(name);
       onChange(elementId, name, type);
       setSuggestionsVisible(false);
     }
   };
 
-  // Handle right-click to show element type menu
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setShowElementMenu(!showElementMenu);
   };
 
-  // Handle element type change
   const handleElementTypeChange = (newType: ElementType) => {
     onFormatChange(elementId, newType);
     setShowElementMenu(false);
-  };
-
-  // Handle blur events
-  const handleBlur = (e: React.FocusEvent) => {
-    // Don't hide menus immediately to allow clicks to register
-    setTimeout(() => {
-      if (!editorRef.current?.contains(document.activeElement)) {
-        setShowElementMenu(false);
-        setSuggestionsVisible(false);
-      }
-    }, 100);
   };
 
   return {
@@ -268,8 +215,7 @@ export function useElementInteraction({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu,
-    handleBlur
+    setShowElementMenu
   };
 }
 

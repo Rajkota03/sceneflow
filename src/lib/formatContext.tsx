@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface FormatState {
+export interface FormatState {
   font: string;
   fontSize: number;
   isBold: boolean;
@@ -52,7 +52,7 @@ const initialFormatState: FormatState = {
 
 const FormatContext = createContext<FormatContextType | undefined>(undefined);
 
-export const FormatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const FormatProvider = ({ children }: { children: ReactNode }) => {
   const [formatState, setFormatState] = useState<FormatState>(initialFormatState);
 
   const setFont = (font: string) => {

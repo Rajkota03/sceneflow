@@ -8,6 +8,7 @@ import { renderStyle, getElementStyles } from '@/lib/elementStyles';
 import ElementTypeMenu from './editor/ElementTypeMenu';
 import useElementInteraction from '@/hooks/useElementInteraction';
 import { formatType } from '@/lib/formatScript';
+import { useScriptEditor } from './script-editor/ScriptEditorProvider';
 
 interface EditorElementProps {
   element: ScriptElement;
@@ -24,7 +25,6 @@ interface EditorElementProps {
   beatMode?: BeatMode;
   selectedStructure?: Structure | null;
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
-  onAdditionalClick?: () => void;
 }
 
 const EditorElement: React.FC<EditorElementProps> = ({ 
@@ -41,9 +41,17 @@ const EditorElement: React.FC<EditorElementProps> = ({
   projectId,
   beatMode = 'on',
   selectedStructure,
-  onBeatTag,
-  onAdditionalClick,
+  onBeatTag
 }) => {
+  // Access global context for beat tagging and structure
+  const { handleBeatTag: contextHandleBeatTag, selectedStructure: contextStructure, showKeyboardShortcuts } = useScriptEditor();
+  
+  // Use the structure from props or context
+  const structure = selectedStructure || contextStructure;
+  
+  // Use onBeatTag from props or context
+  const handleBeatTagging = onBeatTag || contextHandleBeatTag;
+  
   const {
     text,
     editorRef,
@@ -56,8 +64,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     handleSelectCharacter,
     handleRightClick,
     handleElementTypeChange,
-    setShowElementMenu,
-    handleBlur
+    setShowElementMenu
   } = useElementInteraction({
     elementId: element.id,
     text: element.text,
@@ -72,57 +79,45 @@ const EditorElement: React.FC<EditorElementProps> = ({
 
   const elementStyles = getElementStyles(element.type);
   
-  // Make sure the component focuses properly when it becomes active
+  // Only show beat tagging controls for scene headings
+  const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
+
+  // Ensure cursor positioning works correctly
   useEffect(() => {
     if (isActive && editorRef.current) {
-      // Only focus if not already focused to avoid cursor jumping
-      if (document.activeElement !== editorRef.current) {
-        editorRef.current.focus();
-        
-        // Set cursor at end of text for better UX
-        const range = document.createRange();
-        const selection = window.getSelection();
-        
-        if (editorRef.current.childNodes.length > 0) {
-          const lastNode = editorRef.current.childNodes[0];
-          const textLength = lastNode.textContent?.length || 0;
-          range.setStart(lastNode, textLength);
-          range.collapse(true);
-          
-          selection?.removeAllRanges();
-          selection?.addRange(range);
-        }
+      // Ensure focus and cursor visibility
+      editorRef.current.focus();
+      
+      // Position cursor at end of text
+      const range = document.createRange();
+      const selection = window.getSelection();
+      
+      if (editorRef.current.childNodes.length > 0) {
+        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+        range.setStartAfter(lastNode);
+      } else {
+        range.setStart(editorRef.current, 0);
+      }
+      
+      range.collapse(true);
+      
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
       }
     }
-  }, [isActive, editorRef]);
-
-  const handleElementClick = (e: React.MouseEvent) => {
-    console.log('Element clicked', element.id, element.type);
-    e.stopPropagation();
-    onFocus();
-    
-    if (isActive && onAdditionalClick && 
-        element.type === 'scene-heading' && 
-        beatMode === 'on' && 
-        e.detail === 2) {
-      onAdditionalClick();
-    }
-  };
+  }, [isActive]);
 
   return (
     <div 
-      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`}
-      data-element-id={element.id}
-      data-element-type={element.type}
+      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
+      onContextMenu={handleRightClick}
     >
       <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {isActive && (
+        {isActive && showKeyboardShortcuts && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowElementMenu(!showElementMenu);
-              }}
+              onClick={() => setShowElementMenu(!showElementMenu)}
               className="px-1.5 py-0.5 text-blue-600 hover:bg-gray-100 rounded"
             >
               {formatType(element.type)}
@@ -137,21 +132,11 @@ const EditorElement: React.FC<EditorElementProps> = ({
           element-text 
           ${renderStyle(element.type, previousElementType)}
           ${isActive ? 'active-element' : ''}
-          ${element.type === 'scene-heading' && beatMode === 'on' ? 'cursor-pointer' : ''}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
-        dir="ltr"
-        onClick={handleElementClick}
-        onContextMenu={handleRightClick}
-        onFocus={(e) => {
-          console.log('Element focused', element.id);
-          e.stopPropagation();
-          if (!isActive) {
-            onFocus();
-          }
-        }}
-        onBlur={handleBlur}
+        onFocus={onFocus}
+        onBlur={() => suggestionsVisible}
         onKeyDown={handleKeyDown}
         onInput={handleChange}
         style={{
@@ -159,13 +144,13 @@ const EditorElement: React.FC<EditorElementProps> = ({
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-word',
           direction: 'ltr',
-          unicodeBidi: 'embed',
+          unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
-          caretColor: 'black',
-          cursor: 'text',
-          pointerEvents: 'auto',
+          caretColor: 'black', // Explicitly set caret color
           ...elementStyles
         }}
+        dir="ltr"
+        tabIndex={0} // Ensure element is focusable
       >
         {text}
       </div>
@@ -178,6 +163,18 @@ const EditorElement: React.FC<EditorElementProps> = ({
               onSelect={handleSelectCharacter} 
               focusIndex={focusIndex}
             />
+          )}
+          
+          {showBeatTags && (
+            <div className="absolute right-0 top-0">
+              <SceneTags 
+                element={element} 
+                onTagsChange={onTagsChange} 
+                projectId={projectId}
+                selectedStructure={structure}
+                onBeatTag={handleBeatTagging}
+              />
+            </div>
           )}
           
           {showElementMenu && (
