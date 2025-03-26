@@ -54,7 +54,7 @@ export function useScriptNavigation({
         nextType = 'action';
         break;
       case 'action':
-        // Explicit fix: When in action, ALWAYS follow with action
+        // IMPORTANT: When in action, ALWAYS follow with action
         nextType = 'action';
         break;
       case 'character':
