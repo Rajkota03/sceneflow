@@ -50,12 +50,12 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       const defaultElements = [
         {
           id: crypto.randomUUID(),
-          type: 'scene-heading',
+          type: 'scene-heading' as ElementType,
           text: 'INT. SOMEWHERE - DAY'
         },
         {
           id: crypto.randomUUID(),
-          type: 'action',
+          type: 'action' as ElementType,
           text: 'Type your screenplay here...'
         }
       ];

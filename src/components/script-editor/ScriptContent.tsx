@@ -5,6 +5,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ScriptPage from './ScriptPage';
 import { toast } from '../ui/use-toast';
+import { ElementType } from '@/lib/types';
 
 const ScriptContent: React.FC = () => {
   const { formatState } = useFormat();
@@ -35,12 +36,12 @@ const ScriptContent: React.FC = () => {
         const defaultElements = [
           {
             id: crypto.randomUUID(),
-            type: 'scene-heading',
+            type: 'scene-heading' as ElementType,
             text: 'INT. SOMEWHERE - DAY'
           },
           {
             id: crypto.randomUUID(),
-            type: 'action',
+            type: 'action' as ElementType,
             text: 'Type your screenplay here...'
           }
         ];
