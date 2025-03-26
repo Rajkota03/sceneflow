@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
@@ -95,6 +96,7 @@ export function useElementInteraction({
       return;
     }
     
+    // Fixed keyboard shortcut behavior
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
         case '1':
@@ -105,9 +107,12 @@ export function useElementInteraction({
         case '6':
           e.preventDefault();
           
+          // First create a new element with the Enter key handler
           onEnterKey(elementId, false);
           
+          // Then after a short delay, update the newly created element to the desired type
           setTimeout(() => {
+            // Find the newly created element which should now be active
             const activeElements = document.querySelectorAll('.active-element');
             if (activeElements.length > 0) {
               const activeElementId = activeElements[0].closest('.element-container')?.id;
@@ -124,6 +129,7 @@ export function useElementInteraction({
                 const newType = typeMap[e.key];
                 onFormatChange(activeElementId, newType);
 
+                // Add default text for transition
                 if (newType === 'transition') {
                   const newElement = document.querySelector('.active-element');
                   if (newElement && newElement.textContent?.trim() === '') {

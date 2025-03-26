@@ -27,14 +27,15 @@ export function useScriptNavigation({
     }
   };
 
+  // Handle creating a new element when Enter key is pressed
   const handleEnterKey = (id: string, shiftKey: boolean) => {
     const currentIndex = elements.findIndex(el => el.id === id);
     if (currentIndex === -1) return;
     
     const currentElement = elements[currentIndex];
     
+    // Handle shift+enter to create a line break within the current element
     if (shiftKey && currentElement.type === 'dialogue') {
-      // Direct assignment instead of using a function to avoid type errors
       const updatedElements: ScriptElement[] = [...elements];
       updatedElements[currentIndex] = {
         ...currentElement,
@@ -44,22 +45,23 @@ export function useScriptNavigation({
       return;
     }
     
+    // Determine the type of the next element
     let nextType: ElementType;
     
-    // Modified logic for Enter key behavior
+    // Set default next type based on current element type
     switch (currentElement.type) {
       case 'scene-heading':
         nextType = 'action';
         break;
       case 'action':
-        // Key fix: action should always be followed by action when pressing Enter
+        // Explicit fix: When in action, ALWAYS follow with action
         nextType = 'action';
         break;
       case 'character':
         nextType = 'dialogue';
         break;
       case 'dialogue':
-        // When in dialogue, pressing Enter should go to action
+        // When in dialogue, pressing Enter goes to action
         nextType = 'action';
         break;
       case 'parenthetical':
@@ -72,12 +74,14 @@ export function useScriptNavigation({
         nextType = 'action';
     }
     
+    // Create a new element with the determined type
     const newElement: ScriptElement = {
       id: generateUniqueId(),
       type: nextType,
       text: ''
     };
     
+    // Special case for character continuation
     if (nextType === 'character' as ElementType) {
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
@@ -97,7 +101,7 @@ export function useScriptNavigation({
       }
     }
     
-    // Direct assignment instead of using a function to avoid type errors
+    // Insert the new element after the current one
     const updatedElements: ScriptElement[] = [
       ...elements.slice(0, currentIndex + 1),
       newElement,
