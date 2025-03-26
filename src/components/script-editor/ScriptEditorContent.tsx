@@ -36,7 +36,11 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       handleElementChange(newElements);
     } else {
       // Fallback for old API - need to provide all three required arguments
-      handleElementChange('', '', 'action' as ElementType);
+      // The function expects id, text, and type arguments
+      const defaultId = '';
+      const defaultText = '';
+      const defaultType: ElementType = 'action';
+      handleElementChange(defaultId, defaultText, defaultType);
     }
   };
 
