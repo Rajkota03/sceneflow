@@ -23,7 +23,8 @@ const ScriptContent: React.FC = () => {
     projectId,
     beatMode,
     selectedStructure,
-    scriptContentRef
+    scriptContentRef,
+    handleBeatTag
   } = useScriptEditor();
 
   // Group elements into pages
@@ -35,6 +36,14 @@ const ScriptContent: React.FC = () => {
     let currentLineCount = 0;
     
     for (const element of elements) {
+      // Force a page break if the element has pageBreak set to true
+      if (element.pageBreak === true && currentPageElements.length > 0) {
+        result.push([...currentPageElements]);
+        currentPageElements = [];
+        currentLineCount = 0;
+        continue; // Skip adding this element to the new page
+      }
+      
       // Estimate lines based on element type and content
       let elementLines = Math.ceil(element.text.length / 60); // Approximate characters per line
       if (element.type === 'scene-heading') elementLines = 2;
@@ -88,6 +97,7 @@ const ScriptContent: React.FC = () => {
               selectedStructure={selectedStructure}
               formatState={formatState}
               currentPage={pageIndex + 1}
+              onBeatTag={handleBeatTag}
             />
           </div>
         ))}

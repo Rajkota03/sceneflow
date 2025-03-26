@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -12,6 +13,8 @@ import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
 import { ElementType } from '@/lib/types';
 
 const InsertMenu = () => {
+  const { elements, setElements } = useScriptEditor();
+
   const handleAddAlt = () => {
     toast({
       title: "Add Alt",
@@ -34,7 +37,6 @@ const InsertMenu = () => {
   };
 
   const handlePageBreak = () => {
-    const { elements, setElements } = useScriptEditor();
     if (!elements) return;
 
     const newElements = [...elements];

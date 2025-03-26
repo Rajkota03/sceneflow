@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
@@ -41,31 +42,23 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   beatMode,
   selectedStructure,
   formatState,
-  currentPage
+  currentPage,
+  onBeatTag
 }) => {
-  const { showKeyboardShortcuts } = useScriptEditor();
+  const { showKeyboardShortcuts, handleBeatTag: contextHandleBeatTag } = useScriptEditor();
   
   const scriptPageStyles = getScriptPageStyles();
   const pageContentStyles = getPageContentStyles();
 
-  return (
-    <div className="script-page relative" style={scriptPageStyles}>
-      <div 
-        className="absolute top-4 w-full text-center"
-        style={{
-          fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-          fontSize: '12pt',
-        }}
-      >
-        {currentPage}
-      </div>
+  // Function to handle beat tagging, using either the prop or context
+  const handleBeatTagging = (elementId: string, beatId: string, actId: string) => {
+    if (onBeatTag) {
+      onBeatTag(elementId, beatId, actId);
+    } else if (contextHandleBeatTag) {
+      contextHandleBeatTag(elementId, beatId, actId);
+    }
+  };
 
-      <div className="script-page-content" style={pageContentStyles}>
-        {elements.map((element, index) => renderElement(element, index))}
-      </div>
-    </div>
-  );
-  
   const renderElement = (element: ScriptElement, index: number) => {
     const isActive = activeElementId === element.id;
     const previousElementType = getPreviousElementType(index - 1);
@@ -118,11 +111,29 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
             projectId={projectId}
             beatMode={beatMode}
             selectedStructure={selectedStructure}
-            onBeatTag={onBeatTag}
+            onBeatTag={handleBeatTagging}
           />
         );
     }
   };
+
+  return (
+    <div className="script-page relative" style={scriptPageStyles}>
+      <div 
+        className="absolute top-4 w-full text-center"
+        style={{
+          fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+          fontSize: '12pt',
+        }}
+      >
+        {currentPage}
+      </div>
+
+      <div className="script-page-content" style={pageContentStyles}>
+        {elements.map((element, index) => renderElement(element, index))}
+      </div>
+    </div>
+  );
 };
 
 export default ScriptPage;

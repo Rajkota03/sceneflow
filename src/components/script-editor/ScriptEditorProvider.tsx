@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -59,6 +58,7 @@ export interface ScriptEditorContextType {
   handleBeatTag: (elementId: string, beatId: string, actId?: string) => void;
   scriptContentRef: React.RefObject<HTMLDivElement>;
   beatSceneCounts: BeatSceneCount[];
+  setElements: (elements: React.SetStateAction<ScriptElement[]>) => void;
 }
 
 const ScriptEditorContext = createContext<ScriptEditorContextType | undefined>(undefined);
@@ -281,7 +281,8 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     setActiveBeatId,
     handleBeatTag,
     scriptContentRef,
-    beatSceneCounts
+    beatSceneCounts,
+    setElements
   };
 
   return (
