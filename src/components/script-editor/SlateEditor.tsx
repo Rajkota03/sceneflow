@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -20,7 +21,8 @@ const SceneHeading = ({ attributes, children }: RenderElementProps) => (
       marginRight: 0,
       fontWeight: 'bold',
       textTransform: 'uppercase',
-      marginBottom: '1em'
+      marginBottom: '1em', // Double space after scene heading
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -36,7 +38,8 @@ const Action = ({ attributes, children }: RenderElementProps) => (
       textAlign: 'left',
       marginLeft: 0,
       marginRight: 0,
-      marginBottom: '1em'
+      marginBottom: '0.5em', // Single space between action paragraphs
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -52,8 +55,9 @@ const Character = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'center',
-      marginTop: '1em',
-      marginBottom: '0.1em'
+      marginTop: '0.8em', // Reduced space before character
+      marginBottom: '0', // No space between character and dialogue
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -69,7 +73,8 @@ const Dialogue = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'left',
-      marginBottom: '1em'
+      marginBottom: '0.8em', // Adjusted space after dialogue
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -85,7 +90,8 @@ const Parenthetical = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'left',
-      marginBottom: '0.1em'
+      marginBottom: '0', // No space after parenthetical
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -101,8 +107,9 @@ const Transition = ({ attributes, children }: RenderElementProps) => (
       textAlign: 'right',
       textTransform: 'uppercase',
       fontWeight: 'bold',
-      marginTop: '1em',
-      marginBottom: '1em'
+      marginTop: '0.8em', // Adjusted space before transition
+      marginBottom: '0.8em', // Adjusted space after transition
+      lineHeight: '1.2' // Reduced line height to match Final Draft
     }}
   >
     {children}
@@ -113,7 +120,10 @@ const Note = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
     className="note"
-    style={{ width: '100%' }}
+    style={{ 
+      width: '100%',
+      lineHeight: '1.2' // Reduced line height to match Final Draft
+    }}
   >
     {children}
   </div>
@@ -516,7 +526,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       style={{ 
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        lineHeight: '1.5'
+        lineHeight: '1.2' // Reduced line height to match Final Draft
       }}
       onClick={handleEditorClick}
     >
@@ -583,7 +593,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                   style={{
                     fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
                     fontSize: '12pt',
-                    lineHeight: '1.5',
+                    lineHeight: '1.2', // Reduced line height to match Final Draft
                     cursor: 'text'
                   }}
                 />

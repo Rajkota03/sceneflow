@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -140,7 +141,7 @@
   margin: 0 auto;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt;
-  line-height: 1.5; /* Updated to match Final Draft spacing */
+  line-height: 1.2; /* Updated to match Final Draft spacing */
   color: #000;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -157,22 +158,24 @@
   font-size: 12pt !important;
   direction: ltr;
   unicode-bidi: plaintext;
+  line-height: 1.2; /* Updated to match Final Draft spacing */
 }
 
 /* Element-specific formatting - Following Final Draft standards */
 .scene-heading {
   text-transform: uppercase;
   font-weight: bold;
-  margin-bottom: 1em; /* More space after scene headings */
+  margin-bottom: 1em; /* Double space after scene headings */
   text-align: left !important; /* Force left alignment */
   width: 100% !important;
   margin-left: 0 !important; /* Force left margin to 0 */
   margin-right: 0 !important; /* Force right margin to 0 */
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .action {
-  margin-bottom: 1em; /* Consistent spacing for action paragraphs */
+  margin-bottom: 0.5em; /* Single space between action paragraphs */
   text-align: left !important;
   width: 100% !important;
   white-space: pre-wrap;
@@ -180,40 +183,45 @@
   margin-right: 0 !important;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   overflow-x: visible; /* Remove horizontal scrollbar */
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .character {
   text-transform: uppercase;
   text-align: center;
   width: 38%; /* ~3.7"-4.2" from left edge */
-  margin: 1em auto 0.1em; /* Add space before character, little after */
+  margin: 0.8em auto 0 !important; /* Adjusted spacing */
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .dialogue {
   width: 62%; /* ~3" dialogue block */
-  margin: 0 auto 1em; /* Add more space after dialogue */
+  margin: 0 auto 0.8em !important; /* Adjusted spacing */
   text-align: left;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .parenthetical {
   width: 40%; /* Slightly narrower than dialogue */
-  margin: 0 auto 0.1em; /* Very little space after parenthetical */
+  margin: 0 auto 0 !important; /* No space after parenthetical */
   text-align: left;
   padding-left: 1.5em;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-style: italic;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .transition {
   text-align: right;
   text-transform: uppercase;
-  margin: 1em 0; /* More space around transitions */
+  margin: 0.8em 0 !important; /* Adjusted spacing */
   width: 100%;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 .element-container {
@@ -221,7 +229,22 @@
   width: 100%;
   box-sizing: border-box;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
-  margin-bottom: 0.25em;
+  margin-bottom: 0;
+  line-height: 1.2;
+}
+
+/* Adjust spacing after specific elements */
+.element-container.scene-heading + .element-container.action {
+  margin-top: 0; /* No extra space when action follows scene heading - already has double space */
+}
+
+.element-container.character + .element-container.dialogue,
+.element-container.parenthetical + .element-container.dialogue {
+  margin-top: 0; /* No extra space between character and dialogue */
+}
+
+.element-container.dialogue + .element-container.character {
+  margin-top: 0.8em; /* Add space between dialogue and next character */
 }
 
 /* Script content wrapper */
@@ -245,6 +268,7 @@ textarea.resize-none {
   height: auto;
   min-height: 1em;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 /* Auto-expanding textarea styles */
@@ -254,6 +278,7 @@ textarea.auto-resize {
   height: auto;
   min-height: 1em;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 /* PDF export specific styles */
@@ -262,7 +287,7 @@ textarea.auto-resize {
   padding: 0;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
-  line-height: 1.2 !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 /* Make sure all textareas use the correct font */
@@ -270,6 +295,7 @@ textarea.auto-resize {
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
   overflow: hidden !important; /* Remove scrollbars on all textareas */
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 /* Character suggestions dropdown styles */
@@ -286,11 +312,6 @@ textarea.auto-resize {
 /* Remove the border highlight when focusing on an element */
 .element-container:focus-within {
   outline: none;
-}
-
-/* Add some extra space to elements */
-.element-container + .element-container {
-  margin-top: 0.25em;
 }
 
 /* Custom selection style */
@@ -328,7 +349,7 @@ textarea.auto-resize {
   .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
     font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
     font-size: 12pt !important;
-    line-height: 1.2 !important;
+    line-height: 1.2 !important; /* Updated to match Final Draft spacing */
   }
   
   /* Hide editing UI elements in print */
@@ -442,7 +463,7 @@ textarea.auto-resize {
 .title-page {
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
-  line-height: 1.2 !important;
+  line-height: 1.2 !important; /* Updated to match Final Draft spacing */
   text-align: center;
   padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
 }

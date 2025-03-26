@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
@@ -100,6 +101,32 @@ const EditorElement: React.FC<EditorElementProps> = ({
     }
   }, [isActive]);
 
+  // Adjust spacing based on context (previous element type)
+  const getContextualSpacing = (): React.CSSProperties => {
+    const baseStyles = { ...elementStyles };
+    
+    // Apply conditional spacing based on the previous element type
+    if (element.type === 'action' && previousElementType === 'scene-heading') {
+      return { ...baseStyles, marginTop: 0 }; // No extra space after scene heading
+    }
+    
+    if (element.type === 'dialogue' && previousElementType === 'character') {
+      return { ...baseStyles, marginTop: 0 }; // No space between character and dialogue
+    }
+    
+    if (element.type === 'dialogue' && previousElementType === 'parenthetical') {
+      return { ...baseStyles, marginTop: 0 }; // No space between parenthetical and dialogue
+    }
+    
+    if (element.type === 'character' && previousElementType === 'dialogue') {
+      return { ...baseStyles, marginTop: '0.8em' }; // Add space between dialogue and next character
+    }
+    
+    return baseStyles;
+  };
+
+  const contextStyles = getContextualSpacing();
+
   return (
     <div 
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
@@ -140,7 +167,8 @@ const EditorElement: React.FC<EditorElementProps> = ({
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
-          ...elementStyles
+          lineHeight: '1.2', // Reduced line height to match Final Draft
+          ...contextStyles
         }}
         dir="ltr"
         tabIndex={0}

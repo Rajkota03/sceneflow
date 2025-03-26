@@ -87,8 +87,8 @@ const DialogueElement: React.FC<DialogueElementProps> = ({
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
-          lineHeight: '1.5', // Adjusted to match Final Draft
-          marginBottom: '1em', // Consistent spacing
+          lineHeight: '1.2', // Reduced line height to match Final Draft
+          marginBottom: '0.8em', // Adjusted spacing after dialogue
           ...elementStyles
         }}
         dir="ltr"

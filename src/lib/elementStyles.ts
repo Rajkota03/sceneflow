@@ -8,11 +8,11 @@ export const renderStyle = (type: ElementType, previousElementType?: ElementType
     case 'action':
       return 'mb-4 text-left';
     case 'character':
-      return 'text-center font-bold mb-1 mx-auto';
+      return 'text-center font-bold mb-0 mx-auto';
     case 'dialogue':
       return 'mb-4 mx-auto';
     case 'parenthetical':
-      return 'text-center italic mb-1 mx-auto';
+      return 'text-center italic mb-0 mx-auto';
     case 'transition':
       return 'text-right font-bold uppercase tracking-wider mb-4';
     case 'note':
@@ -31,18 +31,20 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textAlign: 'left',
         fontWeight: 'bold',
         textTransform: 'uppercase',
-        marginBottom: '1em', // More space after scene headings
+        marginBottom: '1em', // Double space after scene headings
         marginLeft: '0',
         marginRight: '0',
         paddingTop: '0.5em',
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'action':
       return {
         width: '100%',
         textAlign: 'left',
-        marginBottom: '1em', // Consistent spacing between actions
+        marginBottom: '0.5em', // Single space between action paragraphs
         marginLeft: '0',
-        marginRight: '0'
+        marginRight: '0',
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'character':
       return {
@@ -52,8 +54,9 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginLeft: 'auto',
         marginRight: 'auto',
         textAlign: 'center',
-        marginTop: '1em', // More space before character names
-        marginBottom: '0.1em' // Less space between character and dialogue/parenthetical
+        marginTop: '0.8em', // Reduced space before character names
+        marginBottom: '0', // No space between character and dialogue/parenthetical
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'dialogue':
       return {
@@ -61,7 +64,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginLeft: 'auto',
         marginRight: 'auto',
         textAlign: 'left',
-        marginBottom: '1em' // More space after dialogue
+        marginBottom: '0.8em', // More space after dialogue
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'parenthetical':
       return {
@@ -70,7 +74,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginRight: 'auto',
         fontStyle: 'italic',
         textAlign: 'left',
-        marginBottom: '0.1em' // Very little space after parenthetical
+        marginBottom: '0', // No space after parenthetical
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'transition':
       return {
@@ -78,17 +83,19 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginTop: '1em', // More space before transitions
-        marginBottom: '1em' // More space after transitions
+        marginTop: '0.8em', // Less space before transitions
+        marginBottom: '0.8em', // Less space after transitions
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     case 'note':
       return {
         width: '100%',
         fontStyle: 'italic',
-        color: '#666'
+        color: '#666',
+        lineHeight: '1.2', // Reduced line height to match Final Draft
       };
     default:
-      return { width: '100%' };
+      return { width: '100%', lineHeight: '1.2' };
   }
 };
 
@@ -100,7 +107,7 @@ export const getScriptPageStyles = (): React.CSSProperties => {
     padding: '1in 1in 1in 1.5in', // Top, Right, Bottom, Left - standard screenplay margins
     fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
     fontSize: '12pt',
-    lineHeight: '1.2',
+    lineHeight: '1.2', // Reduced line height to match Final Draft
     boxSizing: 'border-box',
     backgroundColor: 'white',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
@@ -122,7 +129,7 @@ export const getPageContentStyles = (): React.CSSProperties => {
   return {
     fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
     fontSize: '12pt',
-    lineHeight: '1.2',
+    lineHeight: '1.2', // Reduced line height to match Final Draft
     position: 'relative',
     direction: 'ltr',
     unicodeBidi: 'plaintext'
