@@ -33,9 +33,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
 
   // Handler for Slate editor content changes
   const handleSlateChange = (newElements: ScriptElement[]) => {
-    console.log("SlateEditor onChange called with", newElements.length, "elements");
+    console.log("SlateEditor onChange called with", newElements?.length || 0, "elements", "setElements available?", !!setElements);
     
-    if (newElements && newElements.length > 0 && setElements) {
+    if (newElements && Array.isArray(newElements) && newElements.length > 0 && setElements) {
       // Use the setElements function directly from context
       setElements(newElements);
     } else {
@@ -45,9 +45,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
 
   // Ensure we have at least default content if elements are empty
   useEffect(() => {
-    if ((!elements || elements.length === 0) && setElements) {
+    if ((!elements || !Array.isArray(elements) || elements.length === 0) && setElements) {
       console.log("Initializing editor with default elements");
-      const defaultElements = [
+      const defaultElements: ScriptElement[] = [
         {
           id: crypto.randomUUID(),
           type: 'scene-heading' as ElementType,
@@ -65,7 +65,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
 
   // Debugging log to track elements
   useEffect(() => {
-    console.log("ScriptEditorContent elements updated:", elements?.length || 0);
+    console.log("ScriptEditorContent elements updated:", elements?.length || 0, "valid array?", Array.isArray(elements));
   }, [elements]);
 
   return (
@@ -79,7 +79,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            {elements && elements.length > 0 ? (
+            {elements && Array.isArray(elements) ? (
               <SlateEditor
                 elements={elements}
                 onChange={handleSlateChange}

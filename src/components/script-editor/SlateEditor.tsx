@@ -161,24 +161,29 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   // Create a Slate editor object that won't change across renders
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   
-  console.log("SlateEditor rendering with", elements?.length || 0, "elements");
+  console.log("SlateEditor rendering with", elements?.length || 0, "elements", "valid elements?", Array.isArray(elements));
   
   // Convert script elements to Slate's format for the initial state
   const initialValue = useMemo(() => {
     console.log("Converting script elements to Slate format", elements?.length || 0);
-    return scriptToSlate(elements.length > 0 ? elements : [
-      {
-        id: uuidv4(),
-        type: 'scene-heading',
-        text: 'INT. SOMEWHERE - DAY'
-      },
-      {
-        id: uuidv4(),
-        type: 'action',
-        text: 'Type your action here...'
-      }
-    ]);
-  }, []);
+    if (!elements || !Array.isArray(elements) || elements.length === 0) {
+      // Provide default elements if none are available
+      const defaultElements: ScriptElement[] = [
+        {
+          id: uuidv4(),
+          type: 'scene-heading' as ElementType,
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: uuidv4(),
+          type: 'action' as ElementType,
+          text: 'Type your action here...'
+        }
+      ];
+      return scriptToSlate(defaultElements);
+    }
+    return scriptToSlate(elements);
+  }, [elements]);
   
   const [value, setValue] = useState<SlateElementType[]>(initialValue);
   const [pages, setPages] = useState<SlateElementType[][]>([[]]);
@@ -186,7 +191,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   
   // Update value when elements change from parent
   useEffect(() => {
-    if (elements && elements.length > 0) {
+    if (elements && Array.isArray(elements) && elements.length > 0) {
       console.log("Updating Slate value from new elements prop", elements.length);
       const newValue = scriptToSlate(elements);
       setValue(newValue);
@@ -525,6 +530,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       normalizeNode([node, path]);
     };
   }, [editor]);
+
+  console.log("Rendering Slate editor with", value.length, "elements");
 
   return (
     <div 

@@ -30,7 +30,7 @@ const ScriptContent: React.FC = () => {
 
   // Ensure we have elements with a stable initialization
   useEffect(() => {
-    if (elements === undefined || elements === null || elements.length === 0) {
+    if (!elements || !Array.isArray(elements) || elements.length === 0) {
       console.log("ScriptContent: Initializing with default elements");
       if (setElements) {
         const defaultElements = [
@@ -58,11 +58,11 @@ const ScriptContent: React.FC = () => {
 
   // Debug logging
   useEffect(() => {
-    console.log("ScriptContent rendering with", elements?.length || 0, "elements");
+    console.log("ScriptContent rendering with", elements?.length || 0, "elements", "valid array?", Array.isArray(elements));
   }, [elements]);
 
   // Show loading state if elements aren't ready
-  if (!elements || elements.length === 0) {
+  if (!elements || !Array.isArray(elements) || elements.length === 0) {
     return (
       <div className="flex justify-center items-center h-full w-full">
         <div className="p-4 text-center text-gray-500">
