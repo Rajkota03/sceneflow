@@ -14,25 +14,41 @@ export function useScriptElements(
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     onChange({ elements });
   }, [elements, onChange]);
 
-  const handleElementChange = (id: string, text: string, type: ElementType) => {
-    setElements(prevElements => 
-      prevElements.map(element => {
-        if (element.id === id) {
-          let updatedText = text;
-          // Auto-capitalize scene headings and character names
-          if (type === 'scene-heading' || type === 'character') {
-            updatedText = text.toUpperCase();
+  // Updated to handle array of elements directly from SlateEditor
+  const handleElementChange = (
+    idOrElements: string | ScriptElement[], 
+    text?: string, 
+    type?: ElementType
+  ) => {
+    // Handle direct array update from SlateEditor
+    if (Array.isArray(idOrElements)) {
+      setElements(idOrElements);
+      return;
+    }
+    
+    // Handle single element update (legacy support)
+    const id = idOrElements;
+    if (id && type) {
+      setElements(prevElements => 
+        prevElements.map(element => {
+          if (element.id === id) {
+            let updatedText = text || '';
+            // Auto-capitalize scene headings and character names
+            if (type === 'scene-heading' || type === 'character') {
+              updatedText = updatedText.toUpperCase();
+            }
+            return { ...element, text: updatedText, type };
           }
-          return { ...element, text: updatedText, type };
-        }
-        return element;
-      })
-    );
+          return element;
+        })
+      );
+    }
   };
 
   const getPreviousElementType = (index: number): ElementType | undefined => {
@@ -77,7 +93,8 @@ export function useScriptElements(
     const newElement: ScriptElement = {
       id: generateUniqueId(),
       type: newType,
-      text: initialText
+      text: initialText,
+      page: currentPage // Assign current page to new element
     };
     
     const newElements = [
@@ -119,15 +136,24 @@ export function useScriptElements(
     });
   };
 
+  // Update the current page based on active element
+  const updateCurrentPage = (elementId: string, pageNumber: number) => {
+    if (activeElementId === elementId) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   return {
     elements,
     setElements,
     activeElementId,
     setActiveElementId,
+    currentPage,
     handleElementChange,
     getPreviousElementType,
     addNewElement,
-    changeElementType
+    changeElementType,
+    updateCurrentPage
   };
 }
 

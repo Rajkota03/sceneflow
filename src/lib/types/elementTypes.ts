@@ -24,7 +24,8 @@ export interface ScriptElement {
   tags?: string[];
   act?: ActType;
   beat?: string; // Beat identifier
-  page?: number; // Added for page tracking
+  page?: number; // Page number this element appears on
+  continued?: boolean; // Indicates this element is continued from previous page
 }
 
 // Slate specific types
@@ -36,6 +37,7 @@ export type SlateElementType = {
   act?: ActType;
   beat?: string;
   page?: number;
+  continued?: boolean; // Indicates this element is continued from previous page
 }
 
 export type SlateText = {
@@ -60,4 +62,15 @@ export interface BeatSceneCount {
   count: number;
   pageRange?: string;
   sceneIds?: string[]; // Added to keep track of which scenes are tagged with this beat
+}
+
+// Pagination-related types
+export interface PageBreak {
+  elementId: string; // ID of the element before the page break
+  position: number; // Position within the element if it's split across pages
+}
+
+export interface ScriptPage {
+  elements: ScriptElement[];
+  pageNumber: number;
 }

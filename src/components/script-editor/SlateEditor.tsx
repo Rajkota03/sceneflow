@@ -1,5 +1,5 @@
 
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
@@ -125,6 +125,20 @@ declare module 'slate' {
   }
 }
 
+// Constants for page dimensions (in pixels)
+const PAGE_HEIGHT = 1056; // 11 inches at 96 DPI
+const PAGE_MARGINS = {
+  top: 96,    // 1 inch top margin
+  bottom: 96, // 1 inch bottom margin
+  left: 144,  // 1.5 inch left margin (standard for screenplay)
+  right: 96   // 1 inch right margin
+};
+const CONTENT_HEIGHT = PAGE_HEIGHT - PAGE_MARGINS.top - PAGE_MARGINS.bottom;
+
+// Element continuation markers
+const MORE_MARKER = "(MORE)";
+const CONTD_MARKER = "(CONT'D)";
+
 // Define the props for the SlateEditor component
 interface SlateEditorProps {
   elements: ScriptElement[];
@@ -165,6 +179,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   }, []);
   
   const [value, setValue] = useState<SlateElementType[]>(initialValue);
+  const [pages, setPages] = useState<SlateElementType[][]>([[]]);
+  const containerRef = useRef<HTMLDivElement>(null);
   
   // Update value when elements change from parent
   useEffect(() => {
@@ -201,6 +217,133 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     return <Leaf {...props} />;
   }, []);
+  
+  // Calculate pagination
+  useEffect(() => {
+    if (!containerRef.current || value.length === 0) return;
+    
+    // We need to defer pagination calculation to ensure elements are rendered
+    const timer = setTimeout(() => {
+      calculatePagination();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [value, formatState.zoomLevel]);
+  
+  // Function to calculate pagination
+  const calculatePagination = () => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const elementNodes = container.querySelectorAll('.element-container');
+    
+    let currentPage: SlateElementType[] = [];
+    let currentPageHeight = 0;
+    const newPages: SlateElementType[][] = [];
+    
+    // Track elements that should stay together (dialogue blocks)
+    let dialogueBlock: SlateElementType[] = [];
+    let isInDialogueBlock = false;
+    let dialogueBlockHeight = 0;
+    
+    // Helper to add a page
+    const addPage = () => {
+      if (currentPage.length > 0) {
+        newPages.push([...currentPage]);
+        currentPage = [];
+        currentPageHeight = 0;
+      }
+    };
+    
+    // Process each element
+    value.forEach((element, index) => {
+      const elementNode = elementNodes[index] as HTMLElement;
+      if (!elementNode) return;
+      
+      const elementHeight = elementNode.offsetHeight;
+      
+      // Check if this is part of a dialogue block (character + dialogue + optional parenthetical)
+      const isDialogueElement = element.type === 'character' || 
+                                element.type === 'dialogue' || 
+                                element.type === 'parenthetical';
+      
+      // Start a new dialogue block if this is a character
+      if (element.type === 'character') {
+        // If we were already in a dialogue block, add it to the current page
+        if (isInDialogueBlock) {
+          dialogueBlock.forEach(el => currentPage.push(el));
+          currentPageHeight += dialogueBlockHeight;
+          dialogueBlock = [];
+        }
+        
+        isInDialogueBlock = true;
+        dialogueBlock = [element];
+        dialogueBlockHeight = elementHeight;
+        return;
+      }
+      
+      // Add to existing dialogue block
+      if (isInDialogueBlock && isDialogueElement) {
+        dialogueBlock.push(element);
+        dialogueBlockHeight += elementHeight;
+        
+        // End dialogue block if this is the last dialogue element
+        if (element.type === 'dialogue' && 
+            (index === value.length - 1 || value[index + 1].type !== 'parenthetical')) {
+          
+          // Check if dialogue block fits on current page
+          if (currentPageHeight + dialogueBlockHeight <= CONTENT_HEIGHT) {
+            // Add dialogue block to current page
+            dialogueBlock.forEach(el => currentPage.push(el));
+            currentPageHeight += dialogueBlockHeight;
+          } else {
+            // Dialogue block doesn't fit - add current page and start a new one with dialogue block
+            addPage();
+            dialogueBlock.forEach(el => currentPage.push(el));
+            currentPageHeight = dialogueBlockHeight;
+          }
+          
+          // Reset dialogue block
+          isInDialogueBlock = false;
+          dialogueBlock = [];
+          dialogueBlockHeight = 0;
+        }
+        return;
+      }
+      
+      // Regular element (not part of dialogue block)
+      if (!isInDialogueBlock) {
+        // Check if element fits on current page
+        if (currentPageHeight + elementHeight <= CONTENT_HEIGHT) {
+          currentPage.push(element);
+          currentPageHeight += elementHeight;
+        } else {
+          // Element doesn't fit - add current page and start a new one
+          addPage();
+          currentPage.push(element);
+          currentPageHeight = elementHeight;
+        }
+      }
+    });
+    
+    // Add any remaining elements
+    if (isInDialogueBlock && dialogueBlock.length > 0) {
+      if (currentPageHeight + dialogueBlockHeight <= CONTENT_HEIGHT) {
+        dialogueBlock.forEach(el => currentPage.push(el));
+      } else {
+        addPage();
+        dialogueBlock.forEach(el => currentPage.push(el));
+      }
+    }
+    
+    // Add final page
+    if (currentPage.length > 0) {
+      newPages.push(currentPage);
+    }
+    
+    // Update pages state
+    setPages(newPages);
+  };
 
   // Handle content changes
   const handleChange = (newValue: Descendant[]) => {
@@ -377,32 +520,64 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt'
       }}
+      ref={containerRef}
     >
       <Slate
         editor={editor}
         initialValue={value}
         onChange={handleChange}
       >
-        <div 
-          className="script-page" 
-          style={{ 
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out'
-          }}
-        >
-          <Editable
-            className="script-page-content"
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            onKeyDown={handleKeyDown}
-            spellCheck={false}
-            style={{ 
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              padding: '1in 1in 1in 1.5in'
-            }}
-            placeholder="Begin typing your screenplay..."
-          />
+        <div className="script-pages">
+          {pages.map((pageElements, pageIndex) => (
+            <div 
+              key={`page-${pageIndex}`}
+              className="script-page" 
+              style={{ 
+                width: '8.5in',
+                height: '11in',
+                margin: '0 auto 30px auto',
+                padding: `${PAGE_MARGINS.top}px ${PAGE_MARGINS.right}px ${PAGE_MARGINS.bottom}px ${PAGE_MARGINS.left}px`,
+                backgroundColor: 'white',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+                transform: `scale(${formatState.zoomLevel})`,
+                transformOrigin: 'top center',
+                transition: 'transform 0.2s ease-out',
+                fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+                fontSize: '12pt'
+              }}
+            >
+              {/* Page number */}
+              <div 
+                className="page-number" 
+                style={{
+                  position: 'absolute',
+                  top: '0.5in',
+                  right: '1in',
+                  fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+                  fontSize: '12pt',
+                }}
+              >
+                {pageIndex + 1}.
+              </div>
+
+              {/* Render editable content */}
+              <Editable
+                className="script-page-content"
+                renderElement={renderElement}
+                renderLeaf={renderLeaf}
+                onKeyDown={handleKeyDown}
+                spellCheck={false}
+                style={{ 
+                  fontFamily: 'Courier Final Draft, Courier Prime, monospace',
+                  height: '100%',
+                  overflow: 'visible'
+                }}
+                placeholder="Begin typing your screenplay..."
+              />
+            </div>
+          ))}
         </div>
       </Slate>
     </div>

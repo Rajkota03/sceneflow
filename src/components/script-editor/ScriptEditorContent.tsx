@@ -32,7 +32,12 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   // Handler for Slate editor content changes
   const handleSlateChange = (newElements: any) => {
     // This will update context with new elements
-    handleElementChange('', '', 'action' as ElementType); // Using proper casting for empty string
+    if (newElements && Array.isArray(newElements)) {
+      handleElementChange(newElements);
+    } else {
+      // Fallback for old API
+      handleElementChange('', '', 'action' as ElementType);
+    }
   };
 
   return (
