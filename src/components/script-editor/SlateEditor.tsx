@@ -116,7 +116,6 @@ const PageBreak = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
     className="page-break"
-    contentEditable={false}
     style={{ 
       width: '100%',
       borderBottom: '1px dashed #999',
@@ -530,132 +529,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     };
   }, [editor]);
 
-  // Render actual pages with separate script page styling
-  const renderPages = () => {
-    return pages.map((pageElements, pageIndex) => (
-      <div 
-        key={`page-${pageIndex}`} 
-        className="script-page mb-8 relative"
-        style={{ 
-          width: '8.5in',
-          height: '11in',
-          backgroundColor: 'white',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-          marginBottom: '0.5in',
-          pageBreakAfter: 'always',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        {/* Page number */}
-        <div 
-          className="absolute top-8 right-16 text-gray-700"
-          style={{
-            fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-            fontSize: '12pt',
-          }}
-        >
-          {pageIndex + 1}.
-        </div>
-        
-        {/* Page content container with proper margins */}
-        <div 
-          className="script-page-content"
-          style={{ 
-            padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
-            height: '100%',
-            overflow: 'hidden',
-            boxSizing: 'border-box'
-          }}
-        >
-          {/* Render each element on this page */}
-          {pageElements.map((element) => (
-            <div key={element.id} className={`element-${element.type}`}>
-              {/* Use standard JSX to render static elements */}
-              {element.type === 'scene-heading' && (
-                <div className="scene-heading" style={{ 
-                  textTransform: 'uppercase',
-                  fontWeight: 'bold',
-                  marginBottom: '1em'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'action' && (
-                <div className="action" style={{ 
-                  marginBottom: '1em',
-                  width: '100%'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'character' && (
-                <div className="character" style={{ 
-                  width: '38%',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  textAlign: 'center',
-                  textTransform: 'uppercase',
-                  fontWeight: 'bold',
-                  marginBottom: '0.1em'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'dialogue' && (
-                <div className="dialogue" style={{ 
-                  width: '62%',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  marginBottom: '1em'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'parenthetical' && (
-                <div className="parenthetical" style={{ 
-                  width: '40%',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                  fontStyle: 'italic',
-                  marginBottom: '0.1em'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'transition' && (
-                <div className="transition" style={{ 
-                  width: '100%',
-                  textAlign: 'right',
-                  textTransform: 'uppercase',
-                  fontWeight: 'bold',
-                  marginBottom: '1em'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-              
-              {element.type === 'note' && (
-                <div className="note" style={{ 
-                  width: '100%',
-                  fontStyle: 'italic',
-                  color: '#666'
-                }}>
-                  {element.children[0].text}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    ));
-  };
-
   return (
     <div 
       className={`slate-editor ${className}`}
@@ -669,22 +542,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         initialValue={value}
         onChange={handleChange}
       >
-        {/* Hidden editable area for editing */}
-        <div 
-          style={{ 
-            position: 'absolute', 
-            left: '-9999px', 
-            width: '100%' 
-          }}
-        >
-          <Editable
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            onKeyDown={handleKeyDown}
-            spellCheck={false}
-          />
-        </div>
-        
         {/* Visible pages container with proper scaling */}
         <div 
           className="pages-container mt-4" 
@@ -699,8 +556,59 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             paddingBottom: '2in' // Extra space at the bottom
           }}
         >
-          {/* Display static rendered pages */}
-          {renderPages()}
+          {/* Render editable pages */}
+          {pages.map((pageElements, pageIndex) => (
+            <div 
+              key={`page-${pageIndex}`} 
+              className="script-page mb-8 relative"
+              style={{ 
+                width: '8.5in',
+                height: '11in',
+                backgroundColor: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                marginBottom: '0.5in',
+                pageBreakAfter: 'always',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {/* Page number */}
+              <div 
+                className="absolute top-8 right-16 text-gray-700"
+                style={{
+                  fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+                  fontSize: '12pt',
+                }}
+              >
+                {pageIndex + 1}.
+              </div>
+              
+              {/* Page content container with proper margins */}
+              <div 
+                className="script-page-content"
+                style={{ 
+                  padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
+                  height: '100%',
+                  overflow: 'hidden',
+                  boxSizing: 'border-box'
+                }}
+              >
+                <Editable
+                  renderElement={renderElement}
+                  renderLeaf={renderLeaf}
+                  onKeyDown={handleKeyDown}
+                  spellCheck={false}
+                  className="h-full outline-none"
+                  style={{
+                    fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+                    fontSize: '12pt',
+                    lineHeight: '1.5',
+                    cursor: 'text'
+                  }}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </Slate>
       
