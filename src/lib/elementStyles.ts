@@ -1,4 +1,3 @@
-
 import { ElementType } from '@/lib/types';
 
 export const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
@@ -101,8 +100,20 @@ export const getScriptPageStyles = (): React.CSSProperties => {
     fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
     fontSize: '12pt',
     lineHeight: '1.2',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    backgroundColor: 'white',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    margin: '2rem auto',
+    position: 'relative',
+    pageBreakAfter: 'always',
+    pageBreakInside: 'avoid'
   };
+};
+
+// Calculate lines per page based on standard screenplay formatting
+export const LINES_PER_PAGE = 55; // Standard screenplay page has ~55 lines
+export const calculatePageNumber = (lineNumber: number): number => {
+  return Math.floor(lineNumber / LINES_PER_PAGE) + 1;
 };
 
 // Page content styles

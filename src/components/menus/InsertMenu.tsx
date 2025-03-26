@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   MenubarMenu, 
@@ -9,6 +8,8 @@ import {
   MenubarShortcut
 } from '@/components/ui/menubar';
 import { toast } from '@/components/ui/use-toast';
+import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
+import { ElementType } from '@/lib/types';
 
 const InsertMenu = () => {
   const handleAddAlt = () => {
@@ -33,6 +34,20 @@ const InsertMenu = () => {
   };
 
   const handlePageBreak = () => {
+    const { elements, setElements } = useScriptEditor();
+    if (!elements) return;
+
+    const newElements = [...elements];
+    // Insert a special marker element that forces a page break
+    newElements.push({
+      id: crypto.randomUUID(),
+      type: 'action' as ElementType,
+      text: '',
+      pageBreak: true
+    });
+    
+    setElements(newElements);
+    
     toast({
       title: "Page Break",
       description: "Manual page break inserted",

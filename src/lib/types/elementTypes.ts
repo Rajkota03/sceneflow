@@ -1,4 +1,3 @@
-
 // Element-related types
 export type ElementType = 
   'scene-heading' | 
@@ -23,8 +22,9 @@ export interface ScriptElement {
   text: string;
   tags?: string[];
   act?: ActType;
-  beat?: string; // Beat identifier
-  page?: number; // Added for page tracking
+  beat?: string;
+  page?: number;
+  pageBreak?: boolean; // Added for manual page breaks
 }
 
 // Slate specific types

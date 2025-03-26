@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ScriptElement, ElementType, Structure } from '@/lib/types';
 import EditorElement from '../EditorElement';
@@ -42,18 +41,31 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
   beatMode,
   selectedStructure,
   formatState,
-  currentPage,
-  onBeatTag
+  currentPage
 }) => {
   const { showKeyboardShortcuts } = useScriptEditor();
-  
-  // Create elements if none exist
-  const displayElements = elements.length > 0 ? elements : [];
   
   const scriptPageStyles = getScriptPageStyles();
   const pageContentStyles = getPageContentStyles();
 
-  // Render the appropriate element component based on type
+  return (
+    <div className="script-page relative" style={scriptPageStyles}>
+      <div 
+        className="absolute top-4 w-full text-center"
+        style={{
+          fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+          fontSize: '12pt',
+        }}
+      >
+        {currentPage}
+      </div>
+
+      <div className="script-page-content" style={pageContentStyles}>
+        {elements.map((element, index) => renderElement(element, index))}
+      </div>
+    </div>
+  );
+  
   const renderElement = (element: ScriptElement, index: number) => {
     const isActive = activeElementId === element.id;
     const previousElementType = getPreviousElementType(index - 1);
@@ -90,7 +102,6 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
           />
         );
       default:
-        // Use the generic EditorElement for other types for now
         return (
           <EditorElement
             key={element.id}
@@ -112,30 +123,6 @@ const ScriptPage: React.FC<ScriptPageProps> = ({
         );
     }
   };
-
-  return (
-    <div className="script-page" style={{ 
-      ...scriptPageStyles,
-      transform: `scale(${formatState?.zoomLevel || 1})`,
-      transformOrigin: 'top center',
-      transition: 'transform 0.2s ease-out',
-    }}>
-      <div className="script-page-content" style={{
-        ...pageContentStyles,
-        position: 'relative'
-      }}>
-        {/* Page number positioned inside the page */}
-        <div className="page-number absolute top-4 right-12 text-gray-700 font-bold text-sm z-10" style={{
-          fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-          fontSize: "12pt",
-        }}>
-          {currentPage}
-        </div>
-        
-        {displayElements.map((element, index) => renderElement(element, index))}
-      </div>
-    </div>
-  );
 };
 
 export default ScriptPage;
