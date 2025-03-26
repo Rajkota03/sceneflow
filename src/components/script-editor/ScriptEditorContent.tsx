@@ -30,17 +30,20 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   // Handler for Slate editor content changes
-  const handleSlateChange = (newElements: ScriptElement[] | any) => {
+  const handleSlateChange = (newElements: ScriptElement[] | string, text?: string, type?: ElementType) => {
     // Check if newElements is an array (new API)
-    if (newElements && Array.isArray(newElements)) {
+    if (Array.isArray(newElements)) {
       handleElementChange(newElements);
+    } else if (typeof newElements === 'string' && text !== undefined && type !== undefined) {
+      // Old API with 3 parameters
+      handleElementChange(newElements, text, type);
     } else {
-      // Fallback for old API - need to provide all three required arguments
+      // Fallback with default values if parameters are incorrect
       console.log("Using fallback method for handleElementChange");
-      const id = typeof newElements === 'string' ? newElements : '';
-      const text = arguments[1] || '';
-      const type = arguments[2] || 'action';
-      handleElementChange(id, text, type as ElementType);
+      const defaultId = typeof newElements === 'string' ? newElements : '';
+      const defaultText = text || '';
+      const defaultType = type || 'action';
+      handleElementChange(defaultId, defaultText, defaultType as ElementType);
     }
   };
 
