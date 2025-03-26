@@ -14,7 +14,7 @@ import { ElementType } from '@/lib/types';
 import { createPageBreakElement } from '@/lib/slateUtils';
 
 const InsertMenu = () => {
-  const { elements, setElements } = useScriptEditor();
+  const { elements, setElements, activeElementId } = useScriptEditor();
 
   const handleAddAlt = () => {
     toast({
@@ -38,17 +38,30 @@ const InsertMenu = () => {
   };
 
   const handlePageBreak = () => {
-    if (!elements) return;
-
-    const newElements = [...elements];
+    if (!elements || !activeElementId) {
+      toast({
+        title: "No element selected",
+        description: "Please select an element first",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    // Insert a special marker element that forces a page break
-    newElements.push({
-      id: crypto.randomUUID(),
-      type: 'action' as ElementType,
-      text: '',
-      pageBreak: true
-    });
+    // Find the index of the active element
+    const activeIndex = elements.findIndex(element => element.id === activeElementId);
+    if (activeIndex === -1) return;
+    
+    // Create a new array with a page break inserted after the active element
+    const newElements = [
+      ...elements.slice(0, activeIndex + 1),
+      {
+        id: crypto.randomUUID(),
+        type: 'action' as ElementType,
+        text: '',
+        pageBreak: true
+      },
+      ...elements.slice(activeIndex + 1)
+    ];
     
     setElements(newElements);
     
@@ -59,6 +72,19 @@ const InsertMenu = () => {
   };
 
   const handleNewScene = () => {
+    if (!elements) return;
+
+    const newElements = [...elements];
+    
+    // Add a new scene heading
+    newElements.push({
+      id: crypto.randomUUID(),
+      type: 'scene-heading' as ElementType,
+      text: 'INT. NEW LOCATION - DAY'
+    });
+    
+    setElements(newElements);
+    
     toast({
       title: "New Scene",
       description: "New scene added to the script",

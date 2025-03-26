@@ -22,6 +22,7 @@ const FormatMenu = () => {
   const { formatState, setFont, setFontSize, setLineSpacing } = useFormat();
   const { activeElementId, changeElementType, elements, setElements } = useScriptEditor();
   const [showSceneNumbers, setShowSceneNumbers] = useState(false);
+  const [showPageNumbers, setShowPageNumbers] = useState(true);
   
   const handleElementChange = (elementType: ElementType) => {
     if (!activeElementId) {
@@ -46,6 +47,14 @@ const FormatMenu = () => {
     toast({
       title: `Scene Numbers ${!showSceneNumbers ? "Enabled" : "Disabled"}`,
       description: `Scene numbers are now ${!showSceneNumbers ? "visible" : "hidden"} in the script.`,
+    });
+  };
+
+  const togglePageNumbers = () => {
+    setShowPageNumbers(!showPageNumbers);
+    toast({
+      title: `Page Numbers ${!showPageNumbers ? "Enabled" : "Disabled"}`,
+      description: `Page numbers are now ${!showPageNumbers ? "visible" : "hidden"} in the script.`,
     });
   };
 
@@ -139,6 +148,9 @@ const FormatMenu = () => {
         <MenubarSeparator />
         <MenubarCheckboxItem checked={showSceneNumbers} onClick={toggleSceneNumbers}>
           Scene Numbers
+        </MenubarCheckboxItem>
+        <MenubarCheckboxItem checked={showPageNumbers} onClick={togglePageNumbers}>
+          Page Numbers
         </MenubarCheckboxItem>
         <MenubarItem onClick={handlePageBreak}>
           Page Break

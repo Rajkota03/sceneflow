@@ -1,5 +1,5 @@
 
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
 import { withHistory, HistoryEditor } from 'slate-history';
@@ -111,7 +111,7 @@ const Note = ({ attributes, children }: RenderElementProps) => (
   </div>
 );
 
-// Add a new PageBreak component
+// Page Break component
 const PageBreak = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
@@ -131,7 +131,7 @@ const PageBreak = ({ attributes, children }: RenderElementProps) => (
       top: '-5px',
       left: '50%',
       transform: 'translateX(-50%)',
-      background: '#fff',
+      background: 'white',
       padding: '0 8px',
       color: '#999',
       fontSize: '10px',
@@ -146,7 +146,6 @@ const PageBreak = ({ attributes, children }: RenderElementProps) => (
 
 // Custom leaf renderer for text formatting
 const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
-  // Add more styling here for future formatting options
   return <span {...attributes}>{children}</span>;
 };
 
@@ -158,6 +157,37 @@ declare module 'slate' {
     Text: { text: string };
   }
 }
+
+// Constants for page calculation
+const LINES_PER_PAGE = 55; // Standard screenplay page has ~55 lines
+const CHARS_PER_LINE = 60; // Approximate characters per line in Courier 12pt
+const ELEMENT_TYPE_LINE_COUNT: Record<ElementType, number> = {
+  'scene-heading': 1,
+  'action': 1,      // Dynamic based on content
+  'character': 1,
+  'dialogue': 1,    // Dynamic based on content
+  'parenthetical': 1,
+  'transition': 1,
+  'note': 1
+};
+
+// Estimate lines based on text length and element type
+const estimateLines = (text: string, type: ElementType): number => {
+  if (!text) return 1;
+  
+  let width = 100;
+  
+  // Adjust width based on element type
+  if (type === 'dialogue') width = 62;
+  else if (type === 'character') width = 38;
+  else if (type === 'parenthetical') width = 40;
+  
+  // Estimate characters per line based on width percentage
+  const effectiveCharsPerLine = Math.floor(CHARS_PER_LINE * (width / 100));
+  
+  // Calculate lines needed (round up)
+  return Math.max(1, Math.ceil(text.length / effectiveCharsPerLine));
+};
 
 // Define the props for the SlateEditor component
 interface SlateEditorProps {
@@ -181,6 +211,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
 }) => {
   // Create a Slate editor object that won't change across renders
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const pagesRef = useRef<HTMLDivElement>(null);
+  const [pages, setPages] = useState<SlateElementType[][]>([]);
+  const [pageCount, setPageCount] = useState(1);
   
   // Convert script elements to Slate's format for the initial state
   const initialValue = useMemo(() => {
@@ -206,6 +239,63 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       setValue(scriptToSlate(elements));
     }
   }, [elements]);
+  
+  // Calculate pages based on content
+  useEffect(() => {
+    if (!value || value.length === 0) return;
+
+    let currentPage: SlateElementType[] = [];
+    let pages: SlateElementType[][] = [];
+    let lineCount = 0;
+    
+    // Process each element to determine page breaks
+    value.forEach((element, index) => {
+      // If element has pageBreak property, force a new page
+      if (element.pageBreak) {
+        // Add current page if it has content
+        if (currentPage.length > 0) {
+          pages.push([...currentPage]);
+          currentPage = [];
+          lineCount = 0;
+        }
+        return;
+      }
+      
+      // Estimate lines for this element
+      const elementText = element.children.map(c => c.text).join('');
+      const estimatedLines = estimateLines(elementText, element.type);
+      
+      // If adding this element would exceed page limit, start a new page
+      if (lineCount + estimatedLines > LINES_PER_PAGE && currentPage.length > 0) {
+        pages.push([...currentPage]);
+        currentPage = [];
+        lineCount = 0;
+      }
+      
+      // Add element to current page
+      currentPage.push(element);
+      lineCount += estimatedLines;
+    });
+    
+    // Add the last page if it has content
+    if (currentPage.length > 0) {
+      pages.push(currentPage);
+    }
+    
+    // Ensure at least one page
+    if (pages.length === 0) {
+      pages = [[
+        {
+          id: uuidv4(),
+          type: 'action',
+          children: [{ text: '' }],
+        } as SlateElementType
+      ]];
+    }
+    
+    setPages(pages);
+    setPageCount(pages.length);
+  }, [value]);
   
   // Define a rendering function for each element type
   const renderElement = useCallback((props: RenderElementProps) => {
@@ -253,7 +343,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       case 'scene-heading':
         return 'action';
       case 'action':
-        // IMPORTANT: Action always followed by action
         return 'action';
       case 'character':
         return 'dialogue';
@@ -441,6 +530,132 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     };
   }, [editor]);
 
+  // Render actual pages with separate script page styling
+  const renderPages = () => {
+    return pages.map((pageElements, pageIndex) => (
+      <div 
+        key={`page-${pageIndex}`} 
+        className="script-page mb-8 relative"
+        style={{ 
+          width: '8.5in',
+          height: '11in',
+          backgroundColor: 'white',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '0.5in',
+          pageBreakAfter: 'always',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        {/* Page number */}
+        <div 
+          className="absolute top-8 right-16 text-gray-700"
+          style={{
+            fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+            fontSize: '12pt',
+          }}
+        >
+          {pageIndex + 1}.
+        </div>
+        
+        {/* Page content container with proper margins */}
+        <div 
+          className="script-page-content"
+          style={{ 
+            padding: '1in 1in 1in 1.5in', /* Top, Right, Bottom, Left - standard screenplay margins */
+            height: '100%',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
+          }}
+        >
+          {/* Render each element on this page */}
+          {pageElements.map((element) => (
+            <div key={element.id} className={`element-${element.type}`}>
+              {/* Use standard JSX to render static elements */}
+              {element.type === 'scene-heading' && (
+                <div className="scene-heading" style={{ 
+                  textTransform: 'uppercase',
+                  fontWeight: 'bold',
+                  marginBottom: '1em'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'action' && (
+                <div className="action" style={{ 
+                  marginBottom: '1em',
+                  width: '100%'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'character' && (
+                <div className="character" style={{ 
+                  width: '38%',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  fontWeight: 'bold',
+                  marginBottom: '0.1em'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'dialogue' && (
+                <div className="dialogue" style={{ 
+                  width: '62%',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  marginBottom: '1em'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'parenthetical' && (
+                <div className="parenthetical" style={{ 
+                  width: '40%',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                  fontStyle: 'italic',
+                  marginBottom: '0.1em'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'transition' && (
+                <div className="transition" style={{ 
+                  width: '100%',
+                  textAlign: 'right',
+                  textTransform: 'uppercase',
+                  fontWeight: 'bold',
+                  marginBottom: '1em'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+              
+              {element.type === 'note' && (
+                <div className="note" style={{ 
+                  width: '100%',
+                  fontStyle: 'italic',
+                  color: '#666'
+                }}>
+                  {element.children[0].text}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ));
+  };
+
   return (
     <div 
       className={`slate-editor ${className}`}
@@ -454,28 +669,45 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         initialValue={value}
         onChange={handleChange}
       >
+        {/* Hidden editable area for editing */}
         <div 
-          className="script-page" 
           style={{ 
-            transform: `scale(${formatState.zoomLevel})`,
-            transformOrigin: 'top center',
-            transition: 'transform 0.2s ease-out'
+            position: 'absolute', 
+            left: '-9999px', 
+            width: '100%' 
           }}
         >
           <Editable
-            className="script-page-content"
             renderElement={renderElement}
             renderLeaf={renderLeaf}
             onKeyDown={handleKeyDown}
             spellCheck={false}
-            style={{ 
-              fontFamily: 'Courier Final Draft, Courier Prime, monospace',
-              padding: '1in 1in 1in 1.5in'
-            }}
-            placeholder="Begin typing your screenplay..."
           />
         </div>
+        
+        {/* Visible pages container with proper scaling */}
+        <div 
+          className="pages-container mt-4" 
+          ref={pagesRef}
+          style={{ 
+            transform: `scale(${formatState.zoomLevel})`,
+            transformOrigin: 'top center',
+            transition: 'transform 0.2s ease-out',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            paddingBottom: '2in' // Extra space at the bottom
+          }}
+        >
+          {/* Display static rendered pages */}
+          {renderPages()}
+        </div>
       </Slate>
+      
+      {/* Page count indicator */}
+      <div className="text-center mt-4 text-sm text-gray-500">
+        {pageCount} {pageCount === 1 ? 'page' : 'pages'}
+      </div>
     </div>
   );
 };

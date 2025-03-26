@@ -10,17 +10,9 @@ const ScriptContent: React.FC = () => {
   const {
     elements,
     setElements,
-    activeElementId,
-    setActiveElementId,
-    handleElementChange,
-    changeElementType,
-    handleTagsChange,
-    characterNames,
-    projectId,
     beatMode,
     selectedStructure,
     scriptContentRef,
-    handleBeatTag
   } = useScriptEditor();
 
   const handleContentChange = (newElements: any[]) => {
@@ -30,7 +22,7 @@ const ScriptContent: React.FC = () => {
   return (
     <ScrollArea className="h-full w-full overflow-auto">
       <div 
-        className="flex flex-col items-center w-full pt-8 pb-20 space-y-12"
+        className="flex flex-col items-center w-full pt-8 pb-20"
         ref={scriptContentRef}
       >
         <div className="w-full max-w-4xl mx-auto">
