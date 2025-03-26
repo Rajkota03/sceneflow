@@ -11,7 +11,8 @@ export const scriptToSlate = (elements: ScriptElement[]): SlateDocument => {
     tags: element.tags,
     act: element.act,
     beat: element.beat,
-    page: element.page
+    page: element.page,
+    pageBreak: element.pageBreak
   }));
 };
 
@@ -24,7 +25,8 @@ export const slateToScript = (document: SlateDocument): ScriptElement[] => {
     tags: node.tags,
     act: node.act,
     beat: node.beat,
-    page: node.page
+    page: node.page,
+    pageBreak: node.pageBreak
   }));
 };
 
@@ -42,6 +44,19 @@ export const createSlateElement = (
   };
 };
 
+// Create a page break element
+export const createPageBreakElement = (
+  id: string = crypto.randomUUID()
+): SlateElementType => {
+  return {
+    id,
+    type: 'action',
+    children: [{ text: '' }],
+    pageBreak: true,
+    tags: [],
+  };
+};
+
 // Helper to get text content from a Slate element
 export const getNodeText = (node: SlateElementType) => {
   return node.children.map(child => child.text).join('');
@@ -50,6 +65,11 @@ export const getNodeText = (node: SlateElementType) => {
 // Check if an element is of a specific type
 export const isElementType = (element: SlateElementType, type: SlateElementType['type']) => {
   return element.type === type;
+};
+
+// Check if an element is a page break
+export const isPageBreak = (element: SlateElementType) => {
+  return element.pageBreak === true;
 };
 
 // Check if the selection is in a specific element type

@@ -15,12 +15,26 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { ElementType } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
+import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
+import { createPageBreakElement } from '@/lib/slateUtils';
 
 const FormatMenu = () => {
   const { formatState, setFont, setFontSize, setLineSpacing } = useFormat();
+  const { activeElementId, changeElementType, elements, setElements } = useScriptEditor();
   const [showSceneNumbers, setShowSceneNumbers] = useState(false);
   
   const handleElementChange = (elementType: ElementType) => {
+    if (!activeElementId) {
+      toast({
+        title: "No element selected",
+        description: "Please select an element first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    changeElementType(activeElementId, elementType);
+    
     toast({
       title: `Changed to ${elementType}`,
       description: `The current element has been changed to ${elementType}.`,
@@ -36,6 +50,33 @@ const FormatMenu = () => {
   };
 
   const handlePageBreak = () => {
+    if (!elements || !activeElementId) {
+      toast({
+        title: "No element selected",
+        description: "Please select an element first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Find the index of the active element
+    const activeIndex = elements.findIndex(element => element.id === activeElementId);
+    if (activeIndex === -1) return;
+    
+    // Create a new array with a page break inserted after the active element
+    const newElements = [
+      ...elements.slice(0, activeIndex + 1),
+      {
+        id: crypto.randomUUID(),
+        type: 'action' as ElementType,
+        text: '',
+        pageBreak: true
+      },
+      ...elements.slice(activeIndex + 1)
+    ];
+    
+    setElements(newElements);
+    
     toast({
       title: "Page Break Inserted",
       description: "A manual page break has been added to the script.",
@@ -101,6 +142,7 @@ const FormatMenu = () => {
         </MenubarCheckboxItem>
         <MenubarItem onClick={handlePageBreak}>
           Page Break
+          <MenubarShortcut>⌘⏎</MenubarShortcut>
         </MenubarItem>
         <MenubarSeparator />
         <MenubarSub>

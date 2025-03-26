@@ -8,6 +8,7 @@ import { SlateElementType, ElementType, ScriptElement } from '@/lib/types';
 import { scriptToSlate, slateToScript, createSlateElement } from '@/lib/slateUtils';
 import { formatType } from '@/lib/formatScript';
 import { useScriptEditor } from './ScriptEditorProvider';
+import { Separator } from '@/components/ui/separator';
 
 // Define custom element renderers for script elements
 const SceneHeading = ({ attributes, children }: RenderElementProps) => (
@@ -110,6 +111,39 @@ const Note = ({ attributes, children }: RenderElementProps) => (
   </div>
 );
 
+// Add a new PageBreak component
+const PageBreak = ({ attributes, children }: RenderElementProps) => (
+  <div 
+    {...attributes} 
+    className="page-break"
+    contentEditable={false}
+    style={{ 
+      width: '100%',
+      borderBottom: '1px dashed #999',
+      margin: '10px 0',
+      position: 'relative',
+      userSelect: 'none',
+      height: '20px'
+    }}
+  >
+    <div className="page-break-text" style={{
+      position: 'absolute',
+      top: '-5px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: '#fff',
+      padding: '0 8px',
+      color: '#999',
+      fontSize: '10px',
+      textTransform: 'uppercase',
+      letterSpacing: '1px'
+    }}>
+      Page Break
+    </div>
+    {children}
+  </div>
+);
+
 // Custom leaf renderer for text formatting
 const Leaf = ({ attributes, children, leaf }: RenderLeafProps) => {
   // Add more styling here for future formatting options
@@ -177,6 +211,11 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   const renderElement = useCallback((props: RenderElementProps) => {
     const element = props.element as SlateElementType;
     
+    // Handle page breaks as a special case
+    if (element.pageBreak) {
+      return <PageBreak {...props} />;
+    }
+    
     switch (element.type) {
       case 'scene-heading':
         return <SceneHeading {...props} />;
@@ -209,7 +248,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   };
   
   // Get the next element type based on the current one
-  // Fixed to return 'action' after an action element
   const getNextElementType = (currentType: ElementType): ElementType => {
     switch (currentType) {
       case 'scene-heading':
@@ -326,6 +364,39 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         
         // Move the selection to the new element
         Transforms.select(editor, Path.next(selection.focus.path.slice(0, 1)));
+        
+        return;
+      }
+      
+      // Add shortcut for page break (Ctrl/Cmd + Enter)
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        
+        // Create a page break element
+        const pageBreakElement: SlateElementType = {
+          type: 'action',
+          id: uuidv4(),
+          pageBreak: true,
+          children: [{ text: '' }]
+        };
+        
+        // Insert the page break after the current element
+        Transforms.insertNodes(
+          editor,
+          pageBreakElement,
+          { at: Path.next(selection.focus.path.slice(0, 1)) }
+        );
+        
+        // Insert a new action element after the page break
+        const newActionElement = createSlateElement('action');
+        Transforms.insertNodes(
+          editor,
+          newActionElement,
+          { at: Path.next(Path.next(selection.focus.path.slice(0, 1))) }
+        );
+        
+        // Move selection to the new action element
+        Transforms.select(editor, Path.next(Path.next(selection.focus.path.slice(0, 1))));
         
         return;
       }

@@ -11,6 +11,7 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
 import { ElementType } from '@/lib/types';
+import { createPageBreakElement } from '@/lib/slateUtils';
 
 const InsertMenu = () => {
   const { elements, setElements } = useScriptEditor();
@@ -40,6 +41,7 @@ const InsertMenu = () => {
     if (!elements) return;
 
     const newElements = [...elements];
+    
     // Insert a special marker element that forces a page break
     newElements.push({
       id: crypto.randomUUID(),
@@ -125,6 +127,7 @@ const InsertMenu = () => {
         </MenubarItem>
         <MenubarItem onClick={handlePageBreak}>
           Page Break
+          <MenubarShortcut>⌘⏎</MenubarShortcut>
         </MenubarItem>
         <MenubarItem onClick={handleNewScene}>
           New Scene

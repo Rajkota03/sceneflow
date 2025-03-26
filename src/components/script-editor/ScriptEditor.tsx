@@ -3,7 +3,7 @@ import React from 'react';
 import { ScriptContent as ScriptContentType } from '../../lib/types';
 import { useFormat } from '@/lib/formatContext';
 import ScriptEditorProvider from './ScriptEditorProvider';
-import ScriptEditorContent from './ScriptEditorContent';
+import ScriptContent from './ScriptContent';
 import { Note } from '@/lib/types';
 import { BeatMode } from '@/types/scriptTypes';
 
@@ -55,11 +55,7 @@ const ScriptEditor = ({
       onStructureChange={onStructureChange}
       projectTitle={projectName}
     >
-      <ScriptEditorContent
-        className={className}
-        zoomPercentage={zoomPercentage} 
-        onZoomChange={handleZoomChange}
-      />
+      <ScriptContent />
     </ScriptEditorProvider>
   );
 };
