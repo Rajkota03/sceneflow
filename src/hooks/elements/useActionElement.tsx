@@ -82,36 +82,17 @@ export function useActionElement({
           e.preventDefault();
           
           // Create new element then change its type
-          onEnterKey(element.id, false);
+          const typeMap: Record<string, ElementType> = {
+            '1': 'scene-heading',
+            '2': 'action',
+            '3': 'character',
+            '4': 'dialogue',
+            '5': 'parenthetical',
+            '6': 'transition'
+          };
           
-          setTimeout(() => {
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                const typeMap: Record<string, ElementType> = {
-                  '1': 'scene-heading',
-                  '2': 'action',
-                  '3': 'character',
-                  '4': 'dialogue',
-                  '5': 'parenthetical',
-                  '6': 'transition'
-                };
-                
-                const newType = typeMap[e.key];
-                onFormatChange(activeElementId, newType);
-
-                // Add default text for transition
-                if (newType === 'transition') {
-                  const newElement = document.querySelector('.active-element');
-                  if (newElement && newElement.textContent?.trim() === '') {
-                    newElement.textContent = 'CUT TO:';
-                    onChange(activeElementId, 'CUT TO:', newType);
-                  }
-                }
-              }
-            }
-          }, 10);
+          const newType = typeMap[e.key];
+          onFormatChange(element.id, newType);
           return;
         
         default:
@@ -121,6 +102,7 @@ export function useActionElement({
 
     if (e.key === 'Enter') {
       e.preventDefault();
+      console.log("Enter pressed in action element, creating new action element");
       // Action always followed by action when pressing Enter
       onEnterKey(element.id, e.shiftKey);
     } else if (e.key === 'ArrowUp') {

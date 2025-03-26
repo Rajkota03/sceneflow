@@ -56,6 +56,7 @@ export function useScriptNavigation({
       case 'action':
         // IMPORTANT: When in action, ALWAYS follow with action
         nextType = 'action';
+        console.log("Creating new ACTION element after action");
         break;
       case 'character':
         nextType = 'dialogue';
@@ -74,6 +75,8 @@ export function useScriptNavigation({
         nextType = 'action';
     }
     
+    console.log(`Creating new element of type: ${nextType} after element type: ${currentElement.type}`);
+    
     // Create a new element with the determined type
     const newElement: ScriptElement = {
       id: generateUniqueId(),
@@ -82,7 +85,7 @@ export function useScriptNavigation({
     };
     
     // Special case for character continuation
-    if (nextType === 'character' as ElementType) {
+    if (newElement.type === 'character') {
       let prevCharIndex = -1;
       for (let i = currentIndex - 1; i >= 0; i--) {
         if (elements[i].type === 'character') {
