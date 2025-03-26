@@ -33,8 +33,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const handleSlateChange = (newElements: ScriptElement[] | string, text?: string, type?: ElementType) => {
     // Check if newElements is an array (new API)
     if (Array.isArray(newElements)) {
-      // When using the array API, we're directly updating the entire elements array
-      handleElementChange(newElements, '', 'action');
+      // When using the array API, we need to call onChange directly
+      // instead of using handleElementChange since it expects different parameters
+      onChange(newElements);
     } else if (typeof newElements === 'string' && text !== undefined && type !== undefined) {
       // Old API with 3 parameters
       handleElementChange(newElements, text, type);
@@ -45,6 +46,22 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       const defaultText = text || '';
       const defaultType = type || 'action';
       handleElementChange(defaultId, defaultText, defaultType as ElementType);
+    }
+  };
+
+  // Direct handler for array updates from SlateEditor
+  const onChange = (updatedElements: ScriptElement[]) => {
+    if (Array.isArray(updatedElements)) {
+      // We need to handle the array update differently
+      // Since handleElementChange expects a string ID and other parameters
+      // Here we just want to update the entire elements array
+      console.log("Updating entire elements array with", updatedElements.length, "elements");
+      
+      // Pass the first element's ID as a placeholder, but the actual update will use the array
+      if (updatedElements.length > 0) {
+        const firstElement = updatedElements[0];
+        handleElementChange(firstElement.id, JSON.stringify(updatedElements), 'action');
+      }
     }
   };
 
@@ -88,4 +105,3 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
 };
 
 export default ScriptEditorContent;
-
