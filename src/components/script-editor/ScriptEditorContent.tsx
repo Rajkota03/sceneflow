@@ -35,7 +35,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     if (newElements && Array.isArray(newElements)) {
       handleElementChange(newElements);
     } else {
-      // Fallback for old API
+      // Fallback for old API - need to provide all three required arguments
       handleElementChange('', '', 'action' as ElementType);
     }
   };
