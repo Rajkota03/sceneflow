@@ -27,33 +27,40 @@ const ScriptContent: React.FC = () => {
     scriptContentRef
   } = useScriptEditor();
 
-  // Ensure we have elements
+  // Ensure we have elements with a stable initialization
   useEffect(() => {
-    if ((!elements || elements.length === 0) && setElements) {
+    if (elements === undefined || elements === null || elements.length === 0) {
       console.log("ScriptContent: Initializing with default elements");
-      setElements([
-        {
-          id: crypto.randomUUID(),
-          type: 'scene-heading',
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: crypto.randomUUID(),
-          type: 'action',
-          text: 'Type your screenplay here...'
-        }
-      ]);
+      if (setElements) {
+        const defaultElements = [
+          {
+            id: crypto.randomUUID(),
+            type: 'scene-heading',
+            text: 'INT. SOMEWHERE - DAY'
+          },
+          {
+            id: crypto.randomUUID(),
+            type: 'action',
+            text: 'Type your screenplay here...'
+          }
+        ];
+        setElements(defaultElements);
+      }
     }
   }, [elements, setElements]);
 
   const handleFocus = (id: string) => {
-    setActiveElementId(id);
+    if (setActiveElementId) {
+      setActiveElementId(id);
+    }
   };
 
+  // Debug logging
   useEffect(() => {
     console.log("ScriptContent rendering with", elements?.length || 0, "elements");
   }, [elements]);
 
+  // Show loading state if elements aren't ready
   if (!elements || elements.length === 0) {
     return (
       <div className="flex justify-center items-center h-full w-full">

@@ -35,15 +35,11 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const handleSlateChange = (newElements: ScriptElement[]) => {
     console.log("SlateEditor onChange called with", newElements.length, "elements");
     
-    if (newElements && newElements.length > 0) {
+    if (newElements && newElements.length > 0 && setElements) {
       // Use the setElements function directly from context
       setElements(newElements);
     } else {
-      console.warn("Received empty elements array in handleSlateChange");
-      toast({
-        description: "Warning: Empty script content received",
-        variant: "destructive",
-      });
+      console.warn("Received empty elements array in handleSlateChange or setElements unavailable");
     }
   };
 
@@ -51,7 +47,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   useEffect(() => {
     if ((!elements || elements.length === 0) && setElements) {
       console.log("Initializing editor with default elements");
-      setElements([
+      const defaultElements = [
         {
           id: crypto.randomUUID(),
           type: 'scene-heading',
@@ -62,7 +58,8 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           type: 'action',
           text: 'Type your screenplay here...'
         }
-      ]);
+      ];
+      setElements(defaultElements);
     }
   }, [elements, setElements]);
 
