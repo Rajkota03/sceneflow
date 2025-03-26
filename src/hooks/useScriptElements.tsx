@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
 import { processCharacterName } from '../lib/characterUtils';
@@ -9,16 +10,39 @@ export function useScriptElements(
 ) {
   console.log('useScriptElements initialized with', initialContent?.elements?.length || 0, 'elements');
   
-  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
+  const [elements, setElements] = useState<ScriptElement[]>(
+    (initialContent?.elements && initialContent.elements.length > 0) 
+      ? initialContent.elements 
+      : []
+  );
+  
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
+  
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // Update parent component when elements change
   useEffect(() => {
-    console.log('Elements changed, notifying parent', elements.length);
+    console.log('Elements changed in useScriptElements, notifying parent', elements.length);
     onChange({ elements });
   }, [elements, onChange]);
+
+  // Wrapper for setting elements that includes logging
+  const updateElements = useCallback((newElementsOrUpdater: ScriptElement[] | ((prev: ScriptElement[]) => ScriptElement[])) => {
+    console.log('updateElements called in useScriptElements');
+    
+    if (typeof newElementsOrUpdater === 'function') {
+      setElements(prev => {
+        const updated = newElementsOrUpdater(prev);
+        console.log('Elements updated via function, new count:', updated.length);
+        return updated;
+      });
+    } else {
+      console.log('Elements updated directly, new count:', newElementsOrUpdater.length);
+      setElements(newElementsOrUpdater);
+    }
+  }, []);
 
   const handleElementChange = (
     idOrElements: string | ScriptElement[], 
@@ -27,7 +51,7 @@ export function useScriptElements(
   ) => {
     if (Array.isArray(idOrElements)) {
       console.log('Setting entire elements array', idOrElements.length);
-      setElements(idOrElements);
+      updateElements(idOrElements);
       return;
     }
     
@@ -35,7 +59,7 @@ export function useScriptElements(
       const id = idOrElements;
       console.log('Updating single element', id);
       
-      setElements(prevElements => 
+      updateElements(prevElements => 
         prevElements.map(element => {
           if (element.id === id) {
             let updatedText = text || '';
@@ -54,7 +78,7 @@ export function useScriptElements(
         const parsedElements = JSON.parse(text);
         if (Array.isArray(parsedElements)) {
           console.log('Parsed elements array from JSON string', parsedElements.length);
-          setElements(parsedElements);
+          updateElements(parsedElements);
         }
       } catch (e) {
         console.error('Failed to parse elements JSON:', e);
@@ -115,7 +139,7 @@ export function useScriptElements(
     ];
     
     console.log('Adding new element after', afterId, 'new element:', newElement.id, newElement.type);
-    setElements(newElements);
+    updateElements(newElements);
     
     setTimeout(() => {
       setActiveElementId(newElement.id);
@@ -123,7 +147,7 @@ export function useScriptElements(
   };
 
   const changeElementType = (id: string, newType: ElementType) => {
-    setElements(prevElements => {
+    updateElements(prevElements => {
       const elementIndex = prevElements.findIndex(element => element.id === id);
       if (elementIndex === -1) return prevElements;
       
@@ -151,9 +175,29 @@ export function useScriptElements(
     }
   };
 
+  // If we don't have elements, initialize with defaults
+  useEffect(() => {
+    if (elements.length === 0) {
+      console.log('No elements found in useScriptElements, adding defaults');
+      const defaultElements = [
+        {
+          id: generateUniqueId(),
+          type: 'scene-heading' as ElementType,
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: generateUniqueId(),
+          type: 'action' as ElementType,
+          text: 'Type your screenplay here...'
+        }
+      ];
+      updateElements(defaultElements);
+    }
+  }, []);
+
   return {
     elements,
-    setElements,
+    setElements: updateElements,
     activeElementId,
     setActiveElementId,
     currentPage,

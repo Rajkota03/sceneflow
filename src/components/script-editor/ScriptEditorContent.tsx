@@ -32,34 +32,14 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   // Handler for Slate editor content changes
-  const handleSlateChange = (newElements: ScriptElement[] | string, text?: string, type?: ElementType) => {
-    // Check if newElements is an array (new API)
-    if (Array.isArray(newElements)) {
-      // When using the array API, we need to process the full array update
-      handleArrayUpdate(newElements);
-    } else if (typeof newElements === 'string' && text !== undefined && type !== undefined) {
-      // Old API with 3 parameters for single element updates
-      handleElementChange(newElements, text, type);
-    } else {
-      // Fallback with default values if parameters are incorrect
-      console.log("Using fallback method for handleElementChange");
-      const defaultId = typeof newElements === 'string' ? newElements : '';
-      const defaultText = text || '';
-      const defaultType = type || 'action';
-      handleElementChange(defaultId, defaultText, defaultType as ElementType);
-    }
-  };
-
-  // Handle full array updates from SlateEditor
-  const handleArrayUpdate = (updatedElements: ScriptElement[]) => {
-    console.log("Updating entire elements array with", updatedElements.length, "elements");
+  const handleSlateChange = (newElements: ScriptElement[]) => {
+    console.log("SlateEditor onChange called with", newElements.length, "elements");
     
-    if (updatedElements.length > 0) {
-      // Use the setElements function directly from the context
-      // This properly updates the entire elements array at once
-      setElements(updatedElements);
+    if (newElements && newElements.length > 0) {
+      // Use the setElements function directly from context
+      setElements(newElements);
     } else {
-      console.warn("Received empty elements array");
+      console.warn("Received empty elements array in handleSlateChange");
       toast({
         description: "Warning: Empty script content received",
         variant: "destructive",
@@ -70,7 +50,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   // Ensure we have at least default content if elements are empty
   useEffect(() => {
     if ((!elements || elements.length === 0) && setElements) {
-      console.log("Initializing with default elements");
+      console.log("Initializing editor with default elements");
       setElements([
         {
           id: crypto.randomUUID(),
@@ -85,6 +65,11 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
       ]);
     }
   }, [elements, setElements]);
+
+  // Debugging log to track elements
+  useEffect(() => {
+    console.log("ScriptEditorContent elements updated:", elements?.length || 0);
+  }, [elements]);
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>

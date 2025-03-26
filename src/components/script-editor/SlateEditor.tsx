@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -162,8 +161,11 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   // Create a Slate editor object that won't change across renders
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   
+  console.log("SlateEditor rendering with", elements?.length || 0, "elements");
+  
   // Convert script elements to Slate's format for the initial state
   const initialValue = useMemo(() => {
+    console.log("Converting script elements to Slate format", elements?.length || 0);
     return scriptToSlate(elements.length > 0 ? elements : [
       {
         id: uuidv4(),
@@ -185,7 +187,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   // Update value when elements change from parent
   useEffect(() => {
     if (elements && elements.length > 0) {
-      setValue(scriptToSlate(elements));
+      console.log("Updating Slate value from new elements prop", elements.length);
+      const newValue = scriptToSlate(elements);
+      setValue(newValue);
     }
   }, [elements]);
   
@@ -212,7 +216,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         return <Action {...props} />;
     }
   }, []);
-
+  
   // Define a rendering function for the leaf level
   const renderLeaf = useCallback((props: RenderLeafProps) => {
     return <Leaf {...props} />;
@@ -347,8 +351,17 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
 
   // Handle content changes
   const handleChange = (newValue: Descendant[]) => {
+    console.log("Slate editor value changed");
     setValue(newValue as SlateElementType[]);
-    onChange(slateToScript(newValue as SlateElementType[]));
+    
+    // Convert Slate document to script elements and notify parent
+    const scriptElements = slateToScript(newValue as SlateElementType[]);
+    console.log("Converting Slate value to script elements", scriptElements.length);
+    
+    // Only trigger onChange if we have elements to prevent loops
+    if (scriptElements.length > 0) {
+      onChange(scriptElements);
+    }
   };
   
   // Get the next element type based on the current one
