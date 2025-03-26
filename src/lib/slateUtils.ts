@@ -1,4 +1,3 @@
-
 import { Editor } from 'slate';
 import { ScriptElement, SlateElementType, SlateDocument } from './types';
 
@@ -44,7 +43,7 @@ export const createSlateElement = (
   };
 };
 
-// Create a page break element
+// Create a page break element (improved version)
 export const createPageBreakElement = (
   id: string = crypto.randomUUID()
 ): SlateElementType => {
@@ -88,33 +87,50 @@ export const formatTextForElementType = (text: string, type: SlateElementType['t
   return text;
 };
 
-// Estimate lines for pagination calculation
+// Improved line estimation function for pagination
 export const estimateLines = (text: string, type: SlateElementType['type']): number => {
   if (!text) return 1;
   
-  // Standard courier font is approximately 12 chars per inch
-  // Standard screenplay width is 6.0" for full width elements (scene heading, action)
-  // Character names are typically centered in a 3.7" area
-  // Dialogue is typically 3.3" wide
+  // Element-specific characters per line for more accurate line counts
+  const charsPerLine = {
+    'scene-heading': 60, // Standard 6" width (10 chars per inch)
+    'action': 60,        // Standard 6" width (10 chars per inch)
+    'character': 38,     // About 3.8" width 
+    'dialogue': 45,      // About 4.5" width
+    'parenthetical': 34, // About 3.4" width
+    'transition': 60,    // Standard 6" width
+    'note': 60           // Standard 6" width
+  }[type] || 60;
   
-  let charsPerLine = 72; // 6.0" x 12 chars per inch
+  // Split text into lines if it contains manual line breaks
+  const lines = text.split('\n');
+  let totalLines = 0;
   
-  // Adjust chars per line based on element type
-  if (type === 'dialogue') charsPerLine = 40; // About 3.3" width 
-  else if (type === 'character') charsPerLine = 45; // About 3.7" width
-  else if (type === 'parenthetical') charsPerLine = 36; // Narrower than dialogue
+  // Process each line/paragraph
+  lines.forEach(line => {
+    if (line.length === 0) {
+      totalLines += 1; // Empty lines count as one line
+    } else {
+      // Calculate lines based on character count
+      totalLines += Math.max(1, Math.ceil(line.length / charsPerLine));
+    }
+  });
   
-  // Calculate lines (round up)
-  return Math.max(1, Math.ceil(text.length / charsPerLine));
+  // Add element-specific adjustments
+  if (type === 'scene-heading') totalLines += 0.5; // Scene headings often have extra space
+  if (type === 'character') totalLines += 0.5;     // Character names have space before them
+  if (type === 'dialogue' && text.length > 200) totalLines += 1; // Long dialogue often needs extra space
+  
+  return Math.max(1, Math.ceil(totalLines));
 };
 
-// Calculate which page an element should appear on
+// Calculate which page an element should appear on (improved algorithm)
 export const calculatePageForElement = (
   elements: SlateElementType[],
   elementIndex: number,
-  linesPerPage: number = 55
+  linesPerPage: number = 54
 ): number => {
-  // Initialize line count
+  // Initialize line count and page number
   let lineCount = 0;
   let pageNumber = 1;
   
@@ -129,17 +145,38 @@ export const calculatePageForElement = (
       continue;
     }
     
+    // Special handling for character and dialogue continuity
+    const previousElement = i > 0 ? elements[i-1] : null;
+    const shouldKeepWithPrevious = 
+      (element.type === 'dialogue' || element.type === 'parenthetical') && 
+      previousElement && 
+      previousElement.type === 'character';
+    
     // Get text from element
-    const text = element.children.map(child => child.text).join('');
+    const text = getNodeText(element);
     
     // Calculate lines for this element
     const linesForElement = estimateLines(text, element.type);
     
     // Check if adding this element would exceed page limit
     if (lineCount + linesForElement > linesPerPage) {
-      pageNumber++;
-      lineCount = linesForElement;
+      // If this element should stick with the previous but won't fit, go to next page
+      if (shouldKeepWithPrevious && previousElement && 
+          elements.indexOf(previousElement) === i-1) {
+        // Keep character with dialogue by moving both to next page
+        // Adjust the line count for the previous element (character)
+        const prevText = getNodeText(previousElement);
+        const prevLines = estimateLines(prevText, previousElement.type);
+        
+        lineCount = prevLines + linesForElement;
+        pageNumber++;
+      } else {
+        // Regular page break - element starts on new page
+        pageNumber++;
+        lineCount = linesForElement;
+      }
     } else {
+      // Element fits on current page
       lineCount += linesForElement;
     }
   }

@@ -34,7 +34,20 @@ const ScriptContent: React.FC = () => {
         editor.dispatchEvent(clickEvent);
       }, 200);
     }
-  }, []);
+
+    // Make sure the editor is visible in the viewport
+    const scrollToVisibleElement = () => {
+      const activeElement = document.querySelector('.active-element');
+      if (activeElement && scriptContentRef.current) {
+        activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
+    // Set a timer to scroll to the active element
+    const timer = setTimeout(scrollToVisibleElement, 500);
+    
+    return () => clearTimeout(timer);
+  }, [scriptContentRef]);
 
   return (
     <ScrollArea className="h-full w-full overflow-auto">

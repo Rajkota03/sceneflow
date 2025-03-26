@@ -11,7 +11,6 @@ import {
 import { toast } from '@/components/ui/use-toast';
 import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
 import { ElementType } from '@/lib/types';
-import { createPageBreakElement } from '@/lib/slateUtils';
 
 const InsertMenu = () => {
   const { elements, setElements, activeElementId } = useScriptEditor();
@@ -60,33 +59,59 @@ const InsertMenu = () => {
         text: '',
         pageBreak: true
       },
+      // Add a new action element after the page break for easier editing
+      {
+        id: crypto.randomUUID(),
+        type: 'action' as ElementType,
+        text: ''
+      },
       ...elements.slice(activeIndex + 1)
     ];
     
     setElements(newElements);
     
     toast({
-      title: "Page Break",
-      description: "Manual page break inserted",
+      title: "Page Break Added",
+      description: "Manual page break inserted in the script",
     });
   };
 
   const handleNewScene = () => {
     if (!elements) return;
 
-    const newElements = [...elements];
+    // Find the last element index
+    const lastIndex = elements.length - 1;
     
-    // Add a new scene heading
-    newElements.push({
-      id: crypto.randomUUID(),
-      type: 'scene-heading' as ElementType,
-      text: 'INT. NEW LOCATION - DAY'
-    });
+    // Create the new elements to add
+    const newSceneElements = [
+      // Add a transition if not coming after another scene heading
+      ...(lastIndex >= 0 && elements[lastIndex].type !== 'scene-heading' ? [
+        {
+          id: crypto.randomUUID(),
+          type: 'transition' as ElementType,
+          text: 'CUT TO:'
+        }
+      ] : []),
+      // Add the new scene heading
+      {
+        id: crypto.randomUUID(),
+        type: 'scene-heading' as ElementType,
+        text: 'INT. NEW LOCATION - DAY'
+      },
+      // Add an empty action line for the new scene
+      {
+        id: crypto.randomUUID(),
+        type: 'action' as ElementType,
+        text: ''
+      }
+    ];
     
+    // Update the elements array
+    const newElements = [...elements, ...newSceneElements];
     setElements(newElements);
     
     toast({
-      title: "New Scene",
+      title: "New Scene Added",
       description: "New scene added to the script",
     });
   };
