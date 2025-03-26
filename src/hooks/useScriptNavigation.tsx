@@ -46,21 +46,20 @@ export function useScriptNavigation({
     
     let nextType: ElementType;
     
-    // Modified logic: when in action, pressing Enter should create another action
+    // Modified logic for Enter key behavior
     switch (currentElement.type) {
       case 'scene-heading':
         nextType = 'action';
         break;
       case 'action':
-        // Key change: action followed by action (not dialogue)
+        // Key fix: action should always be followed by action when pressing Enter
         nextType = 'action';
         break;
       case 'character':
         nextType = 'dialogue';
         break;
       case 'dialogue':
-        // When in dialogue, pressing Enter typically goes to character for continuing dialogue
-        // but could also go to action - depends on writing style
+        // When in dialogue, pressing Enter should go to action
         nextType = 'action';
         break;
       case 'parenthetical':
