@@ -33,7 +33,9 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const handleSlateChange = (newElements: ScriptElement[] | string, text?: string, type?: ElementType) => {
     // Check if newElements is an array (new API)
     if (Array.isArray(newElements)) {
-      handleElementChange(newElements);
+      // When using the array API, we're directly updating the entire elements array
+      // This case doesn't use the three-parameter version of handleElementChange
+      setElements(newElements);
     } else if (typeof newElements === 'string' && text !== undefined && type !== undefined) {
       // Old API with 3 parameters
       handleElementChange(newElements, text, type);
