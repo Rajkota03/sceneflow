@@ -140,7 +140,7 @@
   margin: 0 auto;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt;
-  line-height: 1.2;
+  line-height: 1.5; /* Updated to match Final Draft spacing */
   color: #000;
   background-color: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -163,7 +163,7 @@
 .scene-heading {
   text-transform: uppercase;
   font-weight: bold;
-  margin-bottom: 1em;
+  margin-bottom: 1em; /* More space after scene headings */
   text-align: left !important; /* Force left alignment */
   width: 100% !important;
   margin-left: 0 !important; /* Force left margin to 0 */
@@ -172,7 +172,7 @@
 }
 
 .action {
-  margin-bottom: 1em;
+  margin-bottom: 1em; /* Consistent spacing for action paragraphs */
   text-align: left !important;
   width: 100% !important;
   white-space: pre-wrap;
@@ -186,21 +186,21 @@
   text-transform: uppercase;
   text-align: center;
   width: 38%; /* ~3.7"-4.2" from left edge */
-  margin: 1em auto 0.1em;
+  margin: 1em auto 0.1em; /* Add space before character, little after */
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
 }
 
 .dialogue {
   width: 62%; /* ~3" dialogue block */
-  margin: 0 auto 1em;
+  margin: 0 auto 1em; /* Add more space after dialogue */
   text-align: left;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
 }
 
 .parenthetical {
   width: 40%; /* Slightly narrower than dialogue */
-  margin: 0 auto 0.1em;
+  margin: 0 auto 0.1em; /* Very little space after parenthetical */
   text-align: left;
   padding-left: 1.5em;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
@@ -210,7 +210,7 @@
 .transition {
   text-align: right;
   text-transform: uppercase;
-  margin: 1em 0;
+  margin: 1em 0; /* More space around transitions */
   width: 100%;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
@@ -471,4 +471,3 @@ textarea.auto-resize {
   font-size: 12pt;
   font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
 }
-

@@ -1,3 +1,4 @@
+
 import { ElementType } from '@/lib/types';
 
 export const renderStyle = (type: ElementType, previousElementType?: ElementType) => {
@@ -21,7 +22,7 @@ export const renderStyle = (type: ElementType, previousElementType?: ElementType
   }
 };
 
-// Updated measurements to match industry standards
+// Updated measurements to match industry standards and Final Draft
 export const getElementStyles = (type: ElementType): React.CSSProperties => {
   switch (type) {
     case 'scene-heading':
@@ -30,7 +31,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textAlign: 'left',
         fontWeight: 'bold',
         textTransform: 'uppercase',
-        marginBottom: '1em',
+        marginBottom: '1em', // More space after scene headings
         marginLeft: '0',
         marginRight: '0',
         paddingTop: '0.5em',
@@ -39,7 +40,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
       return {
         width: '100%',
         textAlign: 'left',
-        marginBottom: '1em',
+        marginBottom: '1em', // Consistent spacing between actions
         marginLeft: '0',
         marginRight: '0'
       };
@@ -51,8 +52,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginLeft: 'auto',
         marginRight: 'auto',
         textAlign: 'center',
-        marginTop: '1em',
-        marginBottom: '0.1em'
+        marginTop: '1em', // More space before character names
+        marginBottom: '0.1em' // Less space between character and dialogue/parenthetical
       };
     case 'dialogue':
       return {
@@ -60,7 +61,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginLeft: 'auto',
         marginRight: 'auto',
         textAlign: 'left',
-        marginBottom: '1em'
+        marginBottom: '1em' // More space after dialogue
       };
     case 'parenthetical':
       return {
@@ -69,7 +70,7 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         marginRight: 'auto',
         fontStyle: 'italic',
         textAlign: 'left',
-        marginBottom: '0.1em'
+        marginBottom: '0.1em' // Very little space after parenthetical
       };
     case 'transition':
       return {
@@ -77,8 +78,8 @@ export const getElementStyles = (type: ElementType): React.CSSProperties => {
         textAlign: 'right',
         textTransform: 'uppercase',
         fontWeight: 'bold',
-        marginTop: '1em',
-        marginBottom: '1em'
+        marginTop: '1em', // More space before transitions
+        marginBottom: '1em' // More space after transitions
       };
     case 'note':
       return {

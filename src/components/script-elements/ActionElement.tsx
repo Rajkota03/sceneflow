@@ -87,6 +87,8 @@ const ActionElement: React.FC<ActionElementProps> = ({
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
+          lineHeight: '1.5', // Adjusted to match Final Draft
+          marginBottom: '1em', // Consistent spacing
           ...elementStyles
         }}
         dir="ltr"
