@@ -213,6 +213,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   const pagesRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<SlateElementType[][]>([]);
   const [pageCount, setPageCount] = useState(1);
+  const [focused, setFocused] = useState(false);
   
   // Convert script elements to Slate's format for the initial state
   const initialValue = useMemo(() => {
@@ -529,6 +530,37 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     };
   }, [editor]);
 
+  // Set focus on the editor when it mounts or the user clicks on it
+  const focusEditor = useCallback(() => {
+    if (!focused) {
+      ReactEditor.focus(editor);
+      setFocused(true);
+    }
+  }, [editor, focused]);
+
+  // Reset focus state when user clicks away
+  const handleBlur = () => {
+    setFocused(false);
+  };
+
+  // Add click handler to focus the editor
+  const handleEditorClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    focusEditor();
+  };
+
+  // Focus the editor on initial load
+  useEffect(() => {
+    setTimeout(() => {
+      try {
+        ReactEditor.focus(editor);
+        setFocused(true);
+      } catch (error) {
+        console.error("Failed to focus editor:", error);
+      }
+    }, 100);
+  }, [editor]);
+
   return (
     <div 
       className={`slate-editor ${className}`}
@@ -536,6 +568,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt'
       }}
+      onClick={handleEditorClick}
     >
       <Slate
         editor={editor}
@@ -569,12 +602,13 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                 marginBottom: '0.5in',
                 pageBreakAfter: 'always',
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                cursor: 'text' // Show text cursor on the page
               }}
             >
               {/* Page number */}
               <div 
-                className="absolute top-8 right-16 text-gray-700"
+                className="absolute top-8 right-16 text-gray-700 pointer-events-none"
                 style={{
                   fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
                   fontSize: '12pt',
@@ -597,6 +631,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                   renderElement={renderElement}
                   renderLeaf={renderLeaf}
                   onKeyDown={handleKeyDown}
+                  onBlur={handleBlur}
                   spellCheck={false}
                   className="h-full outline-none"
                   style={{
