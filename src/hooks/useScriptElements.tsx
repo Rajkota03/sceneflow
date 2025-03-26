@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
 import { processCharacterName } from '../lib/characterUtils';
@@ -10,80 +10,29 @@ export function useScriptElements(
 ) {
   console.log('useScriptElements initialized with', initialContent?.elements?.length || 0, 'elements');
   
-  const [elements, setElements] = useState<ScriptElement[]>(
-    (initialContent?.elements && initialContent.elements.length > 0) 
-      ? initialContent.elements 
-      : []
-  );
-  
+  const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
-  
-  const [currentPage, setCurrentPage] = useState<number>(1);
 
-  // Update parent component when elements change
   useEffect(() => {
-    console.log('Elements changed in useScriptElements, notifying parent', elements.length);
     onChange({ elements });
   }, [elements, onChange]);
 
-  // Wrapper for setting elements that includes logging
-  const updateElements = useCallback((newElementsOrUpdater: ScriptElement[] | ((prev: ScriptElement[]) => ScriptElement[])) => {
-    console.log('updateElements called in useScriptElements');
-    
-    if (typeof newElementsOrUpdater === 'function') {
-      setElements(prev => {
-        const updated = newElementsOrUpdater(prev);
-        console.log('Elements updated via function, new count:', updated.length);
-        return updated;
-      });
-    } else {
-      console.log('Elements updated directly, new count:', newElementsOrUpdater.length);
-      setElements(newElementsOrUpdater);
-    }
-  }, []);
-
-  const handleElementChange = (
-    idOrElements: string | ScriptElement[], 
-    text?: string, 
-    type?: ElementType
-  ) => {
-    if (Array.isArray(idOrElements)) {
-      console.log('Setting entire elements array', idOrElements.length);
-      updateElements(idOrElements);
-      return;
-    }
-    
-    if (typeof idOrElements === 'string' && idOrElements && type) {
-      const id = idOrElements;
-      console.log('Updating single element', id);
-      
-      updateElements(prevElements => 
-        prevElements.map(element => {
-          if (element.id === id) {
-            let updatedText = text || '';
-            
-            if (type === 'scene-heading' || type === 'character') {
-              updatedText = updatedText.toUpperCase();
-            }
-            
-            return { ...element, text: updatedText, type };
+  const handleElementChange = (id: string, text: string, type: ElementType) => {
+    setElements(prevElements => 
+      prevElements.map(element => {
+        if (element.id === id) {
+          let updatedText = text;
+          // Auto-capitalize scene headings and character names
+          if (type === 'scene-heading' || type === 'character') {
+            updatedText = text.toUpperCase();
           }
-          return element;
-        })
-      );
-    } else if (typeof idOrElements === 'string' && text && text.startsWith('[')) {
-      try {
-        const parsedElements = JSON.parse(text);
-        if (Array.isArray(parsedElements)) {
-          console.log('Parsed elements array from JSON string', parsedElements.length);
-          updateElements(parsedElements);
+          return { ...element, text: updatedText, type };
         }
-      } catch (e) {
-        console.error('Failed to parse elements JSON:', e);
-      }
-    }
+        return element;
+      })
+    );
   };
 
   const getPreviousElementType = (index: number): ElementType | undefined => {
@@ -128,8 +77,7 @@ export function useScriptElements(
     const newElement: ScriptElement = {
       id: generateUniqueId(),
       type: newType,
-      text: initialText,
-      page: currentPage
+      text: initialText
     };
     
     const newElements = [
@@ -139,15 +87,16 @@ export function useScriptElements(
     ];
     
     console.log('Adding new element after', afterId, 'new element:', newElement.id, newElement.type);
-    updateElements(newElements);
+    setElements(newElements);
     
+    // Set focus to the new element
     setTimeout(() => {
       setActiveElementId(newElement.id);
     }, 0);
   };
 
   const changeElementType = (id: string, newType: ElementType) => {
-    updateElements(prevElements => {
+    setElements(prevElements => {
       const elementIndex = prevElements.findIndex(element => element.id === id);
       if (elementIndex === -1) return prevElements;
       
@@ -158,6 +107,7 @@ export function useScriptElements(
             newText = processCharacterName(newText, elementIndex, prevElements);
           }
           
+          // Auto-capitalize scene headings and character names
           if (newType === 'scene-heading' || newType === 'character') {
             newText = newText.toUpperCase();
           }
@@ -169,43 +119,15 @@ export function useScriptElements(
     });
   };
 
-  const updateCurrentPage = (elementId: string, pageNumber: number) => {
-    if (activeElementId === elementId) {
-      setCurrentPage(pageNumber);
-    }
-  };
-
-  // If we don't have elements, initialize with defaults
-  useEffect(() => {
-    if (elements.length === 0) {
-      console.log('No elements found in useScriptElements, adding defaults');
-      const defaultElements = [
-        {
-          id: generateUniqueId(),
-          type: 'scene-heading' as ElementType,
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: generateUniqueId(),
-          type: 'action' as ElementType,
-          text: 'Type your screenplay here...'
-        }
-      ];
-      updateElements(defaultElements);
-    }
-  }, []);
-
   return {
     elements,
-    setElements: updateElements,
+    setElements,
     activeElementId,
     setActiveElementId,
-    currentPage,
     handleElementChange,
     getPreviousElementType,
     addNewElement,
-    changeElementType,
-    updateCurrentPage
+    changeElementType
   };
 }
 

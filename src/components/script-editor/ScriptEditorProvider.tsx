@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
 import { generateUniqueId } from '@/lib/formatScript';
@@ -28,7 +29,6 @@ interface ScriptEditorProviderProps {
 
 export interface ScriptEditorContextType {
   elements: ScriptElement[];
-  setElements: React.Dispatch<React.SetStateAction<ScriptElement[]>>;
   activeElementId: string | null;
   setActiveElementId: (id: string | null) => void;
   activeTagFilter: string | null;
@@ -122,12 +122,13 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const characterNames = useCharacterNames(elements);
 
-  const { handleNavigate, handleEnterKey } = useScriptNavigation({
-    elements,
-    setElements,
-    activeElementId,
-    setActiveElementId
-  });
+  const handleNavigate = (id: string, direction: 'up' | 'down') => {
+    console.log('Navigation handled by Slate');
+  };
+
+  const handleEnterKey = (id: string, shiftKey: boolean) => {
+    console.log('Enter key handled by Slate');
+  };
 
   const onStructureChangeHandler = (structureId: string) => {
     console.log('Structure changed to:', structureId);
@@ -156,6 +157,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     
     const counts: BeatSceneCount[] = [];
     
+    // Ensure acts is always treated as an array
     const acts = Array.isArray(selectedStructure.acts) 
       ? selectedStructure.acts 
       : Object.values(selectedStructure.acts || {});
@@ -166,6 +168,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       return;
     }
     
+    // Use type assertion to help TypeScript understand the structure
     const allBeats = acts.reduce<Array<any>>((beatList, act: any) => {
       if (act && act.beats && Array.isArray(act.beats)) {
         const beatsWithActId = act.beats.map((beat: any) => ({ 
@@ -177,6 +180,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
       return beatList;
     }, []);
     
+    // Now we can safely use forEach since allBeats is properly typed
     allBeats.forEach((beat: any) => {
       if (!beat || !beat.id) return;
       
@@ -248,7 +252,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   const contextValue: ScriptEditorContextType = {
     elements,
-    setElements,
     activeElementId,
     setActiveElementId,
     activeTagFilter,

@@ -11,8 +11,7 @@ export const scriptToSlate = (elements: ScriptElement[]): SlateDocument => {
     tags: element.tags,
     act: element.act,
     beat: element.beat,
-    page: element.page,
-    continued: element.continued
+    page: element.page
   }));
 };
 
@@ -25,8 +24,7 @@ export const slateToScript = (document: SlateDocument): ScriptElement[] => {
     tags: node.tags,
     act: node.act,
     beat: node.beat,
-    page: node.page,
-    continued: node.continued
+    page: node.page
   }));
 };
 
@@ -68,80 +66,4 @@ export const formatTextForElementType = (text: string, type: SlateElementType['t
     return text.toUpperCase();
   }
   return text;
-};
-
-// Calculate the approximate height of an element in pixels
-export const calculateElementHeight = (type: SlateElementType['type'], text: string): number => {
-  // Average character width in Courier font (12pt) is about 7.2px
-  // Average line height is about 14.4px
-  const charsPerLine = {
-    'scene-heading': 60,
-    'action': 60,
-    'character': 38,
-    'dialogue': 35,
-    'parenthetical': 25,
-    'transition': 60,
-    'note': 60
-  };
-  
-  const baseHeight = 14.4; // Line height in pixels
-  const chars = text.length;
-  const lines = Math.ceil(chars / (charsPerLine[type] || 60));
-  
-  // Add extra spacing for different element types
-  const spacing = {
-    'scene-heading': 24, // Extra spacing before/after
-    'action': 12,
-    'character': 12,
-    'dialogue': 0,
-    'parenthetical': 0,
-    'transition': 24,
-    'note': 8
-  };
-  
-  return (lines * baseHeight) + (spacing[type] || 0);
-};
-
-// Check if two elements should be kept together (e.g., character and dialogue)
-export const shouldKeepTogether = (element1: SlateElementType, element2: SlateElementType): boolean => {
-  // Character and dialogue should stay together
-  if (element1.type === 'character' && element2.type === 'dialogue') {
-    return true;
-  }
-  
-  // Character and parenthetical should stay together
-  if (element1.type === 'character' && element2.type === 'parenthetical') {
-    return true;
-  }
-  
-  // Parenthetical and dialogue should stay together
-  if (element1.type === 'parenthetical' && element2.type === 'dialogue') {
-    return true;
-  }
-  
-  return false;
-};
-
-// Create a continuation element (for dialogue that spans multiple pages)
-export const createContinuationElement = (
-  originalElement: SlateElementType, 
-  isContinuedFrom: boolean
-): SlateElementType => {
-  if (originalElement.type === 'character' && isContinuedFrom) {
-    // Add (CONT'D) to character name for continuation
-    const text = getNodeText(originalElement);
-    return {
-      ...originalElement,
-      id: crypto.randomUUID(),
-      children: [{ text: `${text} (CONT'D)` }],
-      continued: true
-    };
-  }
-  
-  // For other elements, just clone them
-  return {
-    ...originalElement,
-    id: crypto.randomUUID(),
-    continued: true
-  };
 };

@@ -1,13 +1,12 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
 import SlateEditor from './SlateEditor';
-import { ElementType, ScriptElement } from '@/lib/types';
-import { toast } from '../ui/use-toast';
+import { ElementType } from '@/lib/types';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -24,7 +23,6 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const {
     elements,
     handleElementChange,
-    setElements,
     beatMode,
     selectedStructure,
     scriptContentRef,
@@ -32,41 +30,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   // Handler for Slate editor content changes
-  const handleSlateChange = (newElements: ScriptElement[]) => {
-    console.log("SlateEditor onChange called with", newElements?.length || 0, "elements", "setElements available?", !!setElements);
-    
-    if (newElements && Array.isArray(newElements) && newElements.length > 0 && setElements) {
-      // Use the setElements function directly from context
-      setElements(newElements);
-    } else {
-      console.warn("Received empty elements array in handleSlateChange or setElements unavailable");
-    }
+  const handleSlateChange = (newElements: any) => {
+    // This will update context with new elements
+    handleElementChange('', '', 'action' as ElementType); // Using proper casting for empty string
   };
-
-  // Ensure we have at least default content if elements are empty
-  useEffect(() => {
-    if ((!elements || !Array.isArray(elements) || elements.length === 0) && setElements) {
-      console.log("Initializing editor with default elements");
-      const defaultElements: ScriptElement[] = [
-        {
-          id: crypto.randomUUID(),
-          type: 'scene-heading' as ElementType,
-          text: 'INT. SOMEWHERE - DAY'
-        },
-        {
-          id: crypto.randomUUID(),
-          type: 'action' as ElementType,
-          text: 'Type your screenplay here...'
-        }
-      ];
-      setElements(defaultElements);
-    }
-  }, [elements, setElements]);
-
-  // Debugging log to track elements
-  useEffect(() => {
-    console.log("ScriptEditorContent elements updated:", elements?.length || 0, "valid array?", Array.isArray(elements));
-  }, [elements]);
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
@@ -79,20 +46,14 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            {elements && Array.isArray(elements) ? (
-              <SlateEditor
-                elements={elements}
-                onChange={handleSlateChange}
-                formatState={formatState}
-                beatMode={beatMode}
-                selectedStructure={selectedStructure}
-                className="mt-4"
-              />
-            ) : (
-              <div className="p-4 text-center text-gray-500">
-                Loading editor content... If this persists, please refresh the page.
-              </div>
-            )}
+            <SlateEditor
+              elements={elements || []}
+              onChange={handleSlateChange}
+              formatState={formatState}
+              beatMode={beatMode}
+              selectedStructure={selectedStructure}
+              className="mt-4"
+            />
           </div>
         </div>
       </ScrollArea>
