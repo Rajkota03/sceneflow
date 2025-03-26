@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
 import { generateUniqueId } from '../lib/formatScript';
@@ -17,37 +16,49 @@ export function useScriptElements(
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
+    console.log('Elements changed, notifying parent', elements.length);
     onChange({ elements });
   }, [elements, onChange]);
 
-  // Updated to handle array of elements directly from SlateEditor
   const handleElementChange = (
     idOrElements: string | ScriptElement[], 
     text?: string, 
     type?: ElementType
   ) => {
-    // Handle direct array update from SlateEditor
     if (Array.isArray(idOrElements)) {
+      console.log('Setting entire elements array', idOrElements.length);
       setElements(idOrElements);
       return;
     }
     
-    // Handle single element update (legacy support)
-    const id = idOrElements;
-    if (id && type) {
+    if (typeof idOrElements === 'string' && idOrElements && type) {
+      const id = idOrElements;
+      console.log('Updating single element', id);
+      
       setElements(prevElements => 
         prevElements.map(element => {
           if (element.id === id) {
             let updatedText = text || '';
-            // Auto-capitalize scene headings and character names
+            
             if (type === 'scene-heading' || type === 'character') {
               updatedText = updatedText.toUpperCase();
             }
+            
             return { ...element, text: updatedText, type };
           }
           return element;
         })
       );
+    } else if (typeof idOrElements === 'string' && text && text.startsWith('[')) {
+      try {
+        const parsedElements = JSON.parse(text);
+        if (Array.isArray(parsedElements)) {
+          console.log('Parsed elements array from JSON string', parsedElements.length);
+          setElements(parsedElements);
+        }
+      } catch (e) {
+        console.error('Failed to parse elements JSON:', e);
+      }
     }
   };
 
@@ -94,7 +105,7 @@ export function useScriptElements(
       id: generateUniqueId(),
       type: newType,
       text: initialText,
-      page: currentPage // Assign current page to new element
+      page: currentPage
     };
     
     const newElements = [
@@ -106,7 +117,6 @@ export function useScriptElements(
     console.log('Adding new element after', afterId, 'new element:', newElement.id, newElement.type);
     setElements(newElements);
     
-    // Set focus to the new element
     setTimeout(() => {
       setActiveElementId(newElement.id);
     }, 0);
@@ -124,7 +134,6 @@ export function useScriptElements(
             newText = processCharacterName(newText, elementIndex, prevElements);
           }
           
-          // Auto-capitalize scene headings and character names
           if (newType === 'scene-heading' || newType === 'character') {
             newText = newText.toUpperCase();
           }
@@ -136,7 +145,6 @@ export function useScriptElements(
     });
   };
 
-  // Update the current page based on active element
   const updateCurrentPage = (elementId: string, pageNumber: number) => {
     if (activeElementId === elementId) {
       setCurrentPage(pageNumber);

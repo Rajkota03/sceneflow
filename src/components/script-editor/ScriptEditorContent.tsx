@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
@@ -7,6 +7,7 @@ import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
 import SlateEditor from './SlateEditor';
 import { ElementType, ScriptElement } from '@/lib/types';
+import { toast } from '../ui/use-toast';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -23,6 +24,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const {
     elements,
     handleElementChange,
+    setElements,
     beatMode,
     selectedStructure,
     scriptContentRef,
@@ -33,11 +35,10 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   const handleSlateChange = (newElements: ScriptElement[] | string, text?: string, type?: ElementType) => {
     // Check if newElements is an array (new API)
     if (Array.isArray(newElements)) {
-      // When using the array API, we need to call onChange directly
-      // instead of using handleElementChange since it expects different parameters
-      onChange(newElements);
+      // When using the array API, we need to process the full array update
+      handleArrayUpdate(newElements);
     } else if (typeof newElements === 'string' && text !== undefined && type !== undefined) {
-      // Old API with 3 parameters
+      // Old API with 3 parameters for single element updates
       handleElementChange(newElements, text, type);
     } else {
       // Fallback with default values if parameters are incorrect
@@ -49,21 +50,41 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
     }
   };
 
-  // Direct handler for array updates from SlateEditor
-  const onChange = (updatedElements: ScriptElement[]) => {
-    if (Array.isArray(updatedElements)) {
-      // We need to handle the array update differently
-      // Since handleElementChange expects a string ID and other parameters
-      // Here we just want to update the entire elements array
-      console.log("Updating entire elements array with", updatedElements.length, "elements");
-      
-      // Pass the first element's ID as a placeholder, but the actual update will use the array
-      if (updatedElements.length > 0) {
-        const firstElement = updatedElements[0];
-        handleElementChange(firstElement.id, JSON.stringify(updatedElements), 'action');
-      }
+  // Handle full array updates from SlateEditor
+  const handleArrayUpdate = (updatedElements: ScriptElement[]) => {
+    console.log("Updating entire elements array with", updatedElements.length, "elements");
+    
+    if (updatedElements.length > 0) {
+      // Use the setElements function directly from the context
+      // This properly updates the entire elements array at once
+      setElements(updatedElements);
+    } else {
+      console.warn("Received empty elements array");
+      toast({
+        description: "Warning: Empty script content received",
+        variant: "destructive",
+      });
     }
   };
+
+  // Ensure we have at least default content if elements are empty
+  useEffect(() => {
+    if ((!elements || elements.length === 0) && setElements) {
+      console.log("Initializing with default elements");
+      setElements([
+        {
+          id: crypto.randomUUID(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: crypto.randomUUID(),
+          type: 'action',
+          text: 'Type your screenplay here...'
+        }
+      ]);
+    }
+  }, [elements, setElements]);
 
   return (
     <div className={`flex flex-col w-full h-full relative ${className || ''}`}>
