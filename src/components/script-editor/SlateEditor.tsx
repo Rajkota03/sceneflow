@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -208,12 +209,14 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   };
   
   // Get the next element type based on the current one
+  // Fixed to return 'action' after an action element
   const getNextElementType = (currentType: ElementType): ElementType => {
     switch (currentType) {
       case 'scene-heading':
         return 'action';
       case 'action':
-        return 'character';
+        // IMPORTANT: Action always followed by action
+        return 'action';
       case 'character':
         return 'dialogue';
       case 'dialogue':
@@ -245,9 +248,16 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         const nextType = getNextElementType(elementType);
         
         // Insert a new element with the appropriate type
+        const newElement = createSlateElement(nextType);
+        
+        // For transitions, add default text
+        if (nextType === 'transition') {
+          newElement.children = [{ text: 'CUT TO:' }];
+        }
+        
         Transforms.insertNodes(
           editor,
-          createSlateElement(nextType),
+          newElement,
           { at: Path.next(selection.focus.path.slice(0, 1)) }
         );
         
@@ -299,31 +309,24 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         
         const newType = typeMap[Number(event.key)];
         
-        // Apply the new type to the current element
-        Transforms.setNodes(
+        // Instead of changing the current element type, create a new element of the desired type
+        const newElement = createSlateElement(newType);
+        
+        // For transitions, add default text
+        if (newType === 'transition') {
+          newElement.children = [{ text: 'CUT TO:' }];
+        }
+        
+        // Insert the new element after the current one
+        Transforms.insertNodes(
           editor,
-          { type: newType } as Partial<SlateElementType>,
-          { at: selection.focus.path.slice(0, 1) }
+          newElement,
+          { at: Path.next(selection.focus.path.slice(0, 1)) }
         );
         
-        // Auto-format text based on element type, if needed
-        // @ts-ignore - We know this is our custom element with text
-        const currentNode = node as SlateElementType;
-        // @ts-ignore - We know this contains a text property
-        const text = currentNode.children[0]?.text || '';
+        // Move the selection to the new element
+        Transforms.select(editor, Path.next(selection.focus.path.slice(0, 1)));
         
-        if (newType === 'scene-heading' || newType === 'character' || newType === 'transition') {
-          const formattedText = newType === 'transition' && text.trim() === '' ? 
-            'CUT TO:' : text.toUpperCase();
-            
-          Transforms.setNodes(
-            editor,
-            { 
-              children: [{ text: formattedText }]
-            } as Partial<SlateElementType>,
-            { at: selection.focus.path.slice(0, 1) }
-          );
-        }
         return;
       }
     }
