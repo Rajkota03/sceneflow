@@ -6,7 +6,7 @@ import { useScriptEditor } from './ScriptEditorProvider';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
 import SlateEditor from './SlateEditor';
-import { ElementType } from '@/lib/types';
+import { ElementType, ScriptElement } from '@/lib/types';
 
 interface ScriptEditorContentProps {
   className?: string;
@@ -30,17 +30,17 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   } = useScriptEditor();
 
   // Handler for Slate editor content changes
-  const handleSlateChange = (newElements: any) => {
-    // This will update context with new elements
+  const handleSlateChange = (newElements: ScriptElement[] | any) => {
+    // Check if newElements is an array (new API)
     if (newElements && Array.isArray(newElements)) {
       handleElementChange(newElements);
     } else {
       // Fallback for old API - need to provide all three required arguments
-      // The function expects id, text, and type arguments
-      const defaultId = '';
-      const defaultText = '';
-      const defaultType: ElementType = 'action';
-      handleElementChange(defaultId, defaultText, defaultType);
+      console.log("Using fallback method for handleElementChange");
+      const id = typeof newElements === 'string' ? newElements : '';
+      const text = arguments[1] || '';
+      const type = arguments[2] || 'action';
+      handleElementChange(id, text, type as ElementType);
     }
   };
 
@@ -55,14 +55,20 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            <SlateEditor
-              elements={elements || []}
-              onChange={handleSlateChange}
-              formatState={formatState}
-              beatMode={beatMode}
-              selectedStructure={selectedStructure}
-              className="mt-4"
-            />
+            {elements && elements.length > 0 ? (
+              <SlateEditor
+                elements={elements}
+                onChange={handleSlateChange}
+                formatState={formatState}
+                beatMode={beatMode}
+                selectedStructure={selectedStructure}
+                className="mt-4"
+              />
+            ) : (
+              <div className="p-4 text-center text-gray-500">
+                Loading editor content... If this persists, please refresh the page.
+              </div>
+            )}
           </div>
         </div>
       </ScrollArea>
