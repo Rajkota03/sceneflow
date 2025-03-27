@@ -10,6 +10,7 @@ import { formatType } from '@/lib/formatScript';
 import { useScriptEditor } from './ScriptEditorProvider';
 import { Separator } from '@/components/ui/separator';
 
+// Element type components with proper styling
 const SceneHeading = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
@@ -21,8 +22,8 @@ const SceneHeading = ({ attributes, children }: RenderElementProps) => (
       marginRight: 0,
       fontWeight: 'bold',
       textTransform: 'uppercase',
-      marginBottom: '1em', // Double space after scene heading
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginBottom: '1em', 
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -38,8 +39,8 @@ const Action = ({ attributes, children }: RenderElementProps) => (
       textAlign: 'left',
       marginLeft: 0,
       marginRight: 0,
-      marginBottom: '0.5em', // Single space between action paragraphs
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginBottom: '0.5em',
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -55,9 +56,9 @@ const Character = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'center',
-      marginTop: '0.8em', // Reduced space before character
-      marginBottom: '0', // No space between character and dialogue
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginTop: '0.8em',
+      marginBottom: '0',
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -73,8 +74,8 @@ const Dialogue = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'left',
-      marginBottom: '0.8em', // Adjusted space after dialogue
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginBottom: '0.8em',
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -90,8 +91,8 @@ const Parenthetical = ({ attributes, children }: RenderElementProps) => (
       marginLeft: 'auto', 
       marginRight: 'auto',
       textAlign: 'left',
-      marginBottom: '0', // No space after parenthetical
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginBottom: '0',
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -107,9 +108,9 @@ const Transition = ({ attributes, children }: RenderElementProps) => (
       textAlign: 'right',
       textTransform: 'uppercase',
       fontWeight: 'bold',
-      marginTop: '0.8em', // Adjusted space before transition
-      marginBottom: '0.8em', // Adjusted space after transition
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      marginTop: '0.8em',
+      marginBottom: '0.8em',
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -122,7 +123,7 @@ const Note = ({ attributes, children }: RenderElementProps) => (
     className="note"
     style={{ 
       width: '100%',
-      lineHeight: '1.2' // Reduced line height to match Final Draft
+      lineHeight: '1.2'
     }}
   >
     {children}
@@ -176,50 +177,35 @@ declare module 'slate' {
   }
 }
 
-// Updated constants for more accurate line counting
 const LINES_PER_PAGE = 54; // Standard screenplay page has ~54 lines
-const CHAR_WIDTH = {
-  'scene-heading': 10,  // 10 chars per inch, full width
-  'action': 10,         // 10 chars per inch, full width
-  'character': 10,      // Center aligned in narrower column
-  'dialogue': 7.2,      // About 36 chars per line in 5" width
-  'parenthetical': 6,   // About 30 chars per line in 4" width
-  'transition': 10,     // Right aligned, full width
-  'note': 10            // Full width
-};
 
-// Improved line estimation function
 const estimateLines = (text: string, type: ElementType): number => {
   if (!text) return 1;
   
   // Base characters per line based on element type
   const charsPerLine = {
-    'scene-heading': 60,  // Full width (6.0")
-    'action': 60,         // Full width (6.0")
-    'character': 38,      // Character names are narrower (3.8")
-    'dialogue': 45,       // Dialogue is about 4.5" wide
-    'parenthetical': 34,  // Parentheticals are narrower
-    'transition': 60,     // Full width
-    'note': 60            // Full width
+    'scene-heading': 60,
+    'action': 60,
+    'character': 38,
+    'dialogue': 45,
+    'parenthetical': 34,
+    'transition': 60,
+    'note': 60
   }[type] || 60;
   
-  // Split into lines by any existing line breaks
   const lines = text.split('\n');
   let totalLines = 0;
   
-  // Calculate the number of lines for each paragraph
   lines.forEach(line => {
     if (line.length === 0) {
-      totalLines += 1; // Empty lines count as one
+      totalLines += 1;
     } else {
-      // Calculate how many lines this paragraph takes up
       totalLines += Math.max(1, Math.ceil(line.length / charsPerLine));
     }
   });
   
-  // Add additional space for certain element types
-  if (type === 'scene-heading') totalLines += 1; // Scene headings take an extra line
-  if (type === 'character') totalLines += 0.5;   // Add a bit of extra space for character names
+  if (type === 'scene-heading') totalLines += 1;
+  if (type === 'character') totalLines += 0.5;
   
   return Math.max(1, Math.ceil(totalLines));
 };
@@ -244,48 +230,50 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   className = ''
 }) => {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
-  const pagesRef = useRef<HTMLDivElement>(null);
+  const [value, setValue] = useState<SlateElementType[]>([]);
   const [pages, setPages] = useState<SlateElementType[][]>([]);
   const [pageCount, setPageCount] = useState(1);
   const [focused, setFocused] = useState(false);
+  const [activePageIndex, setActivePageIndex] = useState(0);
+  const editableRef = useRef<HTMLDivElement>(null);
 
-  const initialValue = useMemo(() => {
-    return scriptToSlate(elements.length > 0 ? elements : [
-      {
-        id: uuidv4(),
-        type: 'scene-heading',
-        text: 'INT. SOMEWHERE - DAY'
-      },
-      {
-        id: uuidv4(),
-        type: 'action',
-        text: 'Type your action here...'
-      }
-    ]);
-  }, []);
-
-  const [value, setValue] = useState<SlateElementType[]>(initialValue);
-
+  // Initialize editor value from elements
   useEffect(() => {
     if (elements && elements.length > 0) {
-      setValue(scriptToSlate(elements));
+      const slateElements = scriptToSlate(elements);
+      setValue(slateElements);
+    } else {
+      // Default content if no elements provided
+      const defaultElements = scriptToSlate([
+        {
+          id: uuidv4(),
+          type: 'scene-heading',
+          text: 'INT. SOMEWHERE - DAY'
+        },
+        {
+          id: uuidv4(),
+          type: 'action',
+          text: 'Type your action here...'
+        }
+      ]);
+      setValue(defaultElements);
     }
   }, [elements]);
 
-  // Improved pagination algorithm
+  // Process pagination whenever value changes
   useEffect(() => {
     if (!value || value.length === 0) return;
 
-    let pages: SlateElementType[][] = [];
+    // Pagination algorithm
+    const paginatedContent: SlateElementType[][] = [];
     let currentPage: SlateElementType[] = [];
     let lineCount = 0;
     
-    // Process each element for pagination
     value.forEach((element, index) => {
       // Handle explicit page breaks
       if (element.pageBreak) {
         if (currentPage.length > 0) {
-          pages.push([...currentPage]);
+          paginatedContent.push([...currentPage]);
           currentPage = [];
           lineCount = 0;
         }
@@ -295,29 +283,29 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       const elementText = element.children.map(c => c.text).join('');
       const estimatedLines = estimateLines(elementText, element.type);
       
-      // Check if adding this element would exceed the page limit
+      // Check if this element would overflow to next page
       if (lineCount + estimatedLines > LINES_PER_PAGE) {
-        // Don't split certain element pairs (like character and dialogue)
+        // Special handling for character/dialogue pairs
         const shouldKeepWithNext = 
           element.type === 'character' || 
           (currentPage.length > 0 && 
-            currentPage[currentPage.length - 1].type === 'character' && 
-            element.type === 'dialogue');
+           currentPage[currentPage.length - 1].type === 'character' && 
+           element.type === 'dialogue');
         
-        // If we should keep this element with the next, and it would fit on a new page
         if (shouldKeepWithNext && estimatedLines <= LINES_PER_PAGE) {
-          pages.push([...currentPage]);
+          // Start a new page with just this element
+          paginatedContent.push([...currentPage]);
           currentPage = [element];
           lineCount = estimatedLines;
         } 
-        // If we should split at this point because the page is full
         else if (currentPage.length > 0) {
-          pages.push([...currentPage]);
+          // Normal page break
+          paginatedContent.push([...currentPage]);
           currentPage = [element];
           lineCount = estimatedLines;
         } 
-        // If this single element is too big for an empty page, just add it anyway
         else {
+          // Element is too big for empty page, add it anyway
           currentPage.push(element);
           lineCount += estimatedLines;
         }
@@ -329,13 +317,12 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       
       // Add "CONT'D" to character names that span pages
       if (element.type === 'character' && index > 0) {
-        // Check if the previous element of the same character is on a different page
         const prevCharacterIndex = index - 1;
         if (value[prevCharacterIndex] && value[prevCharacterIndex].type === 'character') {
           const prevCharText = value[prevCharacterIndex].children.map(c => c.text).join('');
           const currCharText = elementText;
           
-          // Fixed the syntax error with the CONT'D string by using double quotes in the includes function
+          // Fixed quotes in the includes function
           if (prevCharText.replace(/\s*\(CONT'D\)$/, '') === currCharText.replace(/\s*\(CONT'D\)$/, '') && 
               !currCharText.includes("(CONT'D)")) {
             const charNameBase = currCharText.trim();
@@ -347,22 +334,20 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     
     // Add the last page if there are elements left
     if (currentPage.length > 0) {
-      pages.push(currentPage);
+      paginatedContent.push(currentPage);
     }
     
     // Ensure we always have at least one page
-    if (pages.length === 0) {
-      pages = [[
-        {
-          id: uuidv4(),
-          type: 'action',
-          children: [{ text: '' }],
-        } as SlateElementType
-      ]];
+    if (paginatedContent.length === 0) {
+      paginatedContent.push([{
+        id: uuidv4(),
+        type: 'action',
+        children: [{ text: '' }],
+      } as SlateElementType]);
     }
     
-    setPages(pages);
-    setPageCount(pages.length);
+    setPages(paginatedContent);
+    setPageCount(paginatedContent.length);
   }, [value]);
 
   const renderElement = useCallback((props: RenderElementProps) => {
@@ -373,22 +358,14 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }
     
     switch (element.type) {
-      case 'scene-heading':
-        return <SceneHeading {...props} />;
-      case 'action':
-        return <Action {...props} />;
-      case 'character':
-        return <Character {...props} />;
-      case 'dialogue':
-        return <Dialogue {...props} />;
-      case 'parenthetical':
-        return <Parenthetical {...props} />;
-      case 'transition':
-        return <Transition {...props} />;
-      case 'note':
-        return <Note {...props} />;
-      default:
-        return <Action {...props} />;
+      case 'scene-heading': return <SceneHeading {...props} />;
+      case 'action': return <Action {...props} />;
+      case 'character': return <Character {...props} />;
+      case 'dialogue': return <Dialogue {...props} />;
+      case 'parenthetical': return <Parenthetical {...props} />;
+      case 'transition': return <Transition {...props} />;
+      case 'note': return <Note {...props} />;
+      default: return <Action {...props} />;
     }
   }, []);
 
@@ -403,20 +380,13 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
 
   const getNextElementType = (currentType: ElementType): ElementType => {
     switch (currentType) {
-      case 'scene-heading':
-        return 'action';
-      case 'action':
-        return 'action';
-      case 'character':
-        return 'dialogue';
-      case 'dialogue':
-        return 'action';
-      case 'parenthetical':
-        return 'dialogue';
-      case 'transition':
-        return 'scene-heading';
-      default:
-        return 'action';
+      case 'scene-heading': return 'action';
+      case 'action': return 'action';
+      case 'character': return 'dialogue';
+      case 'dialogue': return 'action';
+      case 'parenthetical': return 'dialogue';
+      case 'transition': return 'scene-heading';
+      default: return 'action';
     }
   };
 
@@ -430,7 +400,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         event.preventDefault();
         
         const nextType = getNextElementType(elementType);
-        
         const newElement = createSlateElement(nextType);
         
         if (nextType === 'transition') {
@@ -493,21 +462,18 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         return;
       }
       
-      // Enhanced page break insertion with Ctrl+Enter
+      // Page break insertion with Ctrl+Enter
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
         
-        // Create a page break element
         const pageBreakElement = createPageBreakElement();
         
-        // Insert the page break after the current element
         Transforms.insertNodes(
           editor,
           pageBreakElement,
           { at: Path.next(selection.focus.path.slice(0, 1)) }
         );
         
-        // Add a new action element after the page break
         const newActionElement = createSlateElement('action');
         Transforms.insertNodes(
           editor,
@@ -515,7 +481,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           { at: Path.next(Path.next(selection.focus.path.slice(0, 1))) }
         );
         
-        // Move selection to the new action element
         Transforms.select(editor, Path.next(Path.next(selection.focus.path.slice(0, 1))));
         
         return;
@@ -523,6 +488,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }
   };
 
+  // Auto-capitalize certain element types
   useEffect(() => {
     const { normalizeNode } = editor;
     
@@ -567,11 +533,11 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     setFocused(false);
   };
 
-  const handleEditorClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleEditorClick = () => {
     focusEditor();
   };
 
+  // Ensure editor is visible and focused on mount
   useEffect(() => {
     setTimeout(() => {
       try {
@@ -583,64 +549,24 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }, 100);
   }, [editor]);
 
-  // Create a single editable component for each page
-  const renderPage = (pageElements: SlateElementType[], pageIndex: number) => {
-    return (
-      <div 
-        key={`page-${pageIndex}`} 
-        className="script-page mb-8 relative"
-        style={{ 
-          width: '8.5in',
-          height: '11in',
-          backgroundColor: 'white',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-          marginBottom: '0.5in',
-          pageBreakAfter: 'always',
-          position: 'relative',
-          overflow: 'hidden',
-          cursor: 'text'
-        }}
-      >
-        <div 
-          className="absolute top-8 right-16 text-gray-700 pointer-events-none"
-          style={{
-            fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-            fontSize: '12pt',
-          }}
-        >
-          {pageIndex + 1}.
-        </div>
-        
-        <div 
-          className="script-page-content"
-          style={{ 
-            padding: '1in 1in 1in 1.5in',
-            height: '100%',
-            overflow: 'hidden',
-            boxSizing: 'border-box'
-          }}
-        >
-          {pageElements.map((element, elementIndex) => {
-            // Render each element on the page
-            const elementProps = {
-              element,
-              attributes: { 
-                'data-slate-node': 'element',
-                'data-slate-element': element.type,
-                ref: null
-              } as any,
-              children: <div>{element.children.map(child => child.text).join('')}</div>
-            };
-            
-            return (
-              <div key={element.id || `elem-${elementIndex}`} className="slate-element">
-                {renderElement(elementProps as any)}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+  // Handle clicks on page
+  const handlePageClick = (pageIndex: number, elementIndex: number) => {
+    setActivePageIndex(pageIndex);
+    
+    // Calculate the element path in the full document
+    let globalElementIndex = elementIndex;
+    for (let i = 0; i < pageIndex; i++) {
+      globalElementIndex += pages[i].length;
+    }
+    
+    try {
+      // Set selection to this element
+      const path = [globalElementIndex, 0];
+      Transforms.select(editor, { path, offset: 0 });
+      ReactEditor.focus(editor);
+    } catch (error) {
+      console.error("Failed to set selection:", error);
+    }
   };
 
   return (
@@ -649,18 +575,29 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       style={{ 
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        lineHeight: '1.2' // Reduced line height to match Final Draft
+        lineHeight: '1.2'
       }}
-      onClick={handleEditorClick}
     >
       <Slate
         editor={editor}
         initialValue={value}
         onChange={handleChange}
       >
+        {/* Main editable instance - hidden but functional */}
+        <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
+          <Editable
+            ref={editableRef}
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            spellCheck={false}
+          />
+        </div>
+
+        {/* Visual pages container */}
         <div 
-          className="pages-container mt-4" 
-          ref={pagesRef}
+          className="pages-container mt-4"
           style={{ 
             transform: `scale(${formatState.zoomLevel})`,
             transformOrigin: 'top center',
@@ -671,26 +608,70 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             paddingBottom: '2in'
           }}
         >
-          {/* Render the active editable area */}
-          <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-            <Editable
-              renderElement={renderElement}
-              renderLeaf={renderLeaf}
-              onKeyDown={handleKeyDown}
-              onBlur={handleBlur}
-              spellCheck={false}
-              className="h-full outline-none"
-              style={{
-                fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-                fontSize: '12pt',
-                lineHeight: '1.2',
+          {pages.map((pageElements, pageIndex) => (
+            <div 
+              key={`page-${pageIndex}`} 
+              className={`script-page mb-8 relative ${pageIndex === activePageIndex ? 'ring-2 ring-blue-400' : ''}`}
+              style={{ 
+                width: '8.5in',
+                height: '11in',
+                backgroundColor: 'white',
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                marginBottom: '0.5in',
+                pageBreakAfter: 'always',
+                position: 'relative',
+                overflow: 'hidden',
                 cursor: 'text'
               }}
-            />
-          </div>
-          
-          {/* Render the visual representation of pages */}
-          {pages.map((pageElements, pageIndex) => renderPage(pageElements, pageIndex))}
+              onClick={handleEditorClick}
+            >
+              {/* Page number */}
+              <div 
+                className="absolute top-8 right-16 text-gray-700 pointer-events-none"
+                style={{
+                  fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+                  fontSize: '12pt',
+                }}
+              >
+                {pageIndex + 1}.
+              </div>
+              
+              {/* Page content */}
+              <div 
+                className="script-page-content"
+                style={{ 
+                  padding: '1in 1in 1in 1.5in',
+                  height: '100%',
+                  overflow: 'hidden',
+                  boxSizing: 'border-box'
+                }}
+              >
+                {/* Render interactive elements for this page */}
+                {pageElements.map((element, elementIndex) => {
+                  const elementProps = {
+                    element,
+                    attributes: {
+                      'data-slate-node': 'element',
+                      'data-element-index': elementIndex,
+                      'data-page-index': pageIndex,
+                      onClick: () => handlePageClick(pageIndex, elementIndex),
+                    } as any,
+                    children: <div>{element.children.map(child => child.text).join('')}</div>
+                  };
+                  
+                  return (
+                    <div 
+                      key={element.id || `elem-${elementIndex}`} 
+                      className="slate-element interactive"
+                      onClick={() => handlePageClick(pageIndex, elementIndex)}
+                    >
+                      {renderElement(elementProps as any)}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </Slate>
       
