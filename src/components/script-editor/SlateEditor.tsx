@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -334,9 +335,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           const prevCharText = value[prevCharacterIndex].children.map(c => c.text).join('');
           const currCharText = elementText;
           
-          // If same character name without CONT'D, add it
+          // Fixed the syntax error with the CONT'D string by using double quotes in the includes function
           if (prevCharText.replace(/\s*\(CONT'D\)$/, '') === currCharText.replace(/\s*\(CONT'D\)$/, '') && 
-              !currCharText.includes('(CONT'D)')) {
+              !currCharText.includes("(CONT'D)")) {
             const charNameBase = currCharText.trim();
             element.children = [{ text: `${charNameBase} (CONT'D)` }];
           }
