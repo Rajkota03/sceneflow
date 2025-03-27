@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -551,23 +552,37 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       style={{ 
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
-        lineHeight: '1.2'
+        lineHeight: '1.2',
+        position: 'relative'
       }}
+      onClick={handleEditorClick}
     >
       <Slate
         editor={editor}
         initialValue={value}
         onChange={handleChange}
       >
-        <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
-          <Editable
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
-            spellCheck={false}
-          />
-        </div>
+        {/* This is the actual editable component that captures input */}
+        <Editable
+          renderElement={renderElement}
+          renderLeaf={renderLeaf}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
+          spellCheck={false}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.01, // Almost invisible but still captures input
+            zIndex: 10,   // Make sure it's above the visual pages
+            cursor: 'text',
+            caretColor: 'black', // Make the cursor visible
+            height: '100%',
+            width: '100%'
+          }}
+        />
 
         <div 
           className="pages-container mt-4"
@@ -578,7 +593,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            paddingBottom: '2in'
+            paddingBottom: '2in',
+            position: 'relative',
+            zIndex: 1
           }}
         >
           {pages.map((pageElements, pageIndex) => (
@@ -596,7 +613,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                 overflow: 'hidden',
                 cursor: 'text'
               }}
-              onClick={handleEditorClick}
             >
               <div 
                 className="absolute top-8 right-16 text-gray-700 pointer-events-none"

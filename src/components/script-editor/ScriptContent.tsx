@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
@@ -19,22 +19,6 @@ const ScriptContent: React.FC = () => {
     // Important: update the elements in the context
     setElements(newElements);
   };
-
-  // Add focus effect to ensure the editor is responsive
-  useEffect(() => {
-    const editor = document.querySelector('.slate-editor');
-    if (editor) {
-      // Simulate click on mount to ensure focus
-      setTimeout(() => {
-        const clickEvent = new MouseEvent('click', {
-          bubbles: true,
-          cancelable: true,
-          view: window
-        });
-        editor.dispatchEvent(clickEvent);
-      }, 200);
-    }
-  }, [scriptContentRef]);
 
   return (
     <ScrollArea className="h-full w-full overflow-auto">
