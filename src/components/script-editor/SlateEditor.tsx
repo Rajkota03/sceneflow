@@ -583,6 +583,66 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }, 100);
   }, [editor]);
 
+  // Create a single editable component for each page
+  const renderPage = (pageElements: SlateElementType[], pageIndex: number) => {
+    return (
+      <div 
+        key={`page-${pageIndex}`} 
+        className="script-page mb-8 relative"
+        style={{ 
+          width: '8.5in',
+          height: '11in',
+          backgroundColor: 'white',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+          marginBottom: '0.5in',
+          pageBreakAfter: 'always',
+          position: 'relative',
+          overflow: 'hidden',
+          cursor: 'text'
+        }}
+      >
+        <div 
+          className="absolute top-8 right-16 text-gray-700 pointer-events-none"
+          style={{
+            fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+            fontSize: '12pt',
+          }}
+        >
+          {pageIndex + 1}.
+        </div>
+        
+        <div 
+          className="script-page-content"
+          style={{ 
+            padding: '1in 1in 1in 1.5in',
+            height: '100%',
+            overflow: 'hidden',
+            boxSizing: 'border-box'
+          }}
+        >
+          {pageElements.map((element, elementIndex) => {
+            // Render each element on the page
+            const elementProps = {
+              element,
+              attributes: { 
+                'data-slate-node': 'element',
+                'data-slate-element': element.type,
+                ref: null
+              } as any,
+              children: <div>{element.children.map(child => child.text).join('')}</div>
+            };
+            
+            return (
+              <div key={element.id || `elem-${elementIndex}`} className="slate-element">
+                {renderElement(elementProps as any)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div 
       className={`slate-editor ${className}`}
@@ -611,58 +671,26 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             paddingBottom: '2in'
           }}
         >
-          {pages.map((pageElements, pageIndex) => (
-            <div 
-              key={`page-${pageIndex}`} 
-              className="script-page mb-8 relative"
-              style={{ 
-                width: '8.5in',
-                height: '11in',
-                backgroundColor: 'white',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                marginBottom: '0.5in',
-                pageBreakAfter: 'always',
-                position: 'relative',
-                overflow: 'hidden',
+          {/* Render the active editable area */}
+          <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
+              spellCheck={false}
+              className="h-full outline-none"
+              style={{
+                fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
+                fontSize: '12pt',
+                lineHeight: '1.2',
                 cursor: 'text'
               }}
-            >
-              <div 
-                className="absolute top-8 right-16 text-gray-700 pointer-events-none"
-                style={{
-                  fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-                  fontSize: '12pt',
-                }}
-              >
-                {pageIndex + 1}.
-              </div>
-              
-              <div 
-                className="script-page-content"
-                style={{ 
-                  padding: '1in 1in 1in 1.5in',
-                  height: '100%',
-                  overflow: 'hidden',
-                  boxSizing: 'border-box'
-                }}
-              >
-                <Editable
-                  renderElement={renderElement}
-                  renderLeaf={renderLeaf}
-                  onKeyDown={handleKeyDown}
-                  onBlur={handleBlur}
-                  spellCheck={false}
-                  className="h-full outline-none"
-                  style={{
-                    fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-                    fontSize: '12pt',
-                    lineHeight: '1.2', // Reduced line height to match Final Draft
-                    cursor: 'text'
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+            />
+          </div>
+          
+          {/* Render the visual representation of pages */}
+          {pages.map((pageElements, pageIndex) => renderPage(pageElements, pageIndex))}
         </div>
       </Slate>
       
