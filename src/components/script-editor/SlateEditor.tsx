@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -10,7 +9,6 @@ import { formatType } from '@/lib/formatScript';
 import { useScriptEditor } from './ScriptEditorProvider';
 import { Separator } from '@/components/ui/separator';
 
-// Element type components with proper styling
 const SceneHeading = ({ attributes, children }: RenderElementProps) => (
   <div 
     {...attributes} 
@@ -182,7 +180,6 @@ const LINES_PER_PAGE = 54; // Standard screenplay page has ~54 lines
 const estimateLines = (text: string, type: ElementType): number => {
   if (!text) return 1;
   
-  // Base characters per line based on element type
   const charsPerLine = {
     'scene-heading': 60,
     'action': 60,
@@ -237,13 +234,11 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   const [activePageIndex, setActivePageIndex] = useState(0);
   const editableRef = useRef<HTMLDivElement>(null);
 
-  // Initialize editor value from elements
   useEffect(() => {
     if (elements && elements.length > 0) {
       const slateElements = scriptToSlate(elements);
       setValue(slateElements);
     } else {
-      // Default content if no elements provided
       const defaultElements = scriptToSlate([
         {
           id: uuidv4(),
@@ -260,17 +255,14 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }
   }, [elements]);
 
-  // Process pagination whenever value changes
   useEffect(() => {
     if (!value || value.length === 0) return;
 
-    // Pagination algorithm
     const paginatedContent: SlateElementType[][] = [];
     let currentPage: SlateElementType[] = [];
     let lineCount = 0;
     
     value.forEach((element, index) => {
-      // Handle explicit page breaks
       if (element.pageBreak) {
         if (currentPage.length > 0) {
           paginatedContent.push([...currentPage]);
@@ -283,9 +275,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       const elementText = element.children.map(c => c.text).join('');
       const estimatedLines = estimateLines(elementText, element.type);
       
-      // Check if this element would overflow to next page
       if (lineCount + estimatedLines > LINES_PER_PAGE) {
-        // Special handling for character/dialogue pairs
         const shouldKeepWithNext = 
           element.type === 'character' || 
           (currentPage.length > 0 && 
@@ -293,36 +283,30 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
            element.type === 'dialogue');
         
         if (shouldKeepWithNext && estimatedLines <= LINES_PER_PAGE) {
-          // Start a new page with just this element
           paginatedContent.push([...currentPage]);
           currentPage = [element];
           lineCount = estimatedLines;
         } 
         else if (currentPage.length > 0) {
-          // Normal page break
           paginatedContent.push([...currentPage]);
           currentPage = [element];
           lineCount = estimatedLines;
         } 
         else {
-          // Element is too big for empty page, add it anyway
           currentPage.push(element);
           lineCount += estimatedLines;
         }
       } else {
-        // Element fits on current page
         currentPage.push(element);
         lineCount += estimatedLines;
       }
       
-      // Add "CONT'D" to character names that span pages
       if (element.type === 'character' && index > 0) {
         const prevCharacterIndex = index - 1;
         if (value[prevCharacterIndex] && value[prevCharacterIndex].type === 'character') {
           const prevCharText = value[prevCharacterIndex].children.map(c => c.text).join('');
           const currCharText = elementText;
           
-          // Fixed quotes in the includes function
           if (prevCharText.replace(/\s*\(CONT'D\)$/, '') === currCharText.replace(/\s*\(CONT'D\)$/, '') && 
               !currCharText.includes("(CONT'D)")) {
             const charNameBase = currCharText.trim();
@@ -332,12 +316,10 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
       }
     });
     
-    // Add the last page if there are elements left
     if (currentPage.length > 0) {
       paginatedContent.push(currentPage);
     }
     
-    // Ensure we always have at least one page
     if (paginatedContent.length === 0) {
       paginatedContent.push([{
         id: uuidv4(),
@@ -462,7 +444,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         return;
       }
       
-      // Page break insertion with Ctrl+Enter
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
         
@@ -488,7 +469,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }
   };
 
-  // Auto-capitalize certain element types
   useEffect(() => {
     const { normalizeNode } = editor;
     
@@ -537,7 +517,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     focusEditor();
   };
 
-  // Ensure editor is visible and focused on mount
   useEffect(() => {
     setTimeout(() => {
       try {
@@ -549,18 +528,15 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }, 100);
   }, [editor]);
 
-  // Handle clicks on page
   const handlePageClick = (pageIndex: number, elementIndex: number) => {
     setActivePageIndex(pageIndex);
     
-    // Calculate the element path in the full document
     let globalElementIndex = elementIndex;
     for (let i = 0; i < pageIndex; i++) {
       globalElementIndex += pages[i].length;
     }
     
     try {
-      // Set selection to this element
       const path = [globalElementIndex, 0];
       Transforms.select(editor, { path, offset: 0 });
       ReactEditor.focus(editor);
@@ -583,10 +559,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         initialValue={value}
         onChange={handleChange}
       >
-        {/* Main editable instance - hidden but functional */}
         <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
           <Editable
-            ref={editableRef}
             renderElement={renderElement}
             renderLeaf={renderLeaf}
             onKeyDown={handleKeyDown}
@@ -595,7 +569,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           />
         </div>
 
-        {/* Visual pages container */}
         <div 
           className="pages-container mt-4"
           style={{ 
@@ -625,7 +598,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
               }}
               onClick={handleEditorClick}
             >
-              {/* Page number */}
               <div 
                 className="absolute top-8 right-16 text-gray-700 pointer-events-none"
                 style={{
@@ -636,7 +608,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                 {pageIndex + 1}.
               </div>
               
-              {/* Page content */}
               <div 
                 className="script-page-content"
                 style={{ 
@@ -646,7 +617,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                   boxSizing: 'border-box'
                 }}
               >
-                {/* Render interactive elements for this page */}
                 {pageElements.map((element, elementIndex) => {
                   const elementProps = {
                     element,
