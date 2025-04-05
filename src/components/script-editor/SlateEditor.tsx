@@ -1,3 +1,4 @@
+
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -233,7 +234,9 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   const [focused, setFocused] = useState(false);
   const [activePageIndex, setActivePageIndex] = useState(0);
   const editableRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Initialize editor with content
   useEffect(() => {
     if (elements && elements.length > 0) {
       const slateElements = scriptToSlate(elements);
@@ -255,6 +258,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
     }
   }, [elements]);
 
+  // Handle pagination of elements
   useEffect(() => {
     if (!value || value.length === 0) return;
 
@@ -374,6 +378,25 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     const { selection } = editor;
+    
+    // Handle backspace key properly
+    if (event.key === 'Backspace' && selection && Range.isCollapsed(selection)) {
+      const [node, path] = Editor.node(editor, selection.focus.path);
+      const start = Editor.start(editor, path);
+      
+      // Check if we're at the start of a block
+      if (selection.focus.offset === 0 && Path.equals(selection.focus.path.slice(0, -1), path)) {
+        const currentPath = selection.focus.path.slice(0, 1);
+        const previousPath = Path.previous(currentPath);
+        
+        // Only prevent default if we're at the first block to avoid removing the editor
+        if (Path.equals(currentPath, [0])) {
+          event.preventDefault();
+          return;
+        }
+      }
+    }
+    
     if (selection && Range.isCollapsed(selection)) {
       const [node] = Editor.node(editor, selection.focus.path.slice(0, 1));
       const elementType = (node as SlateElementType).type;
@@ -394,10 +417,11 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           { at: Path.next(selection.focus.path.slice(0, 1)) }
         );
         
-        Transforms.select(editor, Path.next(selection.focus.path.slice(0, 1)));
+        Transforms.select(editor, Editor.start(editor, Path.next(selection.focus.path.slice(0, 1))));
         return;
       }
       
+      // Tab key for element type cycling
       if (event.key === 'Tab' && !event.shiftKey) {
         event.preventDefault();
         
@@ -421,6 +445,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         return;
       }
       
+      // Keyboard shortcuts for element types
       if ((event.metaKey || event.ctrlKey) && !isNaN(Number(event.key)) && Number(event.key) >= 1 && Number(event.key) <= 6) {
         event.preventDefault();
         
@@ -444,6 +469,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         return;
       }
       
+      // Page break shortcut
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
         
@@ -462,13 +488,45 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
           { at: Path.next(Path.next(selection.focus.path.slice(0, 1))) }
         );
         
-        Transforms.select(editor, Path.next(Path.next(selection.focus.path.slice(0, 1))));
+        Transforms.select(editor, Editor.start(editor, Path.next(Path.next(selection.focus.path.slice(0, 1)))));
         
         return;
+      }
+      
+      // Arrow keys for navigation
+      if (event.key === 'ArrowUp') {
+        const currentPath = selection.focus.path.slice(0, 1);
+        if (Path.hasPrevious(currentPath)) {
+          const prevPath = Path.previous(currentPath);
+          setTimeout(() => {
+            try {
+              Transforms.select(editor, Editor.end(editor, prevPath));
+            } catch (e) {
+              console.error("Error navigating up:", e);
+            }
+          }, 0);
+        }
+      } else if (event.key === 'ArrowDown') {
+        const currentPath = selection.focus.path.slice(0, 1);
+        try {
+          const nextPath = Path.next(currentPath);
+          if (nextPath[0] < value.length) {
+            setTimeout(() => {
+              try {
+                Transforms.select(editor, Editor.start(editor, nextPath));
+              } catch (e) {
+                console.error("Error navigating down:", e);
+              }
+            }, 0);
+          }
+        } catch (e) {
+          console.error("Error calculating next path:", e);
+        }
       }
     }
   };
 
+  // Auto-format text for certain element types
   useEffect(() => {
     const { normalizeNode } = editor;
     
@@ -503,85 +561,79 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
   }, [editor]);
 
   const focusEditor = useCallback(() => {
-    if (!focused) {
+    try {
       ReactEditor.focus(editor);
       setFocused(true);
+    } catch (error) {
+      console.error("Failed to focus editor:", error);
     }
-  }, [editor, focused]);
+  }, [editor]);
 
   const handleBlur = () => {
     setFocused(false);
   };
 
-  const handleEditorClick = () => {
+  const handleEditorClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     focusEditor();
   };
 
+  // Focus editor on mount and when container is clicked
   useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.addEventListener('click', () => focusEditor());
+    }
+    
     setTimeout(() => {
-      try {
-        ReactEditor.focus(editor);
-        setFocused(true);
-      } catch (error) {
-        console.error("Failed to focus editor:", error);
-      }
+      focusEditor();
     }, 100);
-  }, [editor]);
-
-  const handlePageClick = (pageIndex: number, elementIndex: number) => {
-    setActivePageIndex(pageIndex);
     
-    let globalElementIndex = elementIndex;
-    for (let i = 0; i < pageIndex; i++) {
-      globalElementIndex += pages[i].length;
-    }
-    
-    try {
-      const path = [globalElementIndex, 0];
-      Transforms.select(editor, { path, offset: 0 });
-      ReactEditor.focus(editor);
-    } catch (error) {
-      console.error("Failed to set selection:", error);
-    }
-  };
+    return () => {
+      if (containerRef.current) {
+        containerRef.current.removeEventListener('click', () => focusEditor());
+      }
+    };
+  }, [focusEditor]);
 
   return (
     <div 
+      ref={containerRef}
       className={`slate-editor ${className}`}
       style={{ 
         fontFamily: 'Courier Final Draft, Courier Prime, monospace',
         fontSize: '12pt',
         lineHeight: '1.2',
-        position: 'relative'
+        position: 'relative',
+        minHeight: '800px'
       }}
-      onClick={handleEditorClick}
     >
       <Slate
         editor={editor}
         initialValue={value}
         onChange={handleChange}
       >
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          spellCheck={false}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 1,
-            zIndex: 10,
-            cursor: 'text',
-            caretColor: 'black',
-            height: '100%',
-            width: '100%',
-            padding: '1rem'
-          }}
-        />
+        <div className="editing-layer" style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 20,
+          padding: '1rem'
+        }}>
+          <Editable
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            spellCheck={false}
+            style={{
+              outline: 'none',
+              minHeight: '100%',
+              caretColor: 'black',
+            }}
+          />
+        </div>
 
         <div 
           className="pages-container mt-4"
