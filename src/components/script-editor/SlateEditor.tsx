@@ -1,4 +1,3 @@
-
 import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { createEditor, Descendant, Editor, Element as SlateElement, Transforms, Range, Node, Path, BaseEditor } from 'slate';
 import { Slate, Editable, withReact, RenderElementProps, RenderLeafProps, useSlate, ReactEditor } from 'slate-react';
@@ -562,7 +561,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
         initialValue={value}
         onChange={handleChange}
       >
-        {/* This is the actual editable component that captures input */}
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
@@ -575,12 +573,13 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            opacity: 0.01, // Almost invisible but still captures input
-            zIndex: 10,   // Make sure it's above the visual pages
+            opacity: 1,
+            zIndex: 10,
             cursor: 'text',
-            caretColor: 'black', // Make the cursor visible
+            caretColor: 'black',
             height: '100%',
-            width: '100%'
+            width: '100%',
+            padding: '1rem'
           }}
         />
 
@@ -595,7 +594,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
             alignItems: 'center',
             paddingBottom: '2in',
             position: 'relative',
-            zIndex: 1
+            zIndex: 1,
+            pointerEvents: 'none'
           }}
         >
           {pages.map((pageElements, pageIndex) => (
@@ -611,7 +611,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                 pageBreakAfter: 'always',
                 position: 'relative',
                 overflow: 'hidden',
-                cursor: 'text'
+                cursor: 'text',
+                pointerEvents: 'none'
               }}
             >
               <div 
@@ -630,7 +631,8 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                   padding: '1in 1in 1in 1.5in',
                   height: '100%',
                   overflow: 'hidden',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  pointerEvents: 'none'
                 }}
               >
                 {pageElements.map((element, elementIndex) => {
@@ -640,7 +642,6 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                       'data-slate-node': 'element',
                       'data-element-index': elementIndex,
                       'data-page-index': pageIndex,
-                      onClick: () => handlePageClick(pageIndex, elementIndex),
                     } as any,
                     children: <div>{element.children.map(child => child.text).join('')}</div>
                   };
@@ -648,8 +649,7 @@ const SlateEditor: React.FC<SlateEditorProps> = ({
                   return (
                     <div 
                       key={element.id || `elem-${elementIndex}`} 
-                      className="slate-element interactive"
-                      onClick={() => handlePageClick(pageIndex, elementIndex)}
+                      className="slate-element"
                     >
                       {renderElement(elementProps as any)}
                     </div>
