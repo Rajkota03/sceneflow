@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, memo } from 'react'; // Import memo
 import { ElementType, ScriptElement, Structure } from '@/lib/types';
 import CharacterSuggestions from './CharacterSuggestions';
 import SceneTags from './SceneTags';
@@ -27,7 +27,8 @@ interface EditorElementProps {
   onBeatTag?: (elementId: string, beatId: string, actId: string) => void;
 }
 
-const EditorElement: React.FC<EditorElementProps> = ({ 
+// Wrap the component with React.memo for performance optimization
+const EditorElement: React.FC<EditorElementProps> = memo(({ 
   element, 
   previousElementType, 
   onChange, 
@@ -49,6 +50,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
   
   const handleBeatTagging = onBeatTag || contextHandleBeatTag;
   
+  // Use the custom hook for interaction logic
   const {
     text,
     editorRef,
@@ -64,7 +66,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
     setShowElementMenu
   } = useElementInteraction({
     elementId: element.id,
-    text: element.text,
+    text: element.text, // Pass element.text directly
     type: element.type,
     onChange,
     onNavigate,
@@ -78,28 +80,15 @@ const EditorElement: React.FC<EditorElementProps> = ({
   
   const showBeatTags = element.type === 'scene-heading' && beatMode === 'on';
 
+  // Effect to handle focus and cursor position when element becomes active
+  // This might need refinement based on useElementInteraction's handling
   useEffect(() => {
     if (isActive && editorRef.current) {
-      editorRef.current.focus();
-      
-      const range = document.createRange();
-      const selection = window.getSelection();
-      
-      if (editorRef.current.childNodes.length > 0) {
-        const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
-        range.setStartAfter(lastNode);
-      } else {
-        range.setStart(editorRef.current, 0);
-      }
-      
-      range.collapse(true);
-      
-      if (selection) {
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
+      // Focus is handled within useElementInteraction now
+      // editorRef.current.focus(); 
+      // Cursor positioning is also handled within useElementInteraction
     }
-  }, [isActive]);
+  }, [isActive, editorRef]); // Simplified dependency
 
   // Adjust spacing based on context (previous element type)
   const getContextualSpacing = (): React.CSSProperties => {
@@ -107,33 +96,35 @@ const EditorElement: React.FC<EditorElementProps> = ({
     
     // Apply conditional spacing based on the previous element type
     if (element.type === 'action' && previousElementType === 'scene-heading') {
-      return { ...baseStyles, marginTop: 0 }; // No extra space after scene heading
+      return { ...baseStyles, marginTop: '0.5em' }; // Reduced space after scene heading
     }
-    
     if (element.type === 'dialogue' && previousElementType === 'character') {
       return { ...baseStyles, marginTop: 0 }; // No space between character and dialogue
     }
-    
     if (element.type === 'dialogue' && previousElementType === 'parenthetical') {
       return { ...baseStyles, marginTop: 0 }; // No space between parenthetical and dialogue
     }
-    
     if (element.type === 'character' && previousElementType === 'dialogue') {
-      return { ...baseStyles, marginTop: '0.8em' }; // Add space between dialogue and next character
+      return { ...baseStyles, marginTop: '0.8em' }; // Space between dialogue and next character
     }
+    // Add more rules as needed
     
     return baseStyles;
   };
 
   const contextStyles = getContextualSpacing();
 
+  console.log(`Rendering EditorElement: ${element.id}, Active: ${isActive}`); // Debug log
+
   return (
     <div 
+      id={element.id} // Add ID to the container for easier selection/scrolling
       className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`} 
       onContextMenu={handleRightClick}
     >
-      <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        {isActive && showKeyboardShortcuts && (
+      {/* Element Type Indicator (Optional) */}
+      {/* <div className="absolute -left-16 top-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {isActive && (
           <div className="flex items-center gap-1 text-xs text-gray-500">
             <button
               onClick={() => setShowElementMenu(!showElementMenu)}
@@ -143,39 +134,45 @@ const EditorElement: React.FC<EditorElementProps> = ({
             </button>
           </div>
         )}
-      </div>
+      </div> */}
       
+      {/* Content Editable Div */}
       <div
         ref={editorRef}
         className={`
           element-text 
-          ${renderStyle(element.type, previousElementType)}
+          ${renderStyle(element.type, previousElementType)} /* Use renderStyle for Tailwind classes */
           ${isActive ? 'active-element' : ''}
           ${element.type}
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
-        onFocus={onFocus}
-        onBlur={() => suggestionsVisible}
-        onKeyDown={handleKeyDown}
-        onInput={handleChange}
+        onFocus={onFocus} // Propagate focus event up
+        // onBlur={() => setSuggestionsVisible(false)} // Handled in useElementInteraction?
+        onKeyDown={handleKeyDown} // Handle key events
+        onInput={handleChange} // Handle input changes
         style={{
           outline: 'none',
-          whiteSpace: 'pre-wrap',
+          whiteSpace: 'pre-wrap', // Allow wrapping and preserve whitespace/newlines
           wordBreak: 'break-word',
           direction: 'ltr',
           unicodeBidi: 'plaintext',
           fontFamily: '"Courier Final Draft", "Courier Prime", monospace',
           caretColor: 'black',
-          lineHeight: '1.2', // Reduced line height to match Final Draft
-          ...contextStyles
+          lineHeight: '1.2', // Standard screenplay line height
+          ...contextStyles // Apply dynamic styles (margins, etc.)
         }}
         dir="ltr"
-        tabIndex={0}
+        tabIndex={0} // Make it focusable
+        // Use dangerouslySetInnerHTML only if absolutely necessary and text is sanitized
+        // For contentEditable, managing innerText/textContent is usually preferred
+        // dangerouslySetInnerHTML={{ __html: text }} 
       >
-        {text}
+        {/* Render initial text. Subsequent updates are handled by contentEditable and state */}
+        {/* We rely on useElementInteraction to set initial innerText */}
       </div>
       
+      {/* Suggestions, Tags, Menus (only when active) */}
       {isActive && (
         <>
           {suggestionsVisible && (
@@ -208,6 +205,7 @@ const EditorElement: React.FC<EditorElementProps> = ({
       )}
     </div>
   );
-};
+}); // End of memo wrap
 
 export default EditorElement;
+

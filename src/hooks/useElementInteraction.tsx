@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
+import { formatTextForElementType } from '@/lib/slateUtils'; // Import the formatting utility
 
 interface UseElementInteractionProps {
   elementId: string;
@@ -32,50 +33,56 @@ export function useElementInteraction({
   const [focusIndex, setFocusIndex] = useState(0);
   const [showElementMenu, setShowElementMenu] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
-  
+
   useEffect(() => {
-    setText(initialText);
+    // Update local text state only if the initialText prop changes
+    if (initialText !== text) {
+      setText(initialText);
+      if (editorRef.current && !isActive) {
+        editorRef.current.innerText = initialText;
+      }
+    }
   }, [initialText]);
 
   useEffect(() => {
+    // Focus and set cursor position only when the element becomes active
     if (editorRef.current && isActive) {
-      if (editorRef.current.innerText !== initialText) {
-        editorRef.current.innerText = initialText;
+      if (editorRef.current.innerText !== text) {
+        editorRef.current.innerText = text;
       }
-
       const range = document.createRange();
       const sel = window.getSelection();
-      
       try {
         if (editorRef.current.childNodes.length > 0) {
-          range.setStartAfter(editorRef.current.childNodes[editorRef.current.childNodes.length - 1]);
+          const lastNode = editorRef.current.childNodes[editorRef.current.childNodes.length - 1];
+          if (lastNode.nodeType === Node.TEXT_NODE) {
+            range.setStart(lastNode, lastNode.nodeValue?.length ?? 0);
+          } else {
+             range.setStart(editorRef.current, editorRef.current.childNodes.length);
+          }
         } else {
           range.setStart(editorRef.current, 0);
         }
-        
         range.collapse(true);
-        
         if (sel) {
           sel.removeAllRanges();
           sel.addRange(range);
         }
-        
         editorRef.current.focus();
       } catch (err) {
         console.error('Error setting cursor position:', err);
       }
     }
-  }, [isActive, initialText]);
+  }, [isActive, text]);
 
   const handleChange = (e: React.FormEvent<HTMLDivElement>) => {
     const newText = e.currentTarget.innerText;
     setText(newText);
     onChange(elementId, newText, type);
-    
+
     if (type === 'character') {
       const detected = detectCharacter(newText, characterNames);
       setSuggestionsVisible(detected);
-      
       if (detected) {
         const searchText = newText.toLowerCase();
         const newSuggestions = characterNames.filter(name =>
@@ -83,6 +90,8 @@ export function useElementInteraction({
         );
         setFilteredSuggestions(newSuggestions);
         setFocusIndex(0);
+      } else {
+         setSuggestionsVisible(false);
       }
     } else {
       setSuggestionsVisible(false);
@@ -92,64 +101,63 @@ export function useElementInteraction({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Backspace' && text.trim() === '') {
       e.preventDefault();
+      // TODO: Implement element deletion logic here or in parent
+      // For now, just navigate up
       onNavigate('up', elementId);
       return;
     }
-    
-    // Fixed keyboard shortcut behavior
-    if (e.metaKey || e.ctrlKey) {
-      switch (e.key) {
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-          e.preventDefault();
-          
-          // First create a new element with the Enter key handler
-          onEnterKey(elementId, false);
-          
-          // Then after a short delay, update the newly created element to the desired type
-          setTimeout(() => {
-            // Find the newly created element which should now be active
-            const activeElements = document.querySelectorAll('.active-element');
-            if (activeElements.length > 0) {
-              const activeElementId = activeElements[0].closest('.element-container')?.id;
-              if (activeElementId) {
-                const typeMap: Record<string, ElementType> = {
-                  '1': 'scene-heading',
-                  '2': 'action',
-                  '3': 'character',
-                  '4': 'dialogue',
-                  '5': 'parenthetical',
-                  '6': 'transition'
-                };
-                
-                const newType = typeMap[e.key];
-                onFormatChange(activeElementId, newType);
 
-                // Add default text for transition
-                if (newType === 'transition') {
-                  const newElement = document.querySelector('.active-element');
-                  if (newElement && newElement.textContent?.trim() === '') {
-                    newElement.textContent = 'CUT TO:';
-                    onChange(activeElementId, 'CUT TO:', newType);
-                  }
-                }
-              }
-            }
-          }, 10);
-          return;
-        
+    // --- Keyboard Shortcuts for Element Type Change ---
+    if (e.metaKey || e.ctrlKey) {
+      let newType: ElementType | null = null;
+      let preventDefault = true;
+
+      switch (e.key) {
+        case '1': newType = 'scene-heading'; break;
+        case '2': newType = 'action'; break;
+        case '3': newType = 'character'; break;
+        case '4': newType = 'dialogue'; break;
+        case '5': newType = 'parenthetical'; break;
+        case '6': newType = 'transition'; break;
         default:
-          break;
+          preventDefault = false; // Don't prevent default for other Ctrl/Cmd keys
+      }
+
+      // Handle Ctrl/Cmd + Shift + R for Transition
+      if (e.shiftKey && e.key.toUpperCase() === 'R') {
+        newType = 'transition';
+        preventDefault = true;
+      }
+
+      if (newType && preventDefault) {
+        e.preventDefault();
+        if (type !== newType) {
+          const formattedText = formatTextForElementType(text, newType);
+          onFormatChange(elementId, newType);
+          if (formattedText !== text) {
+            setText(formattedText);
+            onChange(elementId, formattedText, newType);
+            if(editorRef.current) {
+              editorRef.current.innerText = formattedText;
+            }
+          }
+          if (newType === 'transition' && formattedText.trim() === '') {
+            const defaultTransition = 'CUT TO:';
+            setText(defaultTransition);
+            onChange(elementId, defaultTransition, newType);
+            if(editorRef.current) {
+              editorRef.current.innerText = defaultTransition;
+            }
+          }
+        }
+        return; // Shortcut handled
       }
     }
 
+    // --- Other Key Handlers --- 
     if (e.key === 'Enter') {
       e.preventDefault();
-      onEnterKey(elementId, e.shiftKey);
+      onEnterKey(elementId, e.shiftKey); // Handle Enter and Shift+Enter
     } else if (e.key === 'ArrowUp') {
       if (suggestionsVisible && filteredSuggestions.length > 0) {
         e.preventDefault();
@@ -164,43 +172,64 @@ export function useElementInteraction({
       } else {
         onNavigate('down', elementId);
       }
-    } else if (suggestionsVisible && filteredSuggestions.length > 0 && e.key === 'Tab') {
-      e.preventDefault();
-      handleSelectCharacter(filteredSuggestions[focusIndex]);
+    } else if (suggestionsVisible && filteredSuggestions.length > 0 && (e.key === 'Tab' || e.key === 'Enter')) {
+      if (filteredSuggestions[focusIndex]) {
+         e.preventDefault();
+         handleSelectCharacter(filteredSuggestions[focusIndex]);
+      }
     } else if (e.key === 'Tab') {
       e.preventDefault();
-      
       if (type === 'dialogue') {
+        // Dialogue -> Parenthetical
         onFormatChange(elementId, 'parenthetical');
-        if (!text.startsWith('(') && !text.endsWith(')')) {
-          const newText = `(${text})`;
+        if (!text.startsWith('(') || !text.endsWith(')')) {
+          const newText = `(${text.trim()})`;
           setText(newText);
           onChange(elementId, newText, 'parenthetical');
+           if(editorRef.current) {
+              editorRef.current.innerText = newText;
+            }
         }
+      } else if (type === 'parenthetical') {
+         // Parenthetical -> Dialogue
+         onFormatChange(elementId, 'dialogue');
+         // Remove parenthesis if present
+         if (text.startsWith('(') && text.endsWith(')')) {
+            const coreText = text.slice(1, -1);
+            setText(coreText);
+            onChange(elementId, coreText, 'dialogue');
+            if(editorRef.current) {
+               editorRef.current.innerText = coreText;
+            }
+         }
+      } else if (type === 'character') {
+         // Character -> Dialogue (handled by Enter key, Tab moves down)
+         onNavigate('down', elementId);
       } else {
-        const elementTypes: ElementType[] = [
-          'scene-heading',
-          'action',
-          'character',
-          'dialogue',
-          'parenthetical',
-          'transition'
-        ];
-        
-        const currentIndex = elementTypes.indexOf(type);
-        const nextIndex = (currentIndex + 1) % elementTypes.length;
-        
-        onFormatChange(elementId, elementTypes[nextIndex]);
+        // Default Tab: Move focus down
+        onNavigate('down', elementId);
       }
+    } else if (e.key === 'Escape') {
+       if (suggestionsVisible) {
+          e.preventDefault();
+          setSuggestionsVisible(false);
+       }
+       if (showElementMenu) {
+          e.preventDefault();
+          setShowElementMenu(false);
+       }
     }
   };
 
   const handleSelectCharacter = (name: string) => {
     if (editorRef.current) {
-      editorRef.current.innerText = name;
-      setText(name);
-      onChange(elementId, name, type);
+      const formattedName = formatTextForElementType(name, 'character');
+      editorRef.current.innerText = formattedName;
+      setText(formattedName);
+      onChange(elementId, formattedName, type);
       setSuggestionsVisible(false);
+      // Optionally trigger Enter to move to Dialogue after selection
+      // onEnterKey(elementId, false); // This might feel more natural
     }
   };
 
@@ -210,7 +239,15 @@ export function useElementInteraction({
   };
 
   const handleElementTypeChange = (newType: ElementType) => {
+    const formattedText = formatTextForElementType(text, newType);
     onFormatChange(elementId, newType);
+     if (formattedText !== text) {
+        setText(formattedText);
+        onChange(elementId, formattedText, newType);
+        if(editorRef.current) {
+           editorRef.current.innerText = formattedText;
+        }
+     }
     setShowElementMenu(false);
   };
 
@@ -231,3 +268,4 @@ export function useElementInteraction({
 }
 
 export default useElementInteraction;
+

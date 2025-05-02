@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ScriptContent, ScriptElement, ElementType } from '../lib/types';
-import { generateUniqueId } from '../lib/formatScript';
+// Corrected import: use formatScriptElement instead of formatTextForElementType
+import { generateUniqueId, formatScriptElement } from '../lib/formatScript'; 
 import { processCharacterName } from '../lib/characterUtils';
 
 export function useScriptElements(
@@ -9,115 +10,64 @@ export function useScriptElements(
   onChange: (content: ScriptContent) => void
 ) {
   console.log('useScriptElements initialized with', initialContent?.elements?.length || 0, 'elements');
-  
+
   const [elements, setElements] = useState<ScriptElement[]>(initialContent.elements || []);
   const [activeElementId, setActiveElementId] = useState<string | null>(
     elements.length > 0 ? elements[0].id : null
   );
 
+  // Update parent component whenever elements change
   useEffect(() => {
     onChange({ elements });
   }, [elements, onChange]);
 
-  const handleElementChange = (id: string, text: string, type: ElementType) => {
-    setElements(prevElements => 
+  // Handle changes to an element's text or type
+  const handleElementChange = useCallback((id: string, text: string, type: ElementType) => {
+    setElements(prevElements =>
       prevElements.map(element => {
         if (element.id === id) {
-          let updatedText = text;
-          // Auto-capitalize scene headings and character names
-          if (type === 'scene-heading' || type === 'character') {
-            updatedText = text.toUpperCase();
-          }
-          return { ...element, text: updatedText, type };
+          // Apply formatting based on type using the correct function
+          const formattedText = formatScriptElement({ text, type }); // Use formatScriptElement
+          return { ...element, text: formattedText, type };
         }
         return element;
       })
     );
-  };
+  }, []);
 
-  const getPreviousElementType = (index: number): ElementType | undefined => {
-    if (index <= 0) return undefined;
+  // Get the type of the element preceding the one at the given index
+  const getPreviousElementType = useCallback((index: number): ElementType | undefined => {
+    if (index <= 0 || index >= elements.length) return undefined;
     return elements[index - 1].type;
-  };
+  }, [elements]);
 
-  const addNewElement = (afterId: string, explicitType?: ElementType) => {
-    const afterIndex = elements.findIndex(element => element.id === afterId);
-    
-    if (afterIndex === -1) {
-      console.error('Could not find element with id', afterId);
-      return;
-    }
-    
-    const currentElement = elements[afterIndex];
-    
-    let newType: ElementType = explicitType || 'action';
-    let initialText = '';
-    
-    if (!explicitType) {
-      if (currentElement.type === 'scene-heading') {
-        newType = 'action';
-      } else if (currentElement.type === 'character') {
-        newType = 'dialogue';
-      } else if (currentElement.type === 'dialogue' || currentElement.type === 'parenthetical') {
-        newType = 'action';
-      } else if (currentElement.type === 'action') {
-        newType = 'action';
-      } else if (currentElement.type === 'transition') {
-        newType = 'scene-heading';
-      }
-    }
-    
-    if (newType === 'character' && afterIndex > 0) {
-      const prevCharacterIndex = afterIndex;
-      if (elements[prevCharacterIndex].type === 'character') {
-        initialText = processCharacterName(elements[prevCharacterIndex].text, afterIndex + 1, elements);
-      }
-    }
-    
-    const newElement: ScriptElement = {
-      id: generateUniqueId(),
-      type: newType,
-      text: initialText
-    };
-    
-    const newElements = [
-      ...elements.slice(0, afterIndex + 1),
-      newElement,
-      ...elements.slice(afterIndex + 1)
-    ];
-    
-    console.log('Adding new element after', afterId, 'new element:', newElement.id, newElement.type);
-    setElements(newElements);
-    
-    // Set focus to the new element
-    setTimeout(() => {
-      setActiveElementId(newElement.id);
-    }, 0);
-  };
-
-  const changeElementType = (id: string, newType: ElementType) => {
+  // Change the type of an existing element
+  const changeElementType = useCallback((id: string, newType: ElementType) => {
     setElements(prevElements => {
       const elementIndex = prevElements.findIndex(element => element.id === id);
       if (elementIndex === -1) return prevElements;
-      
+
       return prevElements.map((element, index) => {
         if (element.id === id) {
-          let newText = element.text;
+          // Format the existing text according to the new type using the correct function
+          let newText = formatScriptElement({ text: element.text, type: newType }); // Use formatScriptElement
+
+          // Add default text for transition if it becomes empty after formatting
+          if (newType === 'transition' && newText.trim() === '') {
+            newText = 'CUT TO:'; // Already uppercase due to formatScriptElement
+          }
+
+          // Re-process character name if changing *to* character type
           if (newType === 'character') {
-            newText = processCharacterName(newText, elementIndex, prevElements);
+             newText = processCharacterName(newText, elementIndex, prevElements);
           }
-          
-          // Auto-capitalize scene headings and character names
-          if (newType === 'scene-heading' || newType === 'character') {
-            newText = newText.toUpperCase();
-          }
-          
+
           return { ...element, type: newType, text: newText };
         }
         return element;
       });
     });
-  };
+  }, []);
 
   return {
     elements,
@@ -126,9 +76,9 @@ export function useScriptElements(
     setActiveElementId,
     handleElementChange,
     getPreviousElementType,
-    addNewElement,
     changeElementType
   };
 }
 
 export default useScriptElements;
+

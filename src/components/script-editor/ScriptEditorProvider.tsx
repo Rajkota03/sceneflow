@@ -1,13 +1,14 @@
-import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
-import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount } from '@/lib/types';
+
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from 'react'; // Added useMemo, useCallback
+import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, BeatSceneCount, Act, Beat } from '@/lib/types'; // Added Act, Beat
 import { generateUniqueId } from '@/lib/formatScript';
 import useScriptElements from '@/hooks/useScriptElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
-import useFilteredElements from '@/hooks/useFilteredElements';
-import useScriptNavigation from '@/hooks/useScriptNavigation';
-import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
+// import useFilteredElements from '@/hooks/useFilteredElements'; // Filtered elements might be handled differently now
+// import useScriptNavigation from '@/hooks/useScriptNavigation'; // Handled by Slate
+// import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'; // Handled by Slate
 import useEditorUIState from '@/hooks/useEditorUIState';
-import useStructures from '@/hooks/structure/useStructures';
+import useStructures from '@/hooks/structure/useStructures'; // Corrected import: default export
 import { BeatMode } from '@/types/scriptTypes';
 import { toast } from '@/components/ui/use-toast';
 import { updateStructureBeatCompletion, saveStructureBeatCompletion } from '@/hooks/structure/structureUtils';
@@ -20,9 +21,8 @@ interface ScriptEditorProviderProps {
   className?: string;
   projectId?: string;
   projectTitle?: string;
-  structureName?: string;
-  selectedStructureId?: string;
-  onStructureChange?: (structureId: string) => void;
+  // selectedStructureId?: string; // Handled by useStructures now
+  // onStructureChange?: (structureId: string) => void; // Handled by useStructures now
   children: React.ReactNode;
 }
 
@@ -39,8 +39,8 @@ export interface ScriptEditorContextType {
   currentPage: number;
   handleElementChange: (id: string, text: string, type: ElementType) => void;
   getPreviousElementType: (index: number) => ElementType | null;
-  handleNavigate: (id: string, direction: 'up' | 'down') => void;
-  handleEnterKey: (id: string, shiftKey: boolean) => void;
+  // handleNavigate: (id: string, direction: 'up' | 'down') => void; // Handled by Slate
+  // handleEnterKey: (id: string, shiftKey: boolean) => void; // Handled by Slate
   showKeyboardShortcuts: boolean;
   toggleKeyboardShortcuts: () => void;
   changeElementType: (id: string, newType: ElementType) => void;
@@ -48,11 +48,12 @@ export interface ScriptEditorContextType {
   characterNames: string[];
   projectId?: string;
   projectTitle?: string;
-  selectedStructureId?: string;
-  onStructureChange?: (structureId: string) => void;
-  selectedStructure?: Structure | null;
-  structures?: Structure[];
-  availableStructures?: Array<{ id: string; name: string }>;
+  selectedStructureId: string | null; // Now from useStructures
+  handleStructureChange: (structureId: string) => void; // Now from useStructures
+  updateStructure: (updatedStructureData: Structure) => Promise<boolean>; // Now from useStructures
+  selectedStructure: Structure | null; // Now from useStructures
+  structures: Structure[]; // Now from useStructures
+  availableStructures: Array<{ id: string; name: string }>; // Derived from structures
   activeBeatId: string | null;
   setActiveBeatId: (beatId: string | null) => void;
   handleBeatTag: (elementId: string, beatId: string, actId?: string) => void;
@@ -76,14 +77,13 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
   onChange,
   projectId,
   projectTitle,
-  selectedStructureId: initialStructureId,
-  onStructureChange: parentStructureChange,
   children
 }) => {
   const scriptContentRef = useRef<HTMLDivElement>(null);
   const [activeBeatId, setActiveBeatId] = useState<string | null>(null);
   const [beatSceneCounts, setBeatSceneCounts] = useState<BeatSceneCount[]>([]);
 
+  // UI State Hook
   const {
     activeTagFilter,
     setActiveTagFilter,
@@ -96,20 +96,22 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     toggleKeyboardShortcuts
   } = useEditorUIState();
 
-  const { 
-    structures, 
-    selectedStructureId, 
+  // Structure Management Hook
+  const {
+    structures,
+    selectedStructureId,
     selectedStructure,
-    handleStructureChange,
-    fetchStructures
-  } = useStructures({
-    projectId
-  });
+    handleStructureChange, // Renamed from hook's perspective
+    updateStructure, // Added from hook
+    fetchStructures // Keep if needed, but hook handles initial fetch
+  } = useStructures({ projectId });
 
-  const availableStructures = structures ? 
-    structures.map(s => ({ id: s.id, name: s.name })) : 
-    [];
+  // Derive available structures for selectors
+  const availableStructures = useMemo(() => 
+    structures.map(s => ({ id: s.id, name: s.name })), 
+  [structures]);
 
+  // Script Element Management Hook
   const {
     elements,
     setElements,
@@ -120,136 +122,91 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     changeElementType
   } = useScriptElements(initialContent, onChange);
 
+  // Derived Data Hooks
   const characterNames = useCharacterNames(elements);
+  // const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter); // Consider if needed
 
-  const handleNavigate = (id: string, direction: 'up' | 'down') => {
-    console.log('Navigation handled by Slate');
-  };
-
-  const handleEnterKey = (id: string, shiftKey: boolean) => {
-    console.log('Enter key handled by Slate');
-  };
-
-  const onStructureChangeHandler = (structureId: string) => {
-    console.log('Structure changed to:', structureId);
-    if (parentStructureChange) {
-      parentStructureChange(structureId);
-    }
-    handleStructureChange(structureId);
-  };
-
+  // Calculate Beat Scene Counts (Memoized)
   useEffect(() => {
-    if (initialStructureId && initialStructureId !== selectedStructureId) {
-      console.log('Initial structure ID provided:', initialStructureId);
-      handleStructureChange(initialStructureId);
-    }
-  }, [initialStructureId]);
-
-  useEffect(() => {
-    if (projectId && fetchStructures) {
-      console.log('Fetching structures for project:', projectId);
-      fetchStructures();
-    }
-  }, [projectId, fetchStructures]);
-
-  useEffect(() => {
-    if (!selectedStructure || !selectedStructure.acts) return;
-    
-    const counts: BeatSceneCount[] = [];
-    
-    // Ensure acts is always treated as an array
-    const acts = Array.isArray(selectedStructure.acts) 
-      ? selectedStructure.acts 
-      : Object.values(selectedStructure.acts || {});
-    
-    if (!Array.isArray(acts) || acts.length === 0) {
-      console.log('No valid acts found in structure:', selectedStructure.name);
+    if (!selectedStructure || !selectedStructure.acts) {
       setBeatSceneCounts([]);
       return;
     }
-    
-    // Use type assertion to help TypeScript understand the structure
-    const allBeats = acts.reduce<Array<any>>((beatList, act: any) => {
-      if (act && act.beats && Array.isArray(act.beats)) {
-        const beatsWithActId = act.beats.map((beat: any) => ({ 
-          ...beat, 
-          actId: act.id 
-        }));
-        return [...beatList, ...beatsWithActId];
-      }
-      return beatList;
-    }, []);
-    
-    // Now we can safely use forEach since allBeats is properly typed
-    allBeats.forEach((beat: any) => {
+
+    console.log("Recalculating beat scene counts...");
+    const counts: BeatSceneCount[] = [];
+    const actsArray = Array.isArray(selectedStructure.acts) 
+      ? selectedStructure.acts 
+      : Object.values(selectedStructure.acts || {});
+
+    if (!Array.isArray(actsArray)) return;
+
+    const allBeats = actsArray.flatMap((act: Act) => 
+      act.beats?.map(beat => ({ ...beat, actId: act.id })) || []
+    );
+
+    allBeats.forEach((beat: Beat & { actId: string }) => {
       if (!beat || !beat.id) return;
-      
-      const scenesWithBeat = elements.filter(element => 
-        element.beat === beat.id
-      );
-      
+      const scenesWithBeat = elements.filter(element => element.beat === beat.id && element.type === 'scene-heading');
       if (scenesWithBeat.length > 0) {
+        // TODO: Calculate actual page range based on element positions
         counts.push({
           beatId: beat.id,
-          actId: beat.actId as string,
+          actId: beat.actId,
           count: scenesWithBeat.length,
-          pageRange: '1-2'
+          pageRange: '...' // Placeholder for page range
         });
       }
     });
-    
+
     setBeatSceneCounts(counts);
   }, [elements, selectedStructure]);
 
-  const handleBeatTag = async (elementId: string, beatId: string, actId?: string) => {
-    console.log('ScriptEditorProvider.handleBeatTag called:', { elementId, beatId, actId });
-    
+  // Beat Tagging Handler
+  const handleBeatTag = useCallback(async (elementId: string, beatId: string, actId?: string) => {
+    console.log('ScriptEditorProvider.handleBeatTag:', { elementId, beatId, actId });
+
     const updatedElements = elements.map(element =>
       element.id === elementId ? { ...element, beat: beatId } : element
     );
-    
     setElements(updatedElements);
-    onChange({ elements: updatedElements });
-    
+    onChange({ elements: updatedElements }); // Propagate change upwards
+
+    // Mark beat as complete in structure (optional, based on logic)
     if (selectedStructure && selectedStructureId && actId && beatId) {
       console.log('Marking beat as complete:', { beatId, actId });
-      
-      const updatedStructure = updateStructureBeatCompletion(
+      const updatedStructureData = updateStructureBeatCompletion(
         selectedStructure,
         beatId,
         actId,
-        true
+        true // Mark as complete
       );
-      
-      if (updatedStructure) {
-        const success = await saveStructureBeatCompletion(selectedStructureId, updatedStructure);
+
+      if (updatedStructureData) {
+        // Persist the completion status change
+        const success = await updateStructure(updatedStructureData);
         if (success) {
-          toast({
-            description: "Beat marked as complete in structure",
-            duration: 2000,
-          });
-          
-          if (fetchStructures) {
-            fetchStructures();
-          }
+          toast({ description: "Beat marked as complete.", duration: 2000 });
+          // No need to manually refetch, useStructures handles state update
         } else {
           console.error('Failed to save beat completion status');
+          toast({ title: "Error", description: "Failed to update beat status.", variant: "destructive" });
         }
       }
     }
-  };
+  }, [elements, onChange, selectedStructure, selectedStructureId, setElements, updateStructure]);
 
-  const handleTagsChange = (elementId: string, tags: string[]) => {
-    setElements(prevElements =>
-      prevElements.map(element =>
-        element.id === elementId ? { ...element, tags } : element
-      )
-    );
-    onChange({ elements: elements.map(element =>
+  // Scene Tag (non-beat) Handler
+  const handleTagsChange = useCallback((elementId: string, tags: string[]) => {
+    const updatedElements = elements.map(element =>
       element.id === elementId ? { ...element, tags } : element
-    ) });
-  };
+    );
+    setElements(updatedElements);
+    onChange({ elements: updatedElements }); // Propagate change upwards
+  }, [elements, onChange, setElements]);
 
+
+  // Context Value
   const contextValue: ScriptEditorContextType = {
     elements,
     activeElementId,
@@ -263,8 +220,6 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     currentPage,
     handleElementChange,
     getPreviousElementType,
-    handleNavigate,
-    handleEnterKey,
     showKeyboardShortcuts,
     toggleKeyboardShortcuts,
     changeElementType,
@@ -273,7 +228,8 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     projectId,
     projectTitle,
     selectedStructureId,
-    onStructureChange: onStructureChangeHandler,
+    handleStructureChange, // From useStructures
+    updateStructure, // From useStructures
     selectedStructure,
     structures,
     availableStructures,
@@ -293,3 +249,4 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 };
 
 export default ScriptEditorProvider;
+

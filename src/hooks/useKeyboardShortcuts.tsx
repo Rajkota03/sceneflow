@@ -1,125 +1,131 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { toast } from '@/components/ui/use-toast';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
 
 interface UseKeyboardShortcutsProps {
-  onExport?: () => void;
-  scriptContentRef?: React.RefObject<HTMLDivElement>;
+  onSave?: () => void;       // Callback for Ctrl+S
+  onExport?: () => void;      // Callback for Ctrl+E
+  onUndo?: () => void;       // Placeholder callback for Ctrl+Z
+  onRedo?: () => void;       // Placeholder callback for Ctrl+Y / Ctrl+Shift+Z
 }
 
-export function useKeyboardShortcuts({ 
-  onExport, 
-  scriptContentRef 
+export function useKeyboardShortcuts({
+  onSave,
+  onExport,
+  onUndo,
+  onRedo
 }: UseKeyboardShortcutsProps = {}) {
-  // Use the context value if possible, otherwise use local state
-  let contextValue;
-  try {
-    contextValue = useScriptEditor();
-  } catch (e) {
-    // ScriptEditorProvider might not be available in all cases
-  }
 
-  const [localShowKeyboardShortcuts, setLocalShowKeyboardShortcuts] = useState(false);
-  
-  // Use context values if available, otherwise use local state
-  const showKeyboardShortcuts = contextValue?.showKeyboardShortcuts ?? localShowKeyboardShortcuts;
-  const toggleKeyboardShortcuts = contextValue?.toggleKeyboardShortcuts ?? 
-    (() => setLocalShowKeyboardShortcuts(prev => !prev));
+  // State for showing the help modal, managed within the hook
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+
+  const toggleKeyboardShortcuts = useCallback(() => {
+    setShowKeyboardShortcuts(prev => !prev);
+  }, []);
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Toggle keyboard shortcuts help with Ctrl+/
-      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-        e.preventDefault();
-        toggleKeyboardShortcuts();
-      }
-      
-      // Export PDF with Cmd+E
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault();
-        if (onExport) {
-          onExport();
-        } else if (scriptContentRef?.current) {
-          // Default PDF export logic if no custom handler provided
-          exportToPdf(scriptContentRef.current);
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      // Prevent shortcuts if focus is on input/textarea, except for Save
+      const target = e.target as HTMLElement;
+      const isEditable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+      if (e.ctrlKey || e.metaKey) {
+        let shortcutHandled = false;
+        switch (e.key.toLowerCase()) {
+          case 's': // Save
+            // Allow save even if editable element is focused
+            e.preventDefault();
+            if (onSave) {
+              console.log("Ctrl+S pressed, saving...");
+              onSave();
+            }
+            shortcutHandled = true;
+            break;
+
+          case 'e': // Export PDF
+            if (!isEditable) { // Prevent export shortcut if editing text
+              e.preventDefault();
+              if (onExport) {
+                console.log("Ctrl+E pressed, exporting PDF...");
+                onExport();
+              }
+              shortcutHandled = true;
+            }
+            break;
+
+          case '/': // Toggle Help
+            if (!isEditable) { // Prevent help shortcut if editing text
+              e.preventDefault();
+              console.log("Ctrl+/ pressed, toggling help...");
+              toggleKeyboardShortcuts();
+              shortcutHandled = true;
+            }
+            break;
+
+          case 'z': // Undo / Redo
+            if (!isEditable) { // Prevent undo/redo if editing text
+                if (e.shiftKey) {
+                    // Redo (Cmd/Ctrl + Shift + Z)
+                    e.preventDefault();
+                    if (onRedo) {
+                        console.log("Ctrl+Shift+Z pressed, redoing...");
+                        onRedo();
+                    } else {
+                        console.log("Redo action not implemented.");
+                        // Optionally show a toast message
+                        // toast({ title: "Redo", description: "Redo functionality not yet implemented." });
+                    }
+                    shortcutHandled = true;
+                } else {
+                    // Undo (Cmd/Ctrl + Z)
+                    e.preventDefault();
+                    if (onUndo) {
+                        console.log("Ctrl+Z pressed, undoing...");
+                        onUndo();
+                    } else {
+                        console.log("Undo action not implemented.");
+                        // Optionally show a toast message
+                        // toast({ title: "Undo", description: "Undo functionality not yet implemented." });
+                    }
+                    shortcutHandled = true;
+                }
+            }
+            break;
+
+          case 'y': // Redo (Windows/Linux - Ctrl+Y)
+            // Check if it's not macOS (where Cmd+Y might do something else)
+            if (!navigator.platform.toUpperCase().includes('MAC') && !isEditable) {
+                e.preventDefault();
+                if (onRedo) {
+                    console.log("Ctrl+Y pressed, redoing...");
+                    onRedo();
+                } else {
+                    console.log("Redo action not implemented.");
+                    // toast({ title: "Redo", description: "Redo functionality not yet implemented." });
+                }
+                shortcutHandled = true;
+            }
+            break;
         }
+        // if (shortcutHandled) return; // Potentially stop further processing if needed
       }
     };
-    
-    window.addEventListener('keydown', handleKeyDown);
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [onExport, scriptContentRef, toggleKeyboardShortcuts]);
+  // Add dependencies for the callbacks
+  }, [onSave, onExport, onUndo, onRedo, toggleKeyboardShortcuts]);
 
-  const exportToPdf = async (element: HTMLElement) => {
-    try {
-      toast({
-        title: "Exporting PDF",
-        description: "Please wait while your script is being exported...",
-      });
-
-      // Apply industry-standard formatting to the element for export
-      const originalClassName = element.className;
-      element.classList.add('pdf-export');
-      
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      
-      // Reset the element's class
-      element.className = originalClassName;
-      
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Use US Letter size (8.5" x 11")
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'in',
-        format: [8.5, 11]
-      });
-      
-      // Calculate dimensions to maintain aspect ratio while respecting standard page size
-      const imgWidth = 8.5;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      
-      // Add page numbers (except for title page)
-      const pageCount = Math.ceil(imgHeight / 11);
-      for (let i = 1; i < pageCount; i++) {
-        pdf.setPage(i + 1);
-        pdf.setFontSize(12);
-        pdf.setFont('Courier', 'normal');
-        pdf.text(String(i + 1), 7.5, 0.5); // Page number in top right corner
-      }
-      
-      pdf.save('screenplay.pdf');
-      
-      toast({
-        title: "PDF Exported",
-        description: "Your script has been exported successfully.",
-      });
-    } catch (error) {
-      console.error('PDF export error:', error);
-      toast({
-        title: "Export Failed",
-        description: "There was an error exporting your script to PDF.",
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Return state and control function for the help modal
   return {
     showKeyboardShortcuts,
-    setShowKeyboardShortcuts: toggleKeyboardShortcuts,
-    exportToPdf
+    setShowKeyboardShortcuts, // Allow external control if needed
+    toggleKeyboardShortcuts
   };
 }
 
 export default useKeyboardShortcuts;
+
