@@ -1,6 +1,6 @@
 
-import React, { useRef, useState, useEffect, useCallback } from 'react'; // Added useEffect, useCallback
-import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EditorMenuBar from '../components/EditorMenuBar';
@@ -13,22 +13,26 @@ import EditorHeader from '@/components/editor/EditorHeader';
 import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
 import { BeatMode } from '@/types/scriptTypes';
-import ScriptEditorProvider from '@/components/script-editor/ScriptEditorProvider';
-import { toast } from '@/components/ui/use-toast'; // Import toast
-import html2canvas from 'html2canvas'; // Import html2canvas
-import { jsPDF } from 'jspdf'; // Import jsPDF
-import KeyboardShortcutsHelp from '@/components/script-editor/KeyboardShortcutsHelp'; // Import help component
+import ScriptEditorProvider, { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider'; // Import useScriptEditor
+import { toast } from '@/components/ui/use-toast';
+// Removed html2canvas and jsPDF imports as we use the dedicated exporter now
+import { exportToPdf as exportScriptToPdf } from '@/lib/pdfExporter'; // Import the new exporter
+import KeyboardShortcutsHelp from '@/components/script-editor/KeyboardShortcutsHelp';
 
-const Editor = () => {
+// Inner component to access ScriptEditorContext for elements
+const EditorContent = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const { session } = useAuth();
-  const navigate = useNavigate(); // Hook for navigation
-  const editorContentRef = useRef<HTMLDivElement>(null); // Ref for the main editor area for export
+  const navigate = useNavigate();
+  const editorContentRef = useRef<HTMLDivElement>(null); // Keep ref if needed for other purposes
+
+  // Access elements from the context
+  const { elements: scriptElements } = useScriptEditor(); 
 
   const {
     project,
     title,
-    content,
+    content, // Keep initial content if needed
     isSaving,
     lastSaved,
     isLoading,
@@ -44,7 +48,7 @@ const Editor = () => {
     selectedStructureId,
     structures,
     setNoteEditorOpen,
-    handleContentChange,
+    handleContentChange, // This is passed to Provider, not used directly here
     handleTitleChange,
     handleSave,
     handleSaveAs,
@@ -62,67 +66,34 @@ const Editor = () => {
   } = useEditorState({ projectId, session });
 
   const [beatMode, setBeatMode] = useState<BeatMode>('on');
-  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false); // State for help visibility
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
   const handleToggleBeatMode = (mode: BeatMode) => {
     setBeatMode(mode);
   };
 
-  // --- Global Keyboard Shortcuts --- 
-  const exportToPdf = useCallback(async () => {
-    const elementToExport = editorContentRef.current?.querySelector('.script-page-content'); // Target the content
-    if (!elementToExport) {
-        toast({ title: "Export Error", description: "Could not find script content to export.", variant: "destructive" });
-        return;
+  // --- PDF Export Handler ---
+  const handleExportPdf = useCallback(() => {
+    if (!scriptElements || scriptElements.length === 0) {
+      toast({ title: "Export Error", description: "No script content to export.", variant: "destructive" });
+      return;
     }
-
     try {
       toast({ title: "Exporting PDF", description: "Please wait..." });
-      // Ensure styles are applied for export if needed (e.g., specific font loading)
-      const canvas = await html2canvas(elementToExport as HTMLElement, { scale: 2, useCORS: true, logging: false });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'portrait', unit: 'in', format: [8.5, 11] });
-      const imgWidth = 8.5; // Use full width for calculation
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const pageHeight = 11; // Standard page height
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add first page (margins are handled by the CSS/layout of elementToExport)
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add subsequent pages if needed
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight; // Negative position
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-
-      // Add page numbers (optional, needs refinement for accuracy)
-      // const pageCount = pdf.getNumberOfPages();
-      // for (let i = 1; i <= pageCount; i++) {
-      //   pdf.setPage(i);
-      //   pdf.setFontSize(10);
-      //   pdf.setFont('Courier');
-      //   pdf.text(String(i), pdf.internal.pageSize.getWidth() - 1, 0.5); // Top right
-      // }
-
-      pdf.save(`${title || 'screenplay'}.pdf`);
-      toast({ title: "PDF Exported", description: "Your script has been exported successfully." });
+      exportScriptToPdf(scriptElements, `${title || 'screenplay'}.pdf`); // Use the new exporter
+      // Success toast is handled within the exporter or can be added here if preferred
+      // toast({ title: "PDF Exported", description: "Your script has been exported successfully." });
     } catch (error) {
       console.error('PDF export error:', error);
       toast({ title: "Export Failed", description: "Could not export script to PDF.", variant: "destructive" });
     }
-  }, [title, editorContentRef]);
+  }, [scriptElements, title]); // Depend on elements from context and title
 
+  // --- Global Keyboard Shortcuts --- 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Prevent shortcuts when input fields or textareas are focused
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-         // Allow specific shortcuts like Ctrl+S even in editor
          if (!((e.ctrlKey || e.metaKey) && e.key === 's')) {
             return;
          }
@@ -130,33 +101,18 @@ const Editor = () => {
 
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
-          case 's': // Save
+          case 's':
             e.preventDefault();
-            console.log("Ctrl+S pressed, saving...");
             handleSave();
             break;
-          case 'e': // Export PDF
+          case 'e':
             e.preventDefault();
-            console.log("Ctrl+E pressed, exporting PDF...");
-            exportToPdf();
+            handleExportPdf(); // Use the new handler
             break;
-          case '/': // Toggle Help
+          case '/':
             e.preventDefault();
-            console.log("Ctrl+/ pressed, toggling help...");
             setShowKeyboardShortcuts(prev => !prev);
             break;
-          // Add Undo/Redo placeholders if state management allows
-          // case 'z': // Undo
-          //   e.preventDefault();
-          //   // undo();
-          //   break;
-          // case 'y': // Redo (Windows/Linux)
-          // case 'Z': // Redo (Mac - Shift+Cmd+Z)
-          //   if (e.key === 'y' || (e.key === 'Z' && e.shiftKey)) {
-          //      e.preventDefault();
-          //      // redo();
-          //   }
-          //   break;
         }
       }
     };
@@ -165,8 +121,7 @@ const Editor = () => {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  // Add dependencies: handleSave, exportToPdf
-  }, [handleSave, exportToPdf]);
+  }, [handleSave, handleExportPdf]); // Updated dependencies
 
   // --- End Global Keyboard Shortcuts ---
 
@@ -188,7 +143,7 @@ const Editor = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
         <div className="text-center">
           <p className="text-xl font-medium text-slate-900 dark:text-slate-100 mb-4">Project not found</p>
-          <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button> // Use navigate
+          <Button onClick={() => navigate('/dashboard')}>Return to Dashboard</Button>
         </div>
       </div>
     );
@@ -197,100 +152,124 @@ const Editor = () => {
   const availableStructures = structures ? structures.map(s => ({ id: s.id, name: s.name })) : [];
 
   return (
+    <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200 relative">
+      {showKeyboardShortcuts && (
+          <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-gray-800 p-4 rounded shadow-lg max-w-md w-full">
+              <KeyboardShortcutsHelp />
+              <Button variant="outline" size="sm" onClick={() => setShowKeyboardShortcuts(false)} className="mt-4 w-full">Close</Button>
+          </div>
+      )}
+
+      <EditorMenuBar 
+        onSave={handleSave} 
+        onSaveAs={handleSaveAs} 
+        onTitlePage={toggleTitlePage}
+        onEditTitlePage={handleTitlePageUpdate}
+        titlePageData={titlePageData}
+        showTitlePage={showTitlePage}
+        onToggleTitlePage={toggleTitlePage}
+        notes={notes}
+        onCreateNote={handleCreateNoteClick}
+        onOpenNote={handleOpenNote}
+        onEditNote={handleEditNote}
+        onToggleHelp={() => setShowKeyboardShortcuts(p => !p)}
+      />
+      
+      <EditorHeader
+        title={title}
+        onTitleChange={handleTitleChange}
+        isSaving={isSaving}
+        saveButtonText={saveButtonText}
+        saveButtonIcon={saveButtonIcon}
+        onSave={handleSave}
+        onExportPdf={handleExportPdf} // Pass the handler to the header
+        notes={notes}
+        onOpenNote={handleOpenNote}
+        onCreateNote={handleCreateNoteClick}
+        onDeleteNote={handleDeleteNote}
+        onEditNote={handleEditNote}
+        availableStructures={availableStructures}
+        selectedStructureId={selectedStructureId}
+        onStructureChange={handleStructureChange}
+        beatMode={beatMode}
+        onToggleBeatMode={handleToggleBeatMode}
+      />
+      
+      <EditorMainArea
+        ref={editorContentRef}
+        showTitlePage={showTitlePage}
+        titlePageData={titlePageData}
+        content={content} // Pass initial content if needed by MainArea
+        onContentChange={handleContentChange} // Pass content change handler if needed
+        splitScreenNote={splitScreenNote}
+        openNotes={openNotes}
+        onNoteClose={handleCloseNote}
+        onSplitScreen={handleSplitScreen}
+        exitSplitScreen={exitSplitScreen}
+        onEditNote={handleEditNote}
+        projectId={projectId}
+        projectTitle={title}
+        onStructureChange={handleStructureChange}
+        selectedStructureId={selectedStructureId}
+        beatMode={beatMode}
+      />
+      
+      <EditorFooter
+        showTitlePage={showTitlePage}
+        lastSaved={lastSavedString}
+        elementCount={scriptElements.length} // Use elements from context
+        characterCount={new Set(scriptElements.filter(e => e.type === 'character').map(e => e.text.replace(/\s*\(CONT'D\)\s*$/i, '').trim())).size}
+      />
+      
+      {currentEditNote && (
+        <NoteEditor 
+          note={currentEditNote} 
+          onSaveNote={handleSaveNote}
+          isPopup={true}
+          onClose={() => setNoteEditorOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Main Editor component wraps the content with providers
+const Editor = () => {
+  const { projectId } = useParams<{ projectId: string }>();
+  const { session } = useAuth();
+
+  // Fetch initial state including content using useEditorState
+  const { content, isLoading, project, handleContentChange, title, selectedStructureId, handleStructureChange } = useEditorState({ projectId, session });
+
+  // Render loading state or error state before providers if necessary
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="flex flex-col items-center">
+          <Loader className="animate-spin h-8 w-8 text-primary mb-4" />
+          <p className="text-slate-600 dark:text-slate-300">Loading your screenplay...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!project) {
+      // Handle project not found state here if needed, similar to EditorContent
+      return <div>Project not found or access denied.</div>;
+  }
+
+  return (
     <ThemeProvider>
       <FormatProvider>
-        {/* Pass down shortcut visibility state if needed by provider */}
         <ScriptEditorProvider
-          initialContent={content}
-          onChange={handleContentChange}
+          initialContent={content} // Pass the fetched initial content
+          onChange={handleContentChange} // Pass the handler from useEditorState
           projectId={projectId}
           selectedStructureId={selectedStructureId}
           onStructureChange={handleStructureChange}
           projectTitle={title}
-          // showKeyboardShortcuts={showKeyboardShortcuts} // Pass down if needed
-          // toggleKeyboardShortcuts={() => setShowKeyboardShortcuts(p => !p)} // Pass down if needed
         >
-          <div className="h-screen flex flex-col bg-slate-100 dark:bg-slate-900 overflow-hidden transition-colors duration-200 relative"> {/* Added relative positioning */}
-            {/* Conditionally render Keyboard Shortcuts Help */} 
-            {showKeyboardShortcuts && (
-                <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-white dark:bg-gray-800 p-4 rounded shadow-lg max-w-md w-full">
-                    <KeyboardShortcutsHelp />
-                    <Button variant="outline" size="sm" onClick={() => setShowKeyboardShortcuts(false)} className="mt-4 w-full">Close</Button>
-                </div>
-            )}
-
-            <EditorMenuBar 
-              onSave={handleSave} 
-              onSaveAs={handleSaveAs} 
-              onTitlePage={toggleTitlePage}
-              onEditTitlePage={handleTitlePageUpdate}
-              titlePageData={titlePageData}
-              showTitlePage={showTitlePage}
-              onToggleTitlePage={toggleTitlePage}
-              notes={notes}
-              onCreateNote={handleCreateNoteClick}
-              onOpenNote={handleOpenNote}
-              onEditNote={handleEditNote}
-              // Add help toggle to menu?
-              onToggleHelp={() => setShowKeyboardShortcuts(p => !p)}
-            />
-            
-            <EditorHeader
-              title={title}
-              onTitleChange={handleTitleChange}
-              isSaving={isSaving}
-              saveButtonText={saveButtonText}
-              saveButtonIcon={saveButtonIcon}
-              onSave={handleSave}
-              notes={notes}
-              onOpenNote={handleOpenNote}
-              onCreateNote={handleCreateNoteClick}
-              onDeleteNote={handleDeleteNote}
-              onEditNote={handleEditNote}
-              availableStructures={availableStructures}
-              selectedStructureId={selectedStructureId}
-              onStructureChange={handleStructureChange}
-              beatMode={beatMode}
-              onToggleBeatMode={handleToggleBeatMode}
-            />
-            
-            {/* Pass ref to EditorMainArea */}
-            <EditorMainArea
-              ref={editorContentRef} // Pass the ref here
-              showTitlePage={showTitlePage}
-              titlePageData={titlePageData}
-              content={content}
-              onContentChange={handleContentChange}
-              splitScreenNote={splitScreenNote}
-              openNotes={openNotes}
-              onNoteClose={handleCloseNote}
-              onSplitScreen={handleSplitScreen}
-              exitSplitScreen={exitSplitScreen}
-              onEditNote={handleEditNote}
-              projectId={projectId}
-              projectTitle={title}
-              onStructureChange={handleStructureChange}
-              selectedStructureId={selectedStructureId}
-              beatMode={beatMode}
-            />
-            
-            <EditorFooter
-              showTitlePage={showTitlePage}
-              lastSaved={lastSavedString}
-              elementCount={content.elements.length}
-              // More accurate character count needed (unique names)
-              characterCount={new Set(content.elements.filter(e => e.type === 'character').map(e => e.text.replace(/\s*\(CONT'D\)\s*$/i, '').trim())).size}
-            />
-            
-            {currentEditNote && (
-              <NoteEditor 
-                note={currentEditNote} 
-                onSaveNote={handleSaveNote}
-                isPopup={true}
-                onClose={() => setNoteEditorOpen(false)}
-              />
-            )}
-          </div>
+          <EditorContent /> {/* Render the inner component that uses the context */}
         </ScriptEditorProvider>
       </FormatProvider>
     </ThemeProvider>
