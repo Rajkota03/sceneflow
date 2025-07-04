@@ -185,6 +185,7 @@ const VerticalStructurePanel: React.FC<VerticalStructurePanelProps> = () => {
       title: "New Beat",
       description: "",
       complete: false,
+      timePosition: 0, // Add required timePosition property
     };
 
     const updatedActs = produce(acts, draft => {
@@ -244,6 +245,7 @@ const VerticalStructurePanel: React.FC<VerticalStructurePanelProps> = () => {
               <SortableActItem 
                 key={act.id} 
                 act={act} 
+                beatIds={act.beats?.map(beat => beat.id) || []} // Add required beatIds property
                 onAddBeat={handleAddBeat} 
                 onDeleteBeat={handleDeleteBeat}
                 isDraggingAct={activeId === act.id}

@@ -15,4 +15,5 @@ export interface StructureHookReturn {
   updateBeatCompletion: (beatId: string, actId: string, complete: boolean) => Structure | null;
   saveBeatCompletion: (structureId: string, updatedStructure: Structure) => Promise<boolean>;
   fetchStructures: () => Promise<void>; // Make sure fetchStructures is defined in the return type
+  updateStructure: (updatedStructureData: Structure) => Promise<boolean>; // Add missing updateStructure
 }

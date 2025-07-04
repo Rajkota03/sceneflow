@@ -49,7 +49,7 @@ export interface ScriptEditorContextType {
   projectId?: string;
   projectTitle?: string;
   selectedStructureId: string | null; // Now from useStructures
-  handleStructureChange: (structureId: string) => void; // Now from useStructures
+  onStructureChange: (structureId: string) => void; // Now from useStructures
   updateStructure: (updatedStructureData: Structure) => Promise<boolean>; // Now from useStructures
   selectedStructure: Structure | null; // Now from useStructures
   structures: Structure[]; // Now from useStructures
@@ -101,8 +101,8 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     structures,
     selectedStructureId,
     selectedStructure,
-    handleStructureChange, // Renamed from hook's perspective
-    updateStructure, // Added from hook
+    handleStructureChange,
+    updateStructure,
     fetchStructures // Keep if needed, but hook handles initial fetch
   } = useStructures({ projectId });
 
@@ -228,7 +228,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
     projectId,
     projectTitle,
     selectedStructureId,
-    handleStructureChange, // From useStructures
+    onStructureChange: handleStructureChange,
     updateStructure, // From useStructures
     selectedStructure,
     structures,

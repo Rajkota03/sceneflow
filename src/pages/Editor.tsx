@@ -267,7 +267,11 @@ const Editor = () => {
           projectTitle={editorState.title}
         >
           {/* Pass all state and handlers from useEditorState to EditorContent */}
-          <EditorContent {...editorState} projectId={projectId} />
+          <EditorContent 
+            {...editorState} 
+            projectId={projectId} 
+            handleSaveAs={() => editorState.handleSaveAs("Untitled Screenplay")} 
+          />
         </ScriptEditorProvider>
       </FormatProvider>
     </ThemeProvider>

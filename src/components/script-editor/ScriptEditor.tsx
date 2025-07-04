@@ -51,8 +51,6 @@ const ScriptEditor = ({
       initialContent={initialContent}
       onChange={onChange}
       projectId={projectId}
-      selectedStructureId={externalSelectedStructureId}
-      onStructureChange={onStructureChange}
       projectTitle={projectName}
     >
       <ScriptContent />

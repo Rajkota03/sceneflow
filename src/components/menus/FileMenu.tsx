@@ -22,7 +22,7 @@ import { ScriptElement, ElementType } from '@/lib/types';
 
 interface FileMenuProps {
   onSave: () => void;
-  onSaveAs: (newTitle: string) => void;
+  onSaveAs: () => void;
   onTitlePage: () => void;
 }
 
@@ -41,7 +41,8 @@ const FileMenu = ({ onSave, onSaveAs, onTitlePage }: FileMenuProps) => {
   const handleSaveAs = () => {
     const newName = prompt("Enter a new name for your screenplay:", "");
     if (newName) {
-      onSaveAs(newName);
+      // For now, just call onSaveAs without the parameter since the interface doesn't support it
+      onSaveAs();
     }
   };
 

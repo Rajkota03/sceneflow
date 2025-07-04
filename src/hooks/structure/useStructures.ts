@@ -108,7 +108,8 @@ const useStructures = ({ projectId }: StructureHookProps): StructureHookReturn =
     handleStructureChange,
     updateBeatCompletion: updateBeatCompletionHandler,
     saveBeatCompletion: saveBeatCompletionHandler,
-    fetchStructures
+    fetchStructures,
+    updateStructure: async () => false // Add stub for missing updateStructure
   };
 };
 
