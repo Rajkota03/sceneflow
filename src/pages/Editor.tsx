@@ -170,6 +170,8 @@ const EditorContent: React.FC<EditorContentProps> = (props) => {
         ref={editorContentRef}
         showTitlePage={props.showTitlePage}
         titlePageData={props.titlePageData}
+        content={{ elements: scriptElements }}
+        onContentChange={() => {}} // This is handled by the context now
         splitScreenNote={props.splitScreenNote}
         openNotes={props.openNotes}
         onNoteClose={props.handleCloseNote}
@@ -216,8 +218,7 @@ const Editor = () => {
     elements: [{
       id: generateUniqueId(),
       type: 'action' as ElementType,
-      text: '',
-      children: [{ text: '' }] // Slate requires children array with text node
+      text: ''
     }]
   };
 
@@ -263,8 +264,6 @@ const Editor = () => {
           initialContent={initialContentForProvider}
           onChange={editorState.handleContentChange}
           projectId={projectId}
-          selectedStructureId={editorState.selectedStructureId}
-          onStructureChange={editorState.handleStructureChange}
           projectTitle={editorState.title}
         >
           {/* Pass all state and handlers from useEditorState to EditorContent */}

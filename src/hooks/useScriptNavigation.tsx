@@ -1,7 +1,7 @@
 
 import { ElementType, ScriptElement } from "@/lib/types";
 import { shouldAddContd } from "@/lib/characterUtils"; // This might need refinement or replacement
-import { generateUniqueId, formatTextForElementType } from "@/lib/formatScript";
+import { generateUniqueId, formatScriptElement } from "@/lib/formatScript";
 
 interface UseScriptNavigationProps {
   elements: ScriptElement[];
@@ -162,7 +162,7 @@ export function useScriptNavigation({
     }
 
     // Format the default or generated text based on the new element's type
-    newElement.text = formatTextForElementType(newElement.text, newElement.type);
+    newElement.text = formatScriptElement({ text: newElement.text, type: newElement.type });
 
     // Insert the new element
     const updatedElements: ScriptElement[] = [

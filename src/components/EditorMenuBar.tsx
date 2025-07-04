@@ -17,7 +17,7 @@ import { Note } from '@/lib/types';
 
 interface EditorMenuBarProps {
   onSave: () => void;
-  onSaveAs: (newTitle: string) => void;
+  onSaveAs: () => void;
   onTitlePage: () => void;
   onToggleTitlePage: () => void;
   onEditTitlePage: (data: TitlePageData) => void;
@@ -27,6 +27,7 @@ interface EditorMenuBarProps {
   onCreateNote: () => void;
   onOpenNote: (note: Note) => void;
   onEditNote?: (note: Note) => void;
+  onToggleHelp?: () => void;
 }
 
 const EditorMenuBar = ({
@@ -40,7 +41,8 @@ const EditorMenuBar = ({
   notes,
   onCreateNote,
   onOpenNote,
-  onEditNote
+  onEditNote,
+  onToggleHelp
 }: EditorMenuBarProps) => {
   // Ensure notes is always an array
   const safeNotes = Array.isArray(notes) ? notes : [];
