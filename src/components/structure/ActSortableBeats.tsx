@@ -46,8 +46,10 @@ const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
     const { active, over } = event;
     
     if (over && active.id !== over.id) {
-      const oldIndex = act.beats.findIndex(beat => beat.id === active.id);
-      const newIndex = act.beats.findIndex(beat => beat.id === over.id);
+      const oldIndex = act.beats?.findIndex(beat => beat.id === active.id) ?? -1;
+      const newIndex = act.beats?.findIndex(beat => beat.id === over.id) ?? -1;
+      
+      if (oldIndex === -1 || newIndex === -1 || !act.beats) return;
       
       const reorderedBeats = arrayMove(act.beats, oldIndex, newIndex);
       onBeatsReorder(act.id, reorderedBeats);
@@ -63,10 +65,10 @@ const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
       onDragEnd={handleDragEnd}
     >
       <SortableContext 
-        items={act.beats.map(beat => beat.id)}
+        items={act.beats?.map(beat => beat.id) || []}
         strategy={verticalListSortingStrategy}
       >
-        {act.beats.map(beat => {
+        {act.beats?.map(beat => {
           const isMidpoint = act.title.toLowerCase().includes('midpoint') && 
             beat.title.toLowerCase().includes('midpoint');
           
@@ -81,7 +83,7 @@ const ActSortableBeats: React.FC<ActSortableBeatsProps> = ({
               isEditing={isEditing}
             />
           );
-        })}
+        }) || []}
       </SortableContext>
     </DndContext>
   );
