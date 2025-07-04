@@ -50,7 +50,7 @@ const VerticalStructurePanel: React.FC<VerticalStructurePanelProps> = () => {
   );
 
   // Memoize IDs for SortableContext to prevent unnecessary re-renders
-  const actIds = useMemo(() => acts.map(act => act.id), [acts]);
+  const actIds = useMemo(() => acts?.map(act => act.id) || [], [acts]);
 
   // Helper to find act and beat indices
   const findItemIndices = (id: UniqueIdentifier): { actIndex: number; beatIndex?: number } | null => {
