@@ -1,230 +1,419 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { createEditor, Descendant, Editor, Transforms } from 'slate';
-import { Slate, Editable, withReact } from 'slate-react';
-import { withHistory } from 'slate-history';
-import debug from 'debug';
-
-import { SceneEditorProps } from './types';
-import { BLANK_DOCUMENT, EMPTY_ACTION } from '@/lib/slate/screenplaySchema';
-import { useScreenplayShortcuts } from '@/lib/slate/useScreenplayShortcuts';
-import { ScreenplayFormatPills } from '@/lib/slate/ScreenplayFormatPills';
-import { RawFountainEditor } from './components/RawFountainEditor';
-import { toFountain, toFDX } from './utils/exportHelpers';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import { Document } from '@tiptap/extension-document';
+import { Paragraph } from '@tiptap/extension-paragraph';
+import { Text } from '@tiptap/extension-text';
+import { History } from '@tiptap/extension-history';
+import { Collaboration } from '@tiptap/extension-collaboration';
+import { CollaborationCursor } from '@tiptap/extension-collaboration-cursor';
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { Node } from '@tiptap/core';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
-const log = debug('scene-editor');
+// Custom Screenplay Nodes
+const SceneHeadingNode = Node.create({
+  name: 'sceneHeading',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'sceneHeading' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'h3[data-element-type="sceneHeading"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['h3', { 'data-element-type': 'sceneHeading', ...HTMLAttributes }, 0];
+  },
+});
+
+const ActionNode = Node.create({
+  name: 'action',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'action' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'p[data-element-type="action"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['p', { 'data-element-type': 'action', ...HTMLAttributes }, 0];
+  },
+});
+
+const CharacterNode = Node.create({
+  name: 'character',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'character' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'p[data-element-type="character"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['p', { 'data-element-type': 'character', ...HTMLAttributes }, 0];
+  },
+});
+
+const DialogueNode = Node.create({
+  name: 'dialogue',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'dialogue' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'p[data-element-type="dialogue"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['p', { 'data-element-type': 'dialogue', ...HTMLAttributes }, 0];
+  },
+});
+
+const ParentheticalNode = Node.create({
+  name: 'parenthetical',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'parenthetical' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'p[data-element-type="parenthetical"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['p', { 'data-element-type': 'parenthetical', ...HTMLAttributes }, 0];
+  },
+});
+
+const TransitionNode = Node.create({
+  name: 'transition',
+  group: 'block',
+  content: 'text*',
+  defining: true,
+  
+  addAttributes() {
+    return {
+      elementType: { default: 'transition' },
+    };
+  },
+  
+  parseHTML() {
+    return [{ tag: 'p[data-element-type="transition"]' }];
+  },
+  
+  renderHTML({ HTMLAttributes }) {
+    return ['p', { 'data-element-type': 'transition', ...HTMLAttributes }, 0];
+  },
+});
+
+interface SceneEditorProps {
+  scriptId: string;
+}
 
 export function SceneEditor({ scriptId }: SceneEditorProps) {
-  const [activeTab, setActiveTab] = useState<'write' | 'raw'>('write');
-  const [fountainContent, setFountainContent] = useState('');
+  const [ydoc] = useState(() => new Y.Doc());
+  const [provider, setProvider] = useState<WebsocketProvider | null>(null);
   
-  // Initialize Slate editor
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
-  
-  // Initialize value with starter content
-  const [value, setValue] = useState<Descendant[]>(BLANK_DOCUMENT);
-  
-  // Screenplay shortcuts
-  const shortcutsProps = useScreenplayShortcuts(editor);
-
-  // Focus safeguard
-  const handleFocus = useCallback(() => {
-    try {
-      // Simple check - if value is empty or only has empty text, ensure we have content
-      if (value.length === 0) {
-        setValue(BLANK_DOCUMENT as any);
-      }
-    } catch (error) {
-      log('Focus error:', error);
-    }
-  }, [value]);
-
-  // Update fountain content when value changes
+  // Initialize WebSocket provider
   useEffect(() => {
-    if (activeTab === 'raw') {
+    const wsProvider = new WebsocketProvider(
+      'wss://connect.yjs.dev',
+      `script-${scriptId}`,
+      ydoc
+    );
+    setProvider(wsProvider);
+    
+    return () => {
+      wsProvider.destroy();
+    };
+  }, [scriptId, ydoc]);
+
+  const editor = useEditor({
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      History,
+      SceneHeadingNode,
+      ActionNode,
+      CharacterNode,
+      DialogueNode,
+      ParentheticalNode,
+      TransitionNode,
+      Collaboration.configure({
+        document: ydoc,
+      }),
+      CollaborationCursor.configure({
+        provider: provider,
+        user: {
+          name: 'Writer',
+          color: '#3b82f6',
+        },
+      }),
+    ],
+    content: {
+      type: 'doc',
+      content: [
+        {
+          type: 'sceneHeading',
+          attrs: { elementType: 'sceneHeading' },
+          content: [{ type: 'text', text: 'INT. LIVING ROOM - DAY' }],
+        },
+        {
+          type: 'action',
+          attrs: { elementType: 'action' },
+          content: [{ type: 'text', text: 'A character enters the room.' }],
+        },
+      ],
+    },
+    editorProps: {
+      attributes: {
+        class: 'screenplay-editor prose prose-lg max-w-none focus:outline-none min-h-96',
+        style: 'font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace; font-size: 12pt; line-height: 1.2;',
+      },
+    },
+    onUpdate: ({ editor }) => {
+      debouncedSave(editor.getJSON());
+    },
+  });
+
+  // Debounced save to Supabase
+  const debouncedSave = useCallback(
+    debounce(async (content: any) => {
       try {
-        // Convert Slate value to fountain format
-        const fountain = value.map((node: any) => {
-          const text = node.children?.map((child: any) => child.text).join('') || '';
-          const type = node.type || 'action';
-          
-          switch (type) {
-            case 'sceneHeading':
-              return text.toUpperCase();
-            case 'character':
-              return `\t\t\t\t${text.toUpperCase()}`;
-            case 'dialogue':
-              return `\t\t${text}`;
-            case 'parenthetical':
-              return `\t\t\t(${text})`;
-            case 'transition':
-              return `\t\t\t\t\t\t${text.toUpperCase()}`;
-            default:
-              return text;
-          }
-        }).join('\n\n');
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
         
-        setFountainContent(fountain);
+        await supabase
+          .from('scenes')
+          .upsert({
+            id: scriptId,
+            author_id: userData.user.id,
+            project_id: 'temp-project', // TODO: Get actual project ID
+            content_richtext: content,
+            updated_at: new Date().toISOString(),
+          });
       } catch (error) {
-        log('Error converting to fountain:', error);
+        console.error('Failed to save:', error);
       }
-    }
-  }, [value, activeTab]);
+    }, 1000),
+    [scriptId]
+  );
 
-  const handleExportFountain = () => {
-    const blob = new Blob([fountainContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `scene-${scriptId}.fountain`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (!editor) return;
 
-  const handleExportFDX = () => {
-    // Simple FDX export - can be enhanced later
-    const fdxContent = `<?xml version="1.0" encoding="UTF-8"?>
-<FinalDraft DocumentType="Script" Template="No" Version="1">
-  <Content>
-    ${value.map((node: any) => {
-      const text = node.children?.map((child: any) => child.text).join('') || '';
-      const type = node.type || 'Action';
-      return `<Paragraph Type="${type}"><Text>${text}</Text></Paragraph>`;
-    }).join('\n    ')}
-  </Content>
-</FinalDraft>`;
-    
-    const blob = new Blob([fdxContent], { type: 'application/xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `scene-${scriptId}.fdx`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const { selection } = editor.state;
+      const node = editor.state.doc.nodeAt(selection.from);
+      const currentType = node?.attrs?.elementType || 'action';
 
-  // Render element based on type
-  const renderElement = useCallback((props: any) => {
-    const { attributes, children, element } = props;
-    
-    switch (element.type) {
-      case 'sceneHeading':
-        return (
-          <div {...attributes} className="font-bold uppercase mb-4 text-left">
-            {children}
-          </div>
-        );
-      case 'action':
-        return (
-          <div {...attributes} className="mb-2 text-left">
-            {children}
-          </div>
-        );
-      case 'character':
-        return (
-          <div {...attributes} className="text-center font-bold uppercase mt-4 mb-0">
-            {children}
-          </div>
-        );
-      case 'dialogue':
-        return (
-          <div {...attributes} className="max-w-md mx-auto text-left mb-2">
-            {children}
-          </div>
-        );
-      case 'parenthetical':
-        return (
-          <div {...attributes} className="max-w-xs mx-auto text-left italic mb-0">
-            {children}
-          </div>
-        );
-      case 'transition':
-        return (
-          <div {...attributes} className="text-right font-bold uppercase mt-4 mb-4">
-            {children}
-          </div>
-        );
-      default:
-        return (
-          <div {...attributes} className="mb-2">
-            {children}
-          </div>
-        );
-    }
-  }, []);
+      // Tab cycling
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const types = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+        const currentIndex = types.indexOf(currentType);
+        const nextIndex = event.shiftKey 
+          ? (currentIndex - 1 + types.length) % types.length
+          : (currentIndex + 1) % types.length;
+        
+        editor.commands.setNode(types[nextIndex]);
+        return;
+      }
 
-  const renderLeaf = useCallback((props: any) => {
-    return <span {...props.attributes}>{props.children}</span>;
-  }, []);
+      // Enter progression
+      if (event.key === 'Enter' && !event.shiftKey) {
+        const nextType = {
+          sceneHeading: 'action',
+          action: 'action',
+          character: 'dialogue',
+          parenthetical: 'dialogue',
+          dialogue: 'dialogue',
+          transition: 'sceneHeading',
+        }[currentType] || 'action';
+
+        editor.commands.createParagraphNear();
+        editor.commands.setNode(nextType);
+        return;
+      }
+
+      // Direct shortcuts (Cmd/Ctrl + 1-6)
+      if ((event.metaKey || event.ctrlKey) && !event.shiftKey) {
+        const shortcuts = {
+          '1': 'sceneHeading',
+          '2': 'action',
+          '3': 'character',
+          '4': 'parenthetical',
+          '5': 'dialogue',
+          '6': 'transition',
+        };
+
+        if (shortcuts[event.key]) {
+          event.preventDefault();
+          editor.commands.setNode(shortcuts[event.key]);
+          return;
+        }
+      }
+
+      // Toggle comment (Cmd/Ctrl + Shift + C)
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'C') {
+        event.preventDefault();
+        // TODO: Implement comment toggle
+        console.log('Comment toggle not yet implemented');
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [editor]);
+
+  if (!editor) {
+    return <div className="flex items-center justify-center h-96">Loading editor...</div>;
+  }
 
   return (
     <div className="h-full flex flex-col">
       {/* Toolbar */}
       <div className="border-b border-border p-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Scene Editor</h2>
+        <h2 className="text-lg font-semibold">Scene Editor - {scriptId}</h2>
         <div className="flex gap-2">
-          <Button onClick={handleExportFountain} variant="outline" size="sm">
-            Export Fountain
-          </Button>
-          <Button onClick={handleExportFDX} variant="outline" size="sm">
-            Export FDX
+          <Button variant="outline" size="sm">
+            Export
           </Button>
         </div>
       </div>
 
-      {/* Editor Tabs */}
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'write' | 'raw')} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-          <TabsTrigger value="write">Write</TabsTrigger>
-          <TabsTrigger value="raw">Raw</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="write" className="flex-1 overflow-hidden relative">
-          <div className="h-full overflow-auto p-4">
-            <div className="max-w-4xl mx-auto">
-              <Slate
-                editor={editor}
-                initialValue={value}
-                onChange={setValue}
-              >
-                <Editable
-                  {...shortcutsProps}
-                  onFocus={handleFocus}
-                  renderElement={renderElement}
-                  renderLeaf={renderLeaf}
-                  className="screenplay-content min-h-96 outline-none"
-                  style={{
-                    fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
-                    fontSize: '12pt',
-                    lineHeight: '1.2',
-                  }}
-                />
-              </Slate>
+      {/* Editor Content */}
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-4xl mx-auto">
+          <EditorContent editor={editor} />
+          
+          {/* Bubble Menu Format Pills */}
+          <BubbleMenu 
+            editor={editor} 
+            tippyOptions={{ 
+              duration: 100,
+              placement: 'top',
+            }}
+          >
+            <div className="flex space-x-1 rounded-lg bg-background border border-border p-1 shadow-lg">
+              {[
+                ['sceneHeading', 'Scene'],
+                ['action', 'Action'],
+                ['character', 'Character'],
+                ['dialogue', 'Dialogue'],
+                ['parenthetical', 'Paren'],
+                ['transition', 'Trans'],
+              ].map(([type, label]) => (
+                <button
+                  key={type}
+                  className={`px-2 py-1 text-xs rounded transition-colors ${
+                    editor.isActive(type)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                  }`}
+                  onClick={() => editor.commands.setNode(type)}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-          </div>
-          <ScreenplayFormatPills />
-        </TabsContent>
+          </BubbleMenu>
+        </div>
+      </div>
 
-        <TabsContent value="raw" className="flex-1 overflow-hidden">
-          <div className="h-full p-4">
-            <div className="max-w-4xl mx-auto h-full">
-              {activeTab === 'raw' && (
-                <RawFountainEditor
-                  content={fountainContent}
-                  onChange={setFountainContent}
-                />
-              )}
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* Element Styles */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .screenplay-editor h3[data-element-type="sceneHeading"] {
+          font-weight: bold;
+          text-transform: uppercase;
+          margin: 1em 0;
+          text-align: left;
+        }
+        
+        .screenplay-editor p[data-element-type="action"] {
+          margin: 0.5em 0;
+          text-align: left;
+        }
+        
+        .screenplay-editor p[data-element-type="character"] {
+          font-weight: bold;
+          text-transform: uppercase;
+          text-align: center;
+          margin: 1em auto 0;
+          width: 38%;
+        }
+        
+        .screenplay-editor p[data-element-type="dialogue"] {
+          text-align: left;
+          margin: 0 auto 0.8em;
+          width: 62%;
+        }
+        
+        .screenplay-editor p[data-element-type="parenthetical"] {
+          text-align: left;
+          margin: 0 auto;
+          width: 40%;
+          font-style: italic;
+        }
+        
+        .screenplay-editor p[data-element-type="transition"] {
+          font-weight: bold;
+          text-transform: uppercase;
+          text-align: right;
+          margin: 1em 0;
+        }
+        `
+      }} />
     </div>
   );
 }
 
-export { toFountain, toFDX };
+// Utility: debounce function
+function debounce(func: Function, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
