@@ -34,12 +34,17 @@ interface VerticalStructurePanelProps {
 const VerticalStructurePanel: React.FC<VerticalStructurePanelProps> = () => {
   const { selectedStructure, updateStructure } = useScriptEditor();
   const [acts, setActs] = useState<Act[]>([]);
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null); // Track the currently dragged item ID
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
 
   // Memoize the initial state setting
   useEffect(() => {
     console.log("Structure Panel: Initializing or updating acts from context.");
-    setActs(selectedStructure?.acts || []);
+    const structureActs = selectedStructure?.acts;
+    if (Array.isArray(structureActs)) {
+      setActs(structureActs);
+    } else {
+      setActs([]);
+    }
   }, [selectedStructure]);
 
   const sensors = useSensors(
@@ -50,7 +55,9 @@ const VerticalStructurePanel: React.FC<VerticalStructurePanelProps> = () => {
   );
 
   // Memoize IDs for SortableContext to prevent unnecessary re-renders
-  const actIds = useMemo(() => acts?.map(act => act.id) || [], [acts]);
+  const actIds = useMemo(() => {
+    return Array.isArray(acts) ? acts.map(act => act.id) : [];
+  }, [acts]);
 
   // Helper to find act and beat indices
   const findItemIndices = (id: UniqueIdentifier): { actIndex: number; beatIndex?: number } | null => {
