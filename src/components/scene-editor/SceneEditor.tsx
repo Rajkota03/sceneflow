@@ -17,6 +17,7 @@ import { ParentheticalNode } from './nodes/ParentheticalNode';
 import { DialogueNode } from './nodes/DialogueNode';
 import { TransitionNode } from './nodes/TransitionNode';
 import { ScreenplayShortcuts } from './extensions/ScreenplayShortcuts';
+import { ScreenplayBubbleMenu } from './extensions/ScreenplayBubbleMenu';
 import { useSupabasePersistence } from './hooks/useSupabasePersistence';
 import { RawFountainEditor } from './components/RawFountainEditor';
 import { toFountain, toFDX } from './utils/exportHelpers';
@@ -64,12 +65,21 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
         },
       ],
     },
+    editable: true,
+    autofocus: 'end',
     editorProps: {
       attributes: {
         class: 'screenplay-editor prose prose-lg max-w-none focus:outline-none',
       },
     },
   });
+
+  // Focus editor when it's ready
+  useEffect(() => {
+    if (editor && editor.isEditable) {
+      editor.commands.focus('end');
+    }
+  }, [editor]);
 
   // Set up Supabase persistence
   useSupabasePersistence(editor, scriptId);
@@ -155,6 +165,7 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
                 editor={editor} 
                 className="screenplay-content"
               />
+              {editor && <ScreenplayBubbleMenu editor={editor} />}
             </div>
           </div>
         </TabsContent>

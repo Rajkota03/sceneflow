@@ -1,87 +1,49 @@
 import { Extension } from '@tiptap/core';
-import { ScreenplayElementType } from '../types';
-
-const nextElementMap: Record<ScreenplayElementType, ScreenplayElementType> = {
-  sceneHeading: 'action',
-  action: 'action',
-  character: 'dialogue',
-  dialogue: 'dialogue',
-  parenthetical: 'dialogue',
-  transition: 'sceneHeading',
-};
-
-const elementTypeOrder: ScreenplayElementType[] = [
-  'sceneHeading',
-  'action',
-  'character',
-  'parenthetical',
-  'dialogue',
-  'transition',
-];
 
 export const ScreenplayShortcuts = Extension.create({
   name: 'screenplayShortcuts',
-
+  
   addKeyboardShortcuts() {
+    const mapNext = {
+      sceneHeading: 'action',
+      action: 'action',
+      character: 'dialogue',
+      parenthetical: 'dialogue',
+      dialogue: 'dialogue',
+      transition: 'sceneHeading',
+    };
+
     return {
-      'Enter': () => {
-        const { state } = this.editor;
-        const { selection } = state;
-        const node = state.doc.nodeAt(selection.from);
-        
-        if (node && node.attrs.elementType) {
-          const currentType = node.attrs.elementType as ScreenplayElementType;
-          const nextType = nextElementMap[currentType];
-          
-          return this.editor.commands.createParagraphNear() && 
-                 this.editor.commands.setNode(nextType);
-        }
-        
-        return false;
+      Tab: () => {
+        const type = this.editor.getAttributes('paragraph').elementType;
+        const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+        const idx = order.indexOf(type);
+        const next = order[(idx + 1) % order.length];
+        return this.editor.commands.setNode(next);
       },
-      
-      'Tab': () => {
-        const { state } = this.editor;
-        const { selection } = state;
-        const node = state.doc.nodeAt(selection.from);
-        
-        if (node && node.attrs.elementType) {
-          const currentType = node.attrs.elementType as ScreenplayElementType;
-          const currentIndex = elementTypeOrder.indexOf(currentType);
-          const nextIndex = (currentIndex + 1) % elementTypeOrder.length;
-          const nextType = elementTypeOrder[nextIndex];
-          
-          return this.editor.commands.setNode(nextType);
-        }
-        
-        return false;
-      },
-      
       'Shift-Tab': () => {
-        const { state } = this.editor;
-        const { selection } = state;
-        const node = state.doc.nodeAt(selection.from);
-        
-        if (node && node.attrs.elementType) {
-          const currentType = node.attrs.elementType as ScreenplayElementType;
-          const currentIndex = elementTypeOrder.indexOf(currentType);
-          const prevIndex = currentIndex === 0 ? elementTypeOrder.length - 1 : currentIndex - 1;
-          const prevType = elementTypeOrder[prevIndex];
-          
-          return this.editor.commands.setNode(prevType);
-        }
-        
-        return false;
+        const type = this.editor.getAttributes('paragraph').elementType;
+        const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+        const idx = order.indexOf(type);
+        const prev = order[(idx - 1 + order.length) % order.length];
+        return this.editor.commands.setNode(prev);
       },
-      
-      'Mod-7': () => this.editor.commands.setNode('action'), // Shot (same as action)
-      'Mod-8': () => this.editor.commands.setNode('action'), // General (same as action)
+      Enter: () => {
+        const type = this.editor.getAttributes('paragraph').elementType;
+        return this.editor.commands.setNode(mapNext[type] ?? 'action');
+      },
+      'Mod-1': () => this.editor.commands.setNode('sceneHeading'),
+      'Mod-2': () => this.editor.commands.setNode('action'),
+      'Mod-3': () => this.editor.commands.setNode('character'),
+      'Mod-4': () => this.editor.commands.setNode('parenthetical'),
+      'Mod-5': () => this.editor.commands.setNode('dialogue'),
+      'Mod-6': () => this.editor.commands.setNode('transition'),
       'Mod-Shift-c': () => {
         // TODO: Implement comment toggle
         return true;
       },
       'Mod-k': () => {
-        // TODO: Implement insert link popover
+        // TODO: Implement link bubble
         return true;
       },
     };
