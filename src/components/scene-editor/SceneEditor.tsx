@@ -4,11 +4,12 @@ import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
 import { History } from '@tiptap/extension-history';
-import { Collaboration } from '@tiptap/extension-collaboration';
-import { CollaborationCursor } from '@tiptap/extension-collaboration-cursor';
-import * as Y from 'yjs';
+// import { Collaboration } from '@tiptap/extension-collaboration';
+// import { CollaborationCursor } from '@tiptap/extension-collaboration-cursor';
+// import * as Y from 'yjs';
+// import { WebsocketProvider } from 'y-websocket';
 
-import { SceneEditorProps, CollaborationUser } from './types';
+import { SceneEditorProps } from './types';
 import { SceneHeadingNode } from './nodes/SceneHeadingNode';
 import { ActionNode } from './nodes/ActionNode';
 import { CharacterNode } from './nodes/CharacterNode';
@@ -25,14 +26,6 @@ import { Button } from '@/components/ui/button';
 export function SceneEditor({ scriptId }: SceneEditorProps) {
   const [activeTab, setActiveTab] = useState<'write' | 'raw'>('write');
   const [fountainContent, setFountainContent] = useState('');
-  const [ydoc] = useState(() => new Y.Doc());
-
-  // Mock user for collaboration
-  const currentUser: CollaborationUser = {
-    id: 'user-1',
-    name: 'User',
-    color: '#3b82f6',
-  };
 
   const editor = useEditor({
     extensions: [
@@ -47,13 +40,14 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
       DialogueNode,
       TransitionNode,
       ScreenplayShortcuts,
-      Collaboration.configure({
-        document: ydoc,
-      }),
-      CollaborationCursor.configure({
-        provider: null, // We'll set up the provider later
-        user: currentUser,
-      }),
+      // Temporarily disable collaboration to fix build
+      // Collaboration.configure({
+      //   document: ydoc,
+      // }),
+      // CollaborationCursor.configure({
+      //   provider,
+      //   user: currentUser,
+      // }),
     ],
     content: {
       type: 'doc',

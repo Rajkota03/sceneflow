@@ -1,7 +1,4 @@
 import { Extension } from '@tiptap/core';
-import { ReactRenderer } from '@tiptap/react';
-import { SuggestionOptions } from '@tiptap/suggestion';
-import tippy from 'tippy.js';
 
 const SceneHeadingAutocomplete = Extension.create({
   name: 'sceneHeadingAutocomplete',
