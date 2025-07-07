@@ -1,0 +1,22 @@
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import { SceneEditor } from '@/components/scene-editor/SceneEditor';
+import '@/components/scene-editor/styles.css';
+
+export function ScenePage() {
+  const { sceneId } = useParams<{ sceneId: string }>();
+
+  if (!sceneId) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-muted-foreground">Scene not found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen w-full">
+      <SceneEditor scriptId={sceneId} />
+    </div>
+  );
+}

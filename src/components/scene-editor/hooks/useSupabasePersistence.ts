@@ -1,20 +1,25 @@
 import { useEffect, useCallback } from 'react';
 import { Editor } from '@tiptap/react';
 import { supabase } from '@/integrations/supabase/client';
-import { debounce } from 'lodash-es';
 
 export const useSupabasePersistence = (editor: Editor | null, scriptId: string) => {
-  // Debounced save function
-  const debouncedSave = useCallback(
-    debounce(async (content: any) => {
+  // Debounced save function with basic debounce
+  const debouncedSave = useCallback((content: any) => {
+    const timeoutId = setTimeout(async () => {
       if (!scriptId) return;
       
       try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const { error } = await supabase
           .from('scenes')
           .upsert({
             id: scriptId,
+            project_id: scriptId, // Using scriptId as project_id for now
             content_richtext: content,
+            author_id: user.id,
             updated_at: new Date().toISOString(),
           });
           
@@ -24,9 +29,8 @@ export const useSupabasePersistence = (editor: Editor | null, scriptId: string) 
       } catch (err) {
         console.error('Error saving scene:', err);
       }
-    }, 1000),
-    [scriptId]
-  );
+    }, 1000);
+  }, [scriptId]);
 
   // Load initial content
   const loadContent = useCallback(async () => {
@@ -45,7 +49,7 @@ export const useSupabasePersistence = (editor: Editor | null, scriptId: string) 
       }
       
       if (data?.content_richtext) {
-        editor.commands.setContent(data.content_richtext);
+        editor.commands.setContent(data.content_richtext as any);
       }
     } catch (err) {
       console.error('Error loading scene:', err);

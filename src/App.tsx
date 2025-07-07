@@ -12,6 +12,7 @@ import Editor from './pages/Editor';
 import StructureEditor from './pages/StructureEditor';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import { ScenePage } from './pages/scene/[sceneId]';
 import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
 import { supabase } from './integrations/supabase/client';
@@ -112,6 +113,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/scene/:sceneId" 
+                element={
+                  <ProtectedRoute>
+                    <ScenePage />
                   </ProtectedRoute>
                 } 
               />

@@ -80,6 +80,42 @@ export type Database = {
         }
         Relationships: []
       }
+      scenes: {
+        Row: {
+          author_id: string
+          content_fountain: string | null
+          content_richtext: Json
+          created_at: string
+          id: string
+          project_id: string
+          scene_number: number | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content_fountain?: string | null
+          content_richtext?: Json
+          created_at?: string
+          id: string
+          project_id: string
+          scene_number?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content_fountain?: string | null
+          content_richtext?: Json
+          created_at?: string
+          id?: string
+          project_id?: string
+          scene_number?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       standalone_notes: {
         Row: {
           author_id: string
