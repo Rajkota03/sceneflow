@@ -15,22 +15,59 @@ export const ScreenplayShortcuts = Extension.create({
 
     return {
       Tab: () => {
-        const type = this.editor.getAttributes('paragraph').elementType;
-        const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
-        const idx = order.indexOf(type);
-        const next = order[(idx + 1) % order.length];
-        return this.editor.commands.setNode(next);
+        try {
+          const { state, view } = this.editor;
+          const { selection } = state;
+          const { $from } = selection;
+          const node = $from.node($from.depth);
+          
+          if (node && node.attrs && node.attrs.elementType) {
+            const type = node.attrs.elementType;
+            const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+            const idx = order.indexOf(type);
+            const next = order[(idx + 1) % order.length];
+            return this.editor.commands.setNode(next);
+          }
+        } catch (error) {
+          console.warn('Tab shortcut error:', error);
+        }
+        return false;
       },
       'Shift-Tab': () => {
-        const type = this.editor.getAttributes('paragraph').elementType;
-        const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
-        const idx = order.indexOf(type);
-        const prev = order[(idx - 1 + order.length) % order.length];
-        return this.editor.commands.setNode(prev);
+        try {
+          const { state } = this.editor;
+          const { selection } = state;
+          const { $from } = selection;
+          const node = $from.node($from.depth);
+          
+          if (node && node.attrs && node.attrs.elementType) {
+            const type = node.attrs.elementType;
+            const order = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+            const idx = order.indexOf(type);
+            const prev = order[(idx - 1 + order.length) % order.length];
+            return this.editor.commands.setNode(prev);
+          }
+        } catch (error) {
+          console.warn('Shift-Tab shortcut error:', error);
+        }
+        return false;
       },
       Enter: () => {
-        const type = this.editor.getAttributes('paragraph').elementType;
-        return this.editor.commands.setNode(mapNext[type] ?? 'action');
+        try {
+          const { state } = this.editor;
+          const { selection } = state;
+          const { $from } = selection;
+          const node = $from.node($from.depth);
+          
+          if (node && node.attrs && node.attrs.elementType) {
+            const type = node.attrs.elementType;
+            const nextType = mapNext[type] ?? 'action';
+            return this.editor.commands.setNode(nextType);
+          }
+        } catch (error) {
+          console.warn('Enter shortcut error:', error);
+        }
+        return false;
       },
       'Mod-1': () => this.editor.commands.setNode('sceneHeading'),
       'Mod-2': () => this.editor.commands.setNode('action'),

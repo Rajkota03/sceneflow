@@ -66,7 +66,6 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
       ],
     },
     editable: true,
-    autofocus: 'end',
     editorProps: {
       attributes: {
         class: 'screenplay-editor prose prose-lg max-w-none focus:outline-none',
@@ -74,10 +73,26 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
     },
   });
 
-  // Focus editor when it's ready
+  // Focus editor when it's ready - with error handling
   useEffect(() => {
     if (editor && editor.isEditable) {
-      editor.commands.focus('end');
+      // Use a timeout to ensure the editor is fully rendered
+      setTimeout(() => {
+        try {
+          // Try to focus at the end, fallback to start if that fails
+          if (!editor.commands.focus('end')) {
+            editor.commands.focus('start');
+          }
+        } catch (error) {
+          console.warn('Could not focus editor:', error);
+          // Fallback: just focus the editor without specific position
+          try {
+            editor.commands.focus();
+          } catch (fallbackError) {
+            console.warn('Could not focus editor at all:', fallbackError);
+          }
+        }
+      }, 100);
     }
   }, [editor]);
 
