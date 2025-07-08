@@ -214,9 +214,9 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       </div>
       
       {/* Editor and Page View Container */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Editor Section */}
-        <div className={showPageView ? "flex-1" : "h-full"}>
+        <div className={showPageView ? "flex-1 overflow-auto" : "flex-1 overflow-auto"}>
           <div className={styles.printLayoutContainer}>
             <div className={styles.pagesContainer}>
               <div className={styles.page}>
@@ -231,11 +231,13 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         
         {/* Page View Section - Only shown when toggled */}
         {showPageView && (
-          <div className="flex-1 border-t">
-            <div className="bg-muted/30 px-4 py-2 border-b">
+          <div className="flex-1 flex flex-col border-t overflow-hidden">
+            <div className="bg-muted/30 px-4 py-2 border-b flex-shrink-0">
               <span className="text-sm font-medium text-muted-foreground">Page View Preview</span>
             </div>
-            <PageViewPreview editor={editor} />
+            <div className="flex-1 overflow-auto">
+              <PageViewPreview editor={editor} />
+            </div>
           </div>
         )}
       </div>
