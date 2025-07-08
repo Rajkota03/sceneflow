@@ -184,20 +184,50 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
         },
       }),
     ],
-    content: '<p data-element-type="action">Start writing your scene here...</p>',
+    content: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          attrs: { elementType: 'action' },
+          content: [{ type: 'text', text: 'Start writing your scene here...' }],
+        },
+      ],
+    },
     editorProps: {
       attributes: {
         class: 'screenplay-editor prose prose-lg max-w-none focus:outline-none min-h-96',
         style: 'font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace; font-size: 12pt; line-height: 1.2;',
       },
+      handleClick: () => {
+        // Let the editor handle clicks naturally
+        return false;
+      },
     },
     onUpdate: ({ editor }) => {
-      debouncedSave(editor.getJSON());
+      try {
+        debouncedSave(editor.getJSON());
+      } catch (error) {
+        console.warn('Save error:', error);
+      }
     },
     onCreate: ({ editor }) => {
-      // Ensure editor has focus after creation
+      // Ensure editor has valid content and focus
       setTimeout(() => {
         try {
+          // Check if document is empty or invalid
+          if (!editor.state.doc.content.size || editor.state.doc.content.size === 0) {
+            editor.commands.setContent({
+              type: 'doc',
+              content: [
+                {
+                  type: 'paragraph',
+                  attrs: { elementType: 'action' },
+                  content: [{ type: 'text', text: 'Start writing...' }],
+                },
+              ],
+            });
+          }
           editor.commands.focus('end');
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
