@@ -14,9 +14,12 @@ import {
   ParentheticalNode,
   TransitionNode,
 } from './nodes';
+import { PlaceholderSuggestionsExtension } from './extensions/PlaceholderSuggestions';
+import { useCharacterExtraction } from '@/hooks/useCharacterExtraction';
 import { SceneEditorToolbar } from './components/SceneEditorToolbar';
 import { SceneEditorBubbleMenu } from './components/SceneEditorBubbleMenu';
 import styles from './SceneEditor.module.css';
+import './extensions/autocomplete.css';
 
 interface SceneEditorProps {
   projectId: string;
@@ -24,6 +27,7 @@ interface SceneEditorProps {
 
 export function SceneEditor({ projectId }: SceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
 
   // Debounced save to Supabase
   const debouncedSave = useCallback(
@@ -60,17 +64,16 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       DialogueNode,
       ParentheticalNode,
       TransitionNode,
+      PlaceholderSuggestionsExtension.configure({
+        characterNames,
+      }),
     ],
     content: {
       type: 'doc',
       content: [
         {
           type: 'sceneHeading',
-          content: [{ type: 'text', text: 'INT. LOCATION - DAY' }],
-        },
-        {
-          type: 'action',
-          content: [{ type: 'text', text: 'Start writing your scene here...' }],
+          content: [{ type: 'text', text: '' }], // Start with empty content to show placeholder
         },
       ],
     },
@@ -81,6 +84,8 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     },
     onUpdate: ({ editor }) => {
       debouncedSave(editor.getJSON());
+      // Update character names when content changes
+      updateCharacterNames();
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);

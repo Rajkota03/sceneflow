@@ -1,0 +1,102 @@
+/* Placeholder suggestions styles */
+.screenplay-placeholder {
+  position: relative;
+}
+
+.screenplay-placeholder:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  font-style: italic;
+  pointer-events: none;
+  position: absolute;
+}
+
+/* Element-specific placeholder styling */
+[data-type="sceneHeading"].screenplay-placeholder:empty::before {
+  content: "INT. LOCATION - DAY (or EXT. LOCATION - NIGHT)";
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+[data-type="character"].screenplay-placeholder:empty::before {
+  content: "CHARACTER NAME";
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+[data-type="dialogue"].screenplay-placeholder:empty::before {
+  content: "What does the character say?";
+  font-style: italic;
+}
+
+[data-type="parenthetical"].screenplay-placeholder:empty::before {
+  content: "(beat) or (whispering)";
+  font-style: italic;
+}
+
+[data-type="transition"].screenplay-placeholder:empty::before {
+  content: "CUT TO: or FADE IN:";
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+[data-type="action"].screenplay-placeholder:empty::before {
+  content: "Describe what happens in the scene...";
+  font-style: italic;
+}
+
+/* Autocomplete popup styles */
+.autocomplete-popup {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  box-shadow: 0 4px 12px hsla(var(--foreground) / 0.15);
+  padding: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.autocomplete-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.selected {
+  background: hsl(var(--accent));
+}
+
+.autocomplete-label {
+  font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.autocomplete-type {
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  font-weight: 600;
+  background: hsl(var(--muted));
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+/* Tippy theme overrides */
+.tippy-box[data-theme~='light'] {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.tippy-box[data-theme~='light'] .tippy-content {
+  padding: 0;
+}
