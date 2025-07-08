@@ -3,15 +3,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import the Courier Final Draft font - using preconnect for performance */
-@font-face {
-  font-family: 'Courier Final Draft';
-  src: url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff2') format('woff2'),
-       url('https://db.onlinewebfonts.com/t/5bf04c9b786e72e162301c9a6286d68b.woff') format('woff');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* Import Google Fonts - Courier Prime as reliable alternative */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @layer base {
   :root {
@@ -139,7 +132,7 @@
   min-height: 11in;
   padding: 0;
   margin: 0 auto;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt;
   line-height: 1.2; /* Updated to match Final Draft spacing */
   color: #000;
@@ -154,7 +147,7 @@
   padding: 1in 1in 1in 1.5in; /* Top, Right, Bottom, Left - standard screenplay margins */
   height: 100%;
   box-sizing: border-box;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
   direction: ltr;
   unicode-bidi: plaintext;
@@ -170,7 +163,7 @@
   width: 100% !important;
   margin-left: 0 !important; /* Force left margin to 0 */
   margin-right: 0 !important; /* Force right margin to 0 */
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
@@ -181,7 +174,7 @@
   white-space: pre-wrap;
   margin-left: 0 !important;
   margin-right: 0 !important;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   overflow-x: visible; /* Remove horizontal scrollbar */
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
@@ -191,7 +184,7 @@
   text-align: center;
   width: 38%; /* ~3.7"-4.2" from left edge */
   margin: 0.8em auto 0 !important; /* Adjusted spacing */
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
@@ -200,7 +193,7 @@
   width: 62%; /* ~3" dialogue block */
   margin: 0 auto 0.8em !important; /* Adjusted spacing */
   text-align: left;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
@@ -209,7 +202,7 @@
   margin: 0 auto 0 !important; /* No space after parenthetical */
   text-align: left;
   padding-left: 1.5em;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-style: italic;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
@@ -219,7 +212,7 @@
   text-transform: uppercase;
   margin: 0.8em 0 !important; /* Adjusted spacing */
   width: 100%;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-weight: bold;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
@@ -228,7 +221,7 @@
   position: relative;
   width: 100%;
   box-sizing: border-box;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   margin-bottom: 0;
   line-height: 1.2;
 }
@@ -267,7 +260,7 @@ textarea.resize-none {
   resize: none;
   height: auto;
   min-height: 1em;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
@@ -277,7 +270,7 @@ textarea.auto-resize {
   resize: none;
   height: auto;
   min-height: 1em;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
@@ -285,14 +278,14 @@ textarea.auto-resize {
 .pdf-export p {
   margin: 0;
   padding: 0;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
 }
 
 /* Make sure all textareas use the correct font */
 .script-page-content textarea {
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
   overflow: hidden !important; /* Remove scrollbars on all textareas */
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
@@ -325,7 +318,7 @@ textarea.auto-resize {
   position: absolute;
   top: 0.5in;
   right: 1in;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace;
+  font-family: 'Courier Prime', 'Courier New', monospace;
   font-size: 12pt;
   color: #666;
 }
@@ -347,7 +340,7 @@ textarea.auto-resize {
   
   /* Ensure proper text formatting in print */
   .scene-heading, .action, .character, .dialogue, .parenthetical, .transition {
-    font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+    font-family: 'Courier Prime', 'Courier New', monospace !important;
     font-size: 12pt !important;
     line-height: 1.2 !important; /* Updated to match Final Draft spacing */
   }
@@ -370,7 +363,7 @@ textarea.auto-resize {
     position: absolute;
     top: 0.5in;
     right: 1in;
-    font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+    font-family: 'Courier Prime', 'Courier New', monospace !important;
     font-size: 12pt !important;
   }
 }
@@ -461,7 +454,7 @@ textarea.auto-resize {
 
 /* Title page formatting - Industry standard */
 .title-page {
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
   font-size: 12pt !important;
   line-height: 1.2 !important; /* Updated to match Final Draft spacing */
   text-align: center;
@@ -477,7 +470,7 @@ textarea.auto-resize {
   text-transform: uppercase;
   font-weight: bold;
   margin-bottom: 1em;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
 }
 
 .title-page .author-section {
@@ -490,5 +483,5 @@ textarea.auto-resize {
   left: 1.5in;
   text-align: left;
   font-size: 12pt;
-  font-family: 'Courier Final Draft', 'Courier Prime', 'Courier New', monospace !important;
+  font-family: 'Courier Prime', 'Courier New', monospace !important;
 }
