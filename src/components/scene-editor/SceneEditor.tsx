@@ -1,12 +1,12 @@
 import React from 'react';
-import { PaginatedSceneEditor } from './components/PaginatedSceneEditor';
+import { MonacoScreenplayEditor } from '../MonacoScreenplayEditor';
 
 interface SceneEditorProps {
   projectId: string;
 }
 
 export function SceneEditor({ projectId }: SceneEditorProps) {
-  return <PaginatedSceneEditor projectId={projectId} />;
+  return <MonacoScreenplayEditor projectId={projectId} />;
 }
 
 export default SceneEditor;
