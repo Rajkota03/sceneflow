@@ -13,7 +13,61 @@ export const ScreenplayShortcuts = Extension.create({
   name: 'screenplayShortcuts',
 
   addKeyboardShortcuts() {
+    const go = (type: string) => {
+      return () => {
+        const { state } = this.editor.view;
+        const { $from } = state.selection;
+
+        // If current block is empty, just change its type
+        if ($from.parent.textContent.length === 0) {
+          console.log(`${type}: Current block is empty, converting type`);
+          return this.editor.commands.setNode(type);
+        }
+
+        // Otherwise split the block and convert the *new* empty one
+        console.log(`${type}: Current block has content, splitting and converting new block`);
+        return this.editor
+          .chain()
+          .splitBlock()      // like hitting Enter
+          .setNode(type)     // change the new (empty) block
+          .run();
+      };
+    };
+
     return {
+      'Ctrl-1': go('sceneHeading'),
+      'Ctrl-2': go('action'),
+      'Ctrl-3': go('character'),
+      'Ctrl-4': () => {
+        const { state } = this.editor.view;
+        const { $from } = state.selection;
+
+        let result;
+        // If current block is empty, just change its type
+        if ($from.parent.textContent.length === 0) {
+          console.log('parenthetical: Current block is empty, converting type');
+          result = this.editor.commands.setNode('parenthetical');
+        } else {
+          // Otherwise split the block and convert the *new* empty one
+          console.log('parenthetical: Current block has content, splitting and converting new block');
+          result = this.editor
+            .chain()
+            .splitBlock()
+            .setNode('parenthetical')
+            .run();
+        }
+        
+        if (result) {
+          // Insert parentheses and position cursor between them
+          this.editor.commands.insertContent('()');
+          // Move cursor back one position to be between the parentheses
+          this.editor.commands.setTextSelection(this.editor.state.selection.from - 1);
+        }
+        return result;
+      },
+      'Ctrl-5': go('dialogue'),
+      'Ctrl-6': go('transition'),
+      
       Enter: () => {
         try {
           const { state } = this.editor;
@@ -40,42 +94,6 @@ export const ScreenplayShortcuts = Extension.create({
           return false;
         }
       },
-      
-      'Ctrl-1': () => {
-        console.log('Ctrl-1 pressed: switching to sceneHeading');
-        return this.editor.commands.setNode('sceneHeading');
-      },
-      'Ctrl-2': () => {
-        console.log('Ctrl-2 pressed: switching to action');
-        return this.editor.commands.setNode('action');
-      },
-      'Ctrl-3': () => {
-        console.log('Ctrl-3 pressed: switching to character');
-        return this.editor.commands.setNode('character');
-      },
-      'Ctrl-4': () => {
-        console.log('Ctrl-4 pressed: switching to parenthetical');
-        const result = this.editor.commands.setNode('parenthetical');
-        if (result) {
-          // Insert parentheses and position cursor between them
-          this.editor.commands.insertContent('()');
-          // Move cursor back one position to be between the parentheses
-          this.editor.commands.setTextSelection(this.editor.state.selection.from - 1);
-        }
-        return result;
-      },
-      'Ctrl-5': () => {
-        console.log('Ctrl-5 pressed: switching to dialogue');
-        return this.editor.commands.setNode('dialogue');
-      },
-      'Ctrl-6': () => {
-        console.log('Ctrl-6 pressed: switching to transition');
-        console.log('Available node types:', Object.keys(this.editor.schema.nodes));
-        const result = this.editor.commands.setNode('transition');
-        console.log('Transition setNode result:', result);
-        return result;
-      },
-      
       Tab: () => {
         try {
           const { state } = this.editor;
