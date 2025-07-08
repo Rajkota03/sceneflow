@@ -335,29 +335,74 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     }, 100);
   }, [pages, isUpdating, debouncedSave, updateCharacterNames]);
 
-  // Page navigation functions
+  // Page navigation functions with smooth scrolling
   const navigateToPage = useCallback((targetPageIndex: number, position: 'start' | 'end' = 'start') => {
     if (targetPageIndex >= 0 && targetPageIndex < pages.length) {
       const targetEditor = pages[targetPageIndex]?.editor;
       if (targetEditor) {
         setCurrentPage(targetPageIndex + 1);
         
+        // Smooth scroll to target page first
+        const pageElement = document.querySelector(`[data-page-id="${targetPageIndex + 1}"]`);
+        if (pageElement) {
+          pageElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+        }
+        
+        // Focus editor after scroll animation
         setTimeout(() => {
           if (position === 'end') {
             targetEditor.commands.focus('end');
           } else {
             targetEditor.commands.focus('start');
           }
-          
-          // Scroll target page into view
-          const pageElement = document.querySelector(`[data-page-id="${targetPageIndex + 1}"]`);
-          if (pageElement) {
-            pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 50);
+        }, 300); // Wait for scroll animation to complete
       }
     }
   }, [pages]);
+
+  // Enhanced keyboard shortcuts
+  const handleGlobalKeyNavigation = useCallback((event: KeyboardEvent) => {
+    // Global navigation shortcuts
+    if (event.ctrlKey || event.metaKey) {
+      switch (event.key) {
+        case 'Home':
+          event.preventDefault();
+          navigateToPage(0, 'start');
+          break;
+        case 'End':
+          event.preventDefault();
+          navigateToPage(pages.length - 1, 'end');
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+          const pageNum = parseInt(event.key) - 1;
+          if (pageNum < pages.length) {
+            event.preventDefault();
+            navigateToPage(pageNum, 'start');
+          }
+          break;
+      }
+    }
+  }, [pages.length, navigateToPage]);
+
+  // Add global keyboard listeners
+  useEffect(() => {
+    document.addEventListener('keydown', handleGlobalKeyNavigation);
+    return () => {
+      document.removeEventListener('keydown', handleGlobalKeyNavigation);
+    };
+  }, [handleGlobalKeyNavigation]);
 
   // Handle keyboard navigation between pages (only for navigation keys)
   const handleKeyNavigation = useCallback((event: KeyboardEvent, pageIndex: number, editor: any) => {
@@ -497,12 +542,12 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     <div className="h-full flex flex-col">
       <SceneEditorToolbar projectId={projectId} />
       
-      {/* Status Bar */}
+      {/* Enhanced Status Bar with Navigation */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span>Multi-Page Scene Editor</span>
+        <div className="flex items-center gap-4">
+          <span className="font-medium">Multi-Page Scene Editor</span>
           {saveStatus === 'saving' && (
-            <span className="text-blue-600">💾 Saving...</span>
+            <span className="text-blue-600 animate-pulse">💾 Saving...</span>
           )}
           {saveStatus === 'saved' && (
             <span className="text-green-600">✅ Saved</span>
@@ -510,10 +555,60 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           {saveStatus === 'error' && (
             <span className="text-red-600">❌ Save failed</span>
           )}
+          
+          {/* Keyboard shortcuts hint */}
+          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground/70">
+            <span>•</span>
+            <span>Ctrl+1-9: Jump to page</span>
+            <span>•</span>
+            <span>Page Up/Down: Navigate pages</span>
+            <span>•</span>
+            <span>Ctrl+Home/End: First/Last page</span>
+          </div>
         </div>
+        
         <div className="flex items-center gap-4">
-          <div className="text-sm font-medium">
-            Total Pages: {pages.length}
+          {/* Page navigation controls */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigateToPage(currentPage - 2, 'start')}
+              disabled={currentPage <= 1}
+              className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
+              title="Previous page (Page Up)"
+            >
+              ←
+            </button>
+            
+            <div className="flex items-center gap-1 text-sm font-medium min-w-[100px] justify-center">
+              <span className="text-primary">{currentPage}</span>
+              <span>/</span>
+              <span>{pages.length}</span>
+            </div>
+            
+            <button
+              onClick={() => navigateToPage(currentPage, 'start')}
+              disabled={currentPage >= pages.length}
+              className="px-2 py-1 text-xs bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
+              title="Next page (Page Down)"
+            >
+              →
+            </button>
+          </div>
+          
+          {/* Page overview indicator */}
+          <div className="hidden lg:flex items-center gap-1">
+            {pages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => navigateToPage(index, 'start')}
+                className={`w-2 h-6 rounded-sm transition-all ${
+                  currentPage === index + 1 
+                    ? 'bg-primary shadow-sm' 
+                    : 'bg-muted hover:bg-muted/80'
+                }`}
+                title={`Page ${index + 1}`}
+              />
+            ))}
           </div>
         </div>
       </div>
