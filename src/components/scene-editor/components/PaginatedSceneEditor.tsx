@@ -4,6 +4,8 @@ import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
 import { History } from '@tiptap/extension-history';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils/debounce';
 import {
@@ -20,6 +22,7 @@ import { TransitionSuggest } from '../extensions/TransitionSuggest';
 import { useCharacterExtraction } from '@/hooks/useCharacterExtraction';
 import { SceneEditorToolbar } from './SceneEditorToolbar';
 import { SceneEditorBubbleMenu } from './SceneEditorBubbleMenu';
+import PageViewPreview from './PageViewPreview';
 import '../extensions/autocomplete.css';
 import styles from './PaginatedSceneEditor.module.css';
 
@@ -32,6 +35,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [pageCount, setPageCount] = useState(1);
+  const [showPageView, setShowPageView] = useState(false);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
 
   // Constants for page measurements (in pixels, approximate)
@@ -179,7 +183,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     <div className="h-full flex flex-col">
       <SceneEditorToolbar projectId={projectId} />
       
-      {/* Save Status Indicator */}
+      {/* Save Status Indicator with Page View Toggle */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span>Scene Editor</span>
@@ -193,21 +197,47 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
             <span className="text-red-600">❌ Save failed</span>
           )}
         </div>
-        <div className="text-sm font-medium">
-          Total Pages: {pageCount}
+        <div className="flex items-center gap-4">
+          <Button
+            variant={showPageView ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowPageView(!showPageView)}
+            className="flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Page View
+          </Button>
+          <div className="text-sm font-medium">
+            Total Pages: {pageCount}
+          </div>
         </div>
       </div>
       
-      {/* Single page layout with page counter */}
-      <div className={styles.printLayoutContainer}>
-        <div className={styles.pagesContainer}>
-          <div className={styles.page}>
-            <div className={styles.pageNumber}>{pageCount > 1 ? `1-${pageCount}` : '1'}</div>
-            <div className={styles.pageContent}>
-              <EditorContent editor={editor} />
+      {/* Editor and Page View Container */}
+      <div className="flex-1 flex flex-col">
+        {/* Editor Section */}
+        <div className={showPageView ? "flex-1" : "h-full"}>
+          <div className={styles.printLayoutContainer}>
+            <div className={styles.pagesContainer}>
+              <div className={styles.page}>
+                <div className={styles.pageNumber}>{pageCount > 1 ? `1-${pageCount}` : '1'}</div>
+                <div className={styles.pageContent}>
+                  <EditorContent editor={editor} />
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        
+        {/* Page View Section - Only shown when toggled */}
+        {showPageView && (
+          <div className="flex-1 border-t">
+            <div className="bg-muted/30 px-4 py-2 border-b">
+              <span className="text-sm font-medium text-muted-foreground">Page View Preview</span>
+            </div>
+            <PageViewPreview editor={editor} />
+          </div>
+        )}
       </div>
 
       <SceneEditorBubbleMenu editor={editor} />
