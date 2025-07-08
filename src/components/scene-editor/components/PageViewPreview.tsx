@@ -31,7 +31,7 @@ const PageViewPreview: React.FC<PageViewPreviewProps> = ({ editor }) => {
   const pages = getPagedContent();
 
   return (
-    <div className="w-full bg-gray-100 min-h-full overflow-auto">
+    <div className="w-full h-full bg-gray-100 overflow-auto">
       <style>{`
         .page-view-scroll {
           padding: 2rem 1rem;
