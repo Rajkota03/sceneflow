@@ -1,0 +1,175 @@
+/* Scrollable container for all pages */
+.pagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: hsl(var(--muted));
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Wrapper to center the pages */
+.pagesWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: calc(8.5in + 4rem); /* Page width plus padding */
+}
+
+/* Single continuous page with visual breaks */
+.page {
+  width: 8.5in;
+  min-height: 11in;
+  background: hsl(var(--background));
+  box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
+  border-radius: 4px;
+  position: relative;
+  font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
+  font-size: 12pt;
+  line-height: 1.2;
+  margin: 0 auto;
+  overflow: visible; /* Allow content to extend beyond initial page bounds */
+}
+
+/* Page number styling */
+.pageNumber {
+  position: absolute;
+  right: 1in;
+  font-family: inherit;
+  font-size: 12pt;
+  color: hsl(var(--muted-foreground));
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Editor content container */
+.editorContent {
+  width: 100%;
+  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
+  box-sizing: border-box;
+  position: relative;
+  min-height: calc(11in - 2in); /* Minimum page content height */
+}
+
+/* The actual editor content */
+.screenplayEditor {
+  width: 100%;
+  height: auto;
+  outline: none;
+  border: none;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Reset any conflicting styles */
+.screenplayEditor p {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Ensure TipTap editor content is left-aligned */
+.screenplayEditor .ProseMirror {
+  text-align: left;
+  outline: none;
+  height: auto;
+  overflow: visible;
+}
+
+/* Page break visual indicators */
+.pageBreak {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.pageBreakLine {
+  width: 100%;
+  height: 2px;
+  background: hsl(var(--border));
+  border-top: 1px dashed hsl(var(--muted-foreground));
+  margin: 2rem 0;
+}
+
+/* Screenplay element styles - matching the original styles */
+.screenplayEditor [data-element-type="sceneHeading"],
+.screenplayEditor h3,
+.screenplayEditor [data-type="sceneHeading"] {
+  margin: 1.5em 0 0.12in 0;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  color: hsl(var(--foreground));
+}
+
+.screenplayEditor [data-element-type="action"] {
+  margin: 0.12in 0;
+  text-align: left;
+  color: hsl(var(--foreground));
+}
+
+.screenplayEditor [data-element-type="character"],
+.screenplayEditor [data-type="character"] {
+  margin: 0.12in 0 0.06in 2.2in;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  text-align: left;
+  color: hsl(var(--foreground));
+}
+
+.screenplayEditor [data-element-type="dialogue"] {
+  margin: 0 0 0.12in 1.0in;
+  max-width: 4.0in;
+  text-align: left;
+  color: hsl(var(--foreground));
+}
+
+.screenplayEditor [data-element-type="parenthetical"] {
+  margin: 0 0 0.06in 1.6in;
+  font-style: italic;
+  text-align: left;
+  color: hsl(var(--muted-foreground));
+}
+
+.screenplayEditor [data-element-type="transition"],
+.screenplayEditor [data-type="transition"] {
+  margin: 0.12in 0;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  text-align: right !important;
+  padding-right: 0.5in;
+  color: hsl(var(--foreground));
+  direction: ltr;
+}
+
+/* Focus styles */
+.screenplayEditor:focus {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pagesContainer {
+    padding: 1rem 0.5rem;
+  }
+  
+  .page {
+    width: 100%;
+    min-width: 320px;
+    max-width: 8.5in;
+    transform: scale(0.8);
+    transform-origin: top center;
+  }
+  
+  .pagesWrapper {
+    max-width: 100%;
+  }
+}
