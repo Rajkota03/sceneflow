@@ -148,12 +148,22 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
   const [ydoc] = useState(() => new Y.Doc());
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
 
-  // Helper function to focus at top-left
+  // Helper function to focus at top-left and scroll to document start
   const focusTopLeft = useCallback((editor: any) => {
     try {
       editor.commands.focus();
       editor.commands.setTextSelection(0);
       editor.commands.selectTextblockStart();
+      
+      // Scroll to top of document to make cursor visible
+      const editorElement = editor.view.dom;
+      const scrollContainer = editorElement.closest('.overflow-auto') || editorElement.closest('[data-radix-scroll-area-viewport]') || window;
+      
+      if (scrollContainer === window) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        scrollContainer.scrollTop = 0;
+      }
     } catch (error) {
       console.warn('Could not focus at top-left:', error);
     }
@@ -220,8 +230,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     onCreate: ({ editor }) => {
       setTimeout(() => {
         try {
-          editor.commands.focus();
-          editor.commands.setTextSelection(0);
+          focusTopLeft(editor);
           editor.commands.setNode('sceneHeading');
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
@@ -337,15 +346,10 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
   useEffect(() => {
     if (editor && provider) {
       setTimeout(() => {
-        try {
-          editor.commands.focus();
-          editor.commands.setTextSelection(0);
-        } catch (error) {
-          console.warn('Could not focus at top-left:', error);
-        }
+        focusTopLeft(editor);
       }, 500);
     }
-  }, [editor, provider]);
+  }, [editor, provider, focusTopLeft]);
 
   if (!editor) {
     return <div className="flex items-center justify-center h-96">Loading editor...</div>;
