@@ -17,7 +17,7 @@ import styles from '../scene-editor/SceneEditor.module.css';
 const SceneHeadingNode = Node.create({
   name: 'sceneHeading',
   group: 'block',
-  content: 'text*',
+  content: 'inline*',
   defining: true,
   
   addAttributes() {
@@ -27,11 +27,11 @@ const SceneHeadingNode = Node.create({
   },
   
   parseHTML() {
-    return [{ tag: 'h3[data-element-type="sceneHeading"]' }];
+    return [{ tag: 'p[data-type="scene-heading"]' }];
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['h3', { 'data-element-type': 'sceneHeading', class: 'sceneHeading', ...HTMLAttributes }, 0];
+    return ['p', { 'data-type': 'scene-heading', class: 'sceneHeading', ...HTMLAttributes }, 0];
   },
 });
 
