@@ -359,39 +359,30 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     }
   }, [pages]);
 
-  // Handle keyboard navigation between pages
+  // Handle keyboard navigation between pages (only for navigation keys)
   const handleKeyNavigation = useCallback((event: KeyboardEvent, pageIndex: number, editor: any) => {
+    // Only handle navigation keys, not text input
+    if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(event.key)) {
+      return; // Let normal text input work
+    }
+    
     const { selection } = editor.state;
     const { $anchor } = selection;
     
     // Check if cursor is at the beginning or end of the content
-    const isAtStart = $anchor.pos === 1;
-    const isAtEnd = $anchor.pos === editor.state.doc.content.size - 1;
+    const isAtStart = $anchor.pos <= 1;
+    const isAtEnd = $anchor.pos >= editor.state.doc.content.size - 1;
     
     switch (event.key) {
       case 'ArrowUp':
-        if (isAtStart && pageIndex > 0) {
+        if (isAtStart && pageIndex > 0 && event.ctrlKey) { // Only with Ctrl key
           event.preventDefault();
           navigateToPage(pageIndex - 1, 'end');
         }
         break;
         
       case 'ArrowDown':
-        if (isAtEnd && pageIndex < pages.length - 1) {
-          event.preventDefault();
-          navigateToPage(pageIndex + 1, 'start');
-        }
-        break;
-        
-      case 'ArrowLeft':
-        if (isAtStart && pageIndex > 0) {
-          event.preventDefault();
-          navigateToPage(pageIndex - 1, 'end');
-        }
-        break;
-        
-      case 'ArrowRight':
-        if (isAtEnd && pageIndex < pages.length - 1) {
+        if (isAtEnd && pageIndex < pages.length - 1 && event.ctrlKey) { // Only with Ctrl key
           event.preventDefault();
           navigateToPage(pageIndex + 1, 'start');
         }
