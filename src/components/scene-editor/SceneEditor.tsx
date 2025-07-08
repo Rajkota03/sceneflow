@@ -1,190 +1,52 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
-import styles from './SceneEditor.module.css';
+import { useEditor, EditorContent } from '@tiptap/react';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
 import { History } from '@tiptap/extension-history';
-import { Collaboration } from '@tiptap/extension-collaboration';
-import { CollaborationCursor } from '@tiptap/extension-collaboration-cursor';
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
-import { Node } from '@tiptap/core';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-
-// Element class mapping
-const ELEMENT_CLASS: Record<string, string> = {
-  sceneHeading: 'sceneHeading',
-  action: 'action',
-  character: 'character',
-  parenthetical: 'parenthetical',
-  dialogue: 'dialogue',
-  transition: 'transition',
-};
-
-// Custom Screenplay Nodes
-const SceneHeadingNode = Node.create({
-  name: 'sceneHeading',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'sceneHeading' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'h3[data-element-type="sceneHeading"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['h3', { 'data-element-type': 'sceneHeading', class: 'sceneHeading', ...HTMLAttributes }, 0];
-  },
-});
-
-const ActionNode = Node.create({
-  name: 'action',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'action' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'p[data-element-type="action"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'action', class: 'action', ...HTMLAttributes }, 0];
-  },
-});
-
-const CharacterNode = Node.create({
-  name: 'character',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'character' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'p[data-element-type="character"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'character', class: 'character', ...HTMLAttributes }, 0];
-  },
-});
-
-const DialogueNode = Node.create({
-  name: 'dialogue',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'dialogue' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'p[data-element-type="dialogue"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'dialogue', class: 'dialogue', ...HTMLAttributes }, 0];
-  },
-});
-
-const ParentheticalNode = Node.create({
-  name: 'parenthetical',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'parenthetical' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'p[data-element-type="parenthetical"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'parenthetical', class: 'parenthetical', ...HTMLAttributes }, 0];
-  },
-});
-
-const TransitionNode = Node.create({
-  name: 'transition',
-  group: 'block',
-  content: 'text*',
-  defining: true,
-  
-  addAttributes() {
-    return {
-      elementType: { default: 'transition' },
-    };
-  },
-  
-  parseHTML() {
-    return [{ tag: 'p[data-element-type="transition"]' }];
-  },
-  
-  renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'transition', class: 'transition', ...HTMLAttributes }, 0];
-  },
-});
+import { debounce } from '@/lib/utils/debounce';
+import {
+  SceneHeadingNode,
+  ActionNode,
+  CharacterNode,
+  DialogueNode,
+  ParentheticalNode,
+  TransitionNode,
+} from './nodes';
+import { SceneEditorToolbar } from './components/SceneEditorToolbar';
+import { SceneEditorBubbleMenu } from './components/SceneEditorBubbleMenu';
+import styles from './SceneEditor.module.css';
 
 interface SceneEditorProps {
-  scriptId: string;
+  projectId: string;
 }
 
-export function SceneEditor({ scriptId }: SceneEditorProps) {
-  const [ydoc] = useState(() => new Y.Doc());
-  const [provider, setProvider] = useState<WebsocketProvider | null>(null);
+export function SceneEditor({ projectId }: SceneEditorProps) {
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Helper function to focus at top-left
-  const focusTopLeft = useCallback((editor: any) => {
-    try {
-      // First focus the editor
-      editor.commands.focus();
-      // Then set selection to the very beginning
-      editor.commands.setTextSelection(0);
-      // Alternative approach: set cursor to start of first node
-      editor.commands.selectTextblockStart();
-    } catch (error) {
-      console.warn('Could not focus at top-left:', error);
-    }
-  }, []);
-  
-  // Initialize WebSocket provider
-  useEffect(() => {
-    const wsProvider = new WebsocketProvider(
-      'wss://connect.yjs.dev',
-      `script-${scriptId}`,
-      ydoc
-    );
-    setProvider(wsProvider);
-    
-    return () => {
-      wsProvider.destroy();
-    };
-  }, [scriptId, ydoc]);
+  // Debounced save to Supabase
+  const debouncedSave = useCallback(
+    debounce(async (content: any) => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) return;
+        
+        await supabase
+          .from('scenes')
+          .upsert({
+            id: projectId,
+            author_id: userData.user.id,
+            project_id: projectId,
+            content_richtext: content,
+            updated_at: new Date().toISOString(),
+          });
+      } catch (error) {
+        console.error('Failed to save:', error);
+      }
+    }, 1000),
+    [projectId]
+  );
 
   const editor = useEditor({
     extensions: [
@@ -198,174 +60,72 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
       DialogueNode,
       ParentheticalNode,
       TransitionNode,
-      Collaboration.configure({
-        document: ydoc,
-      }),
-      CollaborationCursor.configure({
-        provider: provider,
-        user: {
-          name: 'Writer',
-          color: '#3b82f6',
-        },
-      }),
     ],
     content: {
       type: 'doc',
       content: [
         {
-          type: 'paragraph',
-          attrs: { elementType: 'action' },
+          type: 'sceneHeading',
+          content: [{ type: 'text', text: 'INT. LOCATION - DAY' }],
+        },
+        {
+          type: 'action',
           content: [{ type: 'text', text: 'Start writing your scene here...' }],
         },
       ],
     },
     editorProps: {
       attributes: {
-        class: 'screenplay-editor focus:outline-none',
-        style: 'font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace; font-size: 12pt; line-height: 1.2;',
-      },
-      handleClick: () => {
-        // Let the editor handle clicks naturally
-        return false;
+        class: styles.screenplayEditor,
       },
     },
     onUpdate: ({ editor }) => {
-      try {
-        debouncedSave(editor.getJSON());
-      } catch (error) {
-        console.warn('Save error:', error);
-      }
+      debouncedSave(editor.getJSON());
     },
     onCreate: ({ editor }) => {
-      // Ensure editor has valid content and focus
+      setIsLoading(false);
+      // Focus and position cursor at the start
       setTimeout(() => {
-        try {
-          // Check if document is empty or invalid
-          if (!editor.state.doc.content.size || editor.state.doc.content.size === 0) {
-            editor.commands.setContent({
-              type: 'doc',
-              content: [
-                {
-                  type: 'paragraph',
-                  attrs: { elementType: 'action' },
-                  content: [{ type: 'text', text: 'Start writing...' }],
-                },
-              ],
-            });
-          }
-          focusTopLeft(editor);
-        } catch (error) {
-          console.warn('Could not focus editor on create:', error);
-        }
+        editor.commands.focus();
+        editor.commands.setTextSelection(0);
       }, 100);
     },
   });
 
-  // Debounced save to Supabase
-  const debouncedSave = useCallback(
-    debounce(async (content: any) => {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) return;
-        
-        await supabase
-          .from('scenes')
-          .upsert({
-            id: scriptId,
-            author_id: userData.user.id,
-            project_id: 'temp-project', // TODO: Get actual project ID
-            content_richtext: content,
-            updated_at: new Date().toISOString(),
-          });
-      } catch (error) {
-        console.error('Failed to save:', error);
-      }
-    }, 1000),
-    [scriptId]
-  );
-
-  // Keyboard shortcuts
+  // Keyboard shortcuts for element types
   useEffect(() => {
     if (!editor) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      try {
-        const { selection } = editor.state;
-        if (!selection) return;
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        const types = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
+        const currentType = editor.getAttributes('paragraph').elementType || 'action';
+        const currentIndex = types.indexOf(currentType);
+        const nextIndex = event.shiftKey 
+          ? (currentIndex - 1 + types.length) % types.length
+          : (currentIndex + 1) % types.length;
         
-        const node = editor.state.doc.nodeAt(selection.from);
-        const currentType = node?.attrs?.elementType || 'action';
+        editor.commands.setNode(types[nextIndex]);
+        return;
+      }
 
-        // Tab cycling
-        if (event.key === 'Tab') {
+      // Element type shortcuts (Cmd/Ctrl + 1-6)
+      if ((event.metaKey || event.ctrlKey) && !event.shiftKey) {
+        const shortcuts = {
+          '1': 'sceneHeading',
+          '2': 'action', 
+          '3': 'character',
+          '4': 'parenthetical',
+          '5': 'dialogue',
+          '6': 'transition',
+        };
+
+        if (shortcuts[event.key]) {
           event.preventDefault();
-          const types = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
-          const currentIndex = types.indexOf(currentType);
-          const nextIndex = event.shiftKey 
-            ? (currentIndex - 1 + types.length) % types.length
-            : (currentIndex + 1) % types.length;
-          
-          try {
-            editor.commands.setNode(types[nextIndex]);
-          } catch (error) {
-            console.warn('Tab shortcut error:', error);
-          }
+          editor.commands.setNode(shortcuts[event.key]);
           return;
         }
-
-        // Enter progression - let the editor handle it naturally
-        if (event.key === 'Enter' && !event.shiftKey) {
-          // Let the default enter behavior work, then update the node type
-          setTimeout(() => {
-            try {
-              const nextType = {
-                sceneHeading: 'action',
-                action: 'action',
-                character: 'dialogue',
-                parenthetical: 'dialogue',
-                dialogue: 'dialogue',
-                transition: 'sceneHeading',
-              }[currentType] || 'action';
-
-              editor.commands.setNode(nextType);
-            } catch (error) {
-              console.warn('Enter progression error:', error);
-            }
-          }, 10);
-          return;
-        }
-
-        // Direct shortcuts (Cmd/Ctrl + 1-6)
-        if ((event.metaKey || event.ctrlKey) && !event.shiftKey) {
-          const shortcuts = {
-            '1': 'sceneHeading',
-            '2': 'action',
-            '3': 'character',
-            '4': 'parenthetical',
-            '5': 'dialogue',
-            '6': 'transition',
-          };
-
-          if (shortcuts[event.key]) {
-            event.preventDefault();
-            try {
-              editor.commands.setNode(shortcuts[event.key]);
-            } catch (error) {
-              console.warn('Direct shortcut error:', error);
-            }
-            return;
-          }
-        }
-
-        // Toggle comment (Cmd/Ctrl + Shift + C)
-        if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'C') {
-          event.preventDefault();
-          // TODO: Implement comment toggle
-          console.log('Comment toggle not yet implemented');
-          return;
-        }
-      } catch (error) {
-        console.warn('Keyboard shortcut error:', error);
       }
     };
 
@@ -373,83 +133,27 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [editor]);
 
-  // Ensure focus at top-left after mount
-  useEffect(() => {
-    if (editor) {
-      // Use a longer timeout to ensure editor is fully ready
-      setTimeout(() => {
-        focusTopLeft(editor);
-      }, 300);
-    }
-  }, [editor, focusTopLeft]);
-
-  if (!editor) {
-    return <div className="flex items-center justify-center h-96">Loading editor...</div>;
+  if (isLoading || !editor) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-muted-foreground">Loading editor...</div>
+      </div>
+    );
   }
 
   return (
     <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="border-b border-border p-4 flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Scene Editor - {scriptId}</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Export
-          </Button>
-        </div>
-        
-        {/* Bubble Menu Format Pills */}
-        <BubbleMenu 
-          editor={editor} 
-          tippyOptions={{ 
-            duration: 100,
-            placement: 'top',
-          }}
-        >
-          <div className="flex space-x-1 rounded-lg bg-background border border-border p-1 shadow-lg">
-            {[
-              ['sceneHeading', 'Scene'],
-              ['action', 'Action'],
-              ['character', 'Character'],
-              ['dialogue', 'Dialogue'],
-              ['parenthetical', 'Paren'],
-              ['transition', 'Trans'],
-            ].map(([type, label]) => (
-              <button
-                key={type}
-                className={`px-2 py-1 text-xs rounded transition-colors ${
-                  editor.isActive(type)
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                }`}
-                onClick={() => editor.commands.setNode(type)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </BubbleMenu>
-      </div>
-
-      {/* Editor Content */}
+      <SceneEditorToolbar projectId={projectId} />
+      
       <div className={styles.editorContainer}>
         <div className={styles.page}>
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      <SceneEditorBubbleMenu editor={editor} />
     </div>
   );
 }
 
-// Utility: debounce function
-function debounce(func: Function, wait: number) {
-  let timeout: NodeJS.Timeout;
-  return function executedFunction(...args: any[]) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
+export default SceneEditor;
