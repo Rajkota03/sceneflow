@@ -9,19 +9,16 @@
   justify-content: center;
 }
 
-/* Pages Container - Centers the page content */
+/* Pages Container - Centers and styles the content */
 .pagesContainer {
   width: 8.5in;
-  background: hsl(var(--background));
-  box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
-  border-radius: 4px;
   font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
   font-size: 12pt;
   line-height: 1.2;
   position: relative;
 }
 
-/* The TipTap Editor - Continuous content with CSS page styling */
+/* The TipTap Editor with page styling */
 .screenplayEditor {
   width: 100%;
   outline: none;
@@ -31,8 +28,6 @@
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
-  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
-  box-sizing: border-box;
 }
 
 /* Reset paragraph styles */
@@ -42,40 +37,48 @@
   text-align: left;
 }
 
-/* TipTap ProseMirror - This is where the magic happens */
+/* ProseMirror with page break styling */
 .screenplayEditor .ProseMirror {
   text-align: left;
   outline: none;
-  min-height: 100vh;
   
-  /* CSS Paged Media - Creates page breaks */
-  page-break-inside: auto;
-  
-  /* Print layout simulation using CSS */
-  background-image: 
-    /* Page separators every 9 inches (content area) */
+  /* Create page-like sections */
+  background: 
+    /* Page backgrounds */
     repeating-linear-gradient(
-      transparent,
-      transparent calc(9in - 2px),
-      hsl(var(--muted)) calc(9in - 2px),
-      hsl(var(--muted)) calc(9in + 2rem),
-      transparent calc(9in + 2rem)
+      0deg,
+      hsl(var(--background)) 0,
+      hsl(var(--background)) 11in,
+      hsl(var(--muted)) 11in,
+      hsl(var(--muted)) calc(11in + 2rem),
+      hsl(var(--background)) calc(11in + 2rem)
     );
-  background-size: 100% calc(9in + 2rem);
+  
+  /* Add page shadows */
+  background-size: 100% calc(11in + 2rem);
   background-attachment: local;
   
-  /* Add page numbers using CSS counters */
-  counter-reset: page-counter;
+  /* Page styling */
+  box-shadow: 
+    /* Repeating shadows for each page */
+    0 8px 32px hsla(var(--foreground) / 0.1),
+    0 calc(11in + 2rem + 8px) 32px hsla(var(--foreground) / 0.1),
+    0 calc(2 * (11in + 2rem) + 8px) 32px hsla(var(--foreground) / 0.1),
+    0 calc(3 * (11in + 2rem) + 8px) 32px hsla(var(--foreground) / 0.1),
+    0 calc(4 * (11in + 2rem) + 8px) 32px hsla(var(--foreground) / 0.1);
+  
+  /* Padding for screenplay margins, applied per page */
+  padding: 1in 1in 1in 1.5in;
+  box-sizing: border-box;
+  
+  /* Ensure content flows properly */
+  min-height: 100vh;
+  
+  /* Page counter for numbering */
+  counter-reset: page-number;
 }
 
-/* Page breaks using CSS */
-.screenplayEditor .ProseMirror > *:nth-child(n) {
-  /* Avoid page breaks inside elements */
-  break-inside: avoid;
-  page-break-inside: avoid;
-}
-
-/* Add page numbers using pseudo-elements */
+/* Page numbers using CSS */
 .screenplayEditor .ProseMirror::before {
   content: '';
   position: absolute;
@@ -84,30 +87,39 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: 10;
   
-  /* Page numbers positioned every 9 inches */
+  /* Page numbers at regular intervals */
   background-image: 
     repeating-linear-gradient(
-      transparent,
-      transparent calc(9in - 0.5in),
-      transparent calc(9in + 2rem)
+      0deg,
+      transparent 0,
+      transparent calc(11in - 0.5in),
+      transparent calc(11in + 2rem)
     );
-  background-size: 100% calc(9in + 2rem);
+  background-size: 100% calc(11in + 2rem);
 }
 
-/* Page number styling with CSS counters */
-.pagesContainer::before {
-  counter-increment: page-counter;
-  content: counter(page-counter);
+/* Actual page numbers */
+.pagesContainer::after {
+  content: "1";
   position: absolute;
   top: 0.5in;
   right: 1in;
   font-family: inherit;
   font-size: 12pt;
   color: hsl(var(--muted-foreground));
-  z-index: 10;
+  z-index: 20;
   pointer-events: none;
+}
+
+/* Add page breaks at content intervals */
+.screenplayEditor .ProseMirror > *:nth-child(50n) {
+  break-after: page;
+  page-break-after: always;
+  margin-bottom: 2rem;
+  padding-bottom: 1in;
+  border-bottom: 2rem solid hsl(var(--muted));
 }
 
 /* Screenplay element styles */
@@ -119,9 +131,6 @@
   font-weight: 700 !important;
   text-align: left !important;
   color: hsl(var(--foreground));
-  /* Avoid breaking scene headings across pages */
-  break-after: avoid;
-  page-break-after: avoid;
 }
 
 .screenplayEditor [data-element-type="action"] {
@@ -137,9 +146,6 @@
   font-weight: 700 !important;
   text-align: left;
   color: hsl(var(--foreground));
-  /* Keep character names with their dialogue */
-  break-after: avoid;
-  page-break-after: avoid;
 }
 
 .screenplayEditor [data-element-type="dialogue"] {
@@ -165,9 +171,6 @@
   padding-right: 0.5in;
   color: hsl(var(--foreground));
   direction: ltr;
-  /* Transitions can break to new pages */
-  break-after: auto;
-  page-break-after: auto;
 }
 
 /* Focus styles */
@@ -189,24 +192,5 @@
     max-width: 8.5in;
     transform: scale(0.85);
     transform-origin: top center;
-  }
-}
-
-/* Print styles */
-@media print {
-  .pagesContainer {
-    width: 8.5in;
-    box-shadow: none;
-    border-radius: 0;
-  }
-  
-  .screenplayEditor .ProseMirror {
-    background-image: none;
-  }
-  
-  /* Proper page breaks for printing */
-  .screenplayEditor [data-element-type="sceneHeading"] {
-    break-before: page;
-    page-break-before: always;
   }
 }
