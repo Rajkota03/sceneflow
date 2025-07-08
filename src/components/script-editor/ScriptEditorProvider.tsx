@@ -4,9 +4,6 @@ import { ScriptContent, ScriptElement, ActType, ElementType, Note, Structure, Be
 import { generateUniqueId } from '@/lib/formatScript';
 import useScriptElements from '@/hooks/useScriptElements';
 import useCharacterNames from '@/hooks/useCharacterNames';
-// import useFilteredElements from '@/hooks/useFilteredElements'; // Filtered elements might be handled differently now
-// import useScriptNavigation from '@/hooks/useScriptNavigation'; // Handled by Slate
-// import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts'; // Handled by Slate
 import useEditorUIState from '@/hooks/useEditorUIState';
 import useStructures from '@/hooks/structure/useStructures'; // Corrected import: default export
 import { BeatMode } from '@/types/scriptTypes';
@@ -21,8 +18,6 @@ interface ScriptEditorProviderProps {
   className?: string;
   projectId?: string;
   projectTitle?: string;
-  // selectedStructureId?: string; // Handled by useStructures now
-  // onStructureChange?: (structureId: string) => void; // Handled by useStructures now
   children: React.ReactNode;
 }
 
@@ -39,8 +34,6 @@ export interface ScriptEditorContextType {
   currentPage: number;
   handleElementChange: (id: string, text: string, type: ElementType) => void;
   getPreviousElementType: (index: number) => ElementType | null;
-  // handleNavigate: (id: string, direction: 'up' | 'down') => void; // Handled by Slate
-  // handleEnterKey: (id: string, shiftKey: boolean) => void; // Handled by Slate
   showKeyboardShortcuts: boolean;
   toggleKeyboardShortcuts: () => void;
   changeElementType: (id: string, newType: ElementType) => void;
@@ -124,7 +117,7 @@ const ScriptEditorProvider: React.FC<ScriptEditorProviderProps> = ({
 
   // Derived Data Hooks
   const characterNames = useCharacterNames(elements);
-  // const filteredElements = useFilteredElements(elements, activeTagFilter, activeActFilter); // Consider if needed
+  
 
   // Calculate Beat Scene Counts (Memoized)
   useEffect(() => {

@@ -28,23 +28,6 @@ export interface ScriptElement {
   pageBreak?: boolean; // Property for manual page breaks
 }
 
-// Slate specific types
-export type SlateElementType = {
-  type: ElementType;
-  children: SlateText[];
-  id: string;
-  tags?: string[];
-  act?: ActType;
-  beat?: string;
-  page?: number;
-  pageBreak?: boolean; // Added for manual page breaks
-}
-
-export type SlateText = {
-  text: string;
-}
-
-export type SlateDocument = SlateElementType[];
 
 export interface ScriptContent {
   elements: ScriptElement[];

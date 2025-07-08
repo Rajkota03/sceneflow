@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ElementType } from '@/lib/types';
 import { detectCharacter } from '@/lib/characterUtils';
-import { formatTextForElementType } from '@/lib/slateUtils'; // Import the formatting utility
+import { formatTextForElementType } from '@/lib/textFormatUtils';
 
 interface UseElementInteractionProps {
   elementId: string;

@@ -16,7 +16,7 @@ import { toast } from '@/components/ui/use-toast';
 import { ElementType } from '@/lib/types';
 import { useFormat } from '@/lib/formatContext';
 import { useScriptEditor } from '../script-editor/ScriptEditorProvider';
-import { createPageBreakElement } from '@/lib/slateUtils';
+
 
 const FormatMenu = () => {
   const { formatState, setFont, setFontSize, setLineSpacing } = useFormat();
