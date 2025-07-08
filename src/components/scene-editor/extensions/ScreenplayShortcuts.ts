@@ -55,7 +55,14 @@ export const ScreenplayShortcuts = Extension.create({
       },
       'Alt-4': () => {
         console.log('Alt-4 pressed: switching to parenthetical');
-        return this.editor.commands.setNode('parenthetical');
+        const result = this.editor.commands.setNode('parenthetical');
+        if (result) {
+          // Insert parentheses and position cursor between them
+          this.editor.commands.insertContent('()');
+          // Move cursor back one position to be between the parentheses
+          this.editor.commands.setTextSelection(this.editor.state.selection.from - 1);
+        }
+        return result;
       },
       'Alt-5': () => {
         console.log('Alt-5 pressed: switching to dialogue');
@@ -63,7 +70,10 @@ export const ScreenplayShortcuts = Extension.create({
       },
       'Alt-6': () => {
         console.log('Alt-6 pressed: switching to transition');
-        return this.editor.commands.setNode('transition');
+        console.log('Available node types:', Object.keys(this.editor.schema.nodes));
+        const result = this.editor.commands.setNode('transition');
+        console.log('Transition setNode result:', result);
+        return result;
       },
       
       Tab: () => {
