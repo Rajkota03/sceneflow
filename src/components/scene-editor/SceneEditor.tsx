@@ -30,22 +30,26 @@ interface SceneEditorProps {
 
 export function SceneEditor({ projectId }: SceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
 
   // Debounced save to Supabase
   const debouncedSave = useCallback(
     debounce(async (content: any) => {
       try {
+        setSaveStatus('saving');
         console.log('Attempting to save content:', content);
         const { data: userData, error: authError } = await supabase.auth.getUser();
         
         if (authError) {
           console.error('Auth error:', authError);
+          setSaveStatus('error');
           return;
         }
         
         if (!userData.user) {
           console.log('No authenticated user found');
+          setSaveStatus('error');
           return;
         }
         
@@ -62,11 +66,16 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
           
         if (error) {
           console.error('Save error:', error);
+          setSaveStatus('error');
         } else {
           console.log('Content saved successfully');
+          setSaveStatus('saved');
+          // Reset to idle after showing saved status
+          setTimeout(() => setSaveStatus('idle'), 2000);
         }
       } catch (error) {
         console.error('Failed to save:', error);
+        setSaveStatus('error');
       }
     }, 1000),
     [projectId]
@@ -108,6 +117,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     },
     onUpdate: ({ editor }) => {
       console.log('Editor content updated');
+      setSaveStatus('idle'); // Reset status when content changes
       const content = editor.getJSON();
       debouncedSave(content);
       // Update character names when content changes
@@ -134,6 +144,20 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
   return (
     <div className="h-full flex flex-col">
       <SceneEditorToolbar projectId={projectId} />
+      
+      {/* Save Status Indicator */}
+      <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center gap-2">
+        <span>Scene Editor</span>
+        {saveStatus === 'saving' && (
+          <span className="text-blue-600">💾 Saving...</span>
+        )}
+        {saveStatus === 'saved' && (
+          <span className="text-green-600">✅ Saved</span>
+        )}
+        {saveStatus === 'error' && (
+          <span className="text-red-600">❌ Save failed</span>
+        )}
+      </div>
       
       <div className={styles.editorContainer}>
         <div className={styles.page}>
