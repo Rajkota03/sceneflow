@@ -41,28 +41,28 @@ export const ScreenplayShortcuts = Extension.create({
         }
       },
       
-      'Mod-1': () => {
-        console.log('Mod-1 pressed: switching to sceneHeading');
+      'Alt-1': () => {
+        console.log('Alt-1 pressed: switching to sceneHeading');
         return this.editor.commands.setNode('sceneHeading');
       },
-      'Mod-2': () => {
-        console.log('Mod-2 pressed: switching to action');
+      'Alt-2': () => {
+        console.log('Alt-2 pressed: switching to action');
         return this.editor.commands.setNode('action');
       },
-      'Mod-3': () => {
-        console.log('Mod-3 pressed: switching to character');
+      'Alt-3': () => {
+        console.log('Alt-3 pressed: switching to character');
         return this.editor.commands.setNode('character');
       },
-      'Mod-4': () => {
-        console.log('Mod-4 pressed: switching to parenthetical');
+      'Alt-4': () => {
+        console.log('Alt-4 pressed: switching to parenthetical');
         return this.editor.commands.setNode('parenthetical');
       },
-      'Mod-5': () => {
-        console.log('Mod-5 pressed: switching to dialogue');
+      'Alt-5': () => {
+        console.log('Alt-5 pressed: switching to dialogue');
         return this.editor.commands.setNode('dialogue');
       },
-      'Mod-6': () => {
-        console.log('Mod-6 pressed: switching to transition');
+      'Alt-6': () => {
+        console.log('Alt-6 pressed: switching to transition');
         return this.editor.commands.setNode('transition');
       },
       
