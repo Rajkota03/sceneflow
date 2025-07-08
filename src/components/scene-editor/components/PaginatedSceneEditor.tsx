@@ -4,8 +4,6 @@ import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
 import { History } from '@tiptap/extension-history';
-import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils/debounce';
 import {
@@ -22,24 +20,55 @@ import { TransitionSuggest } from '../extensions/TransitionSuggest';
 import { useCharacterExtraction } from '@/hooks/useCharacterExtraction';
 import { SceneEditorToolbar } from './SceneEditorToolbar';
 import { SceneEditorBubbleMenu } from './SceneEditorBubbleMenu';
-import PageViewPreview from './PageViewPreview';
 import '../extensions/autocomplete.css';
 import styles from './PaginatedSceneEditor.module.css';
-
 
 interface PaginatedSceneEditorProps {
   projectId: string;
 }
 
+// Content measurement service for pagination
+class PaginationService {
+  private readonly PAGE_HEIGHT = 648; // Standard 11" page content height in pixels
+  private readonly LINE_HEIGHT = 14.4; // 12pt * 1.2 line-height in pixels
+  
+  measureContentHeight(element: HTMLElement): number {
+    if (!element) return 0;
+    return element.scrollHeight;
+  }
+  
+  calculatePageCount(contentHeight: number): number {
+    return Math.max(1, Math.ceil(contentHeight / this.PAGE_HEIGHT));
+  }
+  
+  getPageBreakPositions(contentHeight: number): number[] {
+    const pageCount = this.calculatePageCount(contentHeight);
+    const positions: number[] = [];
+    
+    for (let i = 1; i < pageCount; i++) {
+      positions.push(i * this.PAGE_HEIGHT);
+    }
+    
+    return positions;
+  }
+  
+  shouldAddNewPage(contentHeight: number): boolean {
+    const currentPageCount = this.calculatePageCount(contentHeight);
+    const remainingSpace = (currentPageCount * this.PAGE_HEIGHT) - contentHeight;
+    return remainingSpace < this.LINE_HEIGHT * 3; // Add page if less than 3 lines remaining
+  }
+}
+
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [pageCount, setPageCount] = useState(1);
-  const [showPageView, setShowPageView] = useState(false);
+  const [pages, setPages] = useState<Array<{ id: number; content: any }>>([{ id: 1, content: null }]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPageCount, setTotalPageCount] = useState(1);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
-
-  // Constants for page measurements (in pixels, approximate)
-  const PAGE_CONTENT_HEIGHT = 648; // Approximate height for one page of content
+  
+  const paginationService = useRef(new PaginationService());
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Load existing content
   const loadContent = useCallback(async (editor: any) => {
@@ -117,6 +146,33 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     [projectId]
   );
 
+  // Handle pagination updates
+  const handleContentUpdate = useCallback((editor: any) => {
+    const content = editor.getJSON();
+    debouncedSave(content);
+    updateCharacterNames();
+    
+    // Measure content and update pagination
+    setTimeout(() => {
+      const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
+      if (editorElement) {
+        const contentHeight = paginationService.current.measureContentHeight(editorElement);
+        const newPageCount = paginationService.current.calculatePageCount(contentHeight);
+        
+        setTotalPageCount(newPageCount);
+        
+        // Update pages array if needed
+        if (newPageCount !== pages.length) {
+          const newPages = Array.from({ length: newPageCount }, (_, i) => ({
+            id: i + 1,
+            content: i === 0 ? content : null // Only first page gets content for now
+          }));
+          setPages(newPages);
+        }
+      }
+    }, 100);
+  }, [debouncedSave, updateCharacterNames, pages.length]);
+
   const editor = useEditor({
     extensions: [
       Document,
@@ -149,18 +205,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     },
     onUpdate: ({ editor }) => {
       setSaveStatus('idle');
-      const content = editor.getJSON();
-      debouncedSave(content);
-      updateCharacterNames();
-      // Simple page calculation based on content height
-      setTimeout(() => {
-        const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
-        if (editorElement) {
-          const contentHeight = editorElement.scrollHeight;
-          const calculatedPages = Math.max(1, Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT));
-          setPageCount(calculatedPages);
-        }
-      }, 100);
+      handleContentUpdate(editor);
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
@@ -183,10 +228,10 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     <div className="h-full flex flex-col">
       <SceneEditorToolbar projectId={projectId} />
       
-      {/* Save Status Indicator with Page View Toggle */}
+      {/* Status Bar */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span>Scene Editor</span>
+          <span>Paginated Scene Editor</span>
           {saveStatus === 'saving' && (
             <span className="text-blue-600">💾 Saving...</span>
           )}
@@ -198,48 +243,32 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <Button
-            variant={showPageView ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowPageView(!showPageView)}
-            className="flex items-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Page View
-          </Button>
           <div className="text-sm font-medium">
-            Total Pages: {pageCount}
+            Page {currentPage} of {totalPageCount}
           </div>
         </div>
       </div>
       
-      {/* Editor and Page View Container */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Editor Section */}
-        <div className={showPageView ? "flex-1 overflow-auto" : "flex-1 overflow-auto"}>
-          <div className={styles.printLayoutContainer}>
-            <div className={styles.pagesContainer}>
-              <div className={styles.page}>
-                <div className={styles.pageNumber}>{pageCount > 1 ? `1-${pageCount}` : '1'}</div>
+      {/* Paginated Editor Container */}
+      <div className="flex-1 overflow-auto" ref={contentRef}>
+        <div className={styles.printLayoutContainer}>
+          <div className={styles.pagesContainer}>
+            {pages.map((page, index) => (
+              <div key={page.id} className={styles.page}>
+                <div className={styles.pageNumber}>{page.id}</div>
                 <div className={styles.pageContent}>
-                  <EditorContent editor={editor} />
+                  {index === 0 ? (
+                    <EditorContent editor={editor} />
+                  ) : (
+                    <div className="text-muted-foreground text-center py-8">
+                      Page {page.id} - Content will flow here
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-        
-        {/* Page View Section - Only shown when toggled */}
-        {showPageView && (
-          <div className="flex-1 flex flex-col border-l overflow-hidden">
-            <div className="bg-muted/30 px-4 py-2 border-b flex-shrink-0">
-              <span className="text-sm font-medium text-muted-foreground">Page View Preview</span>
-            </div>
-            <div className="flex-1 overflow-auto">
-              <PageViewPreview editor={editor} />
-            </div>
-          </div>
-        )}
       </div>
 
       <SceneEditorBubbleMenu editor={editor} />
