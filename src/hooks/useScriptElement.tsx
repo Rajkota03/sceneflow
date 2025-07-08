@@ -120,13 +120,23 @@ export function useScriptElement({
         if (elementRef.current) {
           elementRef.current.focus();
           
-          // Place cursor at end
+          // Place cursor at end properly
           const selection = window.getSelection();
-          if (selection) {
+          if (selection && elementRef.current.textContent !== null) {
             try {
               const range = document.createRange();
-              range.selectNodeContents(elementRef.current);
-              range.collapse(false);
+              const textNode = elementRef.current.firstChild;
+              
+              if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                // Place cursor at end of text content
+                range.setStart(textNode, textNode.textContent?.length || 0);
+                range.setEnd(textNode, textNode.textContent?.length || 0);
+              } else {
+                // If no text node, place cursor at end of element
+                range.selectNodeContents(elementRef.current);
+                range.collapse(false);
+              }
+              
               selection.removeAllRanges();
               selection.addRange(range);
             } catch (error) {

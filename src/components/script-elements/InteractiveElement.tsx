@@ -86,6 +86,7 @@ const InteractiveElement: React.FC<InteractiveElementProps> = ({
           wordBreak: 'break-word',
           direction: 'ltr',
           unicodeBidi: 'plaintext',
+          textAlign: 'left',
           fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
           fontSize: '12pt',
           lineHeight: '1.2',
