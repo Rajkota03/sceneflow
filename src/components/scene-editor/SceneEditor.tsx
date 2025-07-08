@@ -1,12 +1,12 @@
 import React from 'react';
-import { MonacoScreenplayEditor } from '../MonacoScreenplayEditor';
+import { AfterwritingEditor } from '../AfterwritingEditor';
 
 interface SceneEditorProps {
   projectId: string;
 }
 
 export function SceneEditor({ projectId }: SceneEditorProps) {
-  return <MonacoScreenplayEditor projectId={projectId} />;
+  return <AfterwritingEditor projectId={projectId} />;
 }
 
 export default SceneEditor;
