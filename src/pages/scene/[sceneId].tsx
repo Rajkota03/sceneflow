@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { SceneEditor } from '@/components/scene-editor/SceneEditor';
+import SceneEditor from '@/components/script-editor/SceneEditor';
 import '@/components/scene-editor/styles.css';
 
 export function ScenePage() {
@@ -16,7 +16,7 @@ export function ScenePage() {
 
   return (
     <div className="h-screen w-full">
-      <SceneEditor scriptId={sceneId} />
+      <SceneEditor projectId={sceneId} />
     </div>
   );
 }

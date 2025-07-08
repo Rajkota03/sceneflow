@@ -5,19 +5,21 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
-import SlateEditor from './SlateEditor';
+import SceneEditor from './SceneEditor';
 import { ElementType } from '@/lib/types';
 
 interface ScriptEditorContentProps {
   className?: string;
   zoomPercentage?: number;
   onZoomChange?: (value: number[]) => void;
+  projectId?: string;
 }
 
 const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
   className,
   zoomPercentage = 100,
-  onZoomChange
+  onZoomChange,
+  projectId = 'temp-project'
 }) => {
   const { formatState } = useFormat();
   const {
@@ -46,13 +48,8 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            <SlateEditor
-              elements={elements || []}
-              onChange={handleSlateChange}
-              formatState={formatState}
-              beatMode={beatMode}
-              selectedStructure={selectedStructure}
-              className="mt-4"
+            <SceneEditor
+              projectId={projectId}
             />
           </div>
         </div>

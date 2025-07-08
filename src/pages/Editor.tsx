@@ -14,6 +14,7 @@ import EditorFooter from '@/components/editor/EditorFooter';
 import EditorMainArea from '@/components/editor/EditorMainArea';
 import { BeatMode } from '@/types/scriptTypes';
 import ScriptEditorProvider, { useScriptEditor } from '@/components/script-editor/ScriptEditorProvider';
+import SceneEditor from '@/components/script-editor/SceneEditor';
 import { toast } from '@/components/ui/use-toast';
 import { exportToPdf as exportScriptToPdf } from '@/lib/pdfExporter';
 import KeyboardShortcutsHelp from '@/components/script-editor/KeyboardShortcutsHelp';
@@ -166,24 +167,9 @@ const EditorContent: React.FC<EditorContentProps> = (props) => {
         onToggleBeatMode={handleToggleBeatMode}
       />
 
-      <EditorMainArea
-        ref={editorContentRef}
-        showTitlePage={props.showTitlePage}
-        titlePageData={props.titlePageData}
-        content={{ elements: scriptElements }}
-        onContentChange={() => {}} // This is handled by the context now
-        splitScreenNote={props.splitScreenNote}
-        openNotes={props.openNotes}
-        onNoteClose={props.handleCloseNote}
-        onSplitScreen={props.handleSplitScreen}
-        exitSplitScreen={props.exitSplitScreen}
-        onEditNote={props.handleEditNote}
-        projectId={projectId}
-        projectTitle={props.title}
-        onStructureChange={handleStructureChange}
-        selectedStructureId={selectedStructureId}
-        beatMode={beatMode}
-      />
+      <div className="flex-1 relative">
+        <SceneEditor projectId={projectId || 'temp-project'} />
+      </div>
 
       <EditorFooter
         showTitlePage={props.showTitlePage}

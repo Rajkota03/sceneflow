@@ -3,9 +3,13 @@ import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
-import SlateEditor from './SlateEditor';
+import SceneEditor from './SceneEditor';
 
-const ScriptContent: React.FC = () => {
+interface ScriptContentProps {
+  projectId?: string;
+}
+
+const ScriptContent: React.FC<ScriptContentProps> = ({ projectId = 'temp-project' }) => {
   const { formatState } = useFormat();
   const {
     elements,
@@ -27,13 +31,8 @@ const ScriptContent: React.FC = () => {
         ref={scriptContentRef}
       >
         <div className="w-full max-w-4xl mx-auto">
-          <SlateEditor 
-            elements={elements}
-            onChange={handleContentChange}
-            formatState={formatState}
-            beatMode={beatMode}
-            selectedStructure={selectedStructure}
-            className="min-h-[1056px]"
+          <SceneEditor 
+            projectId={projectId}
           />
         </div>
       </div>
