@@ -1,70 +1,81 @@
-/* 1️⃣  Kill vertical flex-centering on whatever wrapper Lovable created */
-.editorScrollArea,          /* check actual class in DevTools */
-.pagesContainer,
-[data-radix-scroll-area-viewport] {
-  display: block !important;          /* was flex */
-  padding-top: 0 !important;          /* no artificial offset */
-  justify-content: flex-start !important;
-  align-items: flex-start !important;
+/* Container styling to center and constrain the page */
+.editorContainer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f5f5; /* Light gray background like Final Draft */
+  padding: 2rem 1rem;
 }
 
-/* 2️⃣  Make the content cell take natural height so empty docs don't force 50% space */
-.screenplay-editor {
-  min-height: auto !important;        /* remove min-h-96 or similar */
-}
-
-/* Letter page = 8.5in wide. This wrapper gives real-world inch units. */
+/* Standard 8.5" x 11" screenplay page */
 .page {
-  font-family: "Courier Prime", Courier, monospace;
-  font-size: 12pt;
-  line-height: 1.15;          /* ~55 lines per page */
   width: 8.5in;
-  margin: 0 auto;             /* centre on screen */
-  padding: 1in 1in 1in 1.5in; /* top right bottom left */
-  box-sizing: border-box;
+  min-height: 11in;
   background: white;
-  min-height: 11in;           /* US letter height */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  position: relative;
+  font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
+  font-size: 12pt;
+  line-height: 1.2;
 }
 
-.page .screenplay-editor {
-  padding: 0;
+/* The editor content within the page */
+.screenplay-editor {
+  width: 100%;
+  height: 100%;
+  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+  background: transparent;
+  min-height: 11in;
+}
+
+/* Reset any conflicting styles */
+.screenplay-editor p {
   margin: 0;
-  max-width: none;
+  padding: 0;
 }
 
-/* Screenplay element styles */
-.sceneHeading {
-  margin: 0 0 0.12in 0;  /* no left indent */
-  text-align: left;
-  font-weight: 700;
+/* Screenplay element styles - matching Final Draft formatting */
+.screenplay-editor [data-element-type="sceneHeading"],
+.screenplay-editor h3 {
+  margin: 1.5em 0 0.12in 0;
   text-transform: uppercase;
-}
-
-.action {
-  margin: 0 0 0.12in 0;
-}
-
-.character {
-  text-transform: uppercase;
-  margin: 0 0 0.06in 2.2in;  /* keep centred cues */
-  text-align: left;
   font-weight: bold;
+  text-align: left;
 }
 
-.parenthetical {
-  margin: 0 0 0.06in 1.6in;  /* 3.1in from left edge of paper */
+.screenplay-editor [data-element-type="action"] {
+  margin: 0.12in 0;
+  text-align: left;
+}
+
+.screenplay-editor [data-element-type="character"] {
+  margin: 0.12in 0 0.06in 2.2in;
+  text-transform: uppercase;
+  font-weight: bold;
+  text-align: left;
+}
+
+.screenplay-editor [data-element-type="dialogue"] {
+  margin: 0 0 0.12in 1.0in;
+  max-width: 4.0in;
+  text-align: left;
+}
+
+.screenplay-editor [data-element-type="parenthetical"] {
+  margin: 0 0 0.06in 1.6in;
   font-style: italic;
+  text-align: left;
 }
 
-.dialogue {
-  margin: 0 0 0.12in 1.0in;  /* 2.5in from left edge of paper */
-  max-width: 4.0in;          /* with 1.0in right indent */
-}
-
-.transition {
+.screenplay-editor [data-element-type="transition"] {
+  margin: 0.12in 0;
   text-transform: uppercase;
-  margin: 0 0 0.12in 0;
-  text-align: right;
-  padding-right: 2.5in;      /* Right-align at 6.0in from left edge */
   font-weight: bold;
+  text-align: right;
+  padding-right: 2.5in;
 }

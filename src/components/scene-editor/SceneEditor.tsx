@@ -397,44 +397,44 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
             Export
           </Button>
         </div>
+        
+        {/* Bubble Menu Format Pills */}
+        <BubbleMenu 
+          editor={editor} 
+          tippyOptions={{ 
+            duration: 100,
+            placement: 'top',
+          }}
+        >
+          <div className="flex space-x-1 rounded-lg bg-background border border-border p-1 shadow-lg">
+            {[
+              ['sceneHeading', 'Scene'],
+              ['action', 'Action'],
+              ['character', 'Character'],
+              ['dialogue', 'Dialogue'],
+              ['parenthetical', 'Paren'],
+              ['transition', 'Trans'],
+            ].map(([type, label]) => (
+              <button
+                key={type}
+                className={`px-2 py-1 text-xs rounded transition-colors ${
+                  editor.isActive(type)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+                onClick={() => editor.commands.setNode(type)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </BubbleMenu>
       </div>
 
       {/* Editor Content */}
-      <div className="flex-1 overflow-auto">
+      <div className={styles.editorContainer}>
         <div className={styles.page}>
           <EditorContent editor={editor} />
-          
-          {/* Bubble Menu Format Pills */}
-          <BubbleMenu 
-            editor={editor} 
-            tippyOptions={{ 
-              duration: 100,
-              placement: 'top',
-            }}
-          >
-            <div className="flex space-x-1 rounded-lg bg-background border border-border p-1 shadow-lg">
-              {[
-                ['sceneHeading', 'Scene'],
-                ['action', 'Action'],
-                ['character', 'Character'],
-                ['dialogue', 'Dialogue'],
-                ['parenthetical', 'Paren'],
-                ['transition', 'Trans'],
-              ].map(([type, label]) => (
-                <button
-                  key={type}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    editor.isActive(type)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                  }`}
-                  onClick={() => editor.commands.setNode(type)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </BubbleMenu>
         </div>
       </div>
     </div>
