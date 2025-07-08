@@ -326,6 +326,16 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
     loadContent();
   }, [projectId, parseContent]);
 
+  // Auto-focus textarea when component mounts and content is loaded
+  useEffect(() => {
+    if (!isLoading && textareaRef.current) {
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        setIsFocused(true);
+      }, 100);
+    }
+  }, [isLoading]);
+
   // Handle content changes with debouncing
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -335,7 +345,8 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
   }, [parseContent, debouncedSave]);
 
   // Handle preview area clicks to focus textarea
-  const handlePreviewClick = useCallback(() => {
+  const handlePreviewClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     if (textareaRef.current) {
       textareaRef.current.focus();
       setIsFocused(true);
@@ -347,15 +358,30 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
     setIsFocused(true);
   }, []);
 
-  const handleTextareaBlur = useCallback(() => {
-    setIsFocused(false);
+  const handleTextareaBlur = useCallback((e: React.FocusEvent) => {
+    // Small delay to allow clicks on preview to refocus
+    setTimeout(() => {
+      if (document.activeElement !== textareaRef.current) {
+        setIsFocused(false);
+      }
+    }, 100);
   }, []);
 
-  // Handle keyboard events to maintain focus
+  // Handle keyboard events
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    // Ensure textarea stays focused for typing
+    // Allow all keyboard input to flow to textarea
     if (textareaRef.current && document.activeElement !== textareaRef.current) {
       textareaRef.current.focus();
+      // Forward the key event to textarea
+      const syntheticEvent = new KeyboardEvent('keydown', {
+        key: e.key,
+        code: e.code,
+        shiftKey: e.shiftKey,
+        ctrlKey: e.ctrlKey,
+        metaKey: e.metaKey,
+        altKey: e.altKey
+      });
+      textareaRef.current.dispatchEvent(syntheticEvent);
     }
   }, []);
 
