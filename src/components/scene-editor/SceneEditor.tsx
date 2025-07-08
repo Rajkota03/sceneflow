@@ -15,11 +15,14 @@ import {
   TransitionNode,
 } from './nodes';
 import { PlaceholderSuggestionsExtension } from './extensions/PlaceholderSuggestions';
+import { ScreenplayShortcuts } from './extensions/ScreenplayShortcuts';
+import { SceneHeadingSuggest } from './extensions/SceneHeadingSuggest';
+import { TransitionSuggest } from './extensions/TransitionSuggest';
 import { useCharacterExtraction } from '@/hooks/useCharacterExtraction';
 import { SceneEditorToolbar } from './components/SceneEditorToolbar';
 import { SceneEditorBubbleMenu } from './components/SceneEditorBubbleMenu';
-import styles from './SceneEditor.module.css';
 import './extensions/autocomplete.css';
+import styles from './SceneEditor.module.css';
 
 interface SceneEditorProps {
   projectId: string;
@@ -64,6 +67,9 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       DialogueNode,
       ParentheticalNode,
       TransitionNode,
+      ScreenplayShortcuts,
+      SceneHeadingSuggest,
+      TransitionSuggest,
       PlaceholderSuggestionsExtension.configure({
         characterNames,
       }),
@@ -73,7 +79,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       content: [
         {
           type: 'sceneHeading',
-          content: [{ type: 'text', text: '' }], // Start with empty content to show placeholder
+          attrs: { elementType: 'sceneHeading' },
         },
       ],
     },
@@ -89,54 +95,13 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
-      // Focus and position cursor at the start
+      // Focus at the start of the document
       setTimeout(() => {
-        editor.commands.focus();
-        editor.commands.setTextSelection(0);
+        editor.commands.focus('start');
       }, 100);
     },
   });
 
-  // Keyboard shortcuts for element types
-  useEffect(() => {
-    if (!editor) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Tab') {
-        event.preventDefault();
-        const types = ['sceneHeading', 'action', 'character', 'parenthetical', 'dialogue', 'transition'];
-        const currentType = editor.getAttributes('paragraph').elementType || 'action';
-        const currentIndex = types.indexOf(currentType);
-        const nextIndex = event.shiftKey 
-          ? (currentIndex - 1 + types.length) % types.length
-          : (currentIndex + 1) % types.length;
-        
-        editor.commands.setNode(types[nextIndex]);
-        return;
-      }
-
-      // Element type shortcuts (Cmd/Ctrl + 1-6)
-      if ((event.metaKey || event.ctrlKey) && !event.shiftKey) {
-        const shortcuts = {
-          '1': 'sceneHeading',
-          '2': 'action', 
-          '3': 'character',
-          '4': 'parenthetical',
-          '5': 'dialogue',
-          '6': 'transition',
-        };
-
-        if (shortcuts[event.key]) {
-          event.preventDefault();
-          editor.commands.setNode(shortcuts[event.key]);
-          return;
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [editor]);
 
   if (isLoading || !editor) {
     return (
