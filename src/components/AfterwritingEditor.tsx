@@ -35,7 +35,9 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
   const [pageCount, setPageCount] = useState(1);
   const [characterCount, setCharacterCount] = useState(0);
   const [isRendering, setIsRendering] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Optimized and debounced parse content
   const parseContent = useCallback(
@@ -332,6 +334,31 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
     debouncedSave(value);
   }, [parseContent, debouncedSave]);
 
+  // Handle preview area clicks to focus textarea
+  const handlePreviewClick = useCallback(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      setIsFocused(true);
+    }
+  }, []);
+
+  // Handle textarea focus and blur
+  const handleTextareaFocus = useCallback(() => {
+    setIsFocused(true);
+  }, []);
+
+  const handleTextareaBlur = useCallback(() => {
+    setIsFocused(false);
+  }, []);
+
+  // Handle keyboard events to maintain focus
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // Ensure textarea stays focused for typing
+    if (textareaRef.current && document.activeElement !== textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, []);
+
   // Export to PDF
   const exportToPDF = useCallback(() => {
     if (previewRef.current) {
@@ -422,25 +449,35 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
       {/* Single Final Draft Style Editor */}
       <div className="flex-1 flex flex-col">
         <div className="flex-1 overflow-auto bg-gray-100 p-4">
-          {/* Hidden textarea for Fountain input - positioned off-screen but functional */}
+          {/* Hidden textarea for Fountain input - positioned off-screen but accessible */}
           <textarea
+            ref={textareaRef}
             value={content}
             onChange={handleContentChange}
-            className="absolute left-[-9999px] opacity-0 pointer-events-none"
+            onFocus={handleTextareaFocus}
+            onBlur={handleTextareaBlur}
+            className="absolute left-[-9999px] opacity-0"
             style={{ 
               fontFamily: '"Courier Prime", "Courier New", monospace',
             }}
+            autoComplete="off"
+            spellCheck="false"
           />
           
           {/* Final Draft Style Preview */}
           <div 
-            className="bg-white mx-auto shadow-xl cursor-text"
+            className={`bg-white mx-auto shadow-xl cursor-text transition-all duration-200 ${
+              isFocused ? 'ring-2 ring-primary/50 shadow-2xl' : ''
+            }`}
             style={{
               width: usePagedView ? '8.5in' : '100%',
               maxWidth: usePagedView ? '8.5in' : 'none',
               minHeight: usePagedView ? '11in' : 'auto',
               boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
             }}
+            onClick={handlePreviewClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
           >
             <div ref={previewRef} className="w-full h-full">
               {isRendering ? (
