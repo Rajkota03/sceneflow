@@ -229,35 +229,42 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         )}
       </div>
       
-      {/* Scrollable container */}
+      {/* Scrollable container with separate pages */}
       <div className={styles.pagesContainer}>
         <div className={styles.pagesWrapper}>
-          {/* Single continuous page with visual breaks */}
-          <div className={styles.page} ref={editorRef}>
-            {/* Page breaks overlay */}
-            {pageBreaks.map((breakPoint, index) => (
-              <div
-                key={index}
-                className={styles.pageBreak}
-                style={{ top: `${breakPoint}px` }}
-              >
-                <div className={styles.pageBreakLine} />
-                <div className={styles.pageNumber}>
-                  {index + 2}
-                </div>
+          {/* Generate separate page cards */}
+          {Array.from({ length: pageCount }, (_, index) => (
+            <div key={index + 1} className={styles.page}>
+              {/* Page number */}
+              <div className={styles.pageNumber}>
+                {index + 1}
               </div>
-            ))}
-            
-            {/* Editor content */}
-            <div ref={contentRef} className={styles.editorContent}>
-              <EditorContent editor={editor} />
+              
+              {/* Page content area */}
+              <div className={styles.pageContent}>
+                {/* Only render the editor on the first page, content will flow naturally */}
+                {index === 0 && (
+                  <div ref={contentRef} className={styles.editorContent}>
+                    <EditorContent editor={editor} />
+                  </div>
+                )}
+                
+                {/* For subsequent pages, create overflow containers */}
+                {index > 0 && (
+                  <div 
+                    className={styles.pageOverflow}
+                    style={{
+                      marginTop: `-${index * (9 * 96)}px`, // Offset by previous pages' content height
+                      height: `${9 * 96}px`, // Standard page content height
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* This will show the overflowing content from the main editor */}
+                  </div>
+                )}
+              </div>
             </div>
-            
-            {/* Page 1 number */}
-            <div className={styles.pageNumber} style={{ top: '0.5in', right: '1in' }}>
-              1
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 

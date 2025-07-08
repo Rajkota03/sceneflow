@@ -9,18 +9,20 @@
   justify-content: center;
 }
 
-/* Wrapper to center the pages */
+/* Wrapper to center the pages with gaps */
 .pagesWrapper {
   display: flex;
   flex-direction: column;
+  gap: 2rem; /* Gap between pages like Final Draft */
   width: 100%;
   max-width: calc(8.5in + 4rem); /* Page width plus padding */
+  align-items: center;
 }
 
-/* Single continuous page with visual breaks */
+/* Individual page cards - separate like Final Draft */
 .page {
   width: 8.5in;
-  min-height: 11in;
+  height: 11in; /* Fixed height for each page */
   background: hsl(var(--background));
   box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
   border-radius: 4px;
@@ -28,13 +30,14 @@
   font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
   font-size: 12pt;
   line-height: 1.2;
-  margin: 0 auto;
-  overflow: visible; /* Allow content to extend beyond initial page bounds */
+  overflow: hidden; /* Clip content to page boundaries */
+  flex-shrink: 0; /* Prevent shrinking */
 }
 
 /* Page number styling */
 .pageNumber {
   position: absolute;
+  top: 0.5in;
   right: 1in;
   font-family: inherit;
   font-size: 12pt;
@@ -43,13 +46,28 @@
   pointer-events: none;
 }
 
-/* Editor content container */
-.editorContent {
+/* Page content area with margins */
+.pageContent {
   width: 100%;
+  height: 100%;
   padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
   box-sizing: border-box;
   position: relative;
-  min-height: calc(11in - 2in); /* Minimum page content height */
+}
+
+/* Editor content container for the first page */
+.editorContent {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Page overflow containers for subsequent pages */
+.pageOverflow {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  /* This will be positioned to show the correct portion of the overflowing content */
 }
 
 /* The actual editor content */
@@ -78,24 +96,6 @@
   outline: none;
   height: auto;
   overflow: visible;
-}
-
-/* Page break visual indicators */
-.pageBreak {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 0;
-  z-index: 20;
-  pointer-events: none;
-}
-
-.pageBreakLine {
-  width: 100%;
-  height: 2px;
-  background: hsl(var(--border));
-  border-top: 1px dashed hsl(var(--muted-foreground));
-  margin: 2rem 0;
 }
 
 /* Screenplay element styles - matching the original styles */
