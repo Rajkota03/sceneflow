@@ -177,11 +177,26 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         )}
       </div>
       
-      {/* Print Layout Container - This is the key wrapper */}
+      {/* Print Layout Container with actual page cards */}
       <div className={styles.printLayoutContainer}>
         <div className={styles.pagesContainer}>
-          {/* Single continuous TipTap editor with CSS page styling */}
-          <EditorContent editor={editor} />
+          {/* Page 1 */}
+          <div className={styles.page}>
+            <div className={styles.pageNumber}>1</div>
+            <div className={styles.pageContent}>
+              <EditorContent editor={editor} />
+            </div>
+          </div>
+          
+          {/* Additional pages will be added dynamically when content overflows */}
+          <div className={styles.page}>
+            <div className={styles.pageNumber}>2</div>
+            <div className={styles.pageContent}>
+              <div className={styles.pageOverflow}>
+                {/* Overflow content will appear here */}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
