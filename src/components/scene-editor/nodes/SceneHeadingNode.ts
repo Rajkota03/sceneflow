@@ -32,7 +32,7 @@ export const SceneHeadingNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['h3', { 'data-type': 'scene-heading', ...HTMLAttributes }, 0];
+    return ['h3', { 'data-type': 'sceneHeading', 'data-element-type': 'sceneHeading', ...HTMLAttributes }, 0];
   },
   
   addKeyboardShortcuts() {

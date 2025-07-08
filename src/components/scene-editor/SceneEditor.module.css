@@ -41,15 +41,22 @@
 .screenplayEditor p {
   margin: 0;
   padding: 0;
+  text-align: left; /* Ensure all paragraphs default to left alignment */
+}
+
+/* Ensure TipTap editor content is left-aligned */
+.screenplayEditor .ProseMirror {
+  text-align: left;
 }
 
 /* Screenplay element styles - matching Final Draft formatting */
 .screenplayEditor [data-element-type="sceneHeading"],
-.screenplayEditor h3 {
+.screenplayEditor h3,
+.screenplayEditor [data-type="sceneHeading"] {
   margin: 1.5em 0 0.12in 0;
   text-transform: uppercase;
   font-weight: bold;
-  text-align: left;
+  text-align: left !important; /* Force left alignment */
   color: hsl(var(--foreground));
 }
 
