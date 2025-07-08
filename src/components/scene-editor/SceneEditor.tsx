@@ -221,7 +221,7 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
     },
     editorProps: {
       attributes: {
-        class: 'screenplay-editor prose prose-lg max-w-none focus:outline-none min-h-96',
+        class: 'screenplay-editor focus:outline-none',
         style: 'font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace; font-size: 12pt; line-height: 1.2;',
       },
       handleClick: () => {
