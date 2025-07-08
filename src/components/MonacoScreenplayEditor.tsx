@@ -8,9 +8,6 @@ import { debounce } from '@/lib/utils/debounce';
 import { FountainPreview } from './FountainPreview';
 import { Eye, Code, FileText } from 'lucide-react';
 
-// Import fountain-js properly
-const fountain = require('fountain-js');
-
 interface MonacoScreenplayEditorProps {
   projectId: string;
 }
@@ -30,14 +27,57 @@ export function MonacoScreenplayEditor({ projectId }: MonacoScreenplayEditorProp
   const [viewMode, setViewMode] = useState<'split' | 'raw' | 'preview'>('split');
   const [usePagedView, setUsePagedView] = useState(true);
 
-  // Parse content with fountain-js
+  // Simple fountain parser
   const parseContent = useCallback((text: string) => {
     try {
-      const output = fountain.parse(text, true);
-      setFountainAST(output);
+      const lines = text.split('\n');
+      const tokens = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trim();
+        
+        if (!trimmed) continue;
+        
+        let type = 'action';
+        
+        // Scene heading
+        if (trimmed.match(/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/)) {
+          type = 'scene_heading';
+        }
+        // Character name (all caps, no periods, relatively short)
+        else if (trimmed === trimmed.toUpperCase() && 
+                 !trimmed.includes('.') && 
+                 !trimmed.includes('(') &&
+                 trimmed.length > 1 && 
+                 trimmed.length < 40 &&
+                 !trimmed.match(/^(FADE IN|FADE OUT|CUT TO|DISSOLVE TO)/)) {
+          type = 'character';
+        }
+        // Parenthetical
+        else if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+          type = 'parenthetical';
+        }
+        // Transition
+        else if (trimmed.match(/^(FADE IN:|FADE OUT\.|CUT TO:|DISSOLVE TO:|MATCH CUT:|JUMP CUT:)/)) {
+          type = 'transition';
+        }
+        // If previous line was a character, this is likely dialogue
+        else if (i > 0 && tokens.length > 0 && tokens[tokens.length - 1].type === 'character') {
+          type = 'dialogue';
+        }
+        // If previous line was parenthetical, this is likely dialogue
+        else if (i > 0 && tokens.length > 0 && tokens[tokens.length - 1].type === 'parenthetical') {
+          type = 'dialogue';
+        }
+        
+        tokens.push({ type, text: trimmed });
+      }
+      
+      setFountainAST({ tokens });
     } catch (error) {
       console.error('Error parsing fountain content:', error);
-      setFountainAST(null);
+      setFountainAST({ tokens: [] });
     }
   }, []);
 
@@ -103,6 +143,9 @@ export function MonacoScreenplayEditor({ projectId }: MonacoScreenplayEditorProp
         } else if (data?.content_fountain) {
           setContent(data.content_fountain);
           parseContent(data.content_fountain);
+        } else {
+          // Initialize with default content
+          parseContent(defaultScreenplayText);
         }
       } catch (error) {
         console.error('Failed to load content:', error);
@@ -156,10 +199,10 @@ export function MonacoScreenplayEditor({ projectId }: MonacoScreenplayEditorProp
     monaco.languages.setMonarchTokensProvider('fountain', {
       tokenizer: {
         root: [
-          [/^(INT\.|EXT\.).*$/, 'scene-heading'],
+          [/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.).*$/, 'scene-heading'],
           [/^[A-Z][A-Z\s]+$/, 'character'],
           [/^\(.*\)$/, 'parenthetical'],
-          [/^(FADE IN:|FADE OUT\.|CUT TO:|DISSOLVE TO:).*$/, 'transition'],
+          [/^(FADE IN:|FADE OUT\.|CUT TO:|DISSOLVE TO:|MATCH CUT:|JUMP CUT:).*$/, 'transition'],
           [/^>.*<$/, 'action-centered'],
           [/^\*.*\*$/, 'action-emphasized'],
           [/^.*$/, 'action']
