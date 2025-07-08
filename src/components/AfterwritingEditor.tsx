@@ -30,7 +30,7 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
   const [parsedContent, setParsedContent] = useState<any>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'split' | 'raw' | 'preview'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'raw' | 'preview'>('preview');
   const [usePagedView, setUsePagedView] = useState(true);
   const [pageCount, setPageCount] = useState(1);
   const [characterCount, setCharacterCount] = useState(0);
@@ -433,100 +433,49 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
               onCheckedChange={setUsePagedView}
             />
           </div>
-          
-          <div className="flex items-center gap-1 bg-background rounded-lg p-1">
-            <Button
-              variant={viewMode === 'raw' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('raw')}
-              className="h-7 px-2"
-            >
-              <Code className="h-3 w-3" />
-            </Button>
-            <Button
-              variant={viewMode === 'split' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('split')}
-              className="h-7 px-2"
-            >
-              <FileText className="h-3 w-3" />
-            </Button>
-            <Button
-              variant={viewMode === 'preview' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('preview')}
-              className="h-7 px-2"
-            >
-              <Eye className="h-3 w-3" />
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Editor and Preview Container */}
-      <div className="flex-1 flex flex-col sm:flex-row">
-        {/* Fountain Text Input */}
-        {(viewMode === 'raw' || viewMode === 'split') && (
-          <div className={`flex flex-col ${viewMode === 'split' ? 'sm:w-1/2 border-r border-muted' : 'w-full'}`}>
-            {viewMode === 'split' && (
-              <div className="px-4 py-2 bg-muted/30 border-b text-sm font-medium text-muted-foreground">
-                Fountain Source
-              </div>
-            )}
-            <div className="flex-1">
-              <Textarea
-                value={content}
-                onChange={handleContentChange}
-                className="h-full w-full border-0 rounded-none resize-none font-mono text-sm leading-relaxed"
-                style={{ 
-                  fontFamily: '"Courier Prime", "Courier New", monospace',
-                  fontSize: '14px',
-                  lineHeight: '1.5'
-                }}
-                placeholder="Start writing your screenplay in Fountain format...
-
-INT. COFFEE SHOP - DAY
-
-JANE sits at a table, reading.
-
-JOHN
-(approaching)
-Mind if I sit here?"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Live Preview Panel */}
-        {(viewMode === 'preview' || viewMode === 'split') && (
-          <div className={`flex flex-col ${viewMode === 'split' ? 'sm:w-1/2' : 'w-full'}`}>
-            {viewMode === 'split' && (
-              <div className="px-4 py-2 bg-muted/30 border-b text-sm font-medium text-muted-foreground">
-                Live Preview
-              </div>
-            )}
-            <div className="flex-1 overflow-auto bg-gray-100 p-4">
-              <div 
-                className="bg-white mx-auto shadow-xl"
-                style={{
-                  width: usePagedView ? '8.5in' : '100%',
-                  maxWidth: usePagedView ? '8.5in' : 'none',
-                  minHeight: usePagedView ? '11in' : 'auto',
-                  boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
-                }}
-              >
-                <div ref={previewRef} className="w-full h-full">
-                  <div className="flex items-center justify-center h-96 text-muted-foreground">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p>Rendering screenplay...</p>
-                    </div>
-                  </div>
+      {/* Single Final Draft Style Editor */}
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1 overflow-auto bg-gray-100 p-4">
+          {/* Hidden textarea for Fountain input - positioned off-screen but functional */}
+          <textarea
+            value={content}
+            onChange={handleContentChange}
+            className="absolute left-[-9999px] opacity-0 pointer-events-none"
+            style={{ 
+              fontFamily: '"Courier Prime", "Courier New", monospace',
+            }}
+          />
+          
+          {/* Final Draft Style Preview */}
+          <div 
+            className="bg-white mx-auto shadow-xl cursor-text"
+            style={{
+              width: usePagedView ? '8.5in' : '100%',
+              maxWidth: usePagedView ? '8.5in' : 'none',
+              minHeight: usePagedView ? '11in' : 'auto',
+              boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
+            }}
+            onClick={() => {
+              // Focus the hidden textarea when clicking on the preview
+              const textarea = document.querySelector('textarea');
+              if (textarea) {
+                textarea.focus();
+              }
+            }}
+          >
+            <div ref={previewRef} className="w-full h-full">
+              <div className="flex items-center justify-center h-96 text-muted-foreground">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p>Loading Final Draft editor...</p>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
