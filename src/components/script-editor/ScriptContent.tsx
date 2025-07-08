@@ -3,7 +3,7 @@ import React from 'react';
 import { useFormat } from '@/lib/formatContext';
 import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
-import { AfterwritingEditor } from '../AfterwritingEditor';
+import { EnhancedAfterwritingEditor } from '../EnhancedAfterwritingEditor';
 
 interface ScriptContentProps {
   projectId?: string;
@@ -31,7 +31,7 @@ const ScriptContent: React.FC<ScriptContentProps> = ({ projectId = 'temp-project
         ref={scriptContentRef}
       >
         <div className="w-full max-w-4xl mx-auto">
-          <AfterwritingEditor 
+          <EnhancedAfterwritingEditor 
             projectId={projectId}
           />
         </div>

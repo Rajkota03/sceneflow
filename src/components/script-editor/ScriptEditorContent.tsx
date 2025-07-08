@@ -5,7 +5,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useScriptEditor } from './ScriptEditorProvider';
 import ZoomControls from './ZoomControls';
 import TagManagerContainer from './TagManagerContainer';
-import { AfterwritingEditor } from '../AfterwritingEditor';
+import { EnhancedAfterwritingEditor } from '../EnhancedAfterwritingEditor';
 import { ElementType } from '@/lib/types';
 
 interface ScriptEditorContentProps {
@@ -48,7 +48,7 @@ const ScriptEditorContent: React.FC<ScriptEditorContentProps> = ({
           ref={scriptContentRef}
         >
           <div className="w-full max-w-4xl mx-auto">
-            <AfterwritingEditor
+            <EnhancedAfterwritingEditor
               projectId={projectId}
             />
           </div>
