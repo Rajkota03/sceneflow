@@ -70,16 +70,17 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       ScreenplayShortcuts,
       SceneHeadingSuggest,
       TransitionSuggest,
-      PlaceholderSuggestionsExtension.configure({
-        characterNames,
-      }),
+      // Temporarily disable placeholder suggestions to isolate the issue
+      // PlaceholderSuggestionsExtension.configure({
+      //   characterNames,
+      // }),
     ],
     content: {
       type: 'doc',
       content: [
         {
           type: 'sceneHeading',
-          attrs: { elementType: 'sceneHeading' },
+          content: [{ type: 'text', text: '' }],
         },
       ],
     },

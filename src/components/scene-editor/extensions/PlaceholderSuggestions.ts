@@ -24,51 +24,65 @@ export const PlaceholderSuggestionsExtension = Extension.create<PlaceholderSugge
         
         props: {
           decorations: (state) => {
-            const { selection } = state;
-            const { $from } = selection;
-            const currentNode = $from.parent;
-            
-            if (!currentNode || currentNode.textContent.length > 0) {
+            try {
+              const { selection } = state;
+              const { $from } = selection;
+              const currentNode = $from.parent;
+              
+              // Only add placeholder for empty nodes
+              if (!currentNode || currentNode.textContent.length > 0) {
+                return DecorationSet.empty;
+              }
+              
+              const nodeType = currentNode.type.name;
+              let placeholderText = '';
+              
+              switch (nodeType) {
+                case 'sceneHeading':
+                  placeholderText = 'INT. LOCATION - DAY';
+                  break;
+                case 'action':
+                  placeholderText = 'Describe what happens in the scene...';
+                  break;
+                case 'character':
+                  const characterNames = this.options.characterNames || [];
+                  if (characterNames.length > 0) {
+                    placeholderText = characterNames[0];
+                  } else {
+                    placeholderText = 'CHARACTER NAME';
+                  }
+                  break;
+                case 'dialogue':
+                  placeholderText = 'What does the character say?';
+                  break;
+                case 'parenthetical':
+                  placeholderText = '(beat)';
+                  break;
+                case 'transition':
+                  placeholderText = 'CUT TO:';
+                  break;
+                default:
+                  return DecorationSet.empty;
+              }
+              
+              // Ensure the positions are valid
+              const startPos = $from.start();
+              const endPos = $from.end();
+              
+              if (startPos >= endPos || startPos < 0 || endPos > state.doc.content.size) {
+                return DecorationSet.empty;
+              }
+              
+              const decoration = Decoration.node(startPos, endPos, {
+                class: 'screenplay-placeholder',
+                'data-placeholder': placeholderText,
+              });
+              
+              return DecorationSet.create(state.doc, [decoration]);
+            } catch (error) {
+              console.error('Error creating placeholder decorations:', error);
               return DecorationSet.empty;
             }
-            
-            const nodeType = currentNode.type.name;
-            let placeholderText = '';
-            
-            switch (nodeType) {
-              case 'sceneHeading':
-                placeholderText = 'INT. LOCATION - DAY';
-                break;
-              case 'action':
-                placeholderText = 'Describe what happens in the scene...';
-                break;
-              case 'character':
-                const characterNames = this.options.characterNames || [];
-                if (characterNames.length > 0) {
-                  placeholderText = characterNames[0]; // Show first character as suggestion
-                } else {
-                  placeholderText = 'CHARACTER NAME';
-                }
-                break;
-              case 'dialogue':
-                placeholderText = 'What does the character say?';
-                break;
-              case 'parenthetical':
-                placeholderText = '(beat)';
-                break;
-              case 'transition':
-                placeholderText = 'CUT TO:';
-                break;
-              default:
-                return DecorationSet.empty;
-            }
-            
-            const decoration = Decoration.node($from.start(), $from.end(), {
-              class: 'screenplay-placeholder',
-              'data-placeholder': placeholderText,
-            });
-            
-            return DecorationSet.create(state.doc, [decoration]);
           },
         },
       }),
