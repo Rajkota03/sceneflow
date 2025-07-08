@@ -26,7 +26,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
 
       {/* Editor Content */}
       <div className="flex-1 overflow-auto">
-        <div className={styles.page}>
+        <div className="pagesContainer">
           <EditorContent editor={editor} />
           <SceneEditorBubbleMenu editor={editor} />
         </div>
