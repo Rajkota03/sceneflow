@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import SceneEditor from '@/components/script-editor/SceneEditor';
-import '@/components/scene-editor/styles.css';
 
 export function ScenePage() {
   const { sceneId } = useParams<{ sceneId: string }>();
