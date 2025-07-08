@@ -23,11 +23,6 @@ import { SceneEditorBubbleMenu } from './SceneEditorBubbleMenu';
 import '../extensions/autocomplete.css';
 import styles from './PaginatedSceneEditor.module.css';
 
-interface PageContent {
-  id: string;
-  content: any;
-  height: number;
-}
 
 interface PaginatedSceneEditorProps {
   projectId: string;
@@ -36,15 +31,11 @@ interface PaginatedSceneEditorProps {
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [pages, setPages] = useState<PageContent[]>([{ id: 'page-1', content: null, height: 0 }]);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const editorRefs = useRef<Map<string, any>>(new Map());
-  const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [pageCount, setPageCount] = useState(1);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
 
   // Constants for page measurements (in pixels, approximate)
-  const PAGE_HEIGHT = 792; // 11 inches at 72 DPI
-  const PAGE_CONTENT_HEIGHT = 648; // Page height minus margins (1 inch top/bottom)
+  const PAGE_CONTENT_HEIGHT = 648; // Approximate height for one page of content
 
   // Load existing content
   const loadContent = useCallback(async (editor: any) => {
@@ -60,9 +51,9 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         .select('content_richtext')
         .eq('id', projectId)
         .eq('author_id', userData.user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error loading content:', error);
         return;
       }
@@ -70,6 +61,8 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       if (data?.content_richtext) {
         console.log('Loading existing content:', data.content_richtext);
         editor.commands.setContent(data.content_richtext);
+      } else {
+        console.log('No existing content found, using default');
       }
     } catch (error) {
       console.error('Failed to load content:', error);
@@ -155,24 +148,13 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       const content = editor.getJSON();
       debouncedSave(content);
       updateCharacterNames();
-      // Check pagination after content changes
+      // Simple page calculation based on content height
       setTimeout(() => {
         const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
         if (editorElement) {
           const contentHeight = editorElement.scrollHeight;
-          const currentPageCount = Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT);
-          
-          if (currentPageCount > pages.length) {
-            const newPages = [...pages];
-            for (let i = pages.length; i < currentPageCount; i++) {
-              newPages.push({
-                id: `page-${i + 1}`,
-                content: null,
-                height: 0,
-              });
-            }
-            setPages(newPages);
-          }
+          const calculatedPages = Math.max(1, Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT));
+          setPageCount(calculatedPages);
         }
       }, 100);
     },
@@ -212,36 +194,19 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           )}
         </div>
         <div className="text-sm font-medium">
-          Page {pages.length} of {pages.length}
+          Total Pages: {pageCount}
         </div>
       </div>
       
-      {/* Print Layout Container with dynamic page cards */}
+      {/* Single page layout with page counter */}
       <div className={styles.printLayoutContainer}>
         <div className={styles.pagesContainer}>
-          {pages.map((page, index) => (
-            <div key={page.id} className={styles.page}>
-              <div className={styles.pageNumber}>{index + 1}</div>
-              <div className={styles.pageContent}>
-                {index === 0 ? (
-                  // First page contains the main editor
-                  <EditorContent editor={editor} />
-                ) : (
-                  // Subsequent pages show overflow content
-                  <div 
-                    className={styles.pageOverflow}
-                    style={{
-                      transform: `translateY(-${index * PAGE_CONTENT_HEIGHT}px)`,
-                      height: PAGE_CONTENT_HEIGHT,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <EditorContent editor={editor} />
-                  </div>
-                )}
-              </div>
+          <div className={styles.page}>
+            <div className={styles.pageNumber}>{pageCount > 1 ? `1-${pageCount}` : '1'}</div>
+            <div className={styles.pageContent}>
+              <EditorContent editor={editor} />
             </div>
-          ))}
+          </div>
         </div>
       </div>
 
