@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { debounce } from '@/lib/utils/debounce';
+import { FountainPreview } from './FountainPreview';
 
 // Import fountain-js properly
 const fountain = require('fountain-js');
@@ -163,7 +164,45 @@ export function MonacoScreenplayEditor({ projectId }: MonacoScreenplayEditorProp
             <span className="text-red-600">❌ Save failed</span>
           )}
         </div>
-        
+      </div>
+
+      {/* Editor and Preview Container */}
+      <div className="flex-1 flex flex-col sm:flex-row">
+        {/* Monaco Editor */}
+        <div className="flex-1 sm:w-1/2 border-r border-muted">
+          <Editor
+            height="100%"
+            defaultLanguage="plaintext"
+            value={content}
+            onChange={handleContentChange}
+            onMount={handleEditorDidMount}
+            theme="vs"
+            options={{
+              fontFamily: 'Courier New',
+              fontSize: 14,
+              lineHeight: 20,
+              wordWrap: 'on',
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              padding: { top: 20, bottom: 20 },
+            }}
+          />
+        </div>
+
+        {/* Preview Panel */}
+        <div className="flex-1 sm:w-1/2 flex flex-col">
+          <div className="px-4 py-2 bg-muted/30 border-b text-sm font-medium text-muted-foreground">
+            Live Preview
+          </div>
+          <div className="flex-1">
+            <FountainPreview fountainAST={fountainAST} />
+          </div>
+        </div>
+      </div>
+
+      {/* Console Button - moved below the editor/preview */}
+      <div className="p-4 border-t bg-muted/30 flex justify-center">
         <Button 
           variant="outline" 
           size="sm" 
@@ -172,28 +211,6 @@ export function MonacoScreenplayEditor({ projectId }: MonacoScreenplayEditorProp
         >
           Log AST to Console
         </Button>
-      </div>
-
-      {/* Monaco Editor */}
-      <div className="flex-1">
-        <Editor
-          height="100%"
-          defaultLanguage="plaintext"
-          value={content}
-          onChange={handleContentChange}
-          onMount={handleEditorDidMount}
-          theme="vs"
-          options={{
-            fontFamily: 'Courier New',
-            fontSize: 14,
-            lineHeight: 20,
-            wordWrap: 'on',
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            padding: { top: 20, bottom: 20 },
-          }}
-        />
       </div>
     </div>
   );
