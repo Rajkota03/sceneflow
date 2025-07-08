@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
@@ -30,10 +30,7 @@ interface PaginatedSceneEditorProps {
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [pages, setPages] = useState<number[]>([1]);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
-  const editorRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Load existing content
   const loadContent = useCallback(async (editor: any) => {
@@ -109,25 +106,6 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     [projectId]
   );
 
-  // Calculate pages based on content height
-  const updatePageCount = useCallback(() => {
-    if (!editorRef.current) return;
-    
-    const proseMirror = editorRef.current.querySelector('.ProseMirror');
-    if (!proseMirror) return;
-
-    // Page content height: 11in - 2in margins = 9in at 96 DPI = 864px
-    const pageContentHeight = 864;
-    const contentHeight = proseMirror.scrollHeight;
-    
-    const pageCount = Math.max(1, Math.ceil(contentHeight / pageContentHeight));
-    const newPages = Array.from({ length: pageCount }, (_, i) => i + 1);
-    
-    if (newPages.length !== pages.length) {
-      setPages(newPages);
-    }
-  }, [pages.length]);
-
   const editor = useEditor({
     extensions: [
       Document,
@@ -163,32 +141,15 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       const content = editor.getJSON();
       debouncedSave(content);
       updateCharacterNames();
-      // Update page count when content changes
-      setTimeout(updatePageCount, 100);
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
       loadContent(editor);
       setTimeout(() => {
         editor.commands.focus('start');
-        updatePageCount();
       }, 100);
     },
   });
-
-  // Monitor for content changes
-  useEffect(() => {
-    if (!editor || !editorRef.current) return;
-
-    const observer = new ResizeObserver(updatePageCount);
-    const proseMirror = editorRef.current.querySelector('.ProseMirror');
-    
-    if (proseMirror) {
-      observer.observe(proseMirror);
-    }
-
-    return () => observer.disconnect();
-  }, [editor, updatePageCount]);
 
   if (isLoading || !editor) {
     return (
@@ -205,7 +166,6 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       {/* Save Status Indicator */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center gap-2">
         <span>Scene Editor</span>
-        <span className="text-xs">({pages.length} page{pages.length !== 1 ? 's' : ''})</span>
         {saveStatus === 'saving' && (
           <span className="text-blue-600">💾 Saving...</span>
         )}
@@ -217,38 +177,11 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         )}
       </div>
       
-      {/* Scrollable container with pages */}
-      <div className={styles.scrollContainer} ref={containerRef}>
-        <div className={styles.pagesWrapper}>
-          {/* Generate individual page cards */}
-          {pages.map((pageNumber, index) => (
-            <div key={pageNumber} className={styles.page}>
-              {/* Page number */}
-              <div className={styles.pageNumber}>
-                {pageNumber}
-              </div>
-              
-              {/* Page content with proper margins */}
-              <div className={styles.pageContent}>
-                {/* Only render editor on first page, but size each page properly */}
-                {index === 0 ? (
-                  <div ref={editorRef} className={styles.editorWrapper}>
-                    <EditorContent editor={editor} />
-                  </div>
-                ) : (
-                  <div 
-                    className={styles.pageOverflow}
-                    style={{
-                      // Offset content by previous pages
-                      marginTop: `${-index * 864}px`,
-                      height: '864px',
-                      overflow: 'hidden'
-                    }}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
+      {/* Print Layout Container - This is the key wrapper */}
+      <div className={styles.printLayoutContainer}>
+        <div className={styles.pagesContainer}>
+          {/* Single continuous TipTap editor with CSS page styling */}
+          <EditorContent editor={editor} />
         </div>
       </div>
 
