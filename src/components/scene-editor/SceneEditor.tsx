@@ -33,6 +33,36 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
 
+  // Load existing content
+  const loadContent = useCallback(async (editor: any) => {
+    try {
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      if (authError || !userData.user) {
+        console.log('No authenticated user for loading content');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('scenes')
+        .select('content_richtext')
+        .eq('id', projectId)
+        .eq('author_id', userData.user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading content:', error);
+        return;
+      }
+
+      if (data?.content_richtext) {
+        console.log('Loading existing content:', data.content_richtext);
+        editor.commands.setContent(data.content_richtext);
+      }
+    } catch (error) {
+      console.error('Failed to load content:', error);
+    }
+  }, [projectId]);
+
   // Debounced save to Supabase
   const debouncedSave = useCallback(
     debounce(async (content: any) => {
@@ -106,7 +136,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       content: [
         {
           type: 'sceneHeading',
-          content: [{ type: 'text', text: '' }],
+          content: [{ type: 'text', text: ' ' }], // Use space instead of empty string to avoid TipTap error
         },
       ],
     },
@@ -125,6 +155,8 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
+      // Load existing content first
+      loadContent(editor);
       // Focus at the start of the document
       setTimeout(() => {
         editor.commands.focus('start');
