@@ -34,99 +34,82 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
   const [usePagedView, setUsePagedView] = useState(true);
   const [pageCount, setPageCount] = useState(1);
   const [characterCount, setCharacterCount] = useState(0);
+  const [isRendering, setIsRendering] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  // Parse content with custom Fountain parser (inspired by Afterwriting)
-  const parseContent = useCallback(async (text: string) => {
-    try {
-      const parsed = parseFountain(text);
-      setParsedContent(parsed);
-      
-      // Calculate stats
-      setCharacterCount(text.length);
-      
-      // Generate HTML for preview
-      if (parsed && previewRef.current) {
-        const html = generateHTML(parsed);
-        generatePreview(html, parsed);
+  // Optimized and debounced parse content
+  const parseContent = useCallback(
+    debounce(async (text: string) => {
+      if (!text.trim()) {
+        setParsedContent({ titlePage: null, elements: [] });
+        setCharacterCount(0);
+        if (previewRef.current) {
+          previewRef.current.innerHTML = '<div class="text-center py-8 text-muted-foreground">Start typing your screenplay...</div>';
+        }
+        return;
       }
-    } catch (error) {
-      console.error('Error parsing fountain content:', error);
-      setParsedContent(null);
-    }
-  }, []);
 
-  // Custom Fountain parser (based on Afterwriting logic)
+      setIsRendering(true);
+      
+      try {
+        // Simple and fast parsing
+        const parsed = parseFountain(text);
+        setParsedContent(parsed);
+        setCharacterCount(text.length);
+        
+        // Quick HTML generation
+        const html = generateHTML(parsed);
+        if (previewRef.current) {
+          generatePreview(html, parsed);
+        }
+      } catch (error) {
+        console.error('Error parsing content:', error);
+      } finally {
+        setIsRendering(false);
+      }
+    }, 300),
+    []
+  );
+
+  // Simplified and faster Fountain parser
   const parseFountain = useCallback((text: string) => {
     const lines = text.split('\n');
     const elements = [];
     let titlePage = null;
-    let inTitlePage = true;
     
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmed = line.trim();
       
-      // Skip empty lines in title page detection
-      if (inTitlePage && !trimmed) continue;
+      if (!trimmed) continue;
       
-      // Title page detection
-      if (inTitlePage && (trimmed.toLowerCase().startsWith('title:') || 
-                         trimmed.toLowerCase().startsWith('author:') ||
-                         trimmed.toLowerCase().startsWith('draft date:') ||
-                         trimmed.toLowerCase().startsWith('contact:'))) {
+      // Quick title page detection
+      if (i < 10 && (trimmed.toLowerCase().startsWith('title:') || trimmed.toLowerCase().startsWith('author:'))) {
         if (!titlePage) titlePage = {};
         const [key, ...valueParts] = trimmed.split(':');
         titlePage[key.toLowerCase()] = valueParts.join(':').trim();
         continue;
       }
       
-      // End of title page detection
-      if (inTitlePage && (trimmed.toLowerCase() === 'fade in:' || 
-                         trimmed.match(/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/))) {
-        inTitlePage = false;
-      }
-      
-      if (!trimmed) {
-        elements.push({ type: 'empty', text: '' });
-        continue;
-      }
-      
       let type = 'action';
-      let text = trimmed;
       
-      // Scene heading
-      if (trimmed.match(/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i)) {
+      // Fast pattern matching
+      if (trimmed.match(/^(INT\.|EXT\.|EST\.|I\/E\.)/i)) {
         type = 'scene_heading';
-        text = trimmed.toUpperCase();
-      }
-      // Character name (all caps, no periods, relatively short)
-      else if (trimmed === trimmed.toUpperCase() && 
-               !trimmed.includes('.') && 
-               !trimmed.includes('(') &&
-               trimmed.length > 1 && 
-               trimmed.length < 40 &&
-               !trimmed.match(/^(FADE IN|FADE OUT|CUT TO|DISSOLVE TO)/)) {
+      } else if (trimmed === trimmed.toUpperCase() && trimmed.length > 1 && trimmed.length < 30 && !trimmed.includes('.')) {
         type = 'character';
-      }
-      // Parenthetical
-      else if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
+      } else if (trimmed.startsWith('(') && trimmed.endsWith(')')) {
         type = 'parenthetical';
-      }
-      // Transition
-      else if (trimmed.match(/^(FADE IN:|FADE OUT\.|CUT TO:|DISSOLVE TO:|MATCH CUT:|JUMP CUT:)/i)) {
+      } else if (trimmed.match(/^(FADE|CUT TO|DISSOLVE)/i)) {
         type = 'transition';
-        text = trimmed.toUpperCase();
-      }
-      // If previous element was a character or parenthetical, this is likely dialogue
-      else if (i > 0 && elements.length > 0) {
+      } else if (i > 0 && elements.length > 0) {
         const prev = elements[elements.length - 1];
-        if (prev.type === 'character' || prev.type === 'parenthetical' || prev.type === 'dialogue') {
+        if (prev.type === 'character' || prev.type === 'parenthetical') {
           type = 'dialogue';
         }
       }
       
-      elements.push({ type, text });
+      elements.push({ type, text: trimmed });
     }
     
     return { titlePage, elements };
@@ -341,7 +324,7 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
     loadContent();
   }, [projectId, parseContent]);
 
-  // Handle content changes
+  // Handle content changes with debouncing
   const handleContentChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setContent(value);
@@ -458,21 +441,20 @@ export function AfterwritingEditor({ projectId }: AfterwritingEditorProps) {
               minHeight: usePagedView ? '11in' : 'auto',
               boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
             }}
-            onClick={() => {
-              // Focus the hidden textarea when clicking on the preview
-              const textarea = document.querySelector('textarea');
-              if (textarea) {
-                textarea.focus();
-              }
-            }}
           >
             <div ref={previewRef} className="w-full h-full">
-              <div className="flex items-center justify-center h-96 text-muted-foreground">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p>Loading Final Draft editor...</p>
+              {isRendering ? (
+                <div className="flex items-center justify-center h-96 text-muted-foreground">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p>Rendering screenplay...</p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Start typing your screenplay...</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
