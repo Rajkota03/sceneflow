@@ -27,51 +27,134 @@ interface PaginatedSceneEditorProps {
   projectId: string;
 }
 
-// Content measurement service for pagination
-class PaginationService {
-  private readonly PAGE_HEIGHT = 648; // Standard 11" page content height in pixels
-  private readonly LINE_HEIGHT = 14.4; // 12pt * 1.2 line-height in pixels
-  
-  measureContentHeight(element: HTMLElement): number {
-    if (!element) return 0;
-    return element.scrollHeight;
-  }
-  
-  calculatePageCount(contentHeight: number): number {
-    return Math.max(1, Math.ceil(contentHeight / this.PAGE_HEIGHT));
-  }
-  
-  getPageBreakPositions(contentHeight: number): number[] {
-    const pageCount = this.calculatePageCount(contentHeight);
-    const positions: number[] = [];
+interface PageData {
+  id: number;
+  content: any;
+  editor: any;
+}
+
+// Multi-page content distribution service
+class MultiPageService {
+  private readonly PAGE_HEIGHT = 648; // Standard page height in pixels
+  private readonly LINE_HEIGHT = 14.4; // 12pt * 1.2 line-height
+  private readonly LINES_PER_PAGE = Math.floor(648 / 14.4); // ~45 lines per page
+
+  distributeContent(fullContent: any): any[] {
+    if (!fullContent?.content) return [{ type: 'doc', content: [] }];
     
-    for (let i = 1; i < pageCount; i++) {
-      positions.push(i * this.PAGE_HEIGHT);
+    const nodes = fullContent.content;
+    const pages: any[] = [];
+    let currentPage: any[] = [];
+    let currentLineCount = 0;
+
+    for (const node of nodes) {
+      const nodeLines = this.calculateNodeLines(node);
+      
+      // If adding this node would overflow, start a new page
+      if (currentLineCount + nodeLines > this.LINES_PER_PAGE && currentPage.length > 0) {
+        pages.push({ type: 'doc', content: [...currentPage] });
+        currentPage = [node];
+        currentLineCount = nodeLines;
+      } else {
+        currentPage.push(node);
+        currentLineCount += nodeLines;
+      }
     }
-    
-    return positions;
+
+    // Add the last page if it has content
+    if (currentPage.length > 0) {
+      pages.push({ type: 'doc', content: [...currentPage] });
+    }
+
+    // Ensure at least one page
+    if (pages.length === 0) {
+      pages.push({ type: 'doc', content: [] });
+    }
+
+    return pages;
   }
-  
-  shouldAddNewPage(contentHeight: number): boolean {
-    const currentPageCount = this.calculatePageCount(contentHeight);
-    const remainingSpace = (currentPageCount * this.PAGE_HEIGHT) - contentHeight;
-    return remainingSpace < this.LINE_HEIGHT * 3; // Add page if less than 3 lines remaining
+
+  private calculateNodeLines(node: any): number {
+    switch (node.type) {
+      case 'sceneHeading':
+        return 2; // Scene headings typically take 2 lines with spacing
+      case 'action':
+        // Estimate based on text length (rough approximation)
+        const actionText = this.getTextFromNode(node);
+        return Math.max(1, Math.ceil(actionText.length / 60)); // ~60 chars per line
+      case 'character':
+        return 1;
+      case 'dialogue':
+        const dialogueText = this.getTextFromNode(node);
+        return Math.max(1, Math.ceil(dialogueText.length / 40)); // ~40 chars per line for dialogue
+      case 'parenthetical':
+        return 1;
+      case 'transition':
+        return 2;
+      default:
+        return 1;
+    }
+  }
+
+  private getTextFromNode(node: any): string {
+    if (!node.content) return '';
+    return node.content.map((child: any) => child.text || '').join('');
+  }
+
+  combineAllContent(pages: any[]): any {
+    const allContent: any[] = [];
+    
+    for (const page of pages) {
+      if (page.content) {
+        allContent.push(...page.content);
+      }
+    }
+
+    return {
+      type: 'doc',
+      content: allContent
+    };
   }
 }
 
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [pages, setPages] = useState<Array<{ id: number; content: any }>>([{ id: 1, content: null }]);
+  const [pages, setPages] = useState<PageData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPageCount, setTotalPageCount] = useState(1);
+  const [isUpdating, setIsUpdating] = useState(false);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
   
-  const paginationService = useRef(new PaginationService());
-  const contentRef = useRef<HTMLDivElement>(null);
+  const multiPageService = useRef(new MultiPageService());
+  const lastFullContent = useRef<any>(null);
 
-  // Load existing content
-  const loadContent = useCallback(async (editor: any) => {
+  // Create editor configuration
+  const createEditorConfig = useCallback((initialContent: any, pageIndex: number) => ({
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      History,
+      SceneHeadingNode,
+      ActionNode,
+      CharacterNode,
+      DialogueNode,
+      ParentheticalNode,
+      TransitionNode,
+      ScreenplayShortcuts,
+      SceneHeadingSuggest,
+      TransitionSuggest,
+    ],
+    content: initialContent,
+    editorProps: {
+      attributes: {
+        class: styles.screenplayEditor,
+      },
+    },
+  }), []);
+
+  // Load existing content and distribute across pages
+  const loadContent = useCallback(async () => {
     try {
       const { data: userData, error: authError } = await supabase.auth.getUser();
       if (authError || !userData.user) {
@@ -91,12 +174,33 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         return;
       }
 
+      let fullContent;
       if (data?.content_richtext) {
         console.log('Loading existing content:', data.content_richtext);
-        editor.commands.setContent(data.content_richtext);
+        fullContent = data.content_richtext;
       } else {
         console.log('No existing content found, using default');
+        fullContent = {
+          type: 'doc',
+          content: [
+            {
+              type: 'sceneHeading',
+              content: [{ type: 'text', text: ' ' }],
+            },
+          ],
+        };
       }
+
+      // Distribute content across pages
+      const distributedPages = multiPageService.current.distributeContent(fullContent);
+      const newPages: PageData[] = distributedPages.map((pageContent, index) => ({
+        id: index + 1,
+        content: pageContent,
+        editor: null, // Will be created when component mounts
+      }));
+
+      setPages(newPages);
+      lastFullContent.current = fullContent;
     } catch (error) {
       console.error('Failed to load content:', error);
     }
@@ -104,7 +208,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
 
   // Debounced save to Supabase
   const debouncedSave = useCallback(
-    debounce(async (content: any) => {
+    debounce(async (fullContent: any) => {
       try {
         setSaveStatus('saving');
         const { data: userData, error: authError } = await supabase.auth.getUser();
@@ -127,7 +231,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
             id: projectId,
             author_id: userData.user.id,
             project_id: projectId,
-            content_richtext: content,
+            content_richtext: fullContent,
             updated_at: new Date().toISOString(),
           });
           
@@ -146,80 +250,104 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     [projectId]
   );
 
-  // Handle pagination updates
-  const handleContentUpdate = useCallback((editor: any) => {
-    const content = editor.getJSON();
-    debouncedSave(content);
+  // Handle content changes and redistribute across pages
+  const handleContentChange = useCallback((changedPageIndex: number, newContent: any) => {
+    if (isUpdating) return;
+    
+    setIsUpdating(true);
+    
+    // Combine all page content
+    const updatedPages = [...pages];
+    updatedPages[changedPageIndex] = { ...updatedPages[changedPageIndex], content: newContent };
+    
+    const fullContent = multiPageService.current.combineAllContent(
+      updatedPages.map(p => p.content)
+    );
+
+    // Redistribute content across pages
+    const redistributedPages = multiPageService.current.distributeContent(fullContent);
+    
+    // Update pages with new distribution
+    const newPages: PageData[] = redistributedPages.map((pageContent, index) => {
+      const existingPage = updatedPages[index];
+      return {
+        id: index + 1,
+        content: pageContent,
+        editor: existingPage?.editor || null,
+      };
+    });
+
+    setPages(newPages);
+    lastFullContent.current = fullContent;
+    
+    // Save the combined content
+    debouncedSave(fullContent);
     updateCharacterNames();
     
-    // Measure content and update pagination
+    // Update editor contents after a brief delay
     setTimeout(() => {
-      const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
-      if (editorElement) {
-        const contentHeight = paginationService.current.measureContentHeight(editorElement);
-        const newPageCount = paginationService.current.calculatePageCount(contentHeight);
+      newPages.forEach((page, index) => {
+        if (page.editor && index !== changedPageIndex) {
+          page.editor.commands.setContent(page.content, false);
+        }
+      });
+      setIsUpdating(false);
+    }, 100);
+  }, [pages, isUpdating, debouncedSave, updateCharacterNames]);
+
+  // Create page editor component
+  const PageEditor = ({ page, pageIndex }: { page: PageData; pageIndex: number }) => {
+    const editor = useEditor({
+      ...createEditorConfig(page.content, pageIndex),
+      onUpdate: ({ editor }) => {
+        if (!isUpdating) {
+          setSaveStatus('idle');
+          const content = editor.getJSON();
+          handleContentChange(pageIndex, content);
+        }
+      },
+      onCreate: ({ editor }) => {
+        // Store editor reference
+        setPages(prev => {
+          const updated = [...prev];
+          if (updated[pageIndex]) {
+            updated[pageIndex].editor = editor;
+          }
+          return updated;
+        });
         
-        setTotalPageCount(newPageCount);
-        
-        // Update pages array if needed
-        if (newPageCount !== pages.length) {
-          const newPages = Array.from({ length: newPageCount }, (_, i) => ({
-            id: i + 1,
-            content: i === 0 ? content : null // Only first page gets content for now
-          }));
-          setPages(newPages);
+        if (pageIndex === 0) {
+          setTimeout(() => {
+            editor.commands.focus('start');
+          }, 100);
+        }
+      },
+    });
+
+    // Update editor content when page content changes
+    useEffect(() => {
+      if (editor && page.content && !isUpdating) {
+        const currentContent = editor.getJSON();
+        if (JSON.stringify(currentContent) !== JSON.stringify(page.content)) {
+          editor.commands.setContent(page.content, false);
         }
       }
-    }, 100);
-  }, [debouncedSave, updateCharacterNames, pages.length]);
+    }, [page.content, editor, isUpdating]);
 
-  const editor = useEditor({
-    extensions: [
-      Document,
-      Paragraph,
-      Text,
-      History,
-      SceneHeadingNode,
-      ActionNode,
-      CharacterNode,
-      DialogueNode,
-      ParentheticalNode,
-      TransitionNode,
-      ScreenplayShortcuts,
-      SceneHeadingSuggest,
-      TransitionSuggest,
-    ],
-    content: {
-      type: 'doc',
-      content: [
-        {
-          type: 'sceneHeading',
-          content: [{ type: 'text', text: ' ' }],
-        },
-      ],
-    },
-    editorProps: {
-      attributes: {
-        class: styles.screenplayEditor,
-      },
-    },
-    onUpdate: ({ editor }) => {
-      setSaveStatus('idle');
-      handleContentUpdate(editor);
-    },
-    onCreate: ({ editor }) => {
+    return editor ? <EditorContent editor={editor} /> : null;
+  };
+
+  // Initialize on mount
+  useEffect(() => {
+    loadContent().then(() => {
       setIsLoading(false);
-      loadContent(editor);
-      setTimeout(() => {
-        editor.commands.focus('start');
-      }, 100);
-    },
-  });
+    });
+  }, [loadContent]);
 
-  if (isLoading || !editor) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-muted-foreground">Loading editor...</div>
+        <div className="text-muted-foreground">Loading paginated editor...</div>
       </div>
     );
   }
@@ -231,7 +359,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       {/* Status Bar */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span>Paginated Scene Editor</span>
+          <span>Multi-Page Scene Editor</span>
           {saveStatus === 'saving' && (
             <span className="text-blue-600">💾 Saving...</span>
           )}
@@ -244,26 +372,20 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-sm font-medium">
-            Page {currentPage} of {totalPageCount}
+            Total Pages: {pages.length}
           </div>
         </div>
       </div>
       
-      {/* Paginated Editor Container */}
-      <div className="flex-1 overflow-auto" ref={contentRef}>
+      {/* Multi-Page Editor Container */}
+      <div className="flex-1 overflow-auto">
         <div className={styles.printLayoutContainer}>
           <div className={styles.pagesContainer}>
             {pages.map((page, index) => (
               <div key={page.id} className={styles.page}>
                 <div className={styles.pageNumber}>{page.id}</div>
                 <div className={styles.pageContent}>
-                  {index === 0 ? (
-                    <EditorContent editor={editor} />
-                  ) : (
-                    <div className="text-muted-foreground text-center py-8">
-                      Page {page.id} - Content will flow here
-                    </div>
-                  )}
+                  <PageEditor page={page} pageIndex={index} />
                 </div>
               </div>
             ))}
@@ -271,7 +393,9 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         </div>
       </div>
 
-      <SceneEditorBubbleMenu editor={editor} />
+      {pages.length > 0 && pages[0].editor && (
+        <SceneEditorBubbleMenu editor={pages[0].editor} />
+      )}
     </div>
   );
 }
