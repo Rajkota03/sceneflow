@@ -3,7 +3,7 @@ import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
-import { History } from '@tiptap/extension-history';
+
 import { Collaboration } from '@tiptap/extension-collaboration';
 import { CollaborationCursor } from '@tiptap/extension-collaboration-cursor';
 import * as Y from 'yjs';
@@ -178,7 +178,6 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       Document,
       Paragraph,
       Text,
-      History,
       SceneHeadingNode,
       ActionNode,
       CharacterNode,
@@ -202,7 +201,6 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
         {
           type: 'sceneHeading',
           attrs: { elementType: 'sceneHeading' },
-          content: [{ type: 'text', text: '' }],
         },
       ],
     },
