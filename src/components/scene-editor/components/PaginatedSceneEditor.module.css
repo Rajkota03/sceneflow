@@ -32,6 +32,13 @@
   line-height: 1.2;
   overflow: visible; /* Changed from hidden to visible to allow scrolling */
   flex-shrink: 0;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Active page highlighting */
+.activePage {
+  box-shadow: 0 12px 40px hsla(var(--primary) / 0.15);
+  transform: translateY(-2px);
 }
 
 /* Page numbers */
@@ -150,6 +157,19 @@
 .screenplayEditor .ProseMirror:focus {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* Page break indicator */
+.pageBreakIndicator {
+  position: absolute;
+  bottom: -1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: hsl(var(--background));
+  border: 1px dashed hsl(var(--border));
+  border-radius: 8px;
+  padding: 4px 12px;
+  z-index: 5;
 }
 
 /* Responsive design */

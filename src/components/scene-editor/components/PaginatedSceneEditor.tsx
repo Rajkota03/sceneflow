@@ -33,10 +33,10 @@ interface PageData {
   editor: any;
 }
 
-// Multi-page content distribution service
+// Advanced multi-page content distribution with flow management
 class MultiPageService {
-  private readonly PAGE_HEIGHT = 648; // Standard page height in pixels
-  private readonly LINE_HEIGHT = 14.4; // 12pt * 1.2 line-height
+  private readonly PAGE_HEIGHT = 648;
+  private readonly LINE_HEIGHT = 14.4;
   private readonly LINES_PER_PAGE = Math.floor(648 / 14.4); // ~45 lines per page
 
   distributeContent(fullContent: any): any[] {
@@ -47,14 +47,25 @@ class MultiPageService {
     let currentPage: any[] = [];
     let currentLineCount = 0;
 
-    for (const node of nodes) {
+    for (let i = 0; i < nodes.length; i++) {
+      const node = nodes[i];
       const nodeLines = this.calculateNodeLines(node);
       
-      // If adding this node would overflow, start a new page
+      // Check if this node would overflow the page
       if (currentLineCount + nodeLines > this.LINES_PER_PAGE && currentPage.length > 0) {
+        // Try to split at element boundary
+        const splitResult = this.splitNodeAtBoundary(node, this.LINES_PER_PAGE - currentLineCount);
+        
+        if (splitResult.firstPart) {
+          currentPage.push(splitResult.firstPart);
+        }
+        
+        // Finish current page
         pages.push({ type: 'doc', content: [...currentPage] });
-        currentPage = [node];
-        currentLineCount = nodeLines;
+        
+        // Start new page with remaining content
+        currentPage = splitResult.secondPart ? [splitResult.secondPart] : [];
+        currentLineCount = splitResult.secondPart ? this.calculateNodeLines(splitResult.secondPart) : 0;
       } else {
         currentPage.push(node);
         currentLineCount += nodeLines;
@@ -74,19 +85,48 @@ class MultiPageService {
     return pages;
   }
 
+  private splitNodeAtBoundary(node: any, availableLines: number): { firstPart: any | null, secondPart: any | null } {
+    // For now, we'll implement basic splitting for action and dialogue elements
+    if ((node.type === 'action' || node.type === 'dialogue') && node.content) {
+      const text = this.getTextFromNode(node);
+      const charsPerLine = node.type === 'dialogue' ? 40 : 60;
+      const availableChars = availableLines * charsPerLine;
+      
+      if (text.length > availableChars) {
+        // Find the last space before the limit to avoid breaking words
+        let splitPoint = availableChars;
+        while (splitPoint > 0 && text[splitPoint] !== ' ') {
+          splitPoint--;
+        }
+        
+        if (splitPoint === 0) splitPoint = availableChars; // If no space found, hard break
+        
+        const firstText = text.substring(0, splitPoint).trim();
+        const secondText = text.substring(splitPoint).trim();
+        
+        return {
+          firstPart: firstText ? { ...node, content: [{ type: 'text', text: firstText }] } : null,
+          secondPart: secondText ? { ...node, content: [{ type: 'text', text: secondText }] } : null
+        };
+      }
+    }
+    
+    // If splitting is not needed or not supported, return the whole node
+    return { firstPart: null, secondPart: node };
+  }
+
   private calculateNodeLines(node: any): number {
     switch (node.type) {
       case 'sceneHeading':
-        return 2; // Scene headings typically take 2 lines with spacing
+        return 2;
       case 'action':
-        // Estimate based on text length (rough approximation)
         const actionText = this.getTextFromNode(node);
-        return Math.max(1, Math.ceil(actionText.length / 60)); // ~60 chars per line
+        return Math.max(1, Math.ceil(actionText.length / 60));
       case 'character':
         return 1;
       case 'dialogue':
         const dialogueText = this.getTextFromNode(node);
-        return Math.max(1, Math.ceil(dialogueText.length / 40)); // ~40 chars per line for dialogue
+        return Math.max(1, Math.ceil(dialogueText.length / 40));
       case 'parenthetical':
         return 1;
       case 'transition':
@@ -295,7 +335,85 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     }, 100);
   }, [pages, isUpdating, debouncedSave, updateCharacterNames]);
 
-  // Create page editor component
+  // Page navigation functions
+  const navigateToPage = useCallback((targetPageIndex: number, position: 'start' | 'end' = 'start') => {
+    if (targetPageIndex >= 0 && targetPageIndex < pages.length) {
+      const targetEditor = pages[targetPageIndex]?.editor;
+      if (targetEditor) {
+        setCurrentPage(targetPageIndex + 1);
+        
+        setTimeout(() => {
+          if (position === 'end') {
+            targetEditor.commands.focus('end');
+          } else {
+            targetEditor.commands.focus('start');
+          }
+          
+          // Scroll target page into view
+          const pageElement = document.querySelector(`[data-page-id="${targetPageIndex + 1}"]`);
+          if (pageElement) {
+            pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 50);
+      }
+    }
+  }, [pages]);
+
+  // Handle keyboard navigation between pages
+  const handleKeyNavigation = useCallback((event: KeyboardEvent, pageIndex: number, editor: any) => {
+    const { selection } = editor.state;
+    const { $anchor } = selection;
+    
+    // Check if cursor is at the beginning or end of the content
+    const isAtStart = $anchor.pos === 1;
+    const isAtEnd = $anchor.pos === editor.state.doc.content.size - 1;
+    
+    switch (event.key) {
+      case 'ArrowUp':
+        if (isAtStart && pageIndex > 0) {
+          event.preventDefault();
+          navigateToPage(pageIndex - 1, 'end');
+        }
+        break;
+        
+      case 'ArrowDown':
+        if (isAtEnd && pageIndex < pages.length - 1) {
+          event.preventDefault();
+          navigateToPage(pageIndex + 1, 'start');
+        }
+        break;
+        
+      case 'ArrowLeft':
+        if (isAtStart && pageIndex > 0) {
+          event.preventDefault();
+          navigateToPage(pageIndex - 1, 'end');
+        }
+        break;
+        
+      case 'ArrowRight':
+        if (isAtEnd && pageIndex < pages.length - 1) {
+          event.preventDefault();
+          navigateToPage(pageIndex + 1, 'start');
+        }
+        break;
+        
+      case 'PageUp':
+        if (pageIndex > 0) {
+          event.preventDefault();
+          navigateToPage(pageIndex - 1, 'start');
+        }
+        break;
+        
+      case 'PageDown':
+        if (pageIndex < pages.length - 1) {
+          event.preventDefault();
+          navigateToPage(pageIndex + 1, 'start');
+        }
+        break;
+    }
+  }, [pages.length, navigateToPage]);
+
+  // Create page editor component with navigation
   const PageEditor = ({ page, pageIndex }: { page: PageData; pageIndex: number }) => {
     const editor = useEditor({
       ...createEditorConfig(page.content, pageIndex),
@@ -324,6 +442,22 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       },
     });
 
+    // Add keyboard event listeners for page navigation
+    useEffect(() => {
+      if (!editor) return;
+      
+      const handleKeyDown = (event: KeyboardEvent) => {
+        handleKeyNavigation(event, pageIndex, editor);
+      };
+      
+      const editorElement = editor.view.dom;
+      editorElement.addEventListener('keydown', handleKeyDown);
+      
+      return () => {
+        editorElement.removeEventListener('keydown', handleKeyDown);
+      };
+    }, [editor, pageIndex, handleKeyNavigation]);
+
     // Update editor content when page content changes
     useEffect(() => {
       if (editor && page.content && !isUpdating) {
@@ -333,6 +467,22 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         }
       }
     }, [page.content, editor, isUpdating]);
+
+    // Handle focus events to update current page
+    useEffect(() => {
+      if (!editor) return;
+      
+      const handleFocus = () => {
+        setCurrentPage(pageIndex + 1);
+      };
+      
+      const editorElement = editor.view.dom;
+      editorElement.addEventListener('focus', handleFocus);
+      
+      return () => {
+        editorElement.removeEventListener('focus', handleFocus);
+      };
+    }, [editor, pageIndex]);
 
     return editor ? <EditorContent editor={editor} /> : null;
   };
@@ -382,11 +532,30 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         <div className={styles.printLayoutContainer}>
           <div className={styles.pagesContainer}>
             {pages.map((page, index) => (
-              <div key={page.id} className={styles.page}>
-                <div className={styles.pageNumber}>{page.id}</div>
+              <div 
+                key={page.id} 
+                className={`${styles.page} ${currentPage === page.id ? styles.activePage : ''}`}
+                data-page-id={page.id}
+              >
+                <div className={styles.pageNumber}>
+                  {page.id}
+                  {currentPage === page.id && (
+                    <span className="ml-2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
                 <div className={styles.pageContent}>
                   <PageEditor page={page} pageIndex={index} />
                 </div>
+                {/* Page flow indicator */}
+                {index < pages.length - 1 && (
+                  <div className={styles.pageBreakIndicator}>
+                    <div className="text-xs text-muted-foreground text-center py-2">
+                      ⬇ Content continues on next page ⬇
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
