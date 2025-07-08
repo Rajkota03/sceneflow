@@ -1,0 +1,9 @@
+/* Reduced padding for better caret positioning */
+.editorContainer {
+  padding: 0.5rem;
+}
+
+.editorContainer .screenplay-editor {
+  padding-left: 0;
+  padding-top: 0;
+}

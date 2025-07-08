@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import styles from './SceneEditor.module.css';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
@@ -146,6 +147,18 @@ interface SceneEditorProps {
 export function SceneEditor({ scriptId }: SceneEditorProps) {
   const [ydoc] = useState(() => new Y.Doc());
   const [provider, setProvider] = useState<WebsocketProvider | null>(null);
+
+  // Helper function to focus at top-left
+  const focusTopLeft = useCallback((editor: any) => {
+    try {
+      // Focus at the very start of the document
+      editor.commands.focus('start');
+      // Ensure cursor is at position [0,0]
+      editor.commands.setTextSelection(0);
+    } catch (error) {
+      console.warn('Could not focus at top-left:', error);
+    }
+  }, []);
   
   // Initialize WebSocket provider
   useEffect(() => {
@@ -228,7 +241,7 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
               ],
             });
           }
-          editor.commands.focus('end');
+          focusTopLeft(editor);
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
         }
@@ -348,6 +361,15 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [editor]);
 
+  // Ensure focus at top-left after mount
+  useEffect(() => {
+    if (editor) {
+      setTimeout(() => {
+        focusTopLeft(editor);
+      }, 150);
+    }
+  }, [editor, focusTopLeft]);
+
   if (!editor) {
     return <div className="flex items-center justify-center h-96">Loading editor...</div>;
   }
@@ -367,7 +389,9 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
       {/* Editor Content */}
       <div className="flex-1 overflow-auto p-4">
         <div className="max-w-4xl mx-auto">
-          <EditorContent editor={editor} />
+          <div className={styles.editorContainer}>
+            <EditorContent editor={editor} />
+          </div>
           
           {/* Bubble Menu Format Pills */}
           <BubbleMenu 
