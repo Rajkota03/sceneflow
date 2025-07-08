@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
@@ -23,6 +23,12 @@ import { SceneEditorBubbleMenu } from './SceneEditorBubbleMenu';
 import '../extensions/autocomplete.css';
 import styles from './PaginatedSceneEditor.module.css';
 
+interface PageContent {
+  id: string;
+  content: any;
+  height: number;
+}
+
 interface PaginatedSceneEditorProps {
   projectId: string;
 }
@@ -30,7 +36,15 @@ interface PaginatedSceneEditorProps {
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [pages, setPages] = useState<PageContent[]>([{ id: 'page-1', content: null, height: 0 }]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const editorRefs = useRef<Map<string, any>>(new Map());
+  const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
+
+  // Constants for page measurements (in pixels, approximate)
+  const PAGE_HEIGHT = 792; // 11 inches at 72 DPI
+  const PAGE_CONTENT_HEIGHT = 648; // Page height minus margins (1 inch top/bottom)
 
   // Load existing content
   const loadContent = useCallback(async (editor: any) => {
@@ -141,6 +155,26 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       const content = editor.getJSON();
       debouncedSave(content);
       updateCharacterNames();
+      // Check pagination after content changes
+      setTimeout(() => {
+        const editorElement = document.querySelector('.ProseMirror') as HTMLElement;
+        if (editorElement) {
+          const contentHeight = editorElement.scrollHeight;
+          const currentPageCount = Math.ceil(contentHeight / PAGE_CONTENT_HEIGHT);
+          
+          if (currentPageCount > pages.length) {
+            const newPages = [...pages];
+            for (let i = pages.length; i < currentPageCount; i++) {
+              newPages.push({
+                id: `page-${i + 1}`,
+                content: null,
+                height: 0,
+              });
+            }
+            setPages(newPages);
+          }
+        }
+      }, 100);
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
@@ -164,39 +198,50 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       <SceneEditorToolbar projectId={projectId} />
       
       {/* Save Status Indicator */}
-      <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center gap-2">
-        <span>Scene Editor</span>
-        {saveStatus === 'saving' && (
-          <span className="text-blue-600">💾 Saving...</span>
-        )}
-        {saveStatus === 'saved' && (
-          <span className="text-green-600">✅ Saved</span>
-        )}
-        {saveStatus === 'error' && (
-          <span className="text-red-600">❌ Save failed</span>
-        )}
+      <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span>Scene Editor</span>
+          {saveStatus === 'saving' && (
+            <span className="text-blue-600">💾 Saving...</span>
+          )}
+          {saveStatus === 'saved' && (
+            <span className="text-green-600">✅ Saved</span>
+          )}
+          {saveStatus === 'error' && (
+            <span className="text-red-600">❌ Save failed</span>
+          )}
+        </div>
+        <div className="text-sm font-medium">
+          Page {pages.length} of {pages.length}
+        </div>
       </div>
       
-      {/* Print Layout Container with actual page cards */}
+      {/* Print Layout Container with dynamic page cards */}
       <div className={styles.printLayoutContainer}>
         <div className={styles.pagesContainer}>
-          {/* Page 1 */}
-          <div className={styles.page}>
-            <div className={styles.pageNumber}>1</div>
-            <div className={styles.pageContent}>
-              <EditorContent editor={editor} />
-            </div>
-          </div>
-          
-          {/* Additional pages will be added dynamically when content overflows */}
-          <div className={styles.page}>
-            <div className={styles.pageNumber}>2</div>
-            <div className={styles.pageContent}>
-              <div className={styles.pageOverflow}>
-                {/* Overflow content will appear here */}
+          {pages.map((page, index) => (
+            <div key={page.id} className={styles.page}>
+              <div className={styles.pageNumber}>{index + 1}</div>
+              <div className={styles.pageContent}>
+                {index === 0 ? (
+                  // First page contains the main editor
+                  <EditorContent editor={editor} />
+                ) : (
+                  // Subsequent pages show overflow content
+                  <div 
+                    className={styles.pageOverflow}
+                    style={{
+                      transform: `translateY(-${index * PAGE_CONTENT_HEIGHT}px)`,
+                      height: PAGE_CONTENT_HEIGHT,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <EditorContent editor={editor} />
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
