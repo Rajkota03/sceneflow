@@ -13,6 +13,16 @@ import { Node } from '@tiptap/core';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 
+// Element class mapping
+const ELEMENT_CLASS: Record<string, string> = {
+  sceneHeading: 'sceneHeading',
+  action: 'action',
+  character: 'character',
+  parenthetical: 'parenthetical',
+  dialogue: 'dialogue',
+  transition: 'transition',
+};
+
 // Custom Screenplay Nodes
 const SceneHeadingNode = Node.create({
   name: 'sceneHeading',
@@ -31,7 +41,7 @@ const SceneHeadingNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['h3', { 'data-element-type': 'sceneHeading', ...HTMLAttributes }, 0];
+    return ['h3', { 'data-element-type': 'sceneHeading', class: 'sceneHeading', ...HTMLAttributes }, 0];
   },
 });
 
@@ -52,7 +62,7 @@ const ActionNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'action', ...HTMLAttributes }, 0];
+    return ['p', { 'data-element-type': 'action', class: 'action', ...HTMLAttributes }, 0];
   },
 });
 
@@ -73,7 +83,7 @@ const CharacterNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'character', ...HTMLAttributes }, 0];
+    return ['p', { 'data-element-type': 'character', class: 'character', ...HTMLAttributes }, 0];
   },
 });
 
@@ -94,7 +104,7 @@ const DialogueNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'dialogue', ...HTMLAttributes }, 0];
+    return ['p', { 'data-element-type': 'dialogue', class: 'dialogue', ...HTMLAttributes }, 0];
   },
 });
 
@@ -115,7 +125,7 @@ const ParentheticalNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'parenthetical', ...HTMLAttributes }, 0];
+    return ['p', { 'data-element-type': 'parenthetical', class: 'parenthetical', ...HTMLAttributes }, 0];
   },
 });
 
@@ -136,7 +146,7 @@ const TransitionNode = Node.create({
   },
   
   renderHTML({ HTMLAttributes }) {
-    return ['p', { 'data-element-type': 'transition', ...HTMLAttributes }, 0];
+    return ['p', { 'data-element-type': 'transition', class: 'transition', ...HTMLAttributes }, 0];
   },
 });
 
@@ -390,11 +400,9 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
       </div>
 
       {/* Editor Content */}
-      <div className="flex-1 overflow-auto p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className={styles.editorContainer}>
-            <EditorContent editor={editor} />
-          </div>
+      <div className="flex-1 overflow-auto">
+        <div className={styles.page}>
+          <EditorContent editor={editor} />
           
           {/* Bubble Menu Format Pills */}
           <BubbleMenu 
@@ -429,51 +437,6 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
           </BubbleMenu>
         </div>
       </div>
-
-      {/* Element Styles */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .screenplay-editor h3[data-element-type="sceneHeading"] {
-          font-weight: bold;
-          text-transform: uppercase;
-          margin: 1em 0;
-          text-align: left;
-        }
-        
-        .screenplay-editor p[data-element-type="action"] {
-          margin: 0.5em 0;
-          text-align: left;
-        }
-        
-        .screenplay-editor p[data-element-type="character"] {
-          font-weight: bold;
-          text-transform: uppercase;
-          text-align: center;
-          margin: 1em auto 0;
-          width: 38%;
-        }
-        
-        .screenplay-editor p[data-element-type="dialogue"] {
-          text-align: left;
-          margin: 0 auto 0.8em;
-          width: 62%;
-        }
-        
-        .screenplay-editor p[data-element-type="parenthetical"] {
-          text-align: left;
-          margin: 0 auto;
-          width: 40%;
-          font-style: italic;
-        }
-        
-        .screenplay-editor p[data-element-type="transition"] {
-          font-weight: bold;
-          text-transform: uppercase;
-          text-align: right;
-          margin: 1em 0;
-        }
-        `
-      }} />
     </div>
   );
 }

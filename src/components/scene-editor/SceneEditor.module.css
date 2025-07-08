@@ -1,9 +1,54 @@
-/* Reduced padding for better caret positioning */
-.editorContainer {
-  padding: 0.5rem;
+/* Letter page = 8.5in wide. This wrapper gives real-world inch units. */
+.page {
+  font-family: "Courier Prime", Courier, monospace;
+  font-size: 12pt;
+  line-height: 1.15;          /* ~55 lines per page */
+  width: 8.5in;
+  margin: 0 auto;             /* centre on screen */
+  padding: 1in 1in 1in 1.5in; /* top right bottom left */
+  box-sizing: border-box;
+  background: white;
+  min-height: 11in;           /* US letter height */
 }
 
-.editorContainer .screenplay-editor {
-  padding-left: 0;
-  padding-top: 0;
+.page .screenplay-editor {
+  padding: 0;
+  margin: 0;
+  max-width: none;
+}
+
+/* Screenplay element styles */
+.sceneHeading {
+  text-transform: uppercase;
+  margin: 0 0 0.12in 0;
+  font-weight: bold;
+}
+
+.action {
+  margin: 0 0 0.12in 0;
+}
+
+.character {
+  text-transform: uppercase;
+  margin: 0 0 0.06in 2.2in;  /* 3.7in from left edge of paper */
+  text-align: left;
+  font-weight: bold;
+}
+
+.parenthetical {
+  margin: 0 0 0.06in 1.6in;  /* 3.1in from left edge of paper */
+  font-style: italic;
+}
+
+.dialogue {
+  margin: 0 0 0.12in 1.0in;  /* 2.5in from left edge of paper */
+  max-width: 4.0in;          /* with 1.0in right indent */
+}
+
+.transition {
+  text-transform: uppercase;
+  margin: 0 0 0.12in 0;
+  text-align: right;
+  padding-right: 2.5in;      /* Right-align at 6.0in from left edge */
+  font-weight: bold;
 }
