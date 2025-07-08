@@ -36,10 +36,21 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
   const debouncedSave = useCallback(
     debounce(async (content: any) => {
       try {
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) return;
+        console.log('Attempting to save content:', content);
+        const { data: userData, error: authError } = await supabase.auth.getUser();
         
-        await supabase
+        if (authError) {
+          console.error('Auth error:', authError);
+          return;
+        }
+        
+        if (!userData.user) {
+          console.log('No authenticated user found');
+          return;
+        }
+        
+        console.log('Saving for user:', userData.user.id);
+        const { error } = await supabase
           .from('scenes')
           .upsert({
             id: projectId,
@@ -48,6 +59,12 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
             content_richtext: content,
             updated_at: new Date().toISOString(),
           });
+          
+        if (error) {
+          console.error('Save error:', error);
+        } else {
+          console.log('Content saved successfully');
+        }
       } catch (error) {
         console.error('Failed to save:', error);
       }
@@ -90,7 +107,9 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       },
     },
     onUpdate: ({ editor }) => {
-      debouncedSave(editor.getJSON());
+      console.log('Editor content updated');
+      const content = editor.getJSON();
+      debouncedSave(content);
       // Update character names when content changes
       updateCharacterNames();
     },
