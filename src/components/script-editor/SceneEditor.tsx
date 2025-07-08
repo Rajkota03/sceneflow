@@ -220,7 +220,8 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     onCreate: ({ editor }) => {
       setTimeout(() => {
         try {
-          editor.commands.focus('start');
+          editor.commands.focus();
+          editor.commands.setTextSelection(0);
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
         }
@@ -331,14 +332,19 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [editor]);
 
-  // Focus at top-left after mount
+  // Focus at top-left after mount and provider ready
   useEffect(() => {
-    if (editor) {
+    if (editor && provider) {
       setTimeout(() => {
-        focusTopLeft(editor);
-      }, 300);
+        try {
+          editor.commands.focus();
+          editor.commands.setTextSelection(0);
+        } catch (error) {
+          console.warn('Could not focus at top-left:', error);
+        }
+      }, 500);
     }
-  }, [editor, focusTopLeft]);
+  }, [editor, provider]);
 
   if (!editor) {
     return <div className="flex items-center justify-center h-96">Loading editor...</div>;
