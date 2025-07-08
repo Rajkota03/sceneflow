@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Download, FileText } from 'lucide-react';
 
 interface FountainPreviewProps {
   fountainAST: any;
@@ -17,7 +19,73 @@ interface ScreenplayElement {
 }
 
 export function FountainPreview({ fountainAST, usePagedView = true }: FountainPreviewProps) {
-  if (!fountainAST || !fountainAST.html || !fountainAST.html.script) {
+  const previewRef = useRef<HTMLDivElement>(null);
+  const [isRendering, setIsRendering] = useState(false);
+  const [pageCount, setPageCount] = useState(1);
+
+  // Initialize Paged.js when component mounts or content changes
+  useEffect(() => {
+    if (!fountainAST?.tokens || fountainAST.tokens.length === 0) return;
+    
+    const renderWithPagedJS = async () => {
+      setIsRendering(true);
+      
+      try {
+        // Dynamically import Paged.js
+        const { Previewer } = await import('pagedjs');
+        
+        if (previewRef.current) {
+          // Clear previous content
+          previewRef.current.innerHTML = '';
+          
+          // Generate HTML content for Paged.js
+          const htmlContent = generateScreenplayHTML(getScreenplayElements());
+          
+          // Create a temporary container for Paged.js
+          const tempContainer = document.createElement('div');
+          tempContainer.innerHTML = htmlContent;
+          
+          if (usePagedView) {
+            // Initialize Paged.js previewer
+            const previewer = new Previewer();
+            
+            // Render with Paged.js
+            const flow = await previewer.preview(tempContainer.innerHTML, [], previewRef.current);
+            
+            // Update page count
+            const pages = previewRef.current.querySelectorAll('.pagedjs_page');
+            setPageCount(pages.length);
+          } else {
+            // Simple view without pagination
+            previewRef.current.appendChild(tempContainer);
+          }
+        }
+      } catch (error) {
+        console.error('Error rendering with Paged.js:', error);
+        // Fallback to simple rendering
+        if (previewRef.current) {
+          previewRef.current.innerHTML = generateScreenplayHTML(getScreenplayElements());
+        }
+      } finally {
+        setIsRendering(false);
+      }
+    };
+
+    renderWithPagedJS();
+  }, [fountainAST, usePagedView]);
+
+  // Export to PDF function
+  const exportToPDF = async () => {
+    try {
+      // Use browser's print functionality as fallback
+      // In production, you'd want to use a backend service with puppeteer
+      window.print();
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
+    }
+  };
+
+  if (!fountainAST?.tokens || fountainAST.tokens.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
         <div className="text-center">
@@ -105,34 +173,6 @@ export function FountainPreview({ fountainAST, usePagedView = true }: FountainPr
           text: token.text || ''
         }));
       }
-      
-      // Fallback: try to parse from HTML structure
-      if (fountainAST.html && fountainAST.html.script) {
-        const elements: ScreenplayElement[] = [];
-        const scriptContent = fountainAST.html.script;
-        
-        // Simple parsing of common screenplay elements
-        const lines = scriptContent.split('\n').filter((line: string) => line.trim());
-        
-        lines.forEach((line: string) => {
-          const trimmedLine = line.trim();
-          
-          if (trimmedLine.startsWith('INT.') || trimmedLine.startsWith('EXT.')) {
-            elements.push({ type: 'scene_heading', text: trimmedLine });
-          } else if (trimmedLine === trimmedLine.toUpperCase() && !trimmedLine.includes('.') && trimmedLine.length < 30) {
-            elements.push({ type: 'character', text: trimmedLine });
-          } else if (trimmedLine.startsWith('(') && trimmedLine.endsWith(')')) {
-            elements.push({ type: 'parenthetical', text: trimmedLine });
-          } else if (trimmedLine.endsWith('TO:') || trimmedLine.endsWith('IN:') || trimmedLine.endsWith('OUT:')) {
-            elements.push({ type: 'transition', text: trimmedLine });
-          } else if (trimmedLine) {
-            elements.push({ type: 'action', text: trimmedLine });
-          }
-        });
-        
-        return elements;
-      }
-      
       return [];
     } catch (error) {
       console.error('Error parsing screenplay elements:', error);
@@ -140,41 +180,147 @@ export function FountainPreview({ fountainAST, usePagedView = true }: FountainPr
     }
   };
 
-  const elements = getScreenplayElements();
+  // Generate HTML content for Paged.js
+  const generateScreenplayHTML = (elements: ScreenplayElement[]): string => {
+    const elementHTML = elements.map((element, index) => {
+      const key = `element-${index}`;
+      
+      switch (element.type) {
+        case 'scene_heading':
+          return `<div class="scene-heading">${element.text}</div>`;
+        
+        case 'action':
+          return `<div class="action">${element.text}</div>`;
+        
+        case 'character':
+          return `<div class="character">${element.text}</div>`;
+        
+        case 'dialogue':
+          return `<div class="dialogue">${element.text}</div>`;
+        
+        case 'parenthetical':
+          return `<div class="parenthetical">${element.text}</div>`;
+        
+        case 'transition':
+          return `<div class="transition">${element.text}</div>`;
+        
+        default:
+          return `<div class="action">${element.text}</div>`;
+      }
+    }).join('');
+
+    return `
+      <style>
+        @page {
+          size: 8.5in 11in;
+          margin: 1in 1in 1in 1.5in;
+          @top-right {
+            content: counter(page);
+            font-family: "Courier Prime", "Courier New", monospace;
+            font-size: 12pt;
+          }
+        }
+        
+        .screenplay-content {
+          font-family: "Courier Prime", "Courier New", monospace;
+          font-size: 12pt;
+          line-height: 1.2;
+          color: #000;
+          background: white;
+        }
+        
+        .scene-heading {
+          margin: 1.5em 0 0.12in 0;
+          text-transform: uppercase;
+          font-weight: bold;
+          page-break-after: avoid;
+        }
+        
+        .action {
+          margin: 0.12in 0;
+          text-align: left;
+        }
+        
+        .character {
+          margin: 0.12in 0 0.06in 2.2in;
+          text-transform: uppercase;
+          font-weight: bold;
+          text-align: left;
+          page-break-after: avoid;
+        }
+        
+        .dialogue {
+          margin: 0 0 0.12in 1.0in;
+          max-width: 4.0in;
+          text-align: left;
+          page-break-inside: avoid;
+        }
+        
+        .parenthetical {
+          margin: 0 0 0.06in 1.6in;
+          font-style: italic;
+          text-align: left;
+          color: #666;
+        }
+        
+        .transition {
+          margin: 0.12in 0;
+          text-transform: uppercase;
+          font-weight: bold;
+          text-align: right;
+          padding-right: 0.5in;
+        }
+      </style>
+      <div class="screenplay-content">
+        ${elementHTML}
+      </div>
+    `;
+  };
 
   return (
-    <div className="h-full overflow-auto bg-gray-100 p-4">
-      <div 
-        className={`bg-white shadow-xl mx-auto min-h-full ${usePagedView ? 'screenplay-page' : ''}`}
-        style={{
-          width: usePagedView ? '8.5in' : '100%',
-          maxWidth: usePagedView ? '8.5in' : 'none',
-          fontFamily: '"Courier Prime", "Courier New", monospace',
-          fontSize: '12pt',
-          lineHeight: '1.2',
-          padding: usePagedView ? '1in 1in 1in 1.5in' : '2rem',
-          minHeight: usePagedView ? '11in' : 'auto',
-          boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
-          border: usePagedView ? '1px solid #ddd' : 'none',
-          pageBreakAfter: usePagedView ? 'always' : 'auto',
-        }}
-      >
-        {elements.length > 0 ? (
-          elements.map((element, index) => renderElement(element, index))
-        ) : (
-          <div className="text-muted-foreground text-center py-8">
-            <p>Start typing your screenplay...</p>
-          </div>
-        )}
+    <div className="h-full flex flex-col bg-gray-100">
+      {/* Header with export controls */}
+      <div className="p-4 bg-white border-b flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <FileText className="h-4 w-4" />
+          <span>
+            {isRendering ? 'Rendering...' : `${pageCount} page${pageCount !== 1 ? 's' : ''}`}
+          </span>
+        </div>
         
-        {/* Page number for paginated view */}
-        {usePagedView && (
-          <div className="absolute top-4 right-8 text-xs text-gray-500">
-            Page 1
-          </div>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={exportToPDF}
+          disabled={isRendering}
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Export PDF
+        </Button>
       </div>
-      
+
+      {/* Preview area */}
+      <div className="flex-1 overflow-auto p-4">
+        <div 
+          ref={previewRef}
+          className="screenplay-preview mx-auto"
+          style={{
+            maxWidth: usePagedView ? '8.5in' : '100%',
+            background: 'white',
+            boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
+          }}
+        >
+          {isRendering && (
+            <div className="flex items-center justify-center h-96 text-muted-foreground">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p>Rendering screenplay...</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
