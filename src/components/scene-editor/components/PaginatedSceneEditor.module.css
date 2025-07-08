@@ -1,28 +1,27 @@
-/* Scrollable container for all pages */
-.pagesContainer {
+/* Main scrollable container */
+.scrollContainer {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
   background: hsl(var(--muted));
-  padding: 2rem 1rem;
+  padding: 2rem 0;
   display: flex;
   justify-content: center;
 }
 
-/* Wrapper to center the pages with gaps */
+/* Wrapper to center content */
 .pagesWrapper {
   display: flex;
   flex-direction: column;
-  gap: 2rem; /* Gap between pages like Final Draft */
-  width: 100%;
-  max-width: calc(8.5in + 4rem); /* Page width plus padding */
   align-items: center;
+  width: 100%;
+  max-width: calc(8.5in + 4rem);
+  padding: 0 2rem;
 }
 
-/* Individual page cards - separate like Final Draft */
-.page {
+/* Page container that creates visual pages */
+.pageContainer {
   width: 8.5in;
-  height: 11in; /* Fixed height for each page */
   background: hsl(var(--background));
   box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
   border-radius: 4px;
@@ -30,12 +29,50 @@
   font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
   font-size: 12pt;
   line-height: 1.2;
-  overflow: hidden; /* Clip content to page boundaries */
-  flex-shrink: 0; /* Prevent shrinking */
+  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
+  box-sizing: border-box;
+  /* Use CSS to create page-like appearance */
+  background-image: 
+    /* Page breaks every 9 inches (minus margins) */
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(9in - 2px),
+      hsl(var(--muted)) calc(9in - 2px),
+      hsl(var(--muted)) calc(9in + 2rem),
+      transparent calc(9in + 2rem)
+    );
+  background-size: 100% calc(9in + 2rem);
+  /* Add page number overlay */
+  background-attachment: local;
 }
 
-/* Page number styling */
-.pageNumber {
+/* Page numbers positioned every 9 inches */
+.pageContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-image: 
+    /* Page number positions */
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(9in - 0.5in),
+      transparent calc(9in + 2rem)
+    );
+  background-size: 100% calc(9in + 2rem);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Add page numbers with CSS counters */
+.pageContainer {
+  counter-reset: page-number;
+}
+
+.pageContainer::after {
+  counter-increment: page-number;
+  content: counter(page-number);
   position: absolute;
   top: 0.5in;
   right: 1in;
@@ -46,34 +83,10 @@
   pointer-events: none;
 }
 
-/* Page content area with margins */
-.pageContent {
-  width: 100%;
-  height: 100%;
-  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
-  box-sizing: border-box;
-  position: relative;
-}
-
-/* Editor content container for the first page */
-.editorContent {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-/* Page overflow containers for subsequent pages */
-.pageOverflow {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  /* This will be positioned to show the correct portion of the overflowing content */
-}
-
 /* The actual editor content */
 .screenplayEditor {
   width: 100%;
-  height: auto;
+  min-height: 100vh; /* Allow content to flow naturally */
   outline: none;
   border: none;
   background: transparent;
@@ -94,8 +107,24 @@
 .screenplayEditor .ProseMirror {
   text-align: left;
   outline: none;
-  height: auto;
+  min-height: 100vh;
   overflow: visible;
+  /* Create page-like sections with CSS */
+  background-image: 
+    /* Visual page separators */
+    repeating-linear-gradient(
+      transparent,
+      transparent calc(9in - 4px),
+      hsla(var(--border) / 0.3) calc(9in - 4px),
+      hsla(var(--border) / 0.3) calc(9in - 2px),
+      hsl(var(--background)) calc(9in - 2px),
+      hsl(var(--background)) calc(9in + 2rem - 2px),
+      hsla(var(--border) / 0.3) calc(9in + 2rem - 2px),
+      hsla(var(--border) / 0.3) calc(9in + 2rem),
+      transparent calc(9in + 2rem)
+    );
+  background-size: 100% calc(9in + 2rem);
+  padding-bottom: 50vh; /* Extra space at bottom */
 }
 
 /* Screenplay element styles - matching the original styles */
@@ -157,11 +186,11 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .pagesContainer {
-    padding: 1rem 0.5rem;
+  .scrollContainer {
+    padding: 1rem 0;
   }
   
-  .page {
+  .pageContainer {
     width: 100%;
     min-width: 320px;
     max-width: 8.5in;
@@ -171,5 +200,6 @@
   
   .pagesWrapper {
     max-width: 100%;
+    padding: 0 1rem;
   }
 }
