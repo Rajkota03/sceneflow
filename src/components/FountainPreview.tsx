@@ -2,6 +2,7 @@ import React from 'react';
 
 interface FountainPreviewProps {
   fountainAST: any;
+  usePagedView?: boolean;
 }
 
 interface ScreenplayElement {
@@ -15,7 +16,7 @@ interface ScreenplayElement {
   transition?: string;
 }
 
-export function FountainPreview({ fountainAST }: FountainPreviewProps) {
+export function FountainPreview({ fountainAST, usePagedView = true }: FountainPreviewProps) {
   if (!fountainAST || !fountainAST.html || !fountainAST.html.script) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -47,28 +48,41 @@ export function FountainPreview({ fountainAST }: FountainPreviewProps) {
       
       case 'character':
         return (
-          <div key={key} className="mt-4 mb-1 text-center font-bold uppercase ml-[2.2in]">
+          <div key={key} className="mt-4 mb-1 font-bold uppercase" style={{ 
+            textAlign: 'center',
+            marginLeft: '2.2in',
+            width: 'auto'
+          }}>
             {element.text || element.character}
           </div>
         );
       
       case 'dialogue':
         return (
-          <div key={key} className="mb-3 ml-[1.0in] max-w-[4.0in]">
+          <div key={key} className="mb-3" style={{
+            marginLeft: '1.0in',
+            marginRight: '1.5in',
+            maxWidth: '4.0in'
+          }}>
             {element.text || element.dialogue}
           </div>
         );
       
       case 'parenthetical':
         return (
-          <div key={key} className="mb-2 ml-[1.6in] italic text-muted-foreground">
+          <div key={key} className="mb-2 italic text-gray-600" style={{
+            marginLeft: '1.6in',
+            marginRight: '2.0in'
+          }}>
             {element.text || element.parenthetical}
           </div>
         );
       
       case 'transition':
         return (
-          <div key={key} className="mb-4 mt-3 text-right font-bold uppercase pr-[0.5in]">
+          <div key={key} className="mb-4 mt-3 text-right font-bold uppercase" style={{
+            paddingRight: '0.5in'
+          }}>
             {element.text || element.transition}
           </div>
         );
@@ -129,15 +143,20 @@ export function FountainPreview({ fountainAST }: FountainPreviewProps) {
   const elements = getScreenplayElements();
 
   return (
-    <div className="h-full overflow-auto bg-muted p-4">
+    <div className="h-full overflow-auto bg-gray-100 p-4">
       <div 
-        className="bg-white shadow-lg mx-auto min-h-full"
+        className={`bg-white shadow-xl mx-auto min-h-full ${usePagedView ? 'screenplay-page' : ''}`}
         style={{
-          width: '8.5in',
-          fontFamily: '"Courier New", monospace',
+          width: usePagedView ? '8.5in' : '100%',
+          maxWidth: usePagedView ? '8.5in' : 'none',
+          fontFamily: '"Courier Prime", "Courier New", monospace',
           fontSize: '12pt',
           lineHeight: '1.2',
-          padding: '1in 1in 1in 1.5in'
+          padding: usePagedView ? '1in 1in 1in 1.5in' : '2rem',
+          minHeight: usePagedView ? '11in' : 'auto',
+          boxShadow: usePagedView ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
+          border: usePagedView ? '1px solid #ddd' : 'none',
+          pageBreakAfter: usePagedView ? 'always' : 'auto',
         }}
       >
         {elements.length > 0 ? (
@@ -147,7 +166,15 @@ export function FountainPreview({ fountainAST }: FountainPreviewProps) {
             <p>Start typing your screenplay...</p>
           </div>
         )}
+        
+        {/* Page number for paginated view */}
+        {usePagedView && (
+          <div className="absolute top-4 right-8 text-xs text-gray-500">
+            Page 1
+          </div>
+        )}
       </div>
+      
     </div>
   );
 }

@@ -79,6 +79,7 @@ export default {
         'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'serif': ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
         'mono': ['Courier Prime', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+        'screenplay': ['Courier Prime', 'Courier New', 'monospace'],
       },
       borderRadius: {
         lg: 'var(--radius)',
