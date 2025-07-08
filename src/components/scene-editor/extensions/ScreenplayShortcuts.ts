@@ -23,9 +23,18 @@ export const ScreenplayShortcuts = Extension.create({
           const nextType = nextMap[elementType] || 'action';
           
           console.log(`Enter pressed: ${elementType} -> ${nextType}`);
+          console.log('Current node:', currentNode);
+          console.log('Available commands:', Object.keys(this.editor.commands));
           
-          // Split the current block and set the new node type
-          return this.editor.commands.enter() && this.editor.commands.setNode(nextType);
+          // First create a new paragraph
+          const result = this.editor.commands.splitBlock();
+          console.log('Split block result:', result);
+          
+          // Then set the node type
+          const setNodeResult = this.editor.commands.setNode(nextType);
+          console.log('Set node result:', setNodeResult);
+          
+          return result && setNodeResult;
         } catch (error) {
           console.error('Error handling Enter key:', error);
           return false;
