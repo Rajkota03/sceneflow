@@ -41,20 +41,20 @@ export const ScreenplayShortcuts = Extension.create({
         }
       },
       
-      'Alt-1': () => {
-        console.log('Alt-1 pressed: switching to sceneHeading');
+      'Ctrl-1': () => {
+        console.log('Ctrl-1 pressed: switching to sceneHeading');
         return this.editor.commands.setNode('sceneHeading');
       },
-      'Alt-2': () => {
-        console.log('Alt-2 pressed: switching to action');
+      'Ctrl-2': () => {
+        console.log('Ctrl-2 pressed: switching to action');
         return this.editor.commands.setNode('action');
       },
-      'Alt-3': () => {
-        console.log('Alt-3 pressed: switching to character');
+      'Ctrl-3': () => {
+        console.log('Ctrl-3 pressed: switching to character');
         return this.editor.commands.setNode('character');
       },
-      'Alt-4': () => {
-        console.log('Alt-4 pressed: switching to parenthetical');
+      'Ctrl-4': () => {
+        console.log('Ctrl-4 pressed: switching to parenthetical');
         const result = this.editor.commands.setNode('parenthetical');
         if (result) {
           // Insert parentheses and position cursor between them
@@ -64,12 +64,12 @@ export const ScreenplayShortcuts = Extension.create({
         }
         return result;
       },
-      'Alt-5': () => {
-        console.log('Alt-5 pressed: switching to dialogue');
+      'Ctrl-5': () => {
+        console.log('Ctrl-5 pressed: switching to dialogue');
         return this.editor.commands.setNode('dialogue');
       },
-      'Alt-6': () => {
-        console.log('Alt-6 pressed: switching to transition');
+      'Ctrl-6': () => {
+        console.log('Ctrl-6 pressed: switching to transition');
         console.log('Available node types:', Object.keys(this.editor.schema.nodes));
         const result = this.editor.commands.setNode('transition');
         console.log('Transition setNode result:', result);
