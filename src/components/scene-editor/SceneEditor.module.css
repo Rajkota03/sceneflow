@@ -94,9 +94,10 @@
   margin: 0.12in 0;
   text-transform: uppercase !important;
   font-weight: 700 !important; /* Bold styling */
-  text-align: right;
-  padding-right: 2.5in;
+  text-align: right !important; /* Force right alignment */
+  padding-right: 0.5in;
   color: hsl(var(--foreground));
+  direction: ltr; /* Ensure left-to-right text direction */
 }
 
 /* Focus styles */

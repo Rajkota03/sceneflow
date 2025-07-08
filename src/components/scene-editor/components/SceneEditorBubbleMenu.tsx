@@ -32,7 +32,21 @@ export function SceneEditorBubbleMenu({ editor }: SceneEditorBubbleMenuProps) {
                 ? 'bg-primary text-primary-foreground'
                 : 'hover:bg-muted text-muted-foreground hover:text-foreground'
             }`}
-            onClick={() => editor.commands.setNode(type)}
+            onClick={() => {
+              console.log(`BubbleMenu: Setting node to ${type}`);
+              const { state } = editor;
+              const { selection } = state;
+              console.log('Current selection before setNode:', selection);
+              
+              const result = editor.commands.setNode(type);
+              console.log(`BubbleMenu: setNode(${type}) result:`, result);
+              
+              // Maintain cursor position for transition
+              if (type === 'transition' && result) {
+                console.log('BubbleMenu: Maintaining focus for transition');
+                editor.commands.focus();
+              }
+            }}
           >
             {label}
           </button>
