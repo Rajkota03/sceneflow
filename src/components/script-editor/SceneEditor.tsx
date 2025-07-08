@@ -222,6 +222,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
         try {
           editor.commands.focus();
           editor.commands.setTextSelection(0);
+          editor.commands.setNode('sceneHeading');
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
         }

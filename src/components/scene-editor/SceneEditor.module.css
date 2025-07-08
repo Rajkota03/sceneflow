@@ -19,9 +19,10 @@
 
 /* Screenplay element styles */
 .sceneHeading {
+  margin: 0 0 0.12in 0;  /* no left indent */
+  text-align: left;
+  font-weight: 700;
   text-transform: uppercase;
-  margin: 0 0 0.12in 0;
-  font-weight: bold;
 }
 
 .action {
@@ -30,7 +31,7 @@
 
 .character {
   text-transform: uppercase;
-  margin: 0 0 0.06in 2.2in;  /* 3.7in from left edge of paper */
+  margin: 0 0 0.06in 2.2in;  /* keep centred cues */
   text-align: left;
   font-weight: bold;
 }
