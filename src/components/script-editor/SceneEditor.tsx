@@ -188,13 +188,13 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       Collaboration.configure({
         document: ydoc,
       }),
-      CollaborationCursor.configure({
+      ...(provider ? [CollaborationCursor.configure({
         provider: provider,
         user: {
           name: 'Writer',
           color: '#3b82f6',
         },
-      }),
+      })] : []),
     ],
     content: {
       type: 'doc',
@@ -240,7 +240,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
         }
       }, 100);
     },
-  });
+  }, [provider]);
 
   // Debounced save to Supabase
   const debouncedSave = useCallback(
