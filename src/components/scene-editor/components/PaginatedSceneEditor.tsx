@@ -364,9 +364,9 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     }
   }, [pages]);
 
-  // Enhanced keyboard shortcuts
+  // Enhanced keyboard shortcuts (only for page navigation, not formatting)
   const handleGlobalKeyNavigation = useCallback((event: KeyboardEvent) => {
-    // Global navigation shortcuts
+    // Only handle pure navigation shortcuts, not formatting shortcuts
     if (event.ctrlKey || event.metaKey) {
       switch (event.key) {
         case 'Home':
@@ -377,21 +377,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           event.preventDefault();
           navigateToPage(pages.length - 1, 'end');
           break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-          const pageNum = parseInt(event.key) - 1;
-          if (pageNum < pages.length) {
-            event.preventDefault();
-            navigateToPage(pageNum, 'start');
-          }
-          break;
+        // Removed Ctrl+1-9 shortcuts to preserve screenplay formatting shortcuts
       }
     }
   }, [pages.length, navigateToPage]);
@@ -556,14 +542,14 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
             <span className="text-red-600">❌ Save failed</span>
           )}
           
-          {/* Keyboard shortcuts hint */}
+          {/* Keyboard shortcuts hint - updated to show correct shortcuts */}
           <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground/70">
-            <span>•</span>
-            <span>Ctrl+1-9: Jump to page</span>
             <span>•</span>
             <span>Page Up/Down: Navigate pages</span>
             <span>•</span>
             <span>Ctrl+Home/End: First/Last page</span>
+            <span>•</span>
+            <span>Ctrl+1/2/3: Scene Heading/Action/Character</span>
           </div>
         </div>
         
