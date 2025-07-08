@@ -30,9 +30,10 @@ interface PaginatedSceneEditorProps {
 export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const [currentPageCount, setCurrentPageCount] = useState(1);
+  const [pages, setPages] = useState<number[]>([1]);
   const { characterNames, addCharacterName, updateCharacterNames } = useCharacterExtraction(projectId);
   const editorRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Load existing content
   const loadContent = useCallback(async (editor: any) => {
@@ -69,7 +70,6 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     debounce(async (content: any) => {
       try {
         setSaveStatus('saving');
-        console.log('Attempting to save content:', content);
         const { data: userData, error: authError } = await supabase.auth.getUser();
         
         if (authError) {
@@ -84,7 +84,6 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           return;
         }
         
-        console.log('Saving for user:', userData.user.id);
         const { error } = await supabase
           .from('scenes')
           .upsert({
@@ -99,7 +98,6 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
           console.error('Save error:', error);
           setSaveStatus('error');
         } else {
-          console.log('Content saved successfully');
           setSaveStatus('saved');
           setTimeout(() => setSaveStatus('idle'), 2000);
         }
@@ -112,19 +110,23 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
   );
 
   // Calculate pages based on content height
-  const calculatePages = useCallback(() => {
+  const updatePageCount = useCallback(() => {
     if (!editorRef.current) return;
     
     const proseMirror = editorRef.current.querySelector('.ProseMirror');
     if (!proseMirror) return;
 
-    // Standard page content height (11in - 2in margins = 9in at 96 DPI)
-    const pageContentHeight = 9 * 96; // 864px
-    const totalContentHeight = proseMirror.scrollHeight;
+    // Page content height: 11in - 2in margins = 9in at 96 DPI = 864px
+    const pageContentHeight = 864;
+    const contentHeight = proseMirror.scrollHeight;
     
-    const calculatedPages = Math.max(1, Math.ceil(totalContentHeight / pageContentHeight));
-    setCurrentPageCount(calculatedPages);
-  }, []);
+    const pageCount = Math.max(1, Math.ceil(contentHeight / pageContentHeight));
+    const newPages = Array.from({ length: pageCount }, (_, i) => i + 1);
+    
+    if (newPages.length !== pages.length) {
+      setPages(newPages);
+    }
+  }, [pages.length]);
 
   const editor = useEditor({
     extensions: [
@@ -161,24 +163,24 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       const content = editor.getJSON();
       debouncedSave(content);
       updateCharacterNames();
-      // Recalculate pages on content change
-      setTimeout(calculatePages, 100);
+      // Update page count when content changes
+      setTimeout(updatePageCount, 100);
     },
     onCreate: ({ editor }) => {
       setIsLoading(false);
       loadContent(editor);
       setTimeout(() => {
         editor.commands.focus('start');
-        calculatePages();
+        updatePageCount();
       }, 100);
     },
   });
 
-  // Monitor content changes for pagination
+  // Monitor for content changes
   useEffect(() => {
     if (!editor || !editorRef.current) return;
 
-    const observer = new ResizeObserver(calculatePages);
+    const observer = new ResizeObserver(updatePageCount);
     const proseMirror = editorRef.current.querySelector('.ProseMirror');
     
     if (proseMirror) {
@@ -186,7 +188,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
     }
 
     return () => observer.disconnect();
-  }, [editor, calculatePages]);
+  }, [editor, updatePageCount]);
 
   if (isLoading || !editor) {
     return (
@@ -203,7 +205,7 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
       {/* Save Status Indicator */}
       <div className="px-4 py-2 bg-muted/50 border-b text-sm text-muted-foreground flex items-center gap-2">
         <span>Scene Editor</span>
-        <span className="text-xs">({currentPageCount} page{currentPageCount !== 1 ? 's' : ''})</span>
+        <span className="text-xs">({pages.length} page{pages.length !== 1 ? 's' : ''})</span>
         {saveStatus === 'saving' && (
           <span className="text-blue-600">💾 Saving...</span>
         )}
@@ -215,12 +217,38 @@ export function PaginatedSceneEditor({ projectId }: PaginatedSceneEditorProps) {
         )}
       </div>
       
-      {/* Main scrollable container */}
-      <div className={styles.scrollContainer}>
+      {/* Scrollable container with pages */}
+      <div className={styles.scrollContainer} ref={containerRef}>
         <div className={styles.pagesWrapper}>
-          <div className={styles.pageContainer} ref={editorRef}>
-            <EditorContent editor={editor} />
-          </div>
+          {/* Generate individual page cards */}
+          {pages.map((pageNumber, index) => (
+            <div key={pageNumber} className={styles.page}>
+              {/* Page number */}
+              <div className={styles.pageNumber}>
+                {pageNumber}
+              </div>
+              
+              {/* Page content with proper margins */}
+              <div className={styles.pageContent}>
+                {/* Only render editor on first page, but size each page properly */}
+                {index === 0 ? (
+                  <div ref={editorRef} className={styles.editorWrapper}>
+                    <EditorContent editor={editor} />
+                  </div>
+                ) : (
+                  <div 
+                    className={styles.pageOverflow}
+                    style={{
+                      // Offset content by previous pages
+                      marginTop: `${-index * 864}px`,
+                      height: '864px',
+                      overflow: 'hidden'
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

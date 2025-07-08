@@ -4,24 +4,25 @@
   overflow-y: auto;
   overflow-x: hidden;
   background: hsl(var(--muted));
-  padding: 2rem 0;
+  padding: 2rem 1rem;
   display: flex;
   justify-content: center;
 }
 
-/* Wrapper to center content */
+/* Wrapper for pages with gaps */
 .pagesWrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 2rem; /* Gap between pages like Final Draft */
   width: 100%;
   max-width: calc(8.5in + 4rem);
-  padding: 0 2rem;
+  align-items: center;
 }
 
-/* Page container that creates visual pages */
-.pageContainer {
+/* Individual page cards */
+.page {
   width: 8.5in;
+  height: 11in; /* Fixed height per page */
   background: hsl(var(--background));
   box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
   border-radius: 4px;
@@ -29,50 +30,12 @@
   font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
   font-size: 12pt;
   line-height: 1.2;
-  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
-  box-sizing: border-box;
-  /* Use CSS to create page-like appearance */
-  background-image: 
-    /* Page breaks every 9 inches (minus margins) */
-    repeating-linear-gradient(
-      transparent,
-      transparent calc(9in - 2px),
-      hsl(var(--muted)) calc(9in - 2px),
-      hsl(var(--muted)) calc(9in + 2rem),
-      transparent calc(9in + 2rem)
-    );
-  background-size: 100% calc(9in + 2rem);
-  /* Add page number overlay */
-  background-attachment: local;
+  flex-shrink: 0;
+  overflow: hidden; /* Clip content to page boundaries */
 }
 
-/* Page numbers positioned every 9 inches */
-.pageContainer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-image: 
-    /* Page number positions */
-    repeating-linear-gradient(
-      transparent,
-      transparent calc(9in - 0.5in),
-      transparent calc(9in + 2rem)
-    );
-  background-size: 100% calc(9in + 2rem);
-  pointer-events: none;
-  z-index: 10;
-}
-
-/* Add page numbers with CSS counters */
-.pageContainer {
-  counter-reset: page-number;
-}
-
-.pageContainer::after {
-  counter-increment: page-number;
-  content: counter(page-number);
+/* Page number in top right */
+.pageNumber {
   position: absolute;
   top: 0.5in;
   right: 1in;
@@ -83,10 +46,34 @@
   pointer-events: none;
 }
 
-/* The actual editor content */
+/* Page content area with margins */
+.pageContent {
+  width: 100%;
+  height: 100%;
+  padding: 1in 1in 1in 1.5in; /* Standard screenplay margins */
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Editor wrapper for first page */
+.editorWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* Overflow containers for subsequent pages */
+.pageOverflow {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  /* Content from main editor will show through here */
+}
+
+/* The main editor content */
 .screenplayEditor {
   width: 100%;
-  min-height: 100vh; /* Allow content to flow naturally */
+  min-height: 100%;
   outline: none;
   border: none;
   background: transparent;
@@ -96,38 +83,24 @@
   line-height: inherit;
 }
 
-/* Reset any conflicting styles */
+/* Reset paragraph styles */
 .screenplayEditor p {
   margin: 0;
   padding: 0;
   text-align: left;
 }
 
-/* Ensure TipTap editor content is left-aligned */
+/* TipTap ProseMirror styles */
 .screenplayEditor .ProseMirror {
   text-align: left;
   outline: none;
-  min-height: 100vh;
+  min-height: 100%;
   overflow: visible;
-  /* Create page-like sections with CSS */
-  background-image: 
-    /* Visual page separators */
-    repeating-linear-gradient(
-      transparent,
-      transparent calc(9in - 4px),
-      hsla(var(--border) / 0.3) calc(9in - 4px),
-      hsla(var(--border) / 0.3) calc(9in - 2px),
-      hsl(var(--background)) calc(9in - 2px),
-      hsl(var(--background)) calc(9in + 2rem - 2px),
-      hsla(var(--border) / 0.3) calc(9in + 2rem - 2px),
-      hsla(var(--border) / 0.3) calc(9in + 2rem),
-      transparent calc(9in + 2rem)
-    );
-  background-size: 100% calc(9in + 2rem);
-  padding-bottom: 50vh; /* Extra space at bottom */
+  /* Allow content to flow beyond page boundaries for pagination */
+  padding-bottom: 50vh; /* Extra space for typing */
 }
 
-/* Screenplay element styles - matching the original styles */
+/* Screenplay element styles */
 .screenplayEditor [data-element-type="sceneHeading"],
 .screenplayEditor h3,
 .screenplayEditor [data-type="sceneHeading"] {
@@ -184,22 +157,22 @@
   outline-offset: 2px;
 }
 
-/* Responsive adjustments */
+/* Responsive design */
 @media (max-width: 768px) {
   .scrollContainer {
-    padding: 1rem 0;
+    padding: 1rem 0.5rem;
   }
   
-  .pageContainer {
+  .page {
     width: 100%;
     min-width: 320px;
     max-width: 8.5in;
-    transform: scale(0.8);
+    transform: scale(0.85);
     transform-origin: top center;
   }
   
   .pagesWrapper {
     max-width: 100%;
-    padding: 0 1rem;
+    gap: 1rem;
   }
 }
