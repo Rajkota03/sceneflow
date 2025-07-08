@@ -21,6 +21,7 @@ import { TransitionSuggest } from './extensions/TransitionSuggest';
 import { useCharacterExtraction } from '@/hooks/useCharacterExtraction';
 import { SceneEditorToolbar } from './components/SceneEditorToolbar';
 import { SceneEditorBubbleMenu } from './components/SceneEditorBubbleMenu';
+import PaginatedScroll from './PaginatedScroll';
 import './extensions/autocomplete.css';
 import styles from './SceneEditor.module.css';
 
@@ -191,11 +192,11 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
         )}
       </div>
       
-      <div className={styles.editorContainer}>
-        <div className={styles.page}>
-          <EditorContent editor={editor} />
+      <PaginatedScroll>
+        <div className={styles.screenplayPage}>
+          <EditorContent editor={editor} className={styles.screenplayEditor} />
         </div>
-      </div>
+      </PaginatedScroll>
 
       <SceneEditorBubbleMenu editor={editor} />
     </div>
