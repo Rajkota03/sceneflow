@@ -200,9 +200,9 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
       type: 'doc',
       content: [
         {
-          type: 'paragraph',
-          attrs: { elementType: 'action' },
-          content: [{ type: 'text', text: 'Start writing your screenplay here...' }],
+          type: 'sceneHeading',
+          attrs: { elementType: 'sceneHeading' },
+          content: [{ type: 'text', text: '' }],
         },
       ],
     },
@@ -222,19 +222,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
     onCreate: ({ editor }) => {
       setTimeout(() => {
         try {
-          if (!editor.state.doc.content.size || editor.state.doc.content.size === 0) {
-            editor.commands.setContent({
-              type: 'doc',
-              content: [
-                {
-                  type: 'paragraph',
-                  attrs: { elementType: 'action' },
-                  content: [{ type: 'text', text: 'Start writing...' }],
-                },
-              ],
-            });
-          }
-          focusTopLeft(editor);
+          editor.commands.focus('start');
         } catch (error) {
           console.warn('Could not focus editor on create:', error);
         }
@@ -303,7 +291,7 @@ export function SceneEditor({ projectId }: SceneEditorProps) {
                 action: 'action',
                 character: 'dialogue',
                 parenthetical: 'dialogue',
-                dialogue: 'dialogue',
+                dialogue: 'action',
                 transition: 'sceneHeading',
               }[currentType] || 'action';
 
