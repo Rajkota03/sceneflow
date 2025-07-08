@@ -151,10 +151,12 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
   // Helper function to focus at top-left
   const focusTopLeft = useCallback((editor: any) => {
     try {
-      // Focus at the very start of the document
-      editor.commands.focus('start');
-      // Ensure cursor is at position [0,0]
+      // First focus the editor
+      editor.commands.focus();
+      // Then set selection to the very beginning
       editor.commands.setTextSelection(0);
+      // Alternative approach: set cursor to start of first node
+      editor.commands.selectTextblockStart();
     } catch (error) {
       console.warn('Could not focus at top-left:', error);
     }
@@ -364,9 +366,10 @@ export function SceneEditor({ scriptId }: SceneEditorProps) {
   // Ensure focus at top-left after mount
   useEffect(() => {
     if (editor) {
+      // Use a longer timeout to ensure editor is fully ready
       setTimeout(() => {
         focusTopLeft(editor);
-      }, 150);
+      }, 300);
     }
   }, [editor, focusTopLeft]);
 
