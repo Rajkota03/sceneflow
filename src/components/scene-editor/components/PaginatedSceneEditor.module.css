@@ -22,7 +22,7 @@
 /* Individual page cards */
 .page {
   width: 8.5in;
-  height: 11in; /* Fixed page height */
+  min-height: 11in; /* Changed from fixed height to min-height */
   background: hsl(var(--background));
   box-shadow: 0 8px 32px hsla(var(--foreground) / 0.1);
   border-radius: 4px;
@@ -30,7 +30,7 @@
   font-family: "Courier Final Draft", "Courier Prime", "Courier New", monospace;
   font-size: 12pt;
   line-height: 1.2;
-  overflow: hidden; /* Clip content to page bounds */
+  overflow: visible; /* Changed from hidden to visible to allow scrolling */
   flex-shrink: 0;
 }
 
