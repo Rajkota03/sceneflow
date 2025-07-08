@@ -485,3 +485,25 @@ textarea.auto-resize {
   font-size: 12pt;
   font-family: 'Courier Prime', 'Courier New', monospace !important;
 }
+
+/* Script editor focus improvements */
+.element-container {
+  position: relative;
+  cursor: text;
+}
+
+.element-text[contenteditable="true"] {
+  outline: none !important;
+  border: none !important;
+  cursor: text !important;
+  pointer-events: auto !important;
+}
+
+.element-text[contenteditable="true"]:focus {
+  outline: 2px solid hsl(var(--primary) / 0.2) !important;
+  outline-offset: 2px;
+}
+
+.active-element {
+  background-color: hsl(var(--primary) / 0.05);
+}

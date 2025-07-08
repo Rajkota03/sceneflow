@@ -115,15 +115,27 @@ export function useScriptElement({
   // Focus element when it becomes active
   useEffect(() => {
     if (isActive && elementRef.current) {
-      elementRef.current.focus();
-      
-      // Place cursor at end
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(elementRef.current);
-      range.collapse(false);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        if (elementRef.current) {
+          elementRef.current.focus();
+          
+          // Place cursor at end
+          const selection = window.getSelection();
+          if (selection) {
+            try {
+              const range = document.createRange();
+              range.selectNodeContents(elementRef.current);
+              range.collapse(false);
+              selection.removeAllRanges();
+              selection.addRange(range);
+            } catch (error) {
+              // Fallback: just focus the element
+              console.warn('Could not set cursor position:', error);
+            }
+          }
+        }
+      });
     }
   }, [isActive]);
 

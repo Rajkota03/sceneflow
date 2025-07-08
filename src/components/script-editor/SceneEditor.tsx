@@ -1,12 +1,12 @@
 import React from 'react';
-import { AfterwritingEditor } from '../AfterwritingEditor';
+import { EnhancedAfterwritingEditor } from '../EnhancedAfterwritingEditor';
 
 interface SceneEditorProps {
   projectId: string;
 }
 
 export function SceneEditor({ projectId }: SceneEditorProps) {
-  return <AfterwritingEditor projectId={projectId} />;
+  return <EnhancedAfterwritingEditor projectId={projectId} />;
 }
 
 export default SceneEditor;

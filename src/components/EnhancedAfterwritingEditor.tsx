@@ -49,7 +49,8 @@ export function EnhancedAfterwritingEditor({ projectId }: EnhancedAfterwritingEd
   // Parse Fountain text to elements
   const fountainToElements = useCallback((fountainText: string): ScriptElementData[] => {
     if (!fountainText.trim()) {
-      return [{ id: generateUniqueId(), type: 'action', text: '' }];
+      const defaultElement = { id: generateUniqueId(), type: 'action' as ElementType, text: '' };
+      return [defaultElement];
     }
 
     const lines = fountainText.split('\n');
@@ -274,6 +275,19 @@ export function EnhancedAfterwritingEditor({ projectId }: EnhancedAfterwritingEd
 
     loadContent();
   }, [projectId, fountainToElements]);
+
+  // Auto-focus first element when editor loads
+  useEffect(() => {
+    if (!isLoading && elements.length > 0 && activeElementId) {
+      // Small delay to ensure elements are rendered
+      setTimeout(() => {
+        const firstElement = document.getElementById(activeElementId)?.querySelector('[contenteditable="true"]') as HTMLElement;
+        if (firstElement) {
+          firstElement.focus();
+        }
+      }, 100);
+    }
+  }, [isLoading, activeElementId]);
 
   // Keyboard shortcuts
   useEffect(() => {

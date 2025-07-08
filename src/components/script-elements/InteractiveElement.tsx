@@ -53,8 +53,14 @@ const InteractiveElement: React.FC<InteractiveElementProps> = ({
 
   return (
     <div 
-      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group`}
+      className={`element-container ${element.type} ${isActive ? 'active' : ''} relative group cursor-text`}
       id={element.id}
+      onClick={() => {
+        // Click-to-focus functionality
+        if (elementRef.current && !isActive) {
+          elementRef.current.focus();
+        }
+      }}
     >
       {/* Type indicator */}
       {showTypeIndicator && isActive && (
@@ -68,8 +74,8 @@ const InteractiveElement: React.FC<InteractiveElementProps> = ({
         className={`
           element-text 
           ${element.type}
-          ${isActive ? 'active-element' : ''}
-          outline-none border-none resize-none
+          ${isActive ? 'active-element ring-2 ring-primary/20' : ''}
+          outline-none border-none resize-none cursor-text
         `}
         contentEditable={true}
         suppressContentEditableWarning={true}
@@ -83,8 +89,9 @@ const InteractiveElement: React.FC<InteractiveElementProps> = ({
           fontFamily: '"Courier Final Draft", "Courier Prime", "Courier New", monospace',
           fontSize: '12pt',
           lineHeight: '1.2',
-          caretColor: 'black',
+          caretColor: 'hsl(var(--primary))',
           minHeight: '1.2em',
+          pointerEvents: 'auto',
           ...elementStyles
         }}
         dir="ltr"
