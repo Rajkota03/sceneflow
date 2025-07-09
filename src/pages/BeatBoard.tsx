@@ -111,6 +111,20 @@ export default function BeatBoard() {
     });
   };
 
+  const handleUpdateAlternatives = (beatId: number, alternatives: Array<{ summary: string; source_id: number; }>) => {
+    setBeats(prevBeats => 
+      prevBeats.map(beat => 
+        beat.id === beatId 
+          ? { ...beat, alternatives }
+          : beat
+      )
+    );
+    toast({
+      title: "New Alternatives Generated",
+      description: `Generated ${alternatives.length} new alternatives for this beat.`,
+    });
+  };
+
   const handleSave = async () => {
     const storyTitle = form.getValues('storyTitle');
     
@@ -378,6 +392,7 @@ export default function BeatBoard() {
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         onReplace={handleBeatReplace}
+        onUpdateAlternatives={handleUpdateAlternatives}
       />
     </div>
   );

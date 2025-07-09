@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Replace, X } from 'lucide-react';
+import { Replace, X, Wand2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAltBeatGeneration } from '@/hooks/useAltBeatGeneration';
 
 interface Beat40 {
   id: number;
@@ -23,15 +24,18 @@ interface BeatAlternativesDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onReplace: (beatId: number, newSummary: string) => void;
+  onUpdateAlternatives?: (beatId: number, alternatives: Array<{ summary: string; source_id: number; }>) => void;
 }
 
 export function BeatAlternativesDrawer({ 
   beat, 
   isOpen, 
   onClose, 
-  onReplace 
+  onReplace,
+  onUpdateAlternatives
 }: BeatAlternativesDrawerProps) {
   const [selectedAlternative, setSelectedAlternative] = useState<string | null>(null);
+  const { generateAltBeats, isGenerating } = useAltBeatGeneration();
 
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
@@ -53,6 +57,22 @@ export function BeatAlternativesDrawer({
       onReplace(beat.id, newSummary);
       setSelectedAlternative(null);
       onClose();
+    }
+  };
+
+  const handleGenerateAlternatives = async () => {
+    if (!beat) return;
+
+    const result = await generateAltBeats({
+      beat_id: beat.id,
+      beat_title: beat.title,
+      current_summary: beat.summary,
+      story_type: beat.type,
+      conflict_start_id: undefined // We don't have this info in the current beat structure
+    });
+
+    if (result?.alternatives && onUpdateAlternatives) {
+      onUpdateAlternatives(beat.id, result.alternatives);
     }
   };
 
@@ -101,9 +121,30 @@ export function BeatAlternativesDrawer({
             
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium text-sm mb-3">
-                  Choose Alternative ({beat.alternatives?.length || 0} available)
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-sm">
+                    Choose Alternative ({beat.alternatives?.length || 0} available)
+                  </h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGenerateAlternatives}
+                    disabled={isGenerating}
+                    className="text-xs"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-3 w-3 mr-1" />
+                        Generate New
+                      </>
+                    )}
+                  </Button>
+                </div>
                 
                 {!beat.alternatives || beat.alternatives.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
