@@ -46,7 +46,6 @@ serve(async (req) => {
       .from('masterplot_conflict_view')
       .select('*')
       .ilike('story_type', `%${genre}%`)
-      .order('id', { ascending: false })
       .limit(1);
 
     if (masterplotError) {
