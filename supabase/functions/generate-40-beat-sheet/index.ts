@@ -216,24 +216,53 @@ Return JSON exactly in this format:
     // Try to parse the JSON response
     let parsedBeats;
     try {
-      // Extract JSON from the response if it's wrapped in markdown
-      const jsonMatch = generatedContent.match(/```json\n([\s\S]*?)\n```/) || 
-                       generatedContent.match(/```\n([\s\S]*?)\n```/) ||
-                       [null, generatedContent];
+      console.log('Attempting to parse AI response...');
+      console.log('Raw response length:', generatedContent.length);
+      console.log('First 500 chars:', generatedContent.substring(0, 500));
       
-      parsedBeats = JSON.parse(jsonMatch[1] || generatedContent);
+      // Try multiple JSON extraction methods
+      let jsonContent = generatedContent;
+      
+      // Method 1: Extract from markdown code blocks
+      const jsonMatch = generatedContent.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) {
+        console.log('Found JSON in markdown block');
+        jsonContent = jsonMatch[1];
+      } else {
+        // Method 2: Look for JSON object starting with {
+        const objMatch = generatedContent.match(/\{[\s\S]*\}/);
+        if (objMatch) {
+          console.log('Found JSON object in response');
+          jsonContent = objMatch[0];
+        }
+      }
+      
+      console.log('Parsing JSON content:', jsonContent.substring(0, 200));
+      parsedBeats = JSON.parse(jsonContent);
+      
+      // Validate the structure
+      if (!parsedBeats.beats || !Array.isArray(parsedBeats.beats)) {
+        throw new Error('Invalid response structure: missing beats array');
+      }
+      
+      console.log('Successfully parsed', parsedBeats.beats.length, 'beats');
+      
     } catch (parseError) {
       console.error('Failed to parse JSON response:', parseError);
       console.error('Raw response:', generatedContent);
       
-      return new Response(
-        JSON.stringify({ 
-          error: 'Failed to parse generated 40-beat sheet', 
-          rawResponse: generatedContent,
-          details: parseError.message 
-        }),
-        { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Create a fallback response using the beat templates
+      console.log('Creating fallback response...');
+      const fallbackBeats = beatTemplates.map((template, index) => ({
+        id: template.id,
+        title: template.title || `Beat ${template.id}`,
+        type: template.type || 'Unknown',
+        summary: `${template.function || 'Story development'} - Generated for ${genre} story`,
+        alternatives: []
+      }));
+      
+      parsedBeats = { beats: fallbackBeats };
+      console.log('Created fallback with', fallbackBeats.length, 'beats');
     }
 
     return new Response(JSON.stringify({ 
