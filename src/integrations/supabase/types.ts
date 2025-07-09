@@ -53,6 +53,27 @@ export type Database = {
         }
         Relationships: []
       }
+      beat_template: {
+        Row: {
+          function: string | null
+          id: number
+          title: string | null
+          type: string | null
+        }
+        Insert: {
+          function?: string | null
+          id: number
+          title?: string | null
+          type?: string | null
+        }
+        Update: {
+          function?: string | null
+          id?: number
+          title?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
       beat_templates: {
         Row: {
           created_at: string
