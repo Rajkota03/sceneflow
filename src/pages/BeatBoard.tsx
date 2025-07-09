@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,7 @@ const formSchema = z.object({
   genre: z.string().min(1, 'Genre is required'),
   logline: z.string().min(10, 'Logline must be at least 10 characters'),
   characters: z.string().optional(),
+  model: z.string().default('meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo'),
   storyTitle: z.string().min(1, 'Story title is required for saving'),
 });
 
@@ -51,6 +53,7 @@ export default function BeatBoard() {
       genre: '',
       logline: '',
       characters: '',
+      model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
       storyTitle: '',
     },
   });
@@ -61,6 +64,7 @@ export default function BeatBoard() {
         genre: data.genre,
         logline: data.logline,
         characters: data.characters,
+        model: data.model,
       });
 
       if (result && result.beats) {
@@ -224,6 +228,47 @@ export default function BeatBoard() {
                     placeholder="e.g., Sarah, Detective Martinez"
                     {...form.register('characters')}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="model">AI Model</Label>
+                  <Select 
+                    onValueChange={(value) => form.setValue('model', value)}
+                    defaultValue={form.getValues('model')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select AI model" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border shadow-lg z-50">
+                      <SelectItem value="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Llama 3.1 8B Turbo</span>
+                          <span className="text-xs text-muted-foreground">Fast • Balanced performance</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Llama 3.1 70B Turbo</span>
+                          <span className="text-xs text-muted-foreground">Powerful • Best quality</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Llama 3.1 405B Turbo</span>
+                          <span className="text-xs text-muted-foreground">Premium • Highest intelligence</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="mistralai/Mixtral-8x7B-Instruct-v0.1">
+                        <div className="flex flex-col">
+                          <span className="font-medium">Mixtral 8x7B</span>
+                          <span className="text-xs text-muted-foreground">Alternative • Good reasoning</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Choose the AI model for beat generation. Larger models provide better quality but take longer.
+                  </p>
                 </div>
 
                 <Separator />

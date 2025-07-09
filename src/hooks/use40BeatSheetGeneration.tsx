@@ -6,6 +6,7 @@ export interface Beat40Request {
   genre: string;
   logline: string;
   characters?: string;
+  model?: string;
 }
 
 export interface Beat40Alternative {

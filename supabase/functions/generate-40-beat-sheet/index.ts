@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { genre, logline, characters } = await req.json();
+    const { genre, logline, characters, model = 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' } = await req.json();
 
     if (!genre || !logline) {
       return new Response(
@@ -152,7 +152,7 @@ Return JSON exactly in this format:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo',
+        model,
         messages: [
           {
             role: 'system',
