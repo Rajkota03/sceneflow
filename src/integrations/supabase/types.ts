@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      conflict_situations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          lead_ins: string | null
+          lead_outs: string | null
+          story_type: string | null
+          sub_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id: number
+          lead_ins?: string | null
+          lead_outs?: string | null
+          story_type?: string | null
+          sub_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          lead_ins?: string | null
+          lead_outs?: string | null
+          story_type?: string | null
+          sub_type?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       masterplots: {
         Row: {
           a_clause_label: string | null
