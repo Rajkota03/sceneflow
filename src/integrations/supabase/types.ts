@@ -347,6 +347,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_beats: {
+        Row: {
+          beats_json: Json
+          created_at: string
+          id: string
+          story_title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          beats_json: Json
+          created_at?: string
+          id?: string
+          story_title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          beats_json?: Json
+          created_at?: string
+          id?: string
+          story_title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       masterplot_conflict_view: {
