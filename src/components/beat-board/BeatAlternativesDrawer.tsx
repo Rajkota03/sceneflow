@@ -4,15 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Replace, X, Wand2, Loader2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Replace, X, Wand2, Loader2, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAltBeatGeneration } from '@/hooks/useAltBeatGeneration';
+import { useDownstreamRegeneration } from '@/hooks/useDownstreamRegeneration';
 
 interface Beat40 {
   id: number;
   title: string;
   type: string;
   summary: string;
+  source_id?: number;
   alternatives: Array<{
     summary: string;
     source_id: number;
@@ -23,8 +27,11 @@ interface BeatAlternativesDrawerProps {
   beat: Beat40 | null;
   isOpen: boolean;
   onClose: () => void;
-  onReplace: (beatId: number, newSummary: string) => void;
+  onReplace: (beatId: number, newSummary: string, sourceId?: number) => void;
   onUpdateAlternatives?: (beatId: number, alternatives: Array<{ summary: string; source_id: number; }>) => void;
+  onAdaptiveReplace?: (beatId: number, newSummary: string, sourceId?: number, allBeats?: Beat40[], model?: string) => void;
+  beats?: Beat40[];
+  model?: string;
 }
 
 export function BeatAlternativesDrawer({ 
@@ -32,10 +39,16 @@ export function BeatAlternativesDrawer({
   isOpen, 
   onClose, 
   onReplace,
-  onUpdateAlternatives
+  onUpdateAlternatives,
+  onAdaptiveReplace,
+  beats,
+  model
 }: BeatAlternativesDrawerProps) {
   const [selectedAlternative, setSelectedAlternative] = useState<string | null>(null);
+  const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+  const [useAdaptive, setUseAdaptive] = useState(true);
   const { generateAltBeats, isGenerating } = useAltBeatGeneration();
+  const { regenerateDownstream, isRegenerating } = useDownstreamRegeneration();
 
   const getTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
@@ -52,12 +65,20 @@ export function BeatAlternativesDrawer({
     }
   };
 
-  const handleReplace = (newSummary: string) => {
-    if (beat) {
-      onReplace(beat.id, newSummary);
-      setSelectedAlternative(null);
-      onClose();
+  const handleReplace = async () => {
+    if (!beat || !selectedAlternative) return;
+
+    if (useAdaptive && onAdaptiveReplace && beats && model) {
+      // Use adaptive replacement
+      await onAdaptiveReplace(beat.id, selectedAlternative, selectedSourceId || undefined, beats, model);
+    } else {
+      // Use regular replacement
+      onReplace(beat.id, selectedAlternative, selectedSourceId || undefined);
     }
+    
+    setSelectedAlternative(null);
+    setSelectedSourceId(null);
+    onClose();
   };
 
   const handleGenerateAlternatives = async () => {
@@ -119,6 +140,28 @@ export function BeatAlternativesDrawer({
           <>
             <Separator className="my-4" />
             
+            {/* Adaptive Mode Toggle */}
+            {beats && model && onAdaptiveReplace && (
+              <div className="p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label htmlFor="adaptive-mode" className="text-sm font-medium flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Adaptive Mode
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Automatically regenerate downstream beats for story consistency
+                    </p>
+                  </div>
+                  <Switch
+                    id="adaptive-mode"
+                    checked={useAdaptive}
+                    onCheckedChange={setUseAdaptive}
+                  />
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-3">
@@ -160,7 +203,10 @@ export function BeatAlternativesDrawer({
                             "p-3 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50",
                             selectedAlternative === alternative.summary && "border-primary bg-primary/5"
                           )}
-                          onClick={() => setSelectedAlternative(alternative.summary)}
+                           onClick={() => {
+                             setSelectedAlternative(alternative.summary);
+                             setSelectedSourceId(alternative.source_id);
+                           }}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <p className="text-sm flex-1">{alternative.summary}</p>
@@ -173,10 +219,10 @@ export function BeatAlternativesDrawer({
                             <div className="mt-3 flex justify-end">
                               <Button
                                 size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleReplace(alternative.summary);
-                                }}
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleReplace();
+                                 }}
                                 className="text-xs"
                               >
                                 <Replace className="h-3 w-3 mr-1" />

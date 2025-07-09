@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { use40BeatSheetGeneration } from '@/hooks/use40BeatSheetGeneration';
+import { useDownstreamRegeneration } from '@/hooks/useDownstreamRegeneration';
 import { BeatGrid } from '@/components/beat-board/BeatGrid';
 import { BeatAlternativesDrawer } from '@/components/beat-board/BeatAlternativesDrawer';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +34,7 @@ interface Beat40 {
   title: string;
   type: string;
   summary: string;
+  source_id?: number;
   alternatives: Array<{
     summary: string;
     source_id: number;
@@ -47,6 +49,7 @@ export default function BeatBoard() {
   const [isFormCollapsed, setIsFormCollapsed] = useState(false);
   
   const { generate40BeatSheet, isGenerating } = use40BeatSheetGeneration();
+  const { regenerateDownstream, isRegenerating } = useDownstreamRegeneration();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -99,11 +102,11 @@ export default function BeatBoard() {
     });
   };
 
-  const handleBeatReplace = (beatId: number, newSummary: string) => {
+  const handleBeatReplace = (beatId: number, newSummary: string, sourceId?: number) => {
     setBeats(prevBeats => 
       prevBeats.map(beat => 
         beat.id === beatId 
-          ? { ...beat, summary: newSummary }
+          ? { ...beat, summary: newSummary, source_id: sourceId }
           : beat
       )
     );
@@ -111,6 +114,46 @@ export default function BeatBoard() {
       title: "Beat Updated",
       description: "The beat summary has been replaced with the alternative.",
     });
+  };
+
+  const handleAdaptiveReplace = async (beatId: number, newSummary: string, sourceId?: number, allBeats?: Beat40[], model?: string) => {
+    // First update the beat with the new summary and source_id
+    const updatedBeats = beats.map(beat => 
+      beat.id === beatId 
+        ? { ...beat, summary: newSummary, source_id: sourceId }
+        : beat
+    );
+    
+    setBeats(updatedBeats);
+
+    toast({
+      title: "Beat Updated",
+      description: "Beat replaced successfully. Regenerating downstream beats for consistency...",
+    });
+
+    try {
+      // Regenerate downstream beats
+      const regeneratedBeats = await regenerateDownstream({
+        beats: updatedBeats,
+        changedIndex: beatId,
+        model: model || form.getValues('model'),
+      });
+
+      setBeats(regeneratedBeats);
+      
+      toast({
+        title: "Story Adapted",
+        description: "All downstream beats have been regenerated to maintain story consistency.",
+      });
+    } catch (error) {
+      console.error('Error during adaptive replacement:', error);
+      // Keep the initial beat replacement even if downstream regeneration fails
+      toast({
+        title: "Partial Update",
+        description: "Beat was replaced, but downstream regeneration failed. You can try again manually.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUpdateAlternatives = (beatId: number, alternatives: Array<{ summary: string; source_id: number; }>) => {
@@ -411,6 +454,9 @@ export default function BeatBoard() {
         onClose={() => setIsDrawerOpen(false)}
         onReplace={handleBeatReplace}
         onUpdateAlternatives={handleUpdateAlternatives}
+        onAdaptiveReplace={handleAdaptiveReplace}
+        beats={beats}
+        model={form.getValues('model')}
       />
     </div>
   );
