@@ -8,271 +8,253 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Set function timeout to 25 seconds (Edge Functions have 30s limit)
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('Function timeout after 25 seconds')), 25000);
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting 40-beat sheet generation...');
-    const { genre, logline, characters, model = 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' } = await req.json();
-    console.log('Request params:', { genre, logline, characters, model });
-
-    if (!genre || !logline) {
-      console.log('Missing required parameters');
-      return new Response(
-        JSON.stringify({ error: 'Missing required parameters: genre and logline are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
-    
-    console.log('Environment check:', { 
-      hasUrl: !!supabaseUrl, 
-      hasKey: !!supabaseKey,
-      hasTogetherKey: !!togetherApiKey,
-      urlPrefix: supabaseUrl?.substring(0, 20) 
-    });
-    
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase configuration');
-      throw new Error('Supabase configuration missing');
-    }
-    
-    if (!togetherApiKey) {
-      console.error('Missing Together API key');
-      throw new Error('TOGETHER_API_KEY not configured');
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Step 1: Get all 40 beats from beat_template
-    console.log('Fetching beat templates...');
-    const { data: beatTemplates, error: beatError } = await supabase
-      .from('beat_template')
-      .select('*')
-      .order('id');
-
-    if (beatError) {
-      console.error('Beat template error:', beatError);
-      throw new Error(`Failed to fetch beat templates: ${beatError.message}`);
-    }
-
-    console.log(`Found ${beatTemplates?.length || 0} beat templates`);
-    if (!beatTemplates || beatTemplates.length !== 40) {
-      throw new Error(`Expected 40 beats but found ${beatTemplates?.length || 0}`);
-    }
-
-    // Step 2: Query conflict_situations for matching genre (since masterplot_conflict_view has null story_types)
-    const { data: conflicts, error: conflictError } = await supabase
-      .from('conflict_situations')
-      .select('*')
-      .ilike('story_type', `%${genre}%`)
-      .limit(1);
-
-    if (conflictError) {
-      throw new Error(`Failed to fetch conflicts: ${conflictError.message}`);
-    }
-
-    if (!conflicts || conflicts.length === 0) {
-      throw new Error(`No conflicts found for genre: ${genre}`);
-    }
-
-    const selectedConflict = conflicts[0];
-
-    // Get a random masterplot for the structure
-    const { data: masterplots, error: masterplotError } = await supabase
-      .from('masterplots')
-      .select('*')
-      .limit(1);
-
-    if (masterplotError) {
-      throw new Error(`Failed to fetch masterplots: ${masterplotError.message}`);
-    }
-
-    if (!masterplots || masterplots.length === 0) {
-      throw new Error(`No masterplots found`);
-    }
-
-    const selectedMasterplot = masterplots[0];
-
-    // Step 3: Build conflict chain using lead_outs from selected conflict
-    let conflictChain = [selectedConflict.description || ''];
-    
-    if (selectedConflict.lead_outs) {
-      const leadOutIds = selectedConflict.lead_outs.split(',').map(id => parseInt(id.trim()));
+    // Wrap entire function in timeout
+    const mainExecution = async () => {
+      console.log('Starting 40-beat sheet generation...');
+      const { genre, logline, characters, model = 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo' } = await req.json();
       
-      for (const leadOutId of leadOutIds.slice(0, 2)) {
-        const { data: nextConflict } = await supabase
+      // Use faster model if not specified
+      const optimizedModel = model.includes('70B') ? 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' : model;
+      console.log('Request params:', { genre, logline, characters, optimizedModel });
+
+      if (!genre || !logline) {
+        console.log('Missing required parameters');
+        throw new Error('Missing required parameters: genre and logline are required');
+      }
+
+      // Initialize Supabase client
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+      
+      console.log('Environment check:', { 
+        hasUrl: !!supabaseUrl, 
+        hasKey: !!supabaseKey,
+        hasTogetherKey: !!togetherApiKey,
+        urlPrefix: supabaseUrl?.substring(0, 20) 
+      });
+      
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('Missing Supabase configuration');
+        throw new Error('Supabase configuration missing');
+      }
+      
+      if (!togetherApiKey) {
+        console.error('Missing Together API key');
+        throw new Error('TOGETHER_API_KEY not configured');
+      }
+      
+      const supabase = createClient(supabaseUrl, supabaseKey);
+
+      // Optimized database queries - fetch only essential fields in parallel
+      console.log('Fetching data from database...');
+      
+      const [beatTemplatesResult, conflictsResult, masterplotsResult] = await Promise.all([
+        supabase
+          .from('beat_template')
+          .select('id, title, type, function')
+          .order('id'),
+        supabase
           .from('conflict_situations')
-          .select('description')
-          .eq('id', leadOutId)
-          .single();
+          .select('id, description, lead_outs, story_type')
+          .ilike('story_type', `%${genre}%`)
+          .limit(3),
+        supabase
+          .from('masterplots')
+          .select('masterplot_id')
+          .limit(1)
+      ]);
+
+      if (beatTemplatesResult.error) {
+        console.error('Beat template error:', beatTemplatesResult.error);
+        throw new Error(`Failed to fetch beat templates: ${beatTemplatesResult.error.message}`);
+      }
+
+      if (conflictsResult.error) {
+        console.error('Conflicts error:', conflictsResult.error);
+        throw new Error(`Failed to fetch conflicts: ${conflictsResult.error.message}`);
+      }
+
+      if (masterplotsResult.error) {
+        console.error('Masterplots error:', masterplotsResult.error);
+        throw new Error(`Failed to fetch masterplots: ${masterplotsResult.error.message}`);
+      }
+
+      const beatTemplates = beatTemplatesResult.data;
+      const conflicts = conflictsResult.data;
+      const masterplots = masterplotsResult.data;
+
+      console.log(`Found ${beatTemplates?.length || 0} beat templates, ${conflicts?.length || 0} conflicts`);
+      
+      if (!beatTemplates || beatTemplates.length !== 40) {
+        throw new Error(`Expected 40 beats but found ${beatTemplates?.length || 0}`);
+      }
+
+      if (!conflicts || conflicts.length === 0) {
+        throw new Error(`No conflicts found for genre: ${genre}`);
+      }
+
+      if (!masterplots || masterplots.length === 0) {
+        throw new Error(`No masterplots found`);
+      }
+
+      const selectedConflict = conflicts[0];
+      const selectedMasterplot = masterplots[0];
+
+      // Simplified conflict inspiration
+      const conflictInspiration = selectedConflict.description || '';
+
+      // Build simplified, shorter prompt for AI generation  
+      const prompt = `Create a 40-beat story outline for: "${logline}" (${genre})
+
+Characters: ${characters || 'Create appropriate character names'}
+
+Write SPECIFIC beats for THIS story. Each beat = 1-2 sentences about what happens.
+
+Beat structure:
+${beatTemplates.slice(0, 10).map(bt => `${bt.id}: ${bt.title}`).join(', ')}... (continue for all 40)
+
+Inspiration: ${conflictInspiration}
+
+Return JSON:
+{"beats": [{"id": 1, "title": "Opening Image", "type": "Setup", "summary": "SPECIFIC EVENT FOR THIS STORY", "alternatives": []}]}
+
+CRITICAL: Write about the specific logline story, not generic templates.`;
+
+      console.log('Sending request to Together.ai for 40-beat generation');
+
+      // Create timeout for AI API call (20 seconds)
+      const apiTimeout = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('AI API timeout after 20 seconds')), 20000);
+      });
+
+      const apiCall = fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${togetherApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: optimizedModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a screenplay expert. Generate concise 40-beat sheets in JSON format.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.6
+        }),
+      });
+
+      const response = await Promise.race([apiCall, apiTimeout]);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Together AI API error details:', { 
+          status: response.status, 
+          statusText: response.statusText,
+          errorText: errorText.substring(0, 500)
+        });
         
-        if (nextConflict?.description) {
-          conflictChain.push(nextConflict.description);
+        // Handle specific error types
+        if (response.status === 429) {
+          throw new Error('API rate limit exceeded. Please try again in a few minutes.');
+        } else if (response.status >= 500) {
+          throw new Error('Together AI service temporarily unavailable. Please try again.');
+        } else {
+          throw new Error(`Together AI API error (${response.status}): ${response.statusText}`);
         }
       }
-    }
 
-    // Step 4: Get alternative conflicts for same story type  
-    const { data: alternativeConflicts, error: altError } = await supabase
-      .from('conflict_situations')
-      .select('id, description')
-      .ilike('story_type', `%${genre}%`)
-      .neq('id', selectedConflict.id)
-      .limit(10);
+      const aiResponse = await response.json();
+      const generatedContent = aiResponse.choices[0]?.message?.content;
 
-    if (altError) {
-      console.warn('Failed to fetch alternative conflicts:', altError.message);
-    }
+      if (!generatedContent) {
+        throw new Error('Failed to generate 40-beat sheet');
+      }
 
-    // Step 5: Build the prompt for AI generation  
-    const prompt = `You are a professional screenplay writer. Your job is to create a CUSTOM 40-beat story outline for this SPECIFIC story concept. DO NOT use generic templates.
-
-**THE STORY YOU MUST WRITE BEATS FOR:**
-LOGLINE: "${logline}"
-GENRE: ${genre}
-CHARACTERS: ${characters || 'Create character names that fit this story'}
-
-**ABSOLUTELY CRITICAL REQUIREMENTS:**
-1. EVERY SINGLE BEAT must directly relate to and advance the story described in the logline above
-2. DO NOT write generic template language like "Protagonist alone" or "Daily ritual" 
-3. USE the specific story elements, characters, and conflicts from the logline
-4. Each beat should be 1-2 specific sentences about what happens in THIS story
-5. Reference the actual characters and situations from the logline
-
-**EXAMPLE - If logline was "A detective must solve his partner's murder while hiding his own criminal past":**
-- Beat 1: "Detective Jake stares at crime scene photos of his murdered partner, knowing the killer might expose Jake's own secrets"
-- Beat 5: "Jake discovers a witness who can identify the killer, but realizes the witness also knows about Jake's illegal activities"
-
-**YOUR TASK:** Write 40 beats following this same approach for the logline: "${logline}"
-
-Use this beat structure (but customize ALL content for your story):
-${beatTemplates.map(bt => `Beat ${bt.id}: ${bt.title} (${bt.type}) - [Write specific content for "${logline}"]`).join('\n')}
-
-**CONFLICT INSPIRATION (use if relevant to your story):**
-${conflictChain.slice(0, 3).join(' • ')}
-
-Return ONLY this JSON format:
-{
-  "beats": [
-    {
-      "id": 1,
-      "title": "Opening Image",
-      "type": "Setup", 
-      "summary": "[Write specific beat content for the logline story]",
-      "alternatives": [
-        {"summary": "[Alternative version for this specific story]", "source_id": ${selectedConflict.id}},
-        {"summary": "[Another alternative for this specific story]", "source_id": ${selectedConflict.id}}
-      ]
-    }
-    // ... continue for all 40 beats with story-specific content
-  ]
-}
-
-REMEMBER: Every beat must be about the specific story in the logline "${logline}" - NO generic templates allowed!`;
-
-    console.log('Sending request to Together.ai for 40-beat generation');
-
-    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${togetherApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a professional screenplay and story structure expert. Generate detailed 40-beat sheets with alternatives. Always respond with valid JSON format.'
-          },
-          {
-            role: 'user',
-            content: prompt
+      // Try to parse the JSON response
+      let parsedBeats;
+      try {
+        console.log('Attempting to parse AI response...');
+        console.log('Raw response length:', generatedContent.length);
+        console.log('First 500 chars:', generatedContent.substring(0, 500));
+        
+        // Try multiple JSON extraction methods
+        let jsonContent = generatedContent;
+        
+        // Method 1: Extract from markdown code blocks
+        const jsonMatch = generatedContent.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+        if (jsonMatch) {
+          console.log('Found JSON in markdown block');
+          jsonContent = jsonMatch[1];
+        } else {
+          // Method 2: Look for JSON object starting with {
+          const objMatch = generatedContent.match(/\{[\s\S]*\}/);
+          if (objMatch) {
+            console.log('Found JSON object in response');
+            jsonContent = objMatch[0];
           }
-        ],
-        max_tokens: 4000,
-        temperature: 0.7
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Together AI API error: ${response.statusText}`);
-    }
-
-    const aiResponse = await response.json();
-    const generatedContent = aiResponse.choices[0]?.message?.content;
-
-    if (!generatedContent) {
-      throw new Error('Failed to generate 40-beat sheet');
-    }
-
-    // Try to parse the JSON response
-    let parsedBeats;
-    try {
-      console.log('Attempting to parse AI response...');
-      console.log('Raw response length:', generatedContent.length);
-      console.log('First 500 chars:', generatedContent.substring(0, 500));
-      
-      // Try multiple JSON extraction methods
-      let jsonContent = generatedContent;
-      
-      // Method 1: Extract from markdown code blocks
-      const jsonMatch = generatedContent.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
-      if (jsonMatch) {
-        console.log('Found JSON in markdown block');
-        jsonContent = jsonMatch[1];
-      } else {
-        // Method 2: Look for JSON object starting with {
-        const objMatch = generatedContent.match(/\{[\s\S]*\}/);
-        if (objMatch) {
-          console.log('Found JSON object in response');
-          jsonContent = objMatch[0];
         }
+        
+        console.log('Parsing JSON content:', jsonContent.substring(0, 200));
+        parsedBeats = JSON.parse(jsonContent);
+        
+        // Validate the structure
+        if (!parsedBeats.beats || !Array.isArray(parsedBeats.beats)) {
+          throw new Error('Invalid response structure: missing beats array');
+        }
+        
+        console.log('Successfully parsed', parsedBeats.beats.length, 'beats');
+        
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        console.error('Raw response:', generatedContent);
+        
+        // Create a fallback response using the beat templates
+        console.log('Creating fallback response...');
+        const fallbackBeats = beatTemplates.map((template, index) => ({
+          id: template.id,
+          title: template.title || `Beat ${template.id}`,
+          type: template.type || 'Unknown',
+          summary: `${template.function || 'Story development'} - Generated for ${genre} story`,
+          alternatives: []
+        }));
+        
+        parsedBeats = { beats: fallbackBeats };
+        console.log('Created fallback with', fallbackBeats.length, 'beats');
       }
-      
-      console.log('Parsing JSON content:', jsonContent.substring(0, 200));
-      parsedBeats = JSON.parse(jsonContent);
-      
-      // Validate the structure
-      if (!parsedBeats.beats || !Array.isArray(parsedBeats.beats)) {
-        throw new Error('Invalid response structure: missing beats array');
-      }
-      
-      console.log('Successfully parsed', parsedBeats.beats.length, 'beats');
-      
-    } catch (parseError) {
-      console.error('Failed to parse JSON response:', parseError);
-      console.error('Raw response:', generatedContent);
-      
-      // Create a fallback response using the beat templates
-      console.log('Creating fallback response...');
-      const fallbackBeats = beatTemplates.map((template, index) => ({
-        id: template.id,
-        title: template.title || `Beat ${template.id}`,
-        type: template.type || 'Unknown',
-        summary: `${template.function || 'Story development'} - Generated for ${genre} story`,
-        alternatives: []
-      }));
-      
-      parsedBeats = { beats: fallbackBeats };
-      console.log('Created fallback with', fallbackBeats.length, 'beats');
-    }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
-      beats: parsedBeats,
-      masterplotUsed: {
-        id: selectedMasterplot.masterplot_id,
-        story_type: selectedConflict.story_type
-      },
-      rawResponse: generatedContent
-    }), {
+      return { 
+        success: true, 
+        beats: parsedBeats,
+        masterplotUsed: {
+          id: selectedMasterplot.masterplot_id,
+          story_type: selectedConflict.story_type
+        },
+        rawResponse: generatedContent
+      };
+    };
+
+    // Execute with timeout
+    const result = await Promise.race([mainExecution(), timeoutPromise]);
+    
+    return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
