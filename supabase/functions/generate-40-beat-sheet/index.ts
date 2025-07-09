@@ -28,14 +28,23 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    console.log('Supabase config:', { 
+    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+    
+    console.log('Environment check:', { 
       hasUrl: !!supabaseUrl, 
       hasKey: !!supabaseKey,
+      hasTogetherKey: !!togetherApiKey,
       urlPrefix: supabaseUrl?.substring(0, 20) 
     });
     
     if (!supabaseUrl || !supabaseKey) {
+      console.error('Missing Supabase configuration');
       throw new Error('Supabase configuration missing');
+    }
+    
+    if (!togetherApiKey) {
+      console.error('Missing Together API key');
+      throw new Error('TOGETHER_API_KEY not configured');
     }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -168,12 +177,6 @@ Return ONLY this JSON format:
 REMEMBER: Every beat must be about the specific story in the logline "${logline}" - NO generic templates allowed!`;
 
     console.log('Sending request to Together.ai for 40-beat generation');
-
-    const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
-    console.log('Together API Key available:', !!togetherApiKey);
-    if (!togetherApiKey) {
-      throw new Error('TOGETHER_API_KEY not configured');
-    }
 
     const response = await fetch('https://api.together.xyz/v1/chat/completions', {
       method: 'POST',
