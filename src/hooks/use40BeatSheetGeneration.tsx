@@ -42,26 +42,34 @@ export const use40BeatSheetGeneration = () => {
     setIsGenerating(true);
     
     try {
+      console.log('Sending request to generate-40-beat-sheet:', request);
+      
       const { data, error } = await supabase.functions.invoke('generate-40-beat-sheet', {
         body: request
       });
 
-      if (error) throw error;
+      console.log('Response from edge function:', { data, error });
 
-      if (data.success) {
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (data && data.success) {
         toast({
           title: "Success",
           description: "40-beat sheet generated successfully!"
         });
         return data;
       } else {
-        throw new Error(data.error || 'Failed to generate 40-beat sheet');
+        console.error('Function returned error:', data);
+        throw new Error(data?.error || 'Failed to generate 40-beat sheet');
       }
     } catch (error) {
       console.error('Error generating 40-beat sheet:', error);
       toast({
         title: "Error",
-        description: "Failed to generate 40-beat sheet",
+        description: `Failed to generate 40-beat sheet: ${error.message}`,
         variant: "destructive"
       });
       return null;
