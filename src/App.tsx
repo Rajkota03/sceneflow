@@ -12,6 +12,7 @@ import Editor from './pages/Editor';
 import StructureEditor from './pages/StructureEditor';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
+import BeatBoard from './pages/BeatBoard';
 import { ScenePage } from './pages/scene/[sceneId]';
 import { Toaster } from '@/components/ui/toaster';
 import { FormatProvider } from '@/lib/formatContext';
@@ -113,6 +114,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Profile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/beat-board" 
+                element={
+                  <ProtectedRoute>
+                    <BeatBoard />
                   </ProtectedRoute>
                 } 
               />

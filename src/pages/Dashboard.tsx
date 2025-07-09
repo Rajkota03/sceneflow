@@ -7,6 +7,8 @@ import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
 import BeatGenerationTab from '@/components/dashboard/BeatGenerationTab';
+import { Button } from '@/components/ui/button';
+import { Wand2 } from 'lucide-react';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { useDashboardStructures } from '@/hooks/useDashboardStructures';
 import { Note, Structure } from '@/lib/types';
@@ -91,6 +93,21 @@ const Dashboard = () => {
       <Navbar />
       <div className="flex-1 overflow-auto">
         <div className="mx-auto max-w-7xl pt-20 pb-6 px-4 sm:px-6 lg:px-8">
+          {/* Hero Section */}
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Welcome to your Dashboard</h1>
+              <p className="text-gray-600">Manage your screenplays, notes, and story structures</p>
+            </div>
+            <Button 
+              onClick={() => navigate('/beat-board')}
+              className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              <Wand2 className="mr-2 h-5 w-5" />
+              40-Beat Story Board
+            </Button>
+          </div>
+          
           <Tabs 
             defaultValue="screenplays" 
             value={activeTab}
