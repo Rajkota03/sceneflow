@@ -328,7 +328,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      masterplot_conflict_view: {
+        Row: {
+          a_clause_label: string | null
+          a_clause_text: string | null
+          b_clause_label: string | null
+          b_clause_text: string | null
+          c_clause_label: string | null
+          c_clause_text: string | null
+          conflict_description: string | null
+          conflict_start_id: number | null
+          lead_ins: string | null
+          lead_outs: string | null
+          masterplot_id: string | null
+          story_type: string | null
+          sub_type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
