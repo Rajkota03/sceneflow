@@ -33,7 +33,9 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
     handleSaveStructure,
     resetToDefaultStructure,
     setIsEditing,
-    cancelEditing
+    cancelEditing,
+    setLocalStructure,
+    setHasChanges
   } = useStructureState({ structure, onStructureUpdate });
 
   useEffect(() => {
@@ -70,6 +72,11 @@ const StructurePanel: React.FC<StructurePanelProps> = ({
         onCancel={cancelEditing}
         onReset={isEditing ? resetToDefaultStructure : undefined}
         canEdit={!!onStructureUpdate}
+        selectedStructure={localStructure}
+        onBeatsGenerated={(updatedStructure) => {
+          setLocalStructure(updatedStructure);
+          setHasChanges(true);
+        }}
       />
       
       {!hasValidActs ? (

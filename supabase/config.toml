@@ -1,1 +1,4 @@
 project_id = "cxnmgrtcguwpwoueqwyl"
+
+[functions.generate-beats]
+verify_jwt = false

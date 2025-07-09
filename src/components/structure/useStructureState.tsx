@@ -211,6 +211,8 @@ export const useStructureState = ({ structure, onStructureUpdate }: UseStructure
     handleSaveStructure,
     resetToDefaultStructure,
     setIsEditing,
-    cancelEditing
+    cancelEditing,
+    setLocalStructure,
+    setHasChanges
   };
 };

@@ -2,9 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Edit, Save, FileText, RotateCcw } from 'lucide-react';
+import { Edit, Save, FileText, RotateCcw, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StructureProgressBar from './StructureProgressBar';
+import { BeatGenerationDialog } from '@/components/beat-generation/BeatGenerationDialog';
 
 interface StructureHeaderProps {
   name: string;
@@ -20,6 +21,8 @@ interface StructureHeaderProps {
   onCancel: () => void;
   onReset?: () => void;
   canEdit: boolean;
+  selectedStructure?: any;
+  onBeatsGenerated?: (updatedStructure: any) => void;
 }
 
 const StructureHeader: React.FC<StructureHeaderProps> = ({
@@ -35,7 +38,9 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
   onSave,
   onCancel,
   onReset,
-  canEdit
+  canEdit,
+  selectedStructure,
+  onBeatsGenerated
 }) => {
   return (
     <div className="mb-6 relative group">
@@ -92,7 +97,23 @@ const StructureHeader: React.FC<StructureHeaderProps> = ({
             </Button>
           </div>
         ) : (
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            {selectedStructure && onBeatsGenerated && (
+              <BeatGenerationDialog
+                selectedStructure={selectedStructure}
+                onBeatsGenerated={onBeatsGenerated}
+                trigger={
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="gap-2"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Generate Beats
+                  </Button>
+                }
+              />
+            )}
             <Button 
               size="sm" 
               variant={canEdit ? "default" : "outline"} 
