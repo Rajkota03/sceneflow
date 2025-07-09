@@ -73,17 +73,27 @@ function SortableBeatCard({ beat, onClick }: SortableBeatCardProps) {
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       className={cn(
         "transition-all duration-200",
         isDragging && "opacity-50 scale-105 z-50"
       )}
     >
       <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow hover-scale"
-        onClick={onClick}
+        className="hover:shadow-md transition-shadow relative group"
       >
-        <CardContent className="p-4 space-y-3">
+        <div 
+          {...listeners}
+          className="absolute top-2 right-2 w-4 h-4 opacity-30 group-hover:opacity-100 cursor-move z-10"
+        >
+          <div className="w-full h-full bg-muted-foreground rounded-sm"></div>
+        </div>
+        <CardContent 
+          className="p-4 space-y-3 cursor-pointer" 
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
+        >
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Badge 
@@ -101,7 +111,7 @@ function SortableBeatCard({ beat, onClick }: SortableBeatCardProps) {
           </p>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{beat.alternatives?.length || 0} alternatives</span>
-            <span className="text-xs opacity-50">Drag to reorder</span>
+            <span className="text-xs opacity-50 group-hover:opacity-100">Click for alternatives</span>
           </div>
         </CardContent>
       </Card>

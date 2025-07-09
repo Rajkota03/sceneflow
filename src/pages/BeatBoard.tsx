@@ -10,12 +10,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { use40BeatSheetGeneration } from '@/hooks/use40BeatSheetGeneration';
 import { BeatGrid } from '@/components/beat-board/BeatGrid';
 import { BeatAlternativesDrawer } from '@/components/beat-board/BeatAlternativesDrawer';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Wand2, RotateCcw } from 'lucide-react';
+import { Loader2, Save, Wand2, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const formSchema = z.object({
   genre: z.string().min(1, 'Genre is required'),
@@ -43,6 +44,7 @@ export default function BeatBoard() {
   const [selectedBeat, setSelectedBeat] = useState<Beat40 | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFormCollapsed, setIsFormCollapsed] = useState(false);
   
   const { generate40BeatSheet, isGenerating } = use40BeatSheetGeneration();
   const { toast } = useToast();
@@ -200,14 +202,28 @@ export default function BeatBoard() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Generation Form */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wand2 className="h-5 w-5" />
-                Generate Beats
-              </CardTitle>
-            </CardHeader>
+        <div className={`lg:col-span-1 transition-all duration-300 ${isFormCollapsed ? 'lg:w-16' : ''}`}>
+          <Card className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsFormCollapsed(!isFormCollapsed)}
+              className="absolute top-2 right-2 z-10"
+            >
+              {isFormCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+            
+            <Collapsible open={!isFormCollapsed} onOpenChange={(open) => setIsFormCollapsed(!open)}>
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer">
+                  <CardTitle className="flex items-center gap-2">
+                    <Wand2 className="h-5 w-5" />
+                    {!isFormCollapsed && "Generate Beats"}
+                  </CardTitle>
+                </CardHeader>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent>
             <CardContent className="space-y-4">
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="space-y-2">
@@ -362,12 +378,14 @@ export default function BeatBoard() {
                   </p>
                 </div>
               )}
-            </CardContent>
+              </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </Card>
         </div>
 
         {/* Beat Grid */}
-        <div className="lg:col-span-2">
+        <div className={`transition-all duration-300 ${isFormCollapsed ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
           <Card>
             <CardHeader>
               <CardTitle>Story Beats</CardTitle>
