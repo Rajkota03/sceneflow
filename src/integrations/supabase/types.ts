@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      beat_generations: {
+        Row: {
+          created_at: string
+          custom_prompt: string | null
+          generated_beats: Json
+          genre: string
+          id: string
+          structure_type: string
+          theme: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_prompt?: string | null
+          generated_beats: Json
+          genre: string
+          id?: string
+          structure_type: string
+          theme: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_prompt?: string | null
+          generated_beats?: Json
+          genre?: string
+          id?: string
+          structure_type?: string
+          theme?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      beat_templates: {
+        Row: {
+          created_at: string
+          custom_prompt: string | null
+          description: string | null
+          genre: string
+          id: string
+          is_public: boolean
+          name: string
+          structure_type: string
+          theme: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_prompt?: string | null
+          description?: string | null
+          genre: string
+          id?: string
+          is_public?: boolean
+          name: string
+          structure_type: string
+          theme: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_prompt?: string | null
+          description?: string | null
+          genre?: string
+          id?: string
+          is_public?: boolean
+          name?: string
+          structure_type?: string
+          theme?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       project_structures: {
         Row: {
           created_at: string

@@ -6,6 +6,7 @@ import { useAuth } from '@/App';
 import ScreenplaysTab from '@/components/dashboard/ScreenplaysTab';
 import NotesTab from '@/components/dashboard/NotesTab';
 import StructuresTab from '@/components/dashboard/StructuresTab';
+import BeatGenerationTab from '@/components/dashboard/BeatGenerationTab';
 import { useDashboardProjects } from '@/hooks/useDashboardProjects';
 import { useDashboardStructures } from '@/hooks/useDashboardStructures';
 import { Note, Structure } from '@/lib/types';
@@ -96,10 +97,11 @@ const Dashboard = () => {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="screenplays">Screenplays</TabsTrigger>
               <TabsTrigger value="notes">Notes</TabsTrigger>
               <TabsTrigger value="structures">Structures</TabsTrigger>
+              <TabsTrigger value="beats">Beat Generation</TabsTrigger>
             </TabsList>
             
             <TabsContent value="screenplays">
@@ -140,6 +142,10 @@ const Dashboard = () => {
                 handleEditStructure={handleEditStructure}
                 handleDeleteStructure={handleDeleteStructure}
               />
+            </TabsContent>
+            
+            <TabsContent value="beats">
+              <BeatGenerationTab />
             </TabsContent>
           </Tabs>
         </div>
