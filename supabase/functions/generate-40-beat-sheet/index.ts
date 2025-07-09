@@ -121,59 +121,51 @@ serve(async (req) => {
       console.warn('Failed to fetch alternative conflicts:', altError.message);
     }
 
-    // Step 5: Build the prompt for AI generation
-    const prompt = `You are a professional story-development AI. Create a 40-beat sheet SPECIFICALLY for this story concept.
+    // Step 5: Build the prompt for AI generation  
+    const prompt = `You are a professional screenplay writer. Your job is to create a CUSTOM 40-beat story outline for this SPECIFIC story concept. DO NOT use generic templates.
 
-**STORY TO DEVELOP**
-Genre: ${genre}
-Logline: ${logline}
-Character Names: ${characters || 'Create appropriate character names'}
+**THE STORY YOU MUST WRITE BEATS FOR:**
+LOGLINE: "${logline}"
+GENRE: ${genre}
+CHARACTERS: ${characters || 'Create character names that fit this story'}
 
-**CRITICAL INSTRUCTIONS**
-- Create beats that are SPECIFIC to this exact story, not generic templates
-- Each beat summary must advance THIS PARTICULAR STORY described in the logline
-- Use the logline as the foundation - every beat should connect to this specific premise
-- If character names are provided, use them. If not, create fitting names for this story
-- Make each beat summary cinematic, specific, and unique to this story concept
+**ABSOLUTELY CRITICAL REQUIREMENTS:**
+1. EVERY SINGLE BEAT must directly relate to and advance the story described in the logline above
+2. DO NOT write generic template language like "Protagonist alone" or "Daily ritual" 
+3. USE the specific story elements, characters, and conflicts from the logline
+4. Each beat should be 1-2 specific sentences about what happens in THIS story
+5. Reference the actual characters and situations from the logline
 
-**BEAT STRUCTURE TO FOLLOW**
-${JSON.stringify(beatTemplates.slice(0, 10))} 
-[... and 30 more beats with similar structure]
+**EXAMPLE - If logline was "A detective must solve his partner's murder while hiding his own criminal past":**
+- Beat 1: "Detective Jake stares at crime scene photos of his murdered partner, knowing the killer might expose Jake's own secrets"
+- Beat 5: "Jake discovers a witness who can identify the killer, but realizes the witness also knows about Jake's illegal activities"
 
-**MASTERPLOT ELEMENTS TO WEAVE IN**
-- A-Clause: ${selectedMasterplot.a_clause_text || 'Character motivation'}
-- B-Clause: ${selectedMasterplot.b_clause_text || 'Central conflict'}  
-- C-Clause: ${selectedMasterplot.c_clause_text || 'Resolution theme'}
+**YOUR TASK:** Write 40 beats following this same approach for the logline: "${logline}"
 
-**CONFLICT SITUATIONS FOR INSPIRATION**
+Use this beat structure (but customize ALL content for your story):
+${beatTemplates.map(bt => `Beat ${bt.id}: ${bt.title} (${bt.type}) - [Write specific content for "${logline}"]`).join('\n')}
+
+**CONFLICT INSPIRATION (use if relevant to your story):**
 ${conflictChain.slice(0, 3).join(' • ')}
 
-**EXAMPLE OF WHAT I WANT**
-Instead of: "Protagonist alone, performing a daily ritual in..."
-Write: "Tony discovers his wife's affair while checking her phone, shattering his world..." (if that fits the logline)
-
-**ALTERNATIVES**
-For each beat, provide 2-3 alternatives from these conflict types:
-${(alternativeConflicts || []).slice(0, 5).map(c => `ID ${c.id}: ${c.description}`).join('\n')}
-
-Return JSON exactly in this format:
+Return ONLY this JSON format:
 {
   "beats": [
     {
       "id": 1,
-      "title": "${beatTemplates[0]?.title || 'Opening Image'}",
-      "type": "${beatTemplates[0]?.type || 'Setup'}",
-      "summary": "SPECIFIC BEAT FOR THIS STORY - not generic template",
+      "title": "Opening Image",
+      "type": "Setup", 
+      "summary": "[Write specific beat content for the logline story]",
       "alternatives": [
-        {"summary": "Alternative specific to this story", "source_id": 110},
-        {"summary": "Another alternative for this story", "source_id": 112}
+        {"summary": "[Alternative version for this specific story]", "source_id": ${selectedConflict.id}},
+        {"summary": "[Another alternative for this specific story]", "source_id": ${selectedConflict.id}}
       ]
     }
-    ... (continue for all 40 beats)
+    // ... continue for all 40 beats with story-specific content
   ]
 }
 
-**FINAL REMINDER: Make every beat about THIS SPECIFIC STORY from the logline, not generic story beats!**`;
+REMEMBER: Every beat must be about the specific story in the logline "${logline}" - NO generic templates allowed!`;
 
     console.log('Sending request to Together.ai for 40-beat generation');
 
