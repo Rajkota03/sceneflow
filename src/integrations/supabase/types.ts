@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      masterplots: {
+        Row: {
+          a_clause_label: string | null
+          a_clause_text: string | null
+          b_clause_label: string | null
+          b_clause_text: string | null
+          c_clause_label: string | null
+          c_clause_text: string | null
+          conflict_start_id: number | null
+          created_at: string
+          masterplot_id: string
+          updated_at: string
+        }
+        Insert: {
+          a_clause_label?: string | null
+          a_clause_text?: string | null
+          b_clause_label?: string | null
+          b_clause_text?: string | null
+          c_clause_label?: string | null
+          c_clause_text?: string | null
+          conflict_start_id?: number | null
+          created_at?: string
+          masterplot_id: string
+          updated_at?: string
+        }
+        Update: {
+          a_clause_label?: string | null
+          a_clause_text?: string | null
+          b_clause_label?: string | null
+          b_clause_text?: string | null
+          c_clause_label?: string | null
+          c_clause_text?: string | null
+          conflict_start_id?: number | null
+          created_at?: string
+          masterplot_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       project_structures: {
         Row: {
           created_at: string
