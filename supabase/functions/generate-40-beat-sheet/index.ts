@@ -122,54 +122,58 @@ serve(async (req) => {
     }
 
     // Step 5: Build the prompt for AI generation
-    const prompt = `You are a professional story-development AI.
+    const prompt = `You are a professional story-development AI. Create a 40-beat sheet SPECIFICALLY for this story concept.
 
-**Inputs**
+**STORY TO DEVELOP**
 Genre: ${genre}
 Logline: ${logline}
-Character Names (optional): ${characters || 'Not provided'}
+Character Names: ${characters || 'Create appropriate character names'}
 
-**Data Sources**
-1. beat_template: ${JSON.stringify(beatTemplates)}
-2. selected_masterplot: ${JSON.stringify(selectedMasterplot)}
-3. selected_conflict: ${JSON.stringify(selectedConflict)}
-4. conflict_chain: ${JSON.stringify(conflictChain)}
-5. alternative_conflicts: ${JSON.stringify(alternativeConflicts || [])}
+**CRITICAL INSTRUCTIONS**
+- Create beats that are SPECIFIC to this exact story, not generic templates
+- Each beat summary must advance THIS PARTICULAR STORY described in the logline
+- Use the logline as the foundation - every beat should connect to this specific premise
+- If character names are provided, use them. If not, create fitting names for this story
+- Make each beat summary cinematic, specific, and unique to this story concept
 
-**Logic**
-For each of the 40 beats:
-• Use beat_template.function as scaffold
-• Weave in plot content derived from:
-  - a_clause_text: "${selectedMasterplot.a_clause_text || ''}"
-  - b_clause_text: "${selectedMasterplot.b_clause_text || ''}"
-  - c_clause_text: "${selectedMasterplot.c_clause_text || ''}"
-  - conflict_description and lead_outs from conflict chain
-• If characters provided, replace generic roles with: ${characters || 'generic protagonist'}
-• Provide 2-3 alternatives (summaries + source_id) drawn from alternative_conflicts
+**BEAT STRUCTURE TO FOLLOW**
+${JSON.stringify(beatTemplates.slice(0, 10))} 
+[... and 30 more beats with similar structure]
+
+**MASTERPLOT ELEMENTS TO WEAVE IN**
+- A-Clause: ${selectedMasterplot.a_clause_text || 'Character motivation'}
+- B-Clause: ${selectedMasterplot.b_clause_text || 'Central conflict'}  
+- C-Clause: ${selectedMasterplot.c_clause_text || 'Resolution theme'}
+
+**CONFLICT SITUATIONS FOR INSPIRATION**
+${conflictChain.slice(0, 3).join(' • ')}
+
+**EXAMPLE OF WHAT I WANT**
+Instead of: "Protagonist alone, performing a daily ritual in..."
+Write: "Tony discovers his wife's affair while checking her phone, shattering his world..." (if that fits the logline)
+
+**ALTERNATIVES**
+For each beat, provide 2-3 alternatives from these conflict types:
+${(alternativeConflicts || []).slice(0, 5).map(c => `ID ${c.id}: ${c.description}`).join('\n')}
 
 Return JSON exactly in this format:
 {
   "beats": [
     {
       "id": 1,
-      "title": "Opening Image",
-      "type": "Setup",
-      "summary": "...",
+      "title": "${beatTemplates[0]?.title || 'Opening Image'}",
+      "type": "${beatTemplates[0]?.type || 'Setup'}",
+      "summary": "SPECIFIC BEAT FOR THIS STORY - not generic template",
       "alternatives": [
-        {"summary": "...", "source_id": 110},
-        {"summary": "...", "source_id": 112}
+        {"summary": "Alternative specific to this story", "source_id": 110},
+        {"summary": "Another alternative for this story", "source_id": 112}
       ]
-    },
+    }
     ... (continue for all 40 beats)
   ]
 }
 
-**Rules**
-- Keep each summary ≤ 50 words, cinematic & specific
-- Never invent beats outside the 1-40 list
-- Maintain internal logic/tone
-- Use the exact beat titles and types from beat_template
-- Generate realistic alternatives using the provided alternative_conflicts data`;
+**FINAL REMINDER: Make every beat about THIS SPECIFIC STORY from the logline, not generic story beats!**`;
 
     console.log('Sending request to Together.ai for 40-beat generation');
 
