@@ -275,9 +275,12 @@ REMEMBER: Every beat must be about the specific story in the logline "${logline}
 
   } catch (error) {
     console.error('Error in generate-40-beat-sheet function:', error);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message 
+      error: error.message,
+      stack: error.stack 
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
