@@ -13,9 +13,12 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting 40-beat sheet generation...');
     const { genre, logline, characters, model = 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' } = await req.json();
+    console.log('Request params:', { genre, logline, characters, model });
 
     if (!genre || !logline) {
+      console.log('Missing required parameters');
       return new Response(
         JSON.stringify({ error: 'Missing required parameters: genre and logline are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -23,20 +26,33 @@ serve(async (req) => {
     }
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    console.log('Supabase config:', { 
+      hasUrl: !!supabaseUrl, 
+      hasKey: !!supabaseKey,
+      urlPrefix: supabaseUrl?.substring(0, 20) 
+    });
+    
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase configuration missing');
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Step 1: Get all 40 beats from beat_template
+    console.log('Fetching beat templates...');
     const { data: beatTemplates, error: beatError } = await supabase
       .from('beat_template')
       .select('*')
       .order('id');
 
     if (beatError) {
+      console.error('Beat template error:', beatError);
       throw new Error(`Failed to fetch beat templates: ${beatError.message}`);
     }
 
+    console.log(`Found ${beatTemplates?.length || 0} beat templates`);
     if (!beatTemplates || beatTemplates.length !== 40) {
       throw new Error(`Expected 40 beats but found ${beatTemplates?.length || 0}`);
     }
@@ -158,6 +174,7 @@ Return JSON exactly in this format:
     console.log('Sending request to Together.ai for 40-beat generation');
 
     const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
+    console.log('Together API Key available:', !!togetherApiKey);
     if (!togetherApiKey) {
       throw new Error('TOGETHER_API_KEY not configured');
     }
