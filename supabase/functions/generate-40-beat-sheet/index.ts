@@ -41,11 +41,27 @@ serve(async (req) => {
       throw new Error(`Expected 40 beats but found ${beatTemplates?.length || 0}`);
     }
 
-    // Step 2: Query masterplot_conflict_view for matching genre
-    const { data: masterplots, error: masterplotError } = await supabase
-      .from('masterplot_conflict_view')
+    // Step 2: Query conflict_situations for matching genre (since masterplot_conflict_view has null story_types)
+    const { data: conflicts, error: conflictError } = await supabase
+      .from('conflict_situations')
       .select('*')
       .ilike('story_type', `%${genre}%`)
+      .limit(1);
+
+    if (conflictError) {
+      throw new Error(`Failed to fetch conflicts: ${conflictError.message}`);
+    }
+
+    if (!conflicts || conflicts.length === 0) {
+      throw new Error(`No conflicts found for genre: ${genre}`);
+    }
+
+    const selectedConflict = conflicts[0];
+
+    // Get a random masterplot for the structure
+    const { data: masterplots, error: masterplotError } = await supabase
+      .from('masterplots')
+      .select('*')
       .limit(1);
 
     if (masterplotError) {
@@ -53,16 +69,16 @@ serve(async (req) => {
     }
 
     if (!masterplots || masterplots.length === 0) {
-      throw new Error(`No masterplots found for genre: ${genre}`);
+      throw new Error(`No masterplots found`);
     }
 
     const selectedMasterplot = masterplots[0];
 
-    // Step 3: Build conflict chain using lead_outs
-    let conflictChain = [selectedMasterplot.conflict_description || ''];
+    // Step 3: Build conflict chain using lead_outs from selected conflict
+    let conflictChain = [selectedConflict.description || ''];
     
-    if (selectedMasterplot.lead_outs) {
-      const leadOutIds = selectedMasterplot.lead_outs.split(',').map(id => parseInt(id.trim()));
+    if (selectedConflict.lead_outs) {
+      const leadOutIds = selectedConflict.lead_outs.split(',').map(id => parseInt(id.trim()));
       
       for (const leadOutId of leadOutIds.slice(0, 2)) {
         const { data: nextConflict } = await supabase
@@ -77,12 +93,12 @@ serve(async (req) => {
       }
     }
 
-    // Step 4: Get alternative conflicts for same story type
+    // Step 4: Get alternative conflicts for same story type  
     const { data: alternativeConflicts, error: altError } = await supabase
       .from('conflict_situations')
       .select('id, description')
       .ilike('story_type', `%${genre}%`)
-      .neq('id', selectedMasterplot.conflict_start_id || 0)
+      .neq('id', selectedConflict.id)
       .limit(10);
 
     if (altError) {
@@ -100,8 +116,9 @@ Character Names (optional): ${characters || 'Not provided'}
 **Data Sources**
 1. beat_template: ${JSON.stringify(beatTemplates)}
 2. selected_masterplot: ${JSON.stringify(selectedMasterplot)}
-3. conflict_chain: ${JSON.stringify(conflictChain)}
-4. alternative_conflicts: ${JSON.stringify(alternativeConflicts || [])}
+3. selected_conflict: ${JSON.stringify(selectedConflict)}
+4. conflict_chain: ${JSON.stringify(conflictChain)}
+5. alternative_conflicts: ${JSON.stringify(alternativeConflicts || [])}
 
 **Logic**
 For each of the 40 beats:
@@ -207,9 +224,9 @@ Return JSON exactly in this format:
       beats: parsedBeats,
       masterplotUsed: {
         id: selectedMasterplot.masterplot_id,
-        story_type: selectedMasterplot.story_type
+        story_type: selectedConflict.story_type
       },
-      rawResponse: generatedContent 
+      rawResponse: generatedContent
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
