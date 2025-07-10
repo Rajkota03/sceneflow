@@ -114,22 +114,28 @@ serve(async (req) => {
       // Simplified conflict inspiration
       const conflictInspiration = selectedConflict.description || '';
 
-      // Build simplified, shorter prompt for AI generation  
-      const prompt = `Create a 40-beat story outline for: "${logline}" (${genre})
+      // Build story-specific prompt focusing on actual events, not templates
+      const prompt = `Write a 40-beat story progression for this specific story: "${logline}"
 
-Characters: ${characters || 'Create appropriate character names'}
+Genre: ${genre}
+Characters: ${characters || 'Create character names that fit this story'}
 
-Write SPECIFIC beats for THIS story. Each beat = 1-2 sentences about what happens.
+Create 40 specific story events that happen in this exact story. Each beat should describe what actually happens to these characters in this story.
 
-Beat structure:
-${beatTemplates.slice(0, 10).map(bt => `${bt.id}: ${bt.title}`).join(', ')}... (continue for all 40)
+DO NOT use generic screenplay terms like "Opening Image" or "Theme Stated". Instead, describe the actual events.
 
-Inspiration: ${conflictInspiration}
+Examples of what I want:
+- "Tony finds the old treasure map in his grandmother's attic"
+- "The friends argue about whether to trust Tony's crazy plan"
+- "They sneak into the abandoned mine at midnight"
 
-Return JSON:
-{"beats": [{"id": 1, "title": "Opening Image", "type": "Setup", "summary": "SPECIFIC EVENT FOR THIS STORY", "alternatives": []}]}
+Return JSON with 40 beats like this:
+{"beats": [
+  {"id": 1, "title": "Tony discovers the map", "type": "Setup", "summary": "Tony finds his grandfather's old treasure map while cleaning out the attic, showing it marks a location near their town", "alternatives": []},
+  {"id": 2, "title": "Friends are skeptical", "type": "Setup", "summary": "Tony shows the map to his friends who think it's probably fake, but agree to research it online", "alternatives": []}
+]}
 
-CRITICAL: Write about the specific logline story, not generic templates.`;
+Write about THIS SPECIFIC STORY with these characters and this plot. Make each beat a real event that happens.`;
 
       console.log('Sending request to Together.ai for 40-beat generation');
 
