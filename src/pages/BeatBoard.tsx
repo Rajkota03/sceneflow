@@ -426,39 +426,65 @@ export default function BeatBoard() {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  {/* Generation Mode Toggle */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Generation Method</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        type="button"
-                        variant={generationMode === 'planner' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setGenerationMode('planner')}
-                        className="flex items-center gap-2"
-                      >
-                        <Target className="h-4 w-4" />
-                        Planner + Writer
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={generationMode === 'dump' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setGenerationMode('dump')}
-                        className="flex items-center gap-2"
-                      >
-                        <Zap className="h-4 w-4" />
-                        Quick 40 Beats
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {generationMode === 'planner' 
-                        ? 'Two-phase approach: structure planning then beat writing'
-                        : 'Direct generation of 40 beats based on masterplot templates'
-                      }
-                    </p>
-                  </div>
+                  <div className="space-y-4">
+                   {/* Generation Mode Toggle */}
+                   <div className="space-y-2">
+                     <Label className="text-sm font-medium">Generation Method</Label>
+                     <div className="grid grid-cols-2 gap-2">
+                       <Button
+                         type="button"
+                         variant={generationMode === 'planner' ? 'default' : 'outline'}
+                         size="sm"
+                         onClick={() => setGenerationMode('planner')}
+                         className="flex items-center gap-2"
+                       >
+                         <Target className="h-4 w-4" />
+                         Planner + Writer
+                       </Button>
+                       <Button
+                         type="button"
+                         variant={generationMode === 'dump' ? 'default' : 'outline'}
+                         size="sm"
+                         onClick={() => setGenerationMode('dump')}
+                         className="flex items-center gap-2"
+                       >
+                         <Zap className="h-4 w-4" />
+                         Quick 40 Beats
+                       </Button>
+                     </div>
+                     <p className="text-xs text-muted-foreground">
+                       {generationMode === 'planner' 
+                         ? 'Two-phase approach: structure planning then beat writing'
+                         : 'Direct generation of 40 beats based on masterplot templates'
+                       }
+                     </p>
+                   </div>
+
+                   {/* Beat Granularity Options - Only show when Planner + Writer is selected */}
+                   {generationMode === 'planner' && (
+                     <div className="space-y-2">
+                       <Label className="text-sm font-medium">Beat Detail Level</Label>
+                       <div className="space-y-2">
+                         <div className="text-xs text-muted-foreground mb-2">
+                           Choose the level of detail for your story beats:
+                         </div>
+                         <div className="flex items-center space-x-2">
+                           <span className="text-xs">Macro</span>
+                           <div className="flex-1 bg-muted rounded-full h-2 relative">
+                             <div className="absolute left-0 w-1/3 h-full bg-primary/30 rounded-full"></div>
+                             <div className="absolute left-1/3 w-1/3 h-full bg-primary/60 rounded-full"></div>
+                             <div className="absolute left-2/3 w-1/3 h-full bg-primary rounded-full"></div>
+                           </div>
+                           <span className="text-xs">Mini</span>
+                         </div>
+                         <div className="text-xs text-muted-foreground space-y-1">
+                           <div><strong>Macro beats:</strong> ~15-20 high-level story moments</div>
+                           <div><strong>Standard beats:</strong> ~40 detailed story beats (current)</div>
+                           <div><strong>Mini beats:</strong> ~80+ granular scene-level beats</div>
+                         </div>
+                       </div>
+                     </div>
+                   )}
 
                   <Button 
                     type="submit" 
