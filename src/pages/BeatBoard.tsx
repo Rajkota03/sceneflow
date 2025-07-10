@@ -15,10 +15,11 @@ import { useToast } from '@/hooks/use-toast';
 import { use40BeatSheetGeneration } from '@/hooks/use40BeatSheetGeneration';
 import { useDownstreamRegeneration } from '@/hooks/useDownstreamRegeneration';
 import { useAutoGenerateAlternatives } from '@/hooks/useAutoGenerateAlternatives';
+import { usePlannerWriterGeneration } from '@/hooks/usePlannerWriterGeneration';
 import { BeatGrid } from '@/components/beat-board/BeatGrid';
 import { BeatAlternativesDrawer } from '@/components/beat-board/BeatAlternativesDrawer';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, Wand2, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Save, Wand2, RotateCcw, ChevronLeft, ChevronRight, Zap, Target } from 'lucide-react';
 
 const formSchema = z.object({
   genre: z.string().min(1, 'Genre is required'),
@@ -48,10 +49,19 @@ export default function BeatBoard() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isFormCollapsed, setIsFormCollapsed] = useState(false);
+  const [generationMode, setGenerationMode] = useState<'dump' | 'planner'>('planner');
+  const [currentPlan, setCurrentPlan] = useState(null);
   
   const { generate40BeatSheet, isGenerating } = use40BeatSheetGeneration();
   const { regenerateDownstream, isRegenerating } = useDownstreamRegeneration();
   const { generateAlternativesForFirstBeats, isGenerating: isAutoGenerating } = useAutoGenerateAlternatives();
+  const { 
+    generateFullStory, 
+    isPlanning, 
+    isWriting, 
+    planningProgress, 
+    writingProgress 
+  } = usePlannerWriterGeneration();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -67,25 +77,63 @@ export default function BeatBoard() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const result = await generate40BeatSheet({
-        genre: data.genre,
-        logline: data.logline,
-        characters: data.characters,
-        model: data.model,
-      });
+      if (generationMode === 'planner') {
+        // Use the new Planner + Writer system
+        const { plan, beats: generatedBeats } = await generateFullStory(
+          {
+            logline: data.logline,
+            genre: data.genre,
+            characters: data.characters,
+          },
+          (plan) => {
+            setCurrentPlan(plan);
+            toast({
+              title: "Plan Created!",
+              description: `Story structure planned with ${plan.character_arcs?.length || 0} character arcs`,
+            });
+          },
+          (progress, currentBeats) => {
+            // Transform GeneratedBeat[] to Beat40[]
+            const transformedBeats: Beat40[] = currentBeats.map(beat => ({
+              ...beat,
+              alternatives: []
+            }));
+            setBeats(transformedBeats);
+          }
+        );
 
-      if (result && result.beats) {
-        const generatedBeats = result.beats.beats || [];
-        setBeats(generatedBeats);
+        // Transform GeneratedBeat[] to Beat40[]
+        const transformedBeats: Beat40[] = generatedBeats.map(beat => ({
+          ...beat,
+          alternatives: []
+        }));
+        setBeats(transformedBeats);
         toast({
-          title: "Success!",
-          description: `Generated ${generatedBeats.length} beats using ${result.masterplotUsed?.story_type}`,
+          title: "Story Complete!",
+          description: `Generated ${generatedBeats.length} beats using Planner + Writer system`,
+        });
+      } else {
+        // Use the original 40-beat dump system
+        const result = await generate40BeatSheet({
+          genre: data.genre,
+          logline: data.logline,
+          characters: data.characters,
+          model: data.model,
         });
 
-        // Auto-generate alternatives for the first 5 beats
-        if (generatedBeats.length > 0) {
-          const beatsWithAlternatives = await generateAlternativesForFirstBeats(generatedBeats, 5);
-          setBeats(beatsWithAlternatives);
+        if (result && result.beats) {
+          const generatedBeats = result.beats.beats || [];
+          setBeats(generatedBeats);
+          toast({
+            title: "Success!",
+            description: `Generated ${generatedBeats.length} beats using ${result.masterplotUsed?.story_type}`,
+          });
+
+          // Auto-generate alternatives for the first 5 beats
+          if (generatedBeats.length > 0) {
+            const beatsWithAlternatives = await generateAlternativesForFirstBeats(generatedBeats, 5);
+            setBeats(beatsWithAlternatives);
+          }
         }
       }
     } catch (error) {
@@ -378,13 +426,56 @@ export default function BeatBoard() {
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Generation Mode Toggle */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Generation Method</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={generationMode === 'planner' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setGenerationMode('planner')}
+                        className="flex items-center gap-2"
+                      >
+                        <Target className="h-4 w-4" />
+                        Planner + Writer
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={generationMode === 'dump' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setGenerationMode('dump')}
+                        className="flex items-center gap-2"
+                      >
+                        <Zap className="h-4 w-4" />
+                        Quick 40 Beats
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {generationMode === 'planner' 
+                        ? 'Two-phase approach: structure planning then beat writing'
+                        : 'Direct generation of 40 beats based on masterplot templates'
+                      }
+                    </p>
+                  </div>
+
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isGenerating || isAutoGenerating}
+                    disabled={isGenerating || isAutoGenerating || isPlanning || isWriting}
                   >
-                    {isGenerating ? (
+                    {isPlanning ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Planning Structure ({planningProgress}%)...
+                      </>
+                    ) : isWriting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Writing Beats ({Math.round(writingProgress)}%)...
+                      </>
+                    ) : isGenerating ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Generating Beats...
@@ -396,8 +487,17 @@ export default function BeatBoard() {
                       </>
                     ) : (
                       <>
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        Generate 40 Beats
+                        {generationMode === 'planner' ? (
+                          <>
+                            <Target className="mr-2 h-4 w-4" />
+                            Plan & Write Story
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="mr-2 h-4 w-4" />
+                            Generate 40 Beats
+                          </>
+                        )}
                       </>
                     )}
                   </Button>
@@ -445,8 +545,16 @@ export default function BeatBoard() {
                     <Badge variant="secondary">{beats.length} beats</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    ✨ First 5 beats include auto-generated alternatives • Click any beat to explore or generate more
+                    {generationMode === 'planner' 
+                      ? '🎯 Story created using Planner + Writer system • Click any beat to explore'
+                      : '✨ First 5 beats include auto-generated alternatives • Click any beat to explore or generate more'
+                    }
                   </p>
+                  {currentPlan && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      📋 Plan: {currentPlan.title} • Theme: {currentPlan.theme}
+                    </div>
+                  )}
                 </div>
               )}
               </CardContent>
