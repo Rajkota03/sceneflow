@@ -83,12 +83,43 @@ serve(async (req) => {
   }
 
   try {
-    const { structurePlan, beatSlots, startIndex = 0, batchSize = 10 } = await req.json();
+    console.log('=== STORY-WRITER DEBUG: Function started ===');
+    console.log('Request method:', req.method);
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    
+    let requestBody;
+    try {
+      requestBody = await req.json();
+      console.log('=== STORY-WRITER DEBUG: Request body parsed ===');
+      console.log('Request body keys:', Object.keys(requestBody));
+    } catch (parseError) {
+      console.error('=== STORY-WRITER DEBUG: Failed to parse request body ===');
+      console.error('Parse error:', parseError);
+      throw new Error('Invalid JSON in request body');
+    }
 
+    const { structurePlan, beatSlots, startIndex = 0, batchSize = 10 } = requestBody;
+
+    console.log('=== STORY-WRITER DEBUG: Input validation ===');
     console.log('Writing beats for slots:', { startIndex, batchSize, totalSlots: beatSlots?.length });
+    console.log('Structure plan exists:', !!structurePlan);
+    console.log('Beat slots exists:', !!beatSlots);
 
-    if (!structurePlan || !beatSlots) {
-      throw new Error('Structure plan and beat slots are required');
+    if (!structurePlan) {
+      console.error('=== STORY-WRITER DEBUG: Missing structure plan ===');
+      throw new Error('Structure plan is required');
+    }
+    
+    if (!beatSlots) {
+      console.error('=== STORY-WRITER DEBUG: Missing beat slots ===');
+      throw new Error('Beat slots are required');
+    }
+
+    console.log('=== STORY-WRITER DEBUG: Together API Key check ===');
+    console.log('Together API Key exists:', !!togetherApiKey);
+    if (!togetherApiKey) {
+      console.error('=== STORY-WRITER DEBUG: Missing Together API key ===');
+      throw new Error('Together API key not configured');
     }
 
     // Get the beats to process in this batch
@@ -149,26 +180,56 @@ Return your response as a JSON array of beat objects:
   }
 ]`;
 
-    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${togetherApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: WRITER_PROMPT },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.8,
-        max_tokens: 3000,
-      }),
-    });
+    console.log('=== STORY-WRITER DEBUG: Making Together.AI API call ===');
+    console.log('Prompt length:', userPrompt.length);
+    console.log('Beats to process:', beatsToProcess.length);
+    
+    const apiBody = {
+      model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: WRITER_PROMPT },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.8,
+      max_tokens: 3000,
+    };
+    
+    console.log('API request body prepared');
+    
+    let response;
+    try {
+      response = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${togetherApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiBody),
+      });
+      
+      console.log('=== STORY-WRITER DEBUG: API Response received ===');
+      console.log('Response status:', response.status);
+      console.log('Response status text:', response.statusText);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
+    } catch (fetchError) {
+      console.error('=== STORY-WRITER DEBUG: Fetch error ===');
+      console.error('Fetch error:', fetchError);
+      throw new Error(`Network error calling Together.AI: ${fetchError.message}`);
+    }
 
     if (!response.ok) {
-      throw new Error(`Together.AI API error: ${response.status} ${response.statusText}`);
+      console.error('=== STORY-WRITER DEBUG: API Error Response ===');
+      let errorText;
+      try {
+        errorText = await response.text();
+        console.error('Error response body:', errorText);
+      } catch (textError) {
+        console.error('Could not read error response body:', textError);
+        errorText = 'Could not read error response';
+      }
+      throw new Error(`Together.AI API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
