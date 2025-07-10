@@ -219,12 +219,12 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
       let jsonContent = generatedContent;
       
       // Method 1: Extract from markdown code blocks
-      const jsonMatch = generatedContent.match(/```(?:json)?\n?([\s\S]*?)\n?```/);
+      const jsonMatch = generatedContent.match(/```(?:json)?\s*\n?([\s\S]*?)\n?\s*```/);
       if (jsonMatch) {
         console.log('Found JSON in markdown block');
-        jsonContent = jsonMatch[1];
+        jsonContent = jsonMatch[1].trim();
       } else {
-        // Method 2: Look for JSON object starting with {
+        // Method 2: Look for JSON object starting with { and ending with }
         const objMatch = generatedContent.match(/\{[\s\S]*\}/);
         if (objMatch) {
           console.log('Found JSON object in response');
@@ -232,37 +232,92 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
         }
       }
       
-      console.log('Parsing JSON content:', jsonContent.substring(0, 200));
+      // Clean up the JSON content
+      jsonContent = jsonContent.trim();
+      
+      console.log('Parsing JSON content (first 300 chars):', jsonContent.substring(0, 300));
       parsedBeats = JSON.parse(jsonContent);
       
-      // Validate the structure and count
+      // Validate the structure
       if (!parsedBeats.beats || !Array.isArray(parsedBeats.beats)) {
         throw new Error('Invalid response structure: missing beats array');
       }
       
-      if (parsedBeats.beats.length !== 40) {
-        console.log(`AI generated ${parsedBeats.beats.length} beats instead of 40, using fallback`);
-        throw new Error(`Expected 40 beats but got ${parsedBeats.beats.length}`);
+      // Be more flexible with beat count - accept 35-45 beats
+      if (parsedBeats.beats.length < 35 || parsedBeats.beats.length > 45) {
+        console.log(`AI generated ${parsedBeats.beats.length} beats, adjusting to 40`);
+        
+        // If too few beats, pad with template beats
+        if (parsedBeats.beats.length < 40) {
+          const additionalBeatsNeeded = 40 - parsedBeats.beats.length;
+          for (let i = 0; i < additionalBeatsNeeded; i++) {
+            const templateIndex = (parsedBeats.beats.length + i) % beatTemplates.length;
+            const template = beatTemplates[templateIndex];
+            parsedBeats.beats.push({
+              id: parsedBeats.beats.length + i + 1,
+              title: `Additional Beat ${parsedBeats.beats.length + i + 1}`,
+              type: template.type || 'Development',
+              summary: `Story development continues - ${template.function || 'Plot advancement'}`,
+              alternatives: []
+            });
+          }
+        }
+        
+        // If too many beats, trim to 40
+        if (parsedBeats.beats.length > 40) {
+          parsedBeats.beats = parsedBeats.beats.slice(0, 40);
+        }
       }
       
-      console.log('Successfully parsed', parsedBeats.beats.length, 'beats');
+      console.log('Successfully parsed and validated', parsedBeats.beats.length, 'beats');
       
     } catch (parseError) {
       console.error('Failed to parse JSON response:', parseError);
-      console.error('Raw response:', generatedContent);
+      console.error('Raw response (first 1000 chars):', generatedContent.substring(0, 1000));
       
-      // Create a fallback response using the beat templates
-      console.log('Creating fallback response...');
-      const fallbackBeats = beatTemplates.map((template, index) => ({
-        id: template.id,
-        title: template.title || `Beat ${template.id}`,
-        type: template.type || 'Unknown',
-        summary: `${template.function || 'Story development'} - Generated for ${genre} story`,
-        alternatives: []
-      }));
+      // More intelligent fallback: try to extract story beats from text
+      console.log('Attempting text-based extraction...');
+      const lines = generatedContent.split('\n');
+      const extractedBeats = [];
       
-      parsedBeats = { beats: fallbackBeats };
-      console.log('Created fallback with', fallbackBeats.length, 'beats');
+      for (const line of lines) {
+        // Look for numbered beats like "1. " or "Beat 1:" or similar
+        const beatMatch = line.match(/(?:^|\s)(?:Beat\s*)?(\d+)[\.\:\-\s]+(.+)/i);
+        if (beatMatch && beatMatch[1] && beatMatch[2]) {
+          const beatNumber = parseInt(beatMatch[1]);
+          const beatText = beatMatch[2].trim();
+          
+          if (beatNumber >= 1 && beatNumber <= 50 && beatText.length > 10) {
+            extractedBeats.push({
+              id: beatNumber,
+              title: `Beat ${beatNumber}`,
+              type: beatNumber <= 10 ? 'Setup' : beatNumber <= 30 ? 'Conflict' : 'Resolution',
+              summary: beatText,
+              alternatives: []
+            });
+          }
+        }
+      }
+      
+      if (extractedBeats.length >= 20) {
+        console.log(`Extracted ${extractedBeats.length} beats from text`);
+        // Sort by beat number and take first 40
+        extractedBeats.sort((a, b) => a.id - b.id);
+        parsedBeats = { beats: extractedBeats.slice(0, 40) };
+      } else {
+        // Last resort: use template beats but with story context
+        console.log('Creating story-contextualized template beats...');
+        const storyContextBeats = beatTemplates.map((template, index) => ({
+          id: template.id,
+          title: template.title || `Beat ${template.id}`,
+          type: template.type || 'Unknown',
+          summary: `${template.function || 'Story development'} - Applied to: ${logline.substring(0, 100)}...`,
+          alternatives: []
+        }));
+        
+        parsedBeats = { beats: storyContextBeats };
+        console.log('Created story-contextualized template beats with', storyContextBeats.length, 'beats');
+      }
     }
 
     return new Response(JSON.stringify({ 
