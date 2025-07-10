@@ -65,11 +65,16 @@ export function usePlannerWriterGeneration() {
     setPlanningProgress(25);
 
     try {
-      console.log('Calling story-planner function with:', input);
+      console.log('=== PLANNER DEBUG: Starting generateStoryPlan ===');
+      console.log('Input received:', JSON.stringify(input, null, 2));
       
       const { data, error } = await supabase.functions.invoke('story-planner', {
         body: input
       });
+
+      console.log('=== PLANNER DEBUG: Raw response received ===');
+      console.log('Error:', error);
+      console.log('Data:', JSON.stringify(data, null, 2));
 
       setPlanningProgress(75);
 
@@ -83,12 +88,44 @@ export function usePlannerWriterGeneration() {
         throw new Error(data?.error || 'Planning failed');
       }
 
-      console.log('Story plan generated successfully:', data.plan);
+      console.log('=== PLANNER DEBUG: Validating structure plan ===');
+      const plan = data.plan;
+      
+      // Comprehensive validation
+      if (!plan) {
+        console.error('No plan in response');
+        throw new Error('No plan returned from planner');
+      }
+      
+      if (!plan.structure) {
+        console.error('Plan missing structure property:', plan);
+        throw new Error('Generated plan is missing the structure property');
+      }
+      
+      const requiredActs = ['act_1', 'act_2a', 'act_2b', 'act_3'];
+      for (const actKey of requiredActs) {
+        if (!plan.structure[actKey]) {
+          console.error(`Plan missing ${actKey}:`, plan.structure);
+          throw new Error(`Generated plan is missing ${actKey}`);
+        }
+        if (!plan.structure[actKey].sequences) {
+          console.error(`Act ${actKey} missing sequences:`, plan.structure[actKey]);
+          throw new Error(`Act ${actKey} is missing sequences`);
+        }
+      }
+      
+      console.log('=== PLANNER DEBUG: Structure validation passed ===');
+      console.log('Plan structure keys:', Object.keys(plan.structure));
+      console.log('Story plan generated successfully:', plan);
+      
       setPlanningProgress(100);
-      return data.plan;
+      return plan;
 
     } catch (error) {
-      console.error('Error in generateStoryPlan:', error);
+      console.error('=== PLANNER DEBUG: Error in generateStoryPlan ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       throw error;
     } finally {
       setIsPlanning(false);
@@ -104,34 +141,55 @@ export function usePlannerWriterGeneration() {
     setWritingProgress(0);
 
     try {
-      console.log('generateBeatsFromPlan received structurePlan:', structurePlan);
+      console.log('=== WRITER DEBUG: Starting generateBeatsFromPlan ===');
+      console.log('Structure plan received:', JSON.stringify(structurePlan, null, 2));
       
       // Validate structure plan
       if (!structurePlan || !structurePlan.structure) {
+        console.error('Invalid structure plan - missing structure property');
         throw new Error('Invalid structure plan: missing structure property');
       }
 
+      console.log('=== WRITER DEBUG: Extracting beat slots ===');
+      
       // Extract all beat slots from the structure
       const allBeatSlots: BeatSlot[] = [];
       
-      Object.values(structurePlan.structure).forEach(act => {
+      Object.entries(structurePlan.structure).forEach(([actKey, act]) => {
+        console.log(`Processing act: ${actKey}`, act);
         if (act && act.sequences) {
-          act.sequences.forEach(sequence => {
+          act.sequences.forEach((sequence, seqIndex) => {
+            console.log(`  Processing sequence ${seqIndex}: ${sequence.sequence_name}`, sequence);
             if (sequence && sequence.beat_slots) {
+              console.log(`    Adding ${sequence.beat_slots.length} beat slots`);
               allBeatSlots.push(...sequence.beat_slots);
+            } else {
+              console.warn(`    Sequence missing beat_slots:`, sequence);
             }
           });
+        } else {
+          console.warn(`Act ${actKey} missing sequences:`, act);
         }
       });
 
+      console.log('=== WRITER DEBUG: Beat slots extraction complete ===');
       console.log('Total beat slots to write:', allBeatSlots.length);
+      console.log('Sample beat slots:', allBeatSlots.slice(0, 3));
+
+      if (allBeatSlots.length === 0) {
+        throw new Error('No beat slots found in structure plan');
+      }
 
       const allBeats: GeneratedBeat[] = [];
       const batchSize = 8; // Process beats in smaller batches
       let currentIndex = 0;
 
       while (currentIndex < allBeatSlots.length) {
+        console.log(`=== WRITER DEBUG: Processing batch ${Math.floor(currentIndex / batchSize) + 1} ===`);
         console.log(`Writing beats batch: ${currentIndex + 1}-${Math.min(currentIndex + batchSize, allBeatSlots.length)}`);
+
+        const batchSlots = allBeatSlots.slice(currentIndex, currentIndex + batchSize);
+        console.log('Batch slots:', batchSlots);
 
         const { data, error } = await supabase.functions.invoke('story-writer', {
           body: {
@@ -141,6 +199,10 @@ export function usePlannerWriterGeneration() {
             batchSize
           }
         });
+
+        console.log('=== WRITER DEBUG: Writer response ===');
+        console.log('Error:', error);
+        console.log('Data:', JSON.stringify(data, null, 2));
 
         if (error) {
           console.error('Writer function error:', error);
@@ -153,6 +215,7 @@ export function usePlannerWriterGeneration() {
         }
 
         const newBeats = data.beats || [];
+        console.log(`Generated ${newBeats.length} beats in this batch`);
         allBeats.push(...newBeats);
 
         currentIndex += batchSize;
@@ -170,11 +233,16 @@ export function usePlannerWriterGeneration() {
         }
       }
 
+      console.log('=== WRITER DEBUG: Beat generation complete ===');
+      console.log(`Total beats generated: ${allBeats.length}`);
       setWritingProgress(100);
       return allBeats;
 
     } catch (error) {
-      console.error('Error in generateBeatsFromPlan:', error);
+      console.error('=== WRITER DEBUG: Error in generateBeatsFromPlan ===');
+      console.error('Error type:', error.constructor.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
       throw error;
     } finally {
       setIsWriting(false);
