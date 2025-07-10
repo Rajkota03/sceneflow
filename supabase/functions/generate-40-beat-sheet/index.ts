@@ -75,6 +75,15 @@ serve(async (req) => {
           .limit(1)
       ]);
 
+      console.log('Database query results:', {
+        beatTemplatesCount: beatTemplatesResult.data?.length,
+        conflictsCount: conflictsResult.data?.length,
+        masterplotsCount: masterplotsResult.data?.length,
+        beatTemplatesError: beatTemplatesResult.error,
+        conflictsError: conflictsResult.error,
+        masterplotsError: masterplotsResult.error
+      });
+
       if (beatTemplatesResult.error) {
         console.error('Beat template error:', beatTemplatesResult.error);
         throw new Error(`Failed to fetch beat templates: ${beatTemplatesResult.error.message}`);
