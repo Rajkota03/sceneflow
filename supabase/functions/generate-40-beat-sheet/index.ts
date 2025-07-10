@@ -140,13 +140,13 @@ Characters: ${characters || 'Create character names that fit this story'}
 
 IMPORTANT: You must write exactly 40 beats. Number them 1-40.
 
-Create 40 specific story events that happen in this exact story. Each beat should describe what actually happens to these characters in this story.
+Write ONLY specific story events that happen in this exact story. Each beat should describe what actually happens to these characters.
 
-DO NOT use generic screenplay terms like "Opening Image" or "Theme Stated". Instead, describe the actual events.
+DO NOT include any template language, screenplay theory, or generic terms. NO phrases like "Visual tone-setter", "Protagonist alone", "Theme stated", "Opening image", etc.
 
-Examples of what I want:
+Write ONLY what actually happens in the story. Examples of correct format:
 - "Tony finds the old treasure map in his grandmother's attic"
-- "The friends argue about whether to trust Tony's crazy plan"
+- "The friends argue about whether to trust Tony's crazy plan" 
 - "They sneak into the abandoned mine at midnight"
 
 Return JSON with exactly 40 beats like this:
@@ -156,7 +156,7 @@ Return JSON with exactly 40 beats like this:
   ...continue to beat 40...
 ]}
 
-CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC STORY with these characters and this plot.`;
+CRITICAL: Write ONLY story events, NO template descriptions. Must return exactly 40 beats numbered 1-40.`;
 
     console.log('Sending request to Together.ai for 40-beat generation');
 
