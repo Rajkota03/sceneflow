@@ -115,10 +115,12 @@ serve(async (req) => {
       const conflictInspiration = selectedConflict.description || '';
 
       // Build story-specific prompt focusing on actual events, not templates
-      const prompt = `Write a 40-beat story progression for this specific story: "${logline}"
+      const prompt = `Write exactly 40 story beats for this specific story: "${logline}"
 
 Genre: ${genre}
 Characters: ${characters || 'Create character names that fit this story'}
+
+IMPORTANT: You must write exactly 40 beats. Number them 1-40.
 
 Create 40 specific story events that happen in this exact story. Each beat should describe what actually happens to these characters in this story.
 
@@ -129,13 +131,14 @@ Examples of what I want:
 - "The friends argue about whether to trust Tony's crazy plan"
 - "They sneak into the abandoned mine at midnight"
 
-Return JSON with 40 beats like this:
+Return JSON with exactly 40 beats like this:
 {"beats": [
   {"id": 1, "title": "Tony discovers the map", "type": "Setup", "summary": "Tony finds his grandfather's old treasure map while cleaning out the attic, showing it marks a location near their town", "alternatives": []},
-  {"id": 2, "title": "Friends are skeptical", "type": "Setup", "summary": "Tony shows the map to his friends who think it's probably fake, but agree to research it online", "alternatives": []}
+  {"id": 2, "title": "Friends are skeptical", "type": "Setup", "summary": "Tony shows the map to his friends who think it's probably fake, but agree to research it online", "alternatives": []},
+  ...continue to beat 40...
 ]}
 
-Write about THIS SPECIFIC STORY with these characters and this plot. Make each beat a real event that happens.`;
+CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC STORY with these characters and this plot.`;
 
       console.log('Sending request to Together.ai for 40-beat generation');
 
@@ -162,7 +165,7 @@ Write about THIS SPECIFIC STORY with these characters and this plot. Make each b
               content: prompt
             }
           ],
-          max_tokens: 2000,
+          max_tokens: 4000, // Increased token limit for 40 beats
           temperature: 0.6
         }),
       });
@@ -221,9 +224,14 @@ Write about THIS SPECIFIC STORY with these characters and this plot. Make each b
         console.log('Parsing JSON content:', jsonContent.substring(0, 200));
         parsedBeats = JSON.parse(jsonContent);
         
-        // Validate the structure
+        // Validate the structure and count
         if (!parsedBeats.beats || !Array.isArray(parsedBeats.beats)) {
           throw new Error('Invalid response structure: missing beats array');
+        }
+        
+        if (parsedBeats.beats.length !== 40) {
+          console.log(`AI generated ${parsedBeats.beats.length} beats instead of 40, using fallback`);
+          throw new Error(`Expected 40 beats but got ${parsedBeats.beats.length}`);
         }
         
         console.log('Successfully parsed', parsedBeats.beats.length, 'beats');
