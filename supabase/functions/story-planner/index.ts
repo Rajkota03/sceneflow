@@ -167,9 +167,25 @@ Analyze this concept and create a comprehensive structural plan that will guide 
     // Try to parse the JSON response
     let structurePlan;
     try {
-      structurePlan = JSON.parse(planContent);
+      // Sometimes the AI response includes markdown code blocks, so let's clean it
+      let cleanContent = planContent;
+      if (cleanContent.includes('```json')) {
+        cleanContent = cleanContent.split('```json')[1].split('```')[0].trim();
+      } else if (cleanContent.includes('```')) {
+        cleanContent = cleanContent.split('```')[1].split('```')[0].trim();
+      }
+      
+      structurePlan = JSON.parse(cleanContent);
+      
+      // Validate that we have the required structure
+      if (!structurePlan.structure) {
+        console.error('Generated plan missing structure property:', structurePlan);
+        throw new Error('Generated plan is missing the structure property');
+      }
+      
     } catch (parseError) {
       console.error('Failed to parse JSON response:', parseError);
+      console.error('Raw content:', planContent);
       // If JSON parsing fails, return the raw content with error indication
       structurePlan = {
         error: 'Failed to parse structured response',
