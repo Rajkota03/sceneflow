@@ -19,9 +19,9 @@ serve(async (req) => {
     
     const { genre, logline, characters, model = 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo' } = requestBody;
     
-    // Use faster model if not specified
-    const optimizedModel = model.includes('70B') ? 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo' : model;
-    console.log('Request params:', { genre, logline, characters, optimizedModel });
+    // Use the model as specified by user - no auto-downgrade
+    const chosenModel = model || 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo';
+    console.log('Request params:', { genre, logline, characters, chosenModel });
 
     if (!genre || !logline) {
       console.log('Missing required parameters');
@@ -151,7 +151,7 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: optimizedModel,
+        model: chosenModel,
         messages: [
           {
             role: 'system',
@@ -162,7 +162,7 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
             content: prompt
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 9000,
         temperature: 0.6
       }),
     });
@@ -243,30 +243,9 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
         throw new Error('Invalid response structure: missing beats array');
       }
       
-      // Be more flexible with beat count - accept 35-45 beats
-      if (parsedBeats.beats.length < 35 || parsedBeats.beats.length > 45) {
-        console.log(`AI generated ${parsedBeats.beats.length} beats, adjusting to 40`);
-        
-        // If too few beats, pad with template beats
-        if (parsedBeats.beats.length < 40) {
-          const additionalBeatsNeeded = 40 - parsedBeats.beats.length;
-          for (let i = 0; i < additionalBeatsNeeded; i++) {
-            const templateIndex = (parsedBeats.beats.length + i) % beatTemplates.length;
-            const template = beatTemplates[templateIndex];
-            parsedBeats.beats.push({
-              id: parsedBeats.beats.length + i + 1,
-              title: `Additional Beat ${parsedBeats.beats.length + i + 1}`,
-              type: template.type || 'Development',
-              summary: `Story development continues - ${template.function || 'Plot advancement'}`,
-              alternatives: []
-            });
-          }
-        }
-        
-        // If too many beats, trim to 40
-        if (parsedBeats.beats.length > 40) {
-          parsedBeats.beats = parsedBeats.beats.slice(0, 40);
-        }
+      // Strict validation - require exactly 40 beats
+      if (parsedBeats.beats.length !== 40) {
+        throw new Error(`LLM returned fewer than 40 beats - got ${parsedBeats.beats.length}`);
       }
       
       console.log('Successfully parsed and validated', parsedBeats.beats.length, 'beats');
@@ -336,13 +315,33 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
     console.error('Error in generate-40-beat-sheet function:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
+    
+    // Map technical errors to user-friendly messages
+    const friendlyMessage = mapFriendlyError(error.message);
+    
     return new Response(JSON.stringify({ 
       success: false, 
-      error: error.message,
+      error: friendlyMessage,
       stack: error.stack 
     }), {
-      status: 500,
+      status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
+
+function mapFriendlyError(errorMessage) {
+  if (errorMessage.includes('fewer than 40')) {
+    return 'AI stopped early; please click Generate again.';
+  }
+  if (errorMessage.includes('4096') || errorMessage.includes('token')) {
+    return 'Token limit hit—choose a larger model or simplify inputs.';
+  }
+  if (errorMessage.includes('Together AI API error') || errorMessage.includes('Together error')) {
+    return 'Model service is busy—retry in a few seconds.';
+  }
+  if (errorMessage.includes('INSUFFICIENT_CREDITS')) {
+    return 'You don\'t have enough credits to complete this request.';
+  }
+  return 'Unexpected error—please regenerate or contact support.';
+}
