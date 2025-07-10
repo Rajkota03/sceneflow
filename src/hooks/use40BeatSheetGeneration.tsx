@@ -67,11 +67,21 @@ export const use40BeatSheetGeneration = () => {
       }
     } catch (error) {
       console.error('Error generating 40-beat sheet:', error);
-      toast({
-        title: "Error",
-        description: `Failed to generate 40-beat sheet: ${error.message}`,
-        variant: "destructive"
-      });
+      
+      // Check for insufficient credits error
+      if (error.message?.includes('INSUFFICIENT_CREDITS:')) {
+        toast({
+          title: "Insufficient Credits",
+          description: "You don't have enough credits to complete this request. Please check your billing settings.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: `Failed to generate 40-beat sheet: ${error.message}`,
+          variant: "destructive"
+        });
+      }
       return null;
     } finally {
       setIsGenerating(false);

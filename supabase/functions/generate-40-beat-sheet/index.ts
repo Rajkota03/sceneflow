@@ -193,13 +193,29 @@ Return JSON with exactly 40 beats like this:
             errorText: errorText.substring(0, 500)
           });
           
+          // Parse error response to check for specific error types
+          let errorData;
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            errorData = { error: { message: errorText } };
+          }
+          
           // Handle specific error types
           if (response.status === 429) {
             throw new Error('API rate limit exceeded. Please try again in a few minutes.');
+          } else if (response.status === 402 || 
+                     (errorData.error && (
+                       errorData.error.message?.toLowerCase().includes('insufficient') ||
+                       errorData.error.message?.toLowerCase().includes('credits') ||
+                       errorData.error.message?.toLowerCase().includes('quota') ||
+                       errorData.error.message?.toLowerCase().includes('billing')
+                     ))) {
+            throw new Error('INSUFFICIENT_CREDITS: You don\'t have enough credits to complete this request.');
           } else if (response.status >= 500) {
             throw new Error('Together AI service temporarily unavailable. Please try again.');
           } else {
-            throw new Error(`Together AI API error (${response.status}): ${response.statusText}`);
+            throw new Error(`Together AI API error (${response.status}): ${errorData.error?.message || response.statusText}`);
           }
         }
 
