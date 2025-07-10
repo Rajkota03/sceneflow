@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const togetherApiKey = Deno.env.get('TOGETHER_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -149,14 +149,14 @@ Return your response as a JSON array of beat objects:
   }
 ]`;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${togetherApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: WRITER_PROMPT },
@@ -168,7 +168,7 @@ Return your response as a JSON array of beat objects:
     });
 
     if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      throw new Error(`Together.AI API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
