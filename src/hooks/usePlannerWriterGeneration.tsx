@@ -83,6 +83,7 @@ export function usePlannerWriterGeneration() {
         throw new Error(data?.error || 'Planning failed');
       }
 
+      console.log('Story plan generated successfully:', data.plan);
       setPlanningProgress(100);
       return data.plan;
 
@@ -103,13 +104,24 @@ export function usePlannerWriterGeneration() {
     setWritingProgress(0);
 
     try {
+      console.log('generateBeatsFromPlan received structurePlan:', structurePlan);
+      
+      // Validate structure plan
+      if (!structurePlan || !structurePlan.structure) {
+        throw new Error('Invalid structure plan: missing structure property');
+      }
+
       // Extract all beat slots from the structure
       const allBeatSlots: BeatSlot[] = [];
       
       Object.values(structurePlan.structure).forEach(act => {
-        act.sequences.forEach(sequence => {
-          allBeatSlots.push(...sequence.beat_slots);
-        });
+        if (act && act.sequences) {
+          act.sequences.forEach(sequence => {
+            if (sequence && sequence.beat_slots) {
+              allBeatSlots.push(...sequence.beat_slots);
+            }
+          });
+        }
       });
 
       console.log('Total beat slots to write:', allBeatSlots.length);
