@@ -23,7 +23,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit2, Check, X } from 'lucide-react';
+import { Edit2, Check, X, Sparkles, Plus } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface Beat40 {
@@ -169,12 +170,37 @@ function SortableBeatCard({ beat, onClick, onEdit }: SortableBeatCardProps) {
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Badge 
-                    variant="secondary" 
-                    className={cn("text-xs", getTypeColor(beat.type))}
-                  >
-                    {beat.type}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant="secondary" 
+                      className={cn("text-xs", getTypeColor(beat.type))}
+                    >
+                      {beat.type}
+                    </Badge>
+                    {beat.alternatives?.length > 0 ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Sparkles className="h-3 w-3 text-emerald-500" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{beat.alternatives.length} alternatives available</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Plus className="h-3 w-3 text-muted-foreground opacity-50 group-hover:text-primary group-hover:opacity-100 transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Click to generate alternatives</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
                   <span className="text-xs text-muted-foreground">#{beat.id}</span>
                 </div>
                 <h3 className="font-semibold text-sm leading-tight">{beat.title}</h3>
@@ -182,9 +208,13 @@ function SortableBeatCard({ beat, onClick, onEdit }: SortableBeatCardProps) {
               <p className="text-xs text-muted-foreground line-clamp-3">
                 {beat.summary}
               </p>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{beat.alternatives?.length || 0} alternatives</span>
-                <span className="text-xs opacity-50 group-hover:opacity-100">Click for alternatives</span>
+              <div className="flex items-center justify-between text-xs">
+                <span className={beat.alternatives?.length > 0 ? "text-emerald-600 font-medium" : "text-muted-foreground"}>
+                  {beat.alternatives?.length > 0 ? `${beat.alternatives.length} alternatives` : "No alternatives"}
+                </span>
+                <span className="text-xs opacity-50 group-hover:opacity-100 text-muted-foreground">
+                  {beat.alternatives?.length > 0 ? "Click to explore" : "Click to generate"}
+                </span>
               </div>
             </div>
           )}

@@ -14,6 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { use40BeatSheetGeneration } from '@/hooks/use40BeatSheetGeneration';
 import { useDownstreamRegeneration } from '@/hooks/useDownstreamRegeneration';
+import { useAutoGenerateAlternatives } from '@/hooks/useAutoGenerateAlternatives';
 import { BeatGrid } from '@/components/beat-board/BeatGrid';
 import { BeatAlternativesDrawer } from '@/components/beat-board/BeatAlternativesDrawer';
 import { supabase } from '@/integrations/supabase/client';
@@ -50,6 +51,7 @@ export default function BeatBoard() {
   
   const { generate40BeatSheet, isGenerating } = use40BeatSheetGeneration();
   const { regenerateDownstream, isRegenerating } = useDownstreamRegeneration();
+  const { generateAlternativesForFirstBeats, isGenerating: isAutoGenerating } = useAutoGenerateAlternatives();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -73,11 +75,18 @@ export default function BeatBoard() {
       });
 
       if (result && result.beats) {
-        setBeats(result.beats.beats || []);
+        const generatedBeats = result.beats.beats || [];
+        setBeats(generatedBeats);
         toast({
           title: "Success!",
-          description: `Generated ${result.beats.beats?.length || 0} beats using ${result.masterplotUsed?.story_type}`,
+          description: `Generated ${generatedBeats.length} beats using ${result.masterplotUsed?.story_type}`,
         });
+
+        // Auto-generate alternatives for the first 5 beats
+        if (generatedBeats.length > 0) {
+          const beatsWithAlternatives = await generateAlternativesForFirstBeats(generatedBeats, 5);
+          setBeats(beatsWithAlternatives);
+        }
       }
     } catch (error) {
       console.error('Error generating beats:', error);
@@ -373,12 +382,17 @@ export default function BeatBoard() {
                   <Button 
                     type="submit" 
                     className="w-full" 
-                    disabled={isGenerating}
+                    disabled={isGenerating || isAutoGenerating}
                   >
                     {isGenerating ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
+                        Generating Beats...
+                      </>
+                    ) : isAutoGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Auto-generating Alternatives...
                       </>
                     ) : (
                       <>
@@ -431,7 +445,7 @@ export default function BeatBoard() {
                     <Badge variant="secondary">{beats.length} beats</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Click any beat to view alternatives, or drag to reorder
+                    ✨ First 5 beats include auto-generated alternatives • Click any beat to explore or generate more
                   </p>
                 </div>
               )}
