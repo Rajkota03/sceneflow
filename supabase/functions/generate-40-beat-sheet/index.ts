@@ -132,31 +132,39 @@ serve(async (req) => {
     const selectedConflict = conflicts[0];
     const selectedMasterplot = masterplots[0];
 
-    // Build story-specific prompt
-    const prompt = `Write exactly 40 story beats for this specific story: "${logline}"
+    // Build story-specific prompt with stronger anti-template instructions
+    const prompt = `You are writing a beat sheet for this SPECIFIC story: "${logline}"
 
 Genre: ${genre}
 Characters: ${characters || 'Create character names that fit this story'}
 
-IMPORTANT: You must write exactly 40 beats. Number them 1-40.
+CRITICAL INSTRUCTIONS:
+- Write exactly 40 story beats numbered 1-40
+- Each beat must describe a SPECIFIC EVENT that happens in THIS story
+- Use the actual character names and plot points
+- Write like you're describing scenes from a movie
 
-Write ONLY specific story events that happen in this exact story. Each beat should describe what actually happens to these characters.
+FORBIDDEN WORDS/PHRASES - DO NOT USE ANY OF THESE:
+- "Opening Image" or "Theme Stated" or "Set-Up" or "Catalyst" or "Debate" 
+- "Visual tone-setter" or "Protagonist alone" or "Inciting incident"
+- "Break into 2" or "B-Story" or "Fun and Games" or "Midpoint"
+- "All is Lost" or "Dark Night" or "Break into 3" or "Climax" or "Final Image"
+- Any screenplay terminology or structural terms
+- "Applied to:" or template language
 
-DO NOT include any template language, screenplay theory, or generic terms. NO phrases like "Visual tone-setter", "Protagonist alone", "Theme stated", "Opening image", etc.
+CORRECT FORMAT - Write like this:
+- "Sarah discovers her father's secret journal hidden in the basement"
+- "The group argues about whether to trust the mysterious stranger"
+- "They break into the abandoned warehouse at midnight"
 
-Write ONLY what actually happens in the story. Examples of correct format:
-- "Tony finds the old treasure map in his grandmother's attic"
-- "The friends argue about whether to trust Tony's crazy plan" 
-- "They sneak into the abandoned mine at midnight"
-
-Return JSON with exactly 40 beats like this:
+Return JSON with exactly 40 beats:
 {"beats": [
-  {"id": 1, "title": "Tony discovers the map", "type": "Setup", "summary": "Tony finds his grandfather's old treasure map while cleaning out the attic, showing it marks a location near their town", "alternatives": []},
-  {"id": 2, "title": "Friends are skeptical", "type": "Setup", "summary": "Tony shows the map to his friends who think it's probably fake, but agree to research it online", "alternatives": []},
+  {"id": 1, "title": "Brief event name", "type": "Setup", "summary": "Detailed description of what actually happens in this scene", "alternatives": []},
+  {"id": 2, "title": "Next event name", "type": "Setup", "summary": "Another specific event description", "alternatives": []},
   ...continue to beat 40...
 ]}
 
-CRITICAL: Write ONLY story events, NO template descriptions. Must return exactly 40 beats numbered 1-40.`;
+Remember: Write ACTUAL STORY EVENTS, not template descriptions!`;
 
     console.log('Sending request to Together.ai for 40-beat generation');
 

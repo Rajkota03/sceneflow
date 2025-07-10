@@ -102,6 +102,20 @@ export default function BeatBoard() {
     });
   };
 
+  const handleBeatEdit = (beatId: number, updates: { title?: string; summary?: string }) => {
+    setBeats(prevBeats => 
+      prevBeats.map(beat => 
+        beat.id === beatId 
+          ? { ...beat, ...updates }
+          : beat
+      )
+    );
+    toast({
+      title: "Beat Updated",
+      description: "Beat has been successfully edited.",
+    });
+  };
+
   const handleBeatReplace = (beatId: number, newSummary: string, sourceId?: number) => {
     setBeats(prevBeats => 
       prevBeats.map(beat => 
@@ -441,6 +455,7 @@ export default function BeatBoard() {
                 beats={beats}
                 onBeatClick={handleBeatClick}
                 onReorder={handleBeatReorder}
+                onEdit={handleBeatEdit}
               />
             </CardContent>
           </Card>

@@ -20,6 +20,10 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit2, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Beat40 {
@@ -36,9 +40,13 @@ interface Beat40 {
 interface SortableBeatCardProps {
   beat: Beat40;
   onClick: () => void;
+  onEdit: (beatId: number, updates: { title?: string; summary?: string }) => void;
 }
 
-function SortableBeatCard({ beat, onClick }: SortableBeatCardProps) {
+function SortableBeatCard({ beat, onClick, onEdit }: SortableBeatCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(beat.title);
+  const [editSummary, setEditSummary] = useState(beat.summary);
   const {
     attributes,
     listeners,
@@ -68,6 +76,17 @@ function SortableBeatCard({ beat, onClick }: SortableBeatCardProps) {
     }
   };
 
+  const handleSave = () => {
+    onEdit(beat.id, { title: editTitle, summary: editSummary });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditTitle(beat.title);
+    setEditSummary(beat.summary);
+    setIsEditing(false);
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -81,38 +100,94 @@ function SortableBeatCard({ beat, onClick }: SortableBeatCardProps) {
       <Card 
         className="hover:shadow-md transition-shadow relative group"
       >
-        <div 
-          {...listeners}
-          className="absolute top-2 right-2 w-4 h-4 opacity-30 group-hover:opacity-100 cursor-move z-10"
-        >
-          <div className="w-full h-full bg-muted-foreground rounded-sm"></div>
-        </div>
-        <CardContent 
-          className="p-4 space-y-3 cursor-pointer" 
+        {!isEditing && (
+          <div 
+            {...listeners}
+            className="absolute top-2 right-8 w-4 h-4 opacity-30 group-hover:opacity-100 cursor-move z-10"
+          >
+            <div className="w-full h-full bg-muted-foreground rounded-sm"></div>
+          </div>
+        )}
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 z-20"
           onClick={(e) => {
             e.stopPropagation();
-            onClick();
+            setIsEditing(!isEditing);
           }}
         >
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Badge 
-                variant="secondary" 
-                className={cn("text-xs", getTypeColor(beat.type))}
-              >
-                {beat.type}
-              </Badge>
-              <span className="text-xs text-muted-foreground">#{beat.id}</span>
+          <Edit2 className="h-3 w-3" />
+        </Button>
+
+        <CardContent className="p-4 space-y-3">
+          {isEditing ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Badge 
+                  variant="secondary" 
+                  className={cn("text-xs", getTypeColor(beat.type))}
+                >
+                  {beat.type}
+                </Badge>
+                <span className="text-xs text-muted-foreground">#{beat.id}</span>
+              </div>
+              
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="text-sm font-semibold"
+                placeholder="Beat title..."
+              />
+              
+              <Textarea
+                value={editSummary}
+                onChange={(e) => setEditSummary(e.target.value)}
+                className="text-xs min-h-[60px] resize-none"
+                placeholder="Beat summary..."
+              />
+              
+              <div className="flex gap-2 justify-end">
+                <Button size="sm" variant="outline" onClick={handleCancel}>
+                  <X className="h-3 w-3 mr-1" />
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSave}>
+                  <Check className="h-3 w-3 mr-1" />
+                  Save
+                </Button>
+              </div>
             </div>
-            <h3 className="font-semibold text-sm leading-tight">{beat.title}</h3>
-          </div>
-          <p className="text-xs text-muted-foreground line-clamp-3">
-            {beat.summary}
-          </p>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{beat.alternatives?.length || 0} alternatives</span>
-            <span className="text-xs opacity-50 group-hover:opacity-100">Click for alternatives</span>
-          </div>
+          ) : (
+            <div 
+              className="cursor-pointer" 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick();
+              }}
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge 
+                    variant="secondary" 
+                    className={cn("text-xs", getTypeColor(beat.type))}
+                  >
+                    {beat.type}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">#{beat.id}</span>
+                </div>
+                <h3 className="font-semibold text-sm leading-tight">{beat.title}</h3>
+              </div>
+              <p className="text-xs text-muted-foreground line-clamp-3">
+                {beat.summary}
+              </p>
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{beat.alternatives?.length || 0} alternatives</span>
+                <span className="text-xs opacity-50 group-hover:opacity-100">Click for alternatives</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -123,9 +198,10 @@ interface BeatGridProps {
   beats: Beat40[];
   onBeatClick: (beat: Beat40) => void;
   onReorder: (beats: Beat40[]) => void;
+  onEdit: (beatId: number, updates: { title?: string; summary?: string }) => void;
 }
 
-export function BeatGrid({ beats, onBeatClick, onReorder }: BeatGridProps) {
+export function BeatGrid({ beats, onBeatClick, onReorder, onEdit }: BeatGridProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -169,6 +245,7 @@ export function BeatGrid({ beats, onBeatClick, onReorder }: BeatGridProps) {
               key={beat.id}
               beat={beat}
               onClick={() => onBeatClick(beat)}
+              onEdit={onEdit}
             />
           ))}
         </div>
