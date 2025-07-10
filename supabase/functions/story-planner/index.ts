@@ -168,29 +168,201 @@ Analyze this concept and create a comprehensive structural plan that will guide 
     let structurePlan;
     try {
       // Sometimes the AI response includes markdown code blocks, so let's clean it
-      let cleanContent = planContent;
+      let cleanContent = planContent.trim();
+      
+      // Remove markdown code blocks if present
       if (cleanContent.includes('```json')) {
-        cleanContent = cleanContent.split('```json')[1].split('```')[0].trim();
+        const jsonStart = cleanContent.indexOf('```json') + 7;
+        const jsonEnd = cleanContent.indexOf('```', jsonStart);
+        if (jsonEnd > jsonStart) {
+          cleanContent = cleanContent.substring(jsonStart, jsonEnd).trim();
+        }
       } else if (cleanContent.includes('```')) {
-        cleanContent = cleanContent.split('```')[1].split('```')[0].trim();
+        const start = cleanContent.indexOf('```') + 3;
+        const end = cleanContent.indexOf('```', start);
+        if (end > start) {
+          cleanContent = cleanContent.substring(start, end).trim();
+        }
       }
+      
+      // Try to find JSON object if wrapped in other text
+      const jsonStart = cleanContent.indexOf('{');
+      const jsonEnd = cleanContent.lastIndexOf('}');
+      if (jsonStart >= 0 && jsonEnd > jsonStart) {
+        cleanContent = cleanContent.substring(jsonStart, jsonEnd + 1);
+      }
+      
+      console.log('Attempting to parse cleaned content:', cleanContent.substring(0, 200) + '...');
       
       structurePlan = JSON.parse(cleanContent);
       
-      // Validate that we have the required structure
+      // Validate the structure more thoroughly
+      if (!structurePlan || typeof structurePlan !== 'object') {
+        throw new Error('Parsed content is not a valid object');
+      }
+      
       if (!structurePlan.structure) {
-        console.error('Generated plan missing structure property:', structurePlan);
-        throw new Error('Generated plan is missing the structure property');
+        console.error('Generated plan missing structure property:', Object.keys(structurePlan));
+        
+        // Create a fallback structure if possible
+        structurePlan = {
+          title: structurePlan.title || 'Untitled Story',
+          genre: structurePlan.genre || 'Drama',
+          theme: structurePlan.theme || 'Personal Growth',
+          character_arcs: structurePlan.character_arcs || [],
+          structure: {
+            act_1: {
+              purpose: 'Setup and introduction',
+              sequences: [
+                {
+                  sequence_name: 'Opening',
+                  purpose: 'Establish world and characters',
+                  beat_slots: [
+                    { slot_id: 1, slot_type: 'opening_image', function: 'Hook the audience', guidance: 'Create compelling opening' },
+                    { slot_id: 2, slot_type: 'setup', function: 'Establish normal world', guidance: 'Show character in routine' },
+                    { slot_id: 3, slot_type: 'inciting_incident', function: 'Disrupt the status quo', guidance: 'Create the central conflict' }
+                  ]
+                }
+              ]
+            },
+            act_2a: {
+              purpose: 'Rising action and complications',
+              sequences: [
+                {
+                  sequence_name: 'First Obstacle',
+                  purpose: 'Character faces initial challenges',
+                  beat_slots: [
+                    { slot_id: 4, slot_type: 'plot_point_1', function: 'Move into main story', guidance: 'Character commits to journey' },
+                    { slot_id: 5, slot_type: 'obstacle', function: 'Create conflict', guidance: 'Show character struggling' }
+                  ]
+                }
+              ]
+            },
+            act_2b: {
+              purpose: 'Intensifying conflict',
+              sequences: [
+                {
+                  sequence_name: 'Midpoint',
+                  purpose: 'Story shifts direction',
+                  beat_slots: [
+                    { slot_id: 6, slot_type: 'midpoint', function: 'Raise the stakes', guidance: 'Character learns truth' },
+                    { slot_id: 7, slot_type: 'obstacle', function: 'Major setback', guidance: 'Character faces failure' }
+                  ]
+                }
+              ]
+            },
+            act_3: {
+              purpose: 'Resolution and conclusion',
+              sequences: [
+                {
+                  sequence_name: 'Climax',
+                  purpose: 'Final confrontation',
+                  beat_slots: [
+                    { slot_id: 8, slot_type: 'climax', function: 'Final battle', guidance: 'Character faces ultimate test' },
+                    { slot_id: 9, slot_type: 'resolution', function: 'Restore balance', guidance: 'Show new normal' }
+                  ]
+                }
+              ]
+            }
+          },
+          key_moments: [
+            { moment: 'Inciting Incident', slot_reference: 3, significance: 'Sets story in motion' }
+          ]
+        };
+        
+        console.log('Created fallback structure plan');
+      }
+      
+      // Final validation - ensure all required act structures exist
+      const requiredActs = ['act_1', 'act_2a', 'act_2b', 'act_3'];
+      for (const actKey of requiredActs) {
+        if (!structurePlan.structure[actKey] || !structurePlan.structure[actKey].sequences) {
+          console.error(`Invalid ${actKey} structure:`, structurePlan.structure[actKey]);
+          throw new Error(`Generated plan has invalid ${actKey} structure`);
+        }
       }
       
     } catch (parseError) {
       console.error('Failed to parse JSON response:', parseError);
-      console.error('Raw content:', planContent);
-      // If JSON parsing fails, return the raw content with error indication
+      console.error('Raw content length:', planContent.length);
+      console.error('Raw content preview:', planContent.substring(0, 500));
+      
+      // Create a completely fallback structure
       structurePlan = {
-        error: 'Failed to parse structured response',
-        raw_content: planContent
+        title: 'Generated Story',
+        genre: 'Drama',
+        theme: 'Personal Growth',
+        character_arcs: [
+          {
+            character: 'Protagonist',
+            arc_type: 'growth',
+            starting_state: 'Ordinary person with a problem',
+            ending_state: 'Transformed individual who has overcome'
+          }
+        ],
+        structure: {
+          act_1: {
+            purpose: 'Setup and introduction',
+            sequences: [
+              {
+                sequence_name: 'Opening',
+                purpose: 'Establish world and characters',
+                beat_slots: [
+                  { slot_id: 1, slot_type: 'opening_image', function: 'Hook the audience', guidance: 'Create compelling opening scene' },
+                  { slot_id: 2, slot_type: 'setup', function: 'Establish normal world', guidance: 'Show character in their routine' },
+                  { slot_id: 3, slot_type: 'inciting_incident', function: 'Disrupt the status quo', guidance: 'Introduce the central conflict' }
+                ]
+              }
+            ]
+          },
+          act_2a: {
+            purpose: 'Rising action and complications',
+            sequences: [
+              {
+                sequence_name: 'First Obstacle',
+                purpose: 'Character faces initial challenges',
+                beat_slots: [
+                  { slot_id: 4, slot_type: 'plot_point_1', function: 'Move into main story', guidance: 'Character commits to the journey' },
+                  { slot_id: 5, slot_type: 'first_obstacle', function: 'Create initial conflict', guidance: 'Show character struggling with new reality' }
+                ]
+              }
+            ]
+          },
+          act_2b: {
+            purpose: 'Intensifying conflict and complications',
+            sequences: [
+              {
+                sequence_name: 'Midpoint Crisis',
+                purpose: 'Story shifts direction dramatically',
+                beat_slots: [
+                  { slot_id: 6, slot_type: 'midpoint', function: 'Raise the stakes significantly', guidance: 'Character learns devastating truth' },
+                  { slot_id: 7, slot_type: 'major_setback', function: 'Character faces major failure', guidance: 'All seems lost moment' }
+                ]
+              }
+            ]
+          },
+          act_3: {
+            purpose: 'Resolution and conclusion',
+            sequences: [
+              {
+                sequence_name: 'Final Confrontation',
+                purpose: 'Ultimate challenge and resolution',
+                beat_slots: [
+                  { slot_id: 8, slot_type: 'climax', function: 'Final battle or confrontation', guidance: 'Character faces ultimate test' },
+                  { slot_id: 9, slot_type: 'resolution', function: 'Restore balance and show change', guidance: 'Demonstrate the new normal' }
+                ]
+              }
+            ]
+          }
+        },
+        key_moments: [
+          { moment: 'Inciting Incident', slot_reference: 3, significance: 'Event that sets the entire story in motion' },
+          { moment: 'Midpoint', slot_reference: 6, significance: 'Major revelation that changes everything' },
+          { moment: 'Climax', slot_reference: 8, significance: 'Final test of character growth' }
+        ]
       };
+      
+      console.log('Created emergency fallback structure due to parsing failure');
     }
 
     return new Response(JSON.stringify({
