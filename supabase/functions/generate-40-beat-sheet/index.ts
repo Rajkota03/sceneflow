@@ -7,6 +7,22 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function mapFriendlyError(errorMessage: string): string {
+  if (errorMessage.includes('fewer than 40')) {
+    return 'AI stopped early; please click Generate again.';
+  }
+  if (errorMessage.includes('4096') || errorMessage.includes('token')) {
+    return 'Token limit hit—choose a larger model or simplify inputs.';
+  }
+  if (errorMessage.includes('Together AI API error') || errorMessage.includes('Together error')) {
+    return 'Model service is busy—retry in a few seconds.';
+  }
+  if (errorMessage.includes('INSUFFICIENT_CREDITS')) {
+    return 'You don\'t have enough credits to complete this request.';
+  }
+  return 'Unexpected error—please regenerate or contact support.';
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -329,19 +345,3 @@ CRITICAL: Must return exactly 40 beats numbered 1-40. Write about THIS SPECIFIC 
     });
   }
 });
-
-function mapFriendlyError(errorMessage) {
-  if (errorMessage.includes('fewer than 40')) {
-    return 'AI stopped early; please click Generate again.';
-  }
-  if (errorMessage.includes('4096') || errorMessage.includes('token')) {
-    return 'Token limit hit—choose a larger model or simplify inputs.';
-  }
-  if (errorMessage.includes('Together AI API error') || errorMessage.includes('Together error')) {
-    return 'Model service is busy—retry in a few seconds.';
-  }
-  if (errorMessage.includes('INSUFFICIENT_CREDITS')) {
-    return 'You don\'t have enough credits to complete this request.';
-  }
-  return 'Unexpected error—please regenerate or contact support.';
-}
