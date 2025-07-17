@@ -31,7 +31,7 @@ const ProjectCard = ({ project, onDelete }: ProjectCardProps) => {
               asChild
               className="h-8 w-8"
             >
-              <Link to={`/editor/${project.id}`}>
+              <Link to={`/dashboard/editor/${project.id}`}>
                 <Edit size={16} />
                 <span className="sr-only">Edit</span>
               </Link>
@@ -63,7 +63,7 @@ const ProjectCard = ({ project, onDelete }: ProjectCardProps) => {
       
       <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4">
         <Link 
-          to={`/editor/${project.id}`}
+          to={`/dashboard/editor/${project.id}`}
           className={cn(
             "w-full inline-flex items-center justify-center transition-colors rounded-md py-1.5 px-3 text-sm font-medium",
             "bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground"

@@ -44,7 +44,7 @@ const StructureCard: React.FC<StructureCardProps> = ({ structure, onEdit, onDele
   };
   
   const handleViewClick = () => {
-    navigate(`/structure/${structure.id}`);
+    navigate(`/dashboard/structure/${structure.id}`);
   };
   
   const handleDeleteConfirm = async () => {

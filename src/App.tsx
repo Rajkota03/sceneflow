@@ -93,46 +93,6 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path="/editor/:projectId" 
-                element={
-                  <ProtectedRoute>
-                    <Editor />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/structure/:structureId" 
-                element={
-                  <ProtectedRoute>
-                    <StructureEditor />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/profile" 
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/beat-board" 
-                element={
-                  <ProtectedRoute>
-                    <BeatBoard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/scene/:sceneId" 
-                element={
-                  <ProtectedRoute>
-                    <ScenePage />
-                  </ProtectedRoute>
-                } 
-              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Router>
