@@ -3,7 +3,7 @@ import React from 'react';
 import { ScriptContent as ScriptContentType } from '../../lib/types';
 import { useFormat } from '@/lib/formatContext';
 import ScriptEditorProvider from './ScriptEditorProvider';
-import ScriptContent from './ScriptContent';
+import ScreenplayView from '../prosemirror/ScreenplayView';
 import { Note } from '@/lib/types';
 import { BeatMode } from '@/types/scriptTypes';
 
@@ -36,16 +36,6 @@ const ScriptEditor = ({
   beatMode = 'on',
   onToggleBeatMode
 }: ScriptEditorProps) => {
-  const { formatState, setZoomLevel } = useFormat();
-  const zoomPercentage = Math.round(formatState.zoomLevel * 100);
-
-  const handleZoomChange = (value: number[]) => {
-    const newZoomLevel = value[0] / 100;
-    if (setZoomLevel) {
-      setZoomLevel(newZoomLevel);
-    }
-  };
-
   return (
     <ScriptEditorProvider
       initialContent={initialContent}
@@ -53,7 +43,17 @@ const ScriptEditor = ({
       projectId={projectId}
       projectTitle={projectName}
     >
-      <ScriptContent />
+      <ScreenplayView
+        content={initialContent}
+        onChange={onChange}
+        notes={notes}
+        onNoteCreate={onNoteCreate}
+        className={className}
+        projectName={projectName}
+        structureName={structureName}
+        projectId={projectId}
+        beatMode={beatMode}
+      />
     </ScriptEditorProvider>
   );
 };
