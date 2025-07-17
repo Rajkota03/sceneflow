@@ -377,9 +377,13 @@ textarea.auto-resize {
 }
 
 /* Fix for reversed text input */
-[contenteditable="true"] {
-  direction: ltr;
-  unicode-bidi: plaintext;
+[contenteditable="true"],
+.ProseMirror,
+.prosemirror-editor,
+.prosemirror-screenplay {
+  direction: ltr !important;
+  unicode-bidi: plaintext !important;
+  text-align: left !important;
 }
 
 /* Keyboard shortcut information */
